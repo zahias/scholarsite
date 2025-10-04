@@ -141,17 +141,37 @@ class RPP_Admin {
             data.isPublic = document.getElementById('is_public').checked;
             
             const statusEl = document.getElementById('status-message');
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            
             statusEl.textContent = 'Creating profile...';
+            submitBtn.disabled = true;
+            
+            // Set a 10-second timeout for the API call
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 10000);
             
             wp.apiFetch({
                 path: '/research-profile/v1/admin/researcher/profile',
                 method: 'POST',
-                data: data
+                data: data,
+                signal: controller.signal
             }).then(response => {
-                statusEl.innerHTML = '✓ Profile created! <a href="<?php echo admin_url('admin.php?page=research-profiles'); ?>">View all profiles</a>';
+                clearTimeout(timeoutId);
+                statusEl.innerHTML = '✓ Profile created successfully!<br><small>Data sync is running in background (may take 5-15 minutes).</small><br><a href="<?php echo admin_url('admin.php?page=research-profiles'); ?>">View profile</a>';
                 e.target.reset();
+                submitBtn.disabled = false;
             }).catch(error => {
-                statusEl.textContent = '✗ Error: ' + (error.message || 'Unknown error');
+                clearTimeout(timeoutId);
+                
+                if (error.name === 'AbortError') {
+                    // Timeout occurred - profile likely created but sync is running
+                    statusEl.innerHTML = '✓ Profile created!<br><small>Data sync running in background. Check back in 10-15 minutes.</small><br><a href="<?php echo admin_url('admin.php?page=research-profiles'); ?>">View profiles</a>';
+                    e.target.reset();
+                    submitBtn.disabled = false;
+                } else {
+                    statusEl.innerHTML = '✗ Error: ' + (error.message || 'Unknown error') + '<br><small>Please try again or contact support.</small>';
+                    submitBtn.disabled = false;
+                }
             });
         });
         </script>

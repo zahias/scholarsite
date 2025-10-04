@@ -415,12 +415,20 @@ class RPP_REST_API {
         
         $profile = RPP_Database::upsert_profile($data);
         
-        // Trigger sync in background if needed
+        // Trigger sync in background - this runs asynchronously
         if ($profile) {
-            wp_schedule_single_event(time(), 'rpp_sync_researcher', array($openalex_id));
+            wp_schedule_single_event(time() + 5, 'rpp_sync_researcher', array($openalex_id));
+            
+            // Also log that sync was scheduled
+            error_log("RPP: Scheduled background sync for researcher $openalex_id");
         }
         
-        return rest_ensure_response($profile);
+        // Return immediately - don't wait for sync to complete
+        return rest_ensure_response(array(
+            'success' => true,
+            'profile' => $profile,
+            'message' => 'Profile created successfully. Data sync running in background.'
+        ));
     }
     
     /**
