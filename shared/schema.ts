@@ -49,6 +49,7 @@ export const researcherProfiles = pgTable("researcher_profiles", {
   currentPosition: text("current_position"),
   currentAffiliationUrl: varchar("current_affiliation_url"),
   currentAffiliationStartDate: date("current_affiliation_start_date"),
+  email: varchar("email"), // Contact email for the researcher
   isPublic: boolean("is_public").default(true),
   lastSyncedAt: timestamp("last_synced_at"),
   createdAt: timestamp("created_at").defaultNow(),
@@ -90,6 +91,8 @@ export const publications = pgTable("publications", {
   topics: jsonb("topics"), // array of topic tags
   doi: varchar("doi"),
   isOpenAccess: boolean("is_open_access").default(false),
+  publicationType: varchar("publication_type"), // article, book-chapter, etc.
+  isReviewArticle: boolean("is_review_article").default(false),
 });
 
 // Affiliations cache
@@ -122,6 +125,17 @@ export type Publication = typeof publications.$inferSelect;
 
 export type InsertAffiliation = typeof affiliations.$inferInsert;
 export type Affiliation = typeof affiliations.$inferSelect;
+
+// Site settings table for theme and configuration
+export const siteSettings = pgTable("site_settings", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  settingKey: varchar("setting_key").unique().notNull(), // e.g., 'theme', 'contact_email', 'platform_name'
+  settingValue: text("setting_value").notNull(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export type InsertSiteSetting = typeof siteSettings.$inferInsert;
+export type SiteSetting = typeof siteSettings.$inferSelect;
 
 export const insertResearcherProfileSchema = createInsertSchema(researcherProfiles).omit({
   id: true,

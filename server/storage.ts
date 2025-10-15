@@ -5,6 +5,7 @@ import {
   researchTopics,
   publications,
   affiliations,
+  siteSettings,
   type User,
   type UpsertUser,
   type ResearcherProfile,
@@ -17,6 +18,8 @@ import {
   type InsertPublication,
   type Affiliation,
   type InsertAffiliation,
+  type SiteSetting,
+  type InsertSiteSetting,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and } from "drizzle-orm";
@@ -48,6 +51,11 @@ export interface IStorage {
   // Affiliations operations
   getAffiliations(openalexId: string): Promise<Affiliation[]>;
   upsertAffiliations(affiliations: InsertAffiliation[]): Promise<void>;
+  
+  // Site settings operations
+  getSetting(key: string): Promise<SiteSetting | undefined>;
+  getAllSettings(): Promise<SiteSetting[]>;
+  upsertSetting(key: string, value: string): Promise<SiteSetting>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -212,6 +220,34 @@ export class DatabaseStorage implements IStorage {
     
     // Insert new affiliations
     await db.insert(affiliations).values(affs);
+  }
+
+  // Site settings operations
+  async getSetting(key: string): Promise<SiteSetting | undefined> {
+    const [setting] = await db
+      .select()
+      .from(siteSettings)
+      .where(eq(siteSettings.settingKey, key));
+    return setting;
+  }
+
+  async getAllSettings(): Promise<SiteSetting[]> {
+    return await db.select().from(siteSettings);
+  }
+
+  async upsertSetting(key: string, value: string): Promise<SiteSetting> {
+    const [setting] = await db
+      .insert(siteSettings)
+      .values({ settingKey: key, settingValue: value })
+      .onConflictDoUpdate({
+        target: siteSettings.settingKey,
+        set: {
+          settingValue: value,
+          updatedAt: new Date(),
+        },
+      })
+      .returning();
+    return setting;
   }
 }
 

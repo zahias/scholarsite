@@ -64,6 +64,7 @@ interface OpenAlexWork {
   publication_year?: number;
   cited_by_count: number;
   doi?: string;
+  type?: string; // article, review, book-chapter, etc.
   open_access?: {
     is_oa: boolean;
   };
@@ -136,7 +137,7 @@ export class OpenAlexService {
       try {
         researcher = await this.getResearcher(openalexId);
       } catch (error) {
-        if (error.message.includes('404')) {
+        if (error instanceof Error && error.message.includes('404')) {
           console.log(`OpenAlex researcher ${openalexId} not found (404) - skipping sync`);
           return; // Exit gracefully, don't fail profile creation
         }
@@ -189,7 +190,7 @@ export class OpenAlexService {
       try {
         worksResponse = await this.getResearcherWorks(openalexId);
       } catch (error) {
-        if (error.message.includes('404')) {
+        if (error instanceof Error && error.message.includes('404')) {
           console.log(`OpenAlex works for ${openalexId} not found (404) - skipping works sync`);
           return;
         }
@@ -208,6 +209,8 @@ export class OpenAlexService {
           topics: work.topics ? work.topics.map(t => t.display_name) : null,
           doi: work.doi || null,
           isOpenAccess: work.open_access?.is_oa || false,
+          publicationType: work.type || null,
+          isReviewArticle: work.type === 'review',
         }));
         
         await storage.upsertPublications(publications);

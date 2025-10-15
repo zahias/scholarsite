@@ -873,6 +873,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get all site settings (public)
+  app.get('/api/settings', async (req, res) => {
+    try {
+      const settings = await storage.getAllSettings();
+      const settingsMap = settings.reduce((acc, setting) => {
+        acc[setting.settingKey] = setting.settingValue;
+        return acc;
+      }, {} as Record<string, string>);
+      res.json(settingsMap);
+    } catch (error) {
+      console.error('Error fetching settings:', error);
+      res.status(500).json({ message: 'Failed to fetch settings' });
+    }
+  });
+
+  // Update site settings (ADMIN ONLY)
+  app.put('/api/admin/settings', adminRateLimit, adminSessionAuthMiddleware, async (req, res) => {
+    try {
+      const settings = req.body;
+      
+      for (const [key, value] of Object.entries(settings)) {
+        if (typeof value === 'string') {
+          await storage.upsertSetting(key, value);
+        }
+      }
+      
+      res.json({ message: 'Settings updated successfully' });
+    } catch (error) {
+      console.error('Error updating settings:', error);
+      res.status(500).json({ message: 'Failed to update settings' });
+    }
+  });
+
   // Admin web interface (ADMIN ONLY)
   app.get('/admin', adminRateLimit, adminSessionAuthMiddleware, async (req, res) => {
     // Check if user is authenticated
@@ -1038,6 +1071,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
                                     <input type="text" id="currentPosition" name="currentPosition" 
                                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                                            placeholder="Senior Research Scientist">
+                                </div>
+                                
+                                <div>
+                                    <label for="email" class="block text-sm font-medium text-gray-700 mb-2">Contact Email</label>
+                                    <input type="email" id="email" name="email" 
+                                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                           placeholder="researcher@university.edu">
+                                    <p class="text-xs text-gray-500 mt-1">For "Get in Touch" button</p>
                                 </div>
                             </div>
                             

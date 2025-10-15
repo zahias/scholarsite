@@ -286,69 +286,6 @@ export default function PublicationAnalytics({ openalexId, researcherData: propR
           <p className="text-muted-foreground max-w-2xl mx-auto mb-8">
             Comprehensive insights into research output and impact patterns over time.
           </p>
-          
-          {/* Key Metrics Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 max-w-6xl mx-auto">
-            <Card className="border-l-4 border-l-primary">
-              <CardContent className="p-6 text-center">
-                <div className="text-3xl font-bold text-primary mb-2">
-                  {chartData.mostProductiveYear.count}
-                </div>
-                <div className="text-sm text-muted-foreground font-medium">Most Productive Year</div>
-                <div className="text-xs text-muted-foreground mt-1">
-                  {chartData.mostProductiveYear.year || 'N/A'}
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="border-l-4 border-l-accent">
-              <CardContent className="p-6 text-center">
-                <div className="text-3xl font-bold text-accent mb-2">
-                  {chartData.highestCitationYear.count}
-                </div>
-                <div className="text-sm text-muted-foreground font-medium">Highest Citation Year</div>
-                <div className="text-xs text-muted-foreground mt-1">
-                  {chartData.highestCitationYear.year || 'N/A'}
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="border-l-4 border-l-primary">
-              <CardContent className="p-6 text-center">
-                <div className="text-3xl font-bold text-primary mb-2">
-                  {chartData.researchAreasCount}
-                </div>
-                <div className="text-sm text-muted-foreground font-medium">Research Areas</div>
-                <div className="text-xs text-muted-foreground mt-1">
-                  Distinct topics
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="border-l-4 border-l-accent">
-              <CardContent className="p-6 text-center">
-                <div className="text-3xl font-bold text-accent mb-2">
-                  {chartData.avgCitations.toFixed(1)}
-                </div>
-                <div className="text-sm text-muted-foreground font-medium">Avg Citations/Paper</div>
-                <div className="text-xs text-muted-foreground mt-1">
-                  Per publication
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="border-l-4 border-l-primary">
-              <CardContent className="p-6 text-center">
-                <div className="text-3xl font-bold text-primary mb-2">
-                  {chartData.yearRange.end - chartData.yearRange.start + 1}
-                </div>
-                <div className="text-sm text-muted-foreground font-medium">Active Years</div>
-                <div className="text-xs text-muted-foreground mt-1">
-                  {chartData.yearRange.start} - {chartData.yearRange.end}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
         </div>
 
         {/* Chart Tabs */}
@@ -525,6 +462,69 @@ export default function PublicationAnalytics({ openalexId, researcherData: propR
             </Card>
           </TabsContent>
         </Tabs>
+
+        {/* Key Metrics Cards - Below Visualizations */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 max-w-6xl mx-auto mt-12">
+          <Card className="border-l-4 border-l-primary">
+            <CardContent className="p-6 text-center">
+              <div className="text-3xl font-bold text-primary mb-2">
+                {chartData.mostProductiveYear.count}
+              </div>
+              <div className="text-sm text-muted-foreground font-medium">Most Productive Year</div>
+              <div className="text-xs text-muted-foreground mt-1">
+                {chartData.mostProductiveYear.year || 'N/A'}
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-l-4 border-l-accent">
+            <CardContent className="p-6 text-center">
+              <div className="text-3xl font-bold text-accent mb-2">
+                {chartData.highestCitationYear.count}
+              </div>
+              <div className="text-sm text-muted-foreground font-medium">Highest Citation Year</div>
+              <div className="text-xs text-muted-foreground mt-1">
+                {chartData.highestCitationYear.year || 'N/A'}
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-l-4 border-l-primary">
+            <CardContent className="p-6 text-center">
+              <div className="text-3xl font-bold text-primary mb-2">
+                {chartData.researchAreasCount}
+              </div>
+              <div className="text-sm text-muted-foreground font-medium">Research Areas</div>
+              <div className="text-xs text-muted-foreground mt-1">
+                Distinct topics
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-l-4 border-l-accent">
+            <CardContent className="p-6 text-center">
+              <div className="text-3xl font-bold text-accent mb-2">
+                {chartData.avgCitations.toFixed(1)}
+              </div>
+              <div className="text-sm text-muted-foreground font-medium">Avg Citations/Paper</div>
+              <div className="text-xs text-muted-foreground mt-1">
+                Per publication
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-l-4 border-l-primary">
+            <CardContent className="p-6 text-center">
+              <div className="text-3xl font-bold text-primary mb-2">
+                {chartData.yearRange.end - chartData.yearRange.start + 1}
+              </div>
+              <div className="text-sm text-muted-foreground font-medium">Active Years</div>
+              <div className="text-xs text-muted-foreground mt-1">
+                {chartData.yearRange.start} - {chartData.yearRange.end}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </section>
   );

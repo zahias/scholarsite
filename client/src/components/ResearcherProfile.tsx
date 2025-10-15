@@ -158,13 +158,19 @@ export default function ResearcherProfile() {
                     Download CV/Resume
                   </a>
                 )}
-                <button className="action-button group bg-gradient-to-r from-accent/20 to-accent/10 backdrop-blur-sm text-white px-8 py-4 rounded-xl hover:from-accent/30 hover:to-accent/20 transition-all duration-300 border border-accent/20 hover:border-accent/40 font-medium">
-                  <svg className="w-5 h-5 mr-3 inline group-hover:scale-110 transition-transform duration-300" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
-                    <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
-                  </svg>
-                  Get In Touch
-                </button>
+                {profile.email && (
+                  <a 
+                    href={`mailto:${profile.email}`}
+                    className="action-button group bg-gradient-to-r from-accent/20 to-accent/10 backdrop-blur-sm text-white px-8 py-4 rounded-xl hover:from-accent/30 hover:to-accent/20 transition-all duration-300 border border-accent/20 hover:border-accent/40 font-medium"
+                    data-testid="link-contact"
+                  >
+                    <svg className="w-5 h-5 mr-3 inline group-hover:scale-110 transition-transform duration-300" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
+                      <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
+                    </svg>
+                    Get In Touch
+                  </a>
+                )}
               </div>
             </div>
           </div>
@@ -182,41 +188,73 @@ export default function ResearcherProfile() {
       <Publications openalexId={openalexId} />
 
       {/* Footer */}
-      <footer className="bg-card border-t border-border py-12">
+      <footer className="bg-gradient-to-br from-card to-muted/20 border-t border-border py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
             <div>
-              <h3 className="font-semibold text-card-foreground mb-4">
-                {profile.displayName || researcher.display_name || 'Research Profile'}
+              <h3 className="text-2xl font-bold text-foreground mb-3">
+                {profile.displayName || researcher.display_name || 'Researcher'}
               </h3>
-              <p className="text-muted-foreground text-sm mb-4">
-                {profile.bio || 'Advancing research with real-world impact.'}
+              <p className="text-muted-foreground text-sm leading-relaxed mb-6 max-w-md">
+                {profile.bio || 'Dedicated to advancing knowledge and making an impact through innovative research.'}
               </p>
+              {profile.lastSyncedAt && (
+                <p className="text-xs text-muted-foreground/70">
+                  Last data sync: {new Date(profile.lastSyncedAt).toLocaleDateString()}
+                </p>
+              )}
             </div>
             
-            <div>
-              <h3 className="font-semibold text-card-foreground mb-4">Quick Links</h3>
-              <ul className="space-y-2 text-sm">
-                <li><a href="#research" className="text-muted-foreground hover:text-accent transition-colors">Research Areas</a></li>
-                <li><a href="#publications" className="text-muted-foreground hover:text-accent transition-colors">Publications</a></li>
-              </ul>
-            </div>
-            
-            <div>
-              <h3 className="font-semibold text-card-foreground mb-4">Data Source</h3>
-              <p className="text-muted-foreground text-sm mb-2">
-                Data automatically synchronized with OpenAlex API
-              </p>
-              <p className="text-muted-foreground text-sm">
-                Last updated: {profile.lastSyncedAt ? new Date(profile.lastSyncedAt).toLocaleDateString() : 'Never'}
-              </p>
+            <div className="grid grid-cols-2 gap-8">
+              <div>
+                <h4 className="font-semibold text-foreground mb-4 text-sm uppercase tracking-wider">Navigate</h4>
+                <ul className="space-y-2.5 text-sm">
+                  <li><a href="#overview" className="text-muted-foreground hover:text-primary transition-colors flex items-center gap-2 group">
+                    <span className="w-1 h-1 rounded-full bg-primary opacity-0 group-hover:opacity-100 transition-opacity"></span>
+                    Overview
+                  </a></li>
+                  <li><a href="#analytics" className="text-muted-foreground hover:text-primary transition-colors flex items-center gap-2 group">
+                    <span className="w-1 h-1 rounded-full bg-primary opacity-0 group-hover:opacity-100 transition-opacity"></span>
+                    Analytics
+                  </a></li>
+                  <li><a href="#research" className="text-muted-foreground hover:text-primary transition-colors flex items-center gap-2 group">
+                    <span className="w-1 h-1 rounded-full bg-primary opacity-0 group-hover:opacity-100 transition-opacity"></span>
+                    Research Areas
+                  </a></li>
+                  <li><a href="#publications" className="text-muted-foreground hover:text-primary transition-colors flex items-center gap-2 group">
+                    <span className="w-1 h-1 rounded-full bg-primary opacity-0 group-hover:opacity-100 transition-opacity"></span>
+                    Publications
+                  </a></li>
+                </ul>
+              </div>
+
+              <div>
+                <h4 className="font-semibold text-foreground mb-4 text-sm uppercase tracking-wider">Connect</h4>
+                <ul className="space-y-2.5 text-sm">
+                  {profile.email && (
+                    <li><a href={`mailto:${profile.email}`} className="text-muted-foreground hover:text-accent transition-colors flex items-center gap-2 group">
+                      <span className="w-1 h-1 rounded-full bg-accent opacity-0 group-hover:opacity-100 transition-opacity"></span>
+                      Email
+                    </a></li>
+                  )}
+                  <li><a href={`https://openalex.org/authors/${openalexId}`} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-accent transition-colors flex items-center gap-2 group">
+                    <span className="w-1 h-1 rounded-full bg-accent opacity-0 group-hover:opacity-100 transition-opacity"></span>
+                    OpenAlex
+                  </a></li>
+                </ul>
+              </div>
             </div>
           </div>
           
-          <div className="border-t border-border mt-8 pt-8 text-center">
-            <p className="text-muted-foreground text-sm">
-              © 2024 Research Profile Platform. Powered by OpenAlex API.
+          <div className="border-t border-border/50 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
+            <p className="text-muted-foreground/70 text-sm">
+              © {new Date().getFullYear()} ResearchHub. All rights reserved.
             </p>
+            <div className="flex items-center gap-6 text-xs text-muted-foreground/50">
+              <span>Built with academic excellence</span>
+              <span className="hidden md:inline">•</span>
+              <span className="hidden md:inline">Automated data integration</span>
+            </div>
           </div>
         </div>
       </footer>
