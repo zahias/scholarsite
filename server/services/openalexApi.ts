@@ -198,20 +198,25 @@ export class OpenAlexService {
       }
       
       if (worksResponse.results && worksResponse.results.length > 0) {
-        const publications: InsertPublication[] = worksResponse.results.map(work => ({
-          openalexId,
-          workId: work.id,
-          title: work.title,
-          authorNames: work.authorships.map(a => a.author.display_name).join(', '),
-          journal: work.primary_location?.source?.display_name || null,
-          publicationYear: work.publication_year || null,
-          citationCount: work.cited_by_count || 0,
-          topics: work.topics ? work.topics.map(t => t.display_name) : null,
-          doi: work.doi || null,
-          isOpenAccess: work.open_access?.is_oa || false,
-          publicationType: work.type || null,
-          isReviewArticle: work.type === 'review',
-        }));
+        const publications: InsertPublication[] = worksResponse.results.map(work => {
+          // Extract type name from OpenAlex URL (e.g., "https://openalex.org/types/article" -> "article")
+          const publicationType = work.type ? work.type.split('/').pop() || null : null;
+          
+          return {
+            openalexId,
+            workId: work.id,
+            title: work.title,
+            authorNames: work.authorships.map(a => a.author.display_name).join(', '),
+            journal: work.primary_location?.source?.display_name || null,
+            publicationYear: work.publication_year || null,
+            citationCount: work.cited_by_count || 0,
+            topics: work.topics ? work.topics.map(t => t.display_name) : null,
+            doi: work.doi || null,
+            isOpenAccess: work.open_access?.is_oa || false,
+            publicationType,
+            isReviewArticle: publicationType === 'review',
+          };
+        });
         
         await storage.upsertPublications(publications);
       }

@@ -19,7 +19,6 @@ export default function Publications({ openalexId }: PublicationsProps) {
   const [yearFilter, setYearFilter] = useState<string>("all");
   const [openAccessFilter, setOpenAccessFilter] = useState<"all" | "open" | "closed">("all");
   const [publicationTypeFilter, setPublicationTypeFilter] = useState<string>("all");
-  const [reviewArticleFilter, setReviewArticleFilter] = useState<"all" | "review" | "non-review">("all");
   const [showAll, setShowAll] = useState(false);
 
   const { data: researcherData, isLoading } = useQuery<{
@@ -68,13 +67,6 @@ export default function Publications({ openalexId }: PublicationsProps) {
       filtered = filtered.filter(pub => pub.publicationType === publicationTypeFilter);
     }
 
-    // Apply review article filter
-    if (reviewArticleFilter !== "all") {
-      filtered = filtered.filter(pub => 
-        reviewArticleFilter === "review" ? pub.isReviewArticle : !pub.isReviewArticle
-      );
-    }
-
     // Sort publications
     filtered.sort((a, b) => {
       let aValue, bValue;
@@ -106,7 +98,7 @@ export default function Publications({ openalexId }: PublicationsProps) {
     });
 
     return filtered;
-  }, [publications, searchTerm, sortBy, sortOrder, yearFilter, openAccessFilter, publicationTypeFilter, reviewArticleFilter]);
+  }, [publications, searchTerm, sortBy, sortOrder, yearFilter, openAccessFilter, publicationTypeFilter]);
 
   // Get unique years for filter dropdown
   const availableYears = useMemo(() => {
@@ -223,7 +215,6 @@ export default function Publications({ openalexId }: PublicationsProps) {
                       setYearFilter("all");
                       setOpenAccessFilter("all");
                       setPublicationTypeFilter("all");
-                      setReviewArticleFilter("all");
                       setSortBy("year");
                       setSortOrder("desc");
                     }}
@@ -238,7 +229,7 @@ export default function Publications({ openalexId }: PublicationsProps) {
               <Separator className="my-4" />
 
               {/* Additional Filters */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 {/* Year Filter */}
                 <div>
                   <label className="text-sm font-medium mb-2 block">Publication Year</label>
@@ -267,21 +258,6 @@ export default function Publications({ openalexId }: PublicationsProps) {
                       {availablePublicationTypes.map(type => (
                         <SelectItem key={type} value={type}>{type}</SelectItem>
                       ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {/* Review Article Filter */}
-                <div>
-                  <label className="text-sm font-medium mb-2 block">Review Article</label>
-                  <Select value={reviewArticleFilter} onValueChange={(value: "all" | "review" | "non-review") => setReviewArticleFilter(value)}>
-                    <SelectTrigger data-testid="select-review-filter">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All</SelectItem>
-                      <SelectItem value="review">Review Only</SelectItem>
-                      <SelectItem value="non-review">Non-Review</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -329,7 +305,6 @@ export default function Publications({ openalexId }: PublicationsProps) {
                   setYearFilter("all");
                   setOpenAccessFilter("all");
                   setPublicationTypeFilter("all");
-                  setReviewArticleFilter("all");
                 }}
                 className="mt-2"
                 data-testid="button-clear-search"

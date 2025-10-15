@@ -14,8 +14,8 @@ const PgSession = connectPgSimple(session);
 app.use(session({
   store: new PgSession({
     conString: process.env.DATABASE_URL,
-    tableName: 'session', // Table will be created automatically
-    createTableIfMissing: true
+    tableName: 'sessions', // Managed by connect-pg-simple
+    createTableIfMissing: true // Allow connect-pg-simple to manage the sessions table
   }),
   secret: process.env.SESSION_SECRET || 'research-profile-admin-secret-key',
   resave: false,

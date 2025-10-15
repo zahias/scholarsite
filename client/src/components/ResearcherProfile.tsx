@@ -188,69 +188,23 @@ export default function ResearcherProfile() {
       <Publications openalexId={openalexId} />
 
       {/* Footer */}
-      <footer className="bg-gradient-to-br from-card to-muted/20 border-t border-border py-16">
+      <footer className="bg-gradient-to-br from-card to-muted/20 border-t border-border py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-            <div>
-              <h3 className="text-2xl font-bold text-foreground mb-3">
-                {profile.displayName || researcher.display_name || 'Researcher'}
-              </h3>
-              <p className="text-muted-foreground text-sm leading-relaxed mb-6 max-w-md">
-                {profile.bio || 'Dedicated to advancing knowledge and making an impact through innovative research.'}
-              </p>
-              {profile.lastSyncedAt && (
-                <p className="text-xs text-muted-foreground/70">
-                  Last data sync: {new Date(profile.lastSyncedAt).toLocaleDateString()}
-                </p>
-              )}
-            </div>
-            
-            <div className="grid grid-cols-2 gap-8">
-              <div>
-                <h4 className="font-semibold text-foreground mb-4 text-sm uppercase tracking-wider">Navigate</h4>
-                <ul className="space-y-2.5 text-sm">
-                  <li><a href="#overview" className="text-muted-foreground hover:text-primary transition-colors flex items-center gap-2 group">
-                    <span className="w-1 h-1 rounded-full bg-primary opacity-0 group-hover:opacity-100 transition-opacity"></span>
-                    Overview
-                  </a></li>
-                  <li><a href="#analytics" className="text-muted-foreground hover:text-primary transition-colors flex items-center gap-2 group">
-                    <span className="w-1 h-1 rounded-full bg-primary opacity-0 group-hover:opacity-100 transition-opacity"></span>
-                    Analytics
-                  </a></li>
-                  <li><a href="#research" className="text-muted-foreground hover:text-primary transition-colors flex items-center gap-2 group">
-                    <span className="w-1 h-1 rounded-full bg-primary opacity-0 group-hover:opacity-100 transition-opacity"></span>
-                    Research Areas
-                  </a></li>
-                  <li><a href="#publications" className="text-muted-foreground hover:text-primary transition-colors flex items-center gap-2 group">
-                    <span className="w-1 h-1 rounded-full bg-primary opacity-0 group-hover:opacity-100 transition-opacity"></span>
-                    Publications
-                  </a></li>
-                </ul>
-              </div>
-
-              <div>
-                <h4 className="font-semibold text-foreground mb-4 text-sm uppercase tracking-wider">Connect</h4>
-                <ul className="space-y-2.5 text-sm">
-                  {profile.email && (
-                    <li><a href={`mailto:${profile.email}`} className="text-muted-foreground hover:text-accent transition-colors flex items-center gap-2 group">
-                      <span className="w-1 h-1 rounded-full bg-accent opacity-0 group-hover:opacity-100 transition-opacity"></span>
-                      Email
-                    </a></li>
-                  )}
-                </ul>
-              </div>
-            </div>
-          </div>
-          
-          <div className="border-t border-border/50 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
+          <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             <p className="text-muted-foreground/70 text-sm">
               © {new Date().getFullYear()} ResearchHub. All rights reserved.
             </p>
-            <div className="flex items-center gap-6 text-xs text-muted-foreground/50">
-              <span>Built with academic excellence</span>
-              <span className="hidden md:inline">•</span>
-              <span className="hidden md:inline">Automated data integration</span>
-            </div>
+            {researcherData?.lastSynced && (
+              <p className="text-xs text-muted-foreground/60">
+                Last data sync: {new Date(researcherData.lastSynced).toLocaleDateString('en-US', { 
+                  year: 'numeric', 
+                  month: 'short', 
+                  day: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit'
+                })}
+              </p>
+            )}
           </div>
         </div>
       </footer>
