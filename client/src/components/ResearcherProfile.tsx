@@ -237,10 +237,6 @@ export default function ResearcherProfile() {
                       Email
                     </a></li>
                   )}
-                  <li><a href={`https://openalex.org/authors/${openalexId}`} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-accent transition-colors flex items-center gap-2 group">
-                    <span className="w-1 h-1 rounded-full bg-accent opacity-0 group-hover:opacity-100 transition-opacity"></span>
-                    OpenAlex
-                  </a></li>
                 </ul>
               </div>
             </div>
