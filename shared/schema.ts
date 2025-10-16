@@ -9,6 +9,7 @@ import {
   text,
   boolean,
   date,
+  unique,
 } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
@@ -55,7 +56,9 @@ export const openalexData = pgTable("openalex_data", {
   dataType: varchar("data_type").notNull(), // 'researcher', 'works', 'topics'
   data: jsonb("data").notNull(),
   lastUpdated: timestamp("last_updated").defaultNow(),
-});
+}, (table) => ({
+  uniqueOpenalexDataType: unique().on(table.openalexId, table.dataType),
+}));
 
 // Research topics cache
 export const researchTopics = pgTable("research_topics", {

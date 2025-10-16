@@ -37,6 +37,7 @@ export interface IStorage {
   getAllPublicResearcherProfiles(): Promise<ResearcherProfile[]>;
   upsertResearcherProfile(profile: InsertResearcherProfile): Promise<ResearcherProfile>;
   updateResearcherProfile(id: string, updates: Partial<ResearcherProfile>): Promise<ResearcherProfile>;
+  deleteResearcherProfile(openalexId: string): Promise<void>;
   
   // OpenAlex data cache operations
   getOpenalexData(openalexId: string, dataType: string): Promise<OpenalexData | undefined>;
@@ -142,6 +143,19 @@ export class DatabaseStorage implements IStorage {
       .where(eq(researcherProfiles.id, id))
       .returning();
     return result;
+  }
+
+  async deleteResearcherProfile(openalexId: string): Promise<void> {
+    // Use transaction to ensure all deletes complete atomically
+    await db.transaction(async (tx) => {
+      // Delete all related data for this researcher
+      await tx.delete(openalexData).where(eq(openalexData.openalexId, openalexId));
+      await tx.delete(researchTopics).where(eq(researchTopics.openalexId, openalexId));
+      await tx.delete(publications).where(eq(publications.openalexId, openalexId));
+      await tx.delete(affiliations).where(eq(affiliations.openalexId, openalexId));
+      // Finally delete the profile
+      await tx.delete(researcherProfiles).where(eq(researcherProfiles.openalexId, openalexId));
+    });
   }
 
   // OpenAlex data cache operations

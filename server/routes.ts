@@ -727,6 +727,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Delete researcher profile and all related data
+  app.delete('/api/admin/researcher/:openalexId', adminRateLimit, adminSessionAuthMiddleware, async (req, res) => {
+    // Check if user is authenticated
+    if (!isAuthenticated(req)) {
+      return res.status(401).json({ message: 'Authentication required' });
+    }
+    try {
+      const { openalexId } = req.params;
+      const profile = await storage.getResearcherProfileByOpenalexId(openalexId);
+      
+      if (!profile) {
+        return res.status(404).json({ message: "Researcher profile not found" });
+      }
+
+      // Delete the profile and all related data
+      await storage.deleteResearcherProfile(openalexId);
+
+      res.json({ message: "Researcher profile deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting researcher profile:", error);
+      res.status(500).json({ message: "Failed to delete researcher profile" });
+    }
+  });
+
   // Test endpoint to manually trigger SSE updates (for debugging)
   app.post('/api/test/broadcast/:openalexId', (req, res) => {
     const { openalexId } = req.params;
@@ -870,8 +894,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: 'Researcher profile not found' });
       }
 
-      // Initialize Replit Object Storage client (automatically authenticated)
-      const objectStorage = new ObjectStorageClient();
+      // Initialize Replit Object Storage client with bucket ID
+      const storageBucketId = process.env.DEFAULT_OBJECT_STORAGE_BUCKET_ID;
+      if (!storageBucketId) {
+        return res.status(500).json({ message: 'Object storage not configured' });
+      }
+      
+      const objectStorage = new ObjectStorageClient({ bucketId: storageBucketId });
       
       // Generate unique filename for public directory
       const filename = `public/cv/${openalexId}-cv-${Date.now()}.pdf`;
@@ -885,8 +914,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Get public URL from Replit Object Storage
-      const bucketId = process.env.DEFAULT_OBJECT_STORAGE_BUCKET_ID;
-      const cvUrl = `https://storage.googleapis.com/${bucketId}/${filename}`;
+      const cvUrl = `https://storage.googleapis.com/${storageBucketId}/${filename}`;
 
       // Update profile with CV URL
       await storage.updateResearcherProfile(profile.id, {
@@ -1045,13 +1073,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
                             <p class="text-sm text-gray-500">Last Synced: ${profile.lastSyncedAt ? new Date(profile.lastSyncedAt).toLocaleDateString() : 'Never'}</p>
                         </div>
                         <div class="flex space-x-3">
-                            <button onclick="editProfile('${profile.openalexId}')" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded transition-colors text-sm">
+                            <button onclick="editProfile('${profile.openalexId}')" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded transition-colors text-sm" data-testid="button-edit-${profile.openalexId}">
                                 Edit
                             </button>
-                            <button onclick="syncProfile('${profile.openalexId}')" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded transition-colors text-sm">
+                            <button onclick="syncProfile('${profile.openalexId}')" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded transition-colors text-sm" data-testid="button-sync-${profile.openalexId}">
                                 Sync
                             </button>
-                            <a href="/researcher/${profile.openalexId}" target="_blank" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded transition-colors text-sm">
+                            <button onclick="deleteProfile('${profile.openalexId}')" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded transition-colors text-sm" data-testid="button-delete-${profile.openalexId}">
+                                Delete
+                            </button>
+                            <a href="/researcher/${profile.openalexId}" target="_blank" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded transition-colors text-sm" data-testid="link-view-${profile.openalexId}">
                                 View
                             </a>
                         </div>
@@ -1382,6 +1413,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 refreshProfiles();
             } catch (error) {
                 showMessage(\`Failed to sync profile: \${error.message}\`, true);
+            }
+        }
+
+        // Delete researcher profile
+        async function deleteProfile(openalexId) {
+            if (!confirm(\`Are you sure you want to delete this researcher profile? This will permanently delete all associated data including publications, topics, and affiliations. This action cannot be undone.\`)) {
+                return;
+            }
+            
+            try {
+                showMessage('Deleting profile...');
+                await apiRequest(\`/api/admin/researcher/\${openalexId}\`, {
+                    method: 'DELETE'
+                });
+                showMessage('Profile deleted successfully!');
+                refreshProfiles();
+            } catch (error) {
+                showMessage(\`Failed to delete profile: \${error.message}\`, true);
             }
         }
 
