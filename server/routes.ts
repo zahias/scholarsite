@@ -6,7 +6,7 @@ import { OpenAlexService } from "./services/openalexApi";
 import { insertResearcherProfileSchema, updateResearcherProfileSchema, type ResearchTopic, type Publication, type Affiliation } from "@shared/schema";
 import { z } from "zod";
 import multer from "multer";
-import { Storage } from "@google-cloud/storage";
+import { Client as ObjectStorageClient } from "@replit/object-storage";
 import path from "path";
 
 // Event emitter for real-time updates
@@ -596,7 +596,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // These endpoints are protected and can only be accessed with valid admin token
 
   // Create researcher profile (ADMIN ONLY)
-  app.post('/api/admin/researcher/profile', adminRateLimit, adminAuthMiddleware, async (req, res) => {
+  app.post('/api/admin/researcher/profile', adminRateLimit, adminSessionAuthMiddleware, async (req, res) => {
+    // Check if user is authenticated
+    if (!isAuthenticated(req)) {
+      return res.status(401).json({ message: 'Authentication required' });
+    }
     try {
       const profileData = insertResearcherProfileSchema.parse(req.body);
       const profile = await storage.upsertResearcherProfile(profileData);
@@ -623,7 +627,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Update researcher profile (ADMIN ONLY)
-  app.put('/api/admin/researcher/profile/:openalexId', adminRateLimit, adminAuthMiddleware, async (req, res) => {
+  app.put('/api/admin/researcher/profile/:openalexId', adminRateLimit, adminSessionAuthMiddleware, async (req, res) => {
+    // Check if user is authenticated
+    if (!isAuthenticated(req)) {
+      return res.status(401).json({ message: 'Authentication required' });
+    }
     try {
       const { openalexId } = req.params;
       
@@ -654,8 +662,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get researcher profile for editing (ADMIN ONLY)
+  app.get('/api/admin/researcher/profile/:openalexId', adminRateLimit, adminSessionAuthMiddleware, async (req, res) => {
+    // Check if user is authenticated
+    if (!isAuthenticated(req)) {
+      return res.status(401).json({ message: 'Authentication required' });
+    }
+    try {
+      const { openalexId } = req.params;
+      const profile = await storage.getResearcherProfileByOpenalexId(openalexId);
+      
+      if (!profile) {
+        return res.status(404).json({ message: "Researcher profile not found" });
+      }
+
+      res.json(profile);
+    } catch (error) {
+      console.error("Error fetching researcher profile:", error);
+      res.status(500).json({ message: "Failed to fetch researcher profile" });
+    }
+  });
+
   // Sync researcher data (ADMIN ONLY)
-  app.post('/api/admin/researcher/:openalexId/sync', adminRateLimit, adminAuthMiddleware, async (req, res) => {
+  app.post('/api/admin/researcher/:openalexId/sync', adminRateLimit, adminSessionAuthMiddleware, async (req, res) => {
+    // Check if user is authenticated
+    if (!isAuthenticated(req)) {
+      return res.status(401).json({ message: 'Authentication required' });
+    }
     try {
       const { openalexId } = req.params;
       const profile = await storage.getResearcherProfileByOpenalexId(openalexId);
@@ -824,33 +857,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: 'Researcher profile not found' });
       }
 
-      // Initialize Google Cloud Storage client
-      const gcs = new Storage();
-      const bucketId = process.env.DEFAULT_OBJECT_STORAGE_BUCKET_ID;
+      // Initialize Replit Object Storage client (automatically authenticated)
+      const objectStorage = new ObjectStorageClient();
       
-      if (!bucketId) {
-        return res.status(500).json({ message: 'Object storage not configured' });
+      // Generate unique filename for public directory
+      const filename = `public/cv/${openalexId}-cv-${Date.now()}.pdf`;
+
+      // Upload file using Replit Object Storage
+      const uploadResult = await objectStorage.uploadFromBytes(filename, req.file.buffer);
+      
+      if (!uploadResult.ok) {
+        console.error('Object storage upload error:', uploadResult.error);
+        return res.status(500).json({ message: 'Failed to upload file to storage' });
       }
 
-      const bucket = gcs.bucket(bucketId);
-      
-      // Generate unique filename
-      const filename = `cv/${openalexId}-cv-${Date.now()}.pdf`;
-      const file = bucket.file(filename);
-
-      // Upload file to GCS
-      await file.save(req.file.buffer, {
-        metadata: {
-          contentType: 'application/pdf',
-          metadata: {
-            openalexId: openalexId,
-            uploadedAt: new Date().toISOString(),
-          },
-        },
-        public: true, // Make file publicly accessible
-      });
-
-      // Get public URL
+      // Get public URL from Replit Object Storage
+      const bucketId = process.env.DEFAULT_OBJECT_STORAGE_BUCKET_ID;
       const cvUrl = `https://storage.googleapis.com/${bucketId}/${filename}`;
 
       // Update profile with CV URL
@@ -1267,22 +1289,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Edit profile
         async function editProfile(openalexId) {
             try {
-                // For now, we'll load the existing data from the current display
-                // In a real app, you'd fetch fresh data from the API
-                const profileData = Array.from(document.querySelectorAll('#profilesList > div')).find(el => 
-                    el.textContent.includes(openalexId)
-                );
-                
-                if (!profileData) {
-                    throw new Error('Profile not found');
-                }
+                // Fetch profile data from API
+                const response = await apiRequest(\`/api/admin/researcher/profile/\${openalexId}\`);
+                const profile = response;
                 
                 currentEditingProfile = openalexId;
                 document.getElementById('modalTitle').textContent = 'Edit Researcher Profile';
                 
-                // Pre-populate form (simplified - in real implementation would fetch from API)
-                document.getElementById('openalexId').value = openalexId;
+                // Pre-populate all form fields
+                document.getElementById('openalexId').value = profile.openalexId || '';
                 document.getElementById('openalexId').readOnly = true; // Don't allow changing ID for existing profiles
+                document.getElementById('displayName').value = profile.displayName || '';
+                document.getElementById('email').value = profile.email || '';
+                document.getElementById('bio').value = profile.bio || '';
+                document.getElementById('cvUrl').value = profile.cvUrl || '';
+                document.getElementById('linkedinUrl').value = profile.linkedinUrl || '';
+                document.getElementById('twitterUrl').value = profile.twitterUrl || '';
+                document.getElementById('googleScholarUrl').value = profile.googleScholarUrl || '';
+                document.getElementById('websiteUrl').value = profile.websiteUrl || '';
+                document.getElementById('isPublic').checked = profile.isPublic === true;
                 
                 document.getElementById('editModal').classList.remove('hidden');
             } catch (error) {
