@@ -1283,6 +1283,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             currentEditingProfile = null;
             document.getElementById('modalTitle').textContent = 'Create New Researcher Profile';
             document.getElementById('profileForm').reset();
+            document.getElementById('openalexId').readOnly = false; // Make sure it's editable for new profiles
             document.getElementById('editModal').classList.remove('hidden');
         }
 
@@ -1296,17 +1297,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 currentEditingProfile = openalexId;
                 document.getElementById('modalTitle').textContent = 'Edit Researcher Profile';
                 
-                // Pre-populate all form fields
+                // Pre-populate form fields that exist in the HTML
                 document.getElementById('openalexId').value = profile.openalexId || '';
                 document.getElementById('openalexId').readOnly = true; // Don't allow changing ID for existing profiles
                 document.getElementById('displayName').value = profile.displayName || '';
+                document.getElementById('title').value = profile.title || '';
+                document.getElementById('currentAffiliation').value = profile.currentAffiliation || '';
+                document.getElementById('currentPosition').value = profile.currentPosition || '';
                 document.getElementById('email').value = profile.email || '';
                 document.getElementById('bio').value = profile.bio || '';
                 document.getElementById('cvUrl').value = profile.cvUrl || '';
-                document.getElementById('linkedinUrl').value = profile.linkedinUrl || '';
-                document.getElementById('twitterUrl').value = profile.twitterUrl || '';
-                document.getElementById('googleScholarUrl').value = profile.googleScholarUrl || '';
-                document.getElementById('websiteUrl').value = profile.websiteUrl || '';
+                document.getElementById('currentAffiliationUrl').value = profile.currentAffiliationUrl || '';
+                document.getElementById('currentAffiliationStartDate').value = profile.currentAffiliationStartDate || '';
                 document.getElementById('isPublic').checked = profile.isPublic === true;
                 
                 document.getElementById('editModal').classList.remove('hidden');
