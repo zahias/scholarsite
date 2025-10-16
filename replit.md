@@ -2,6 +2,21 @@
 
 This is a research profile platform that creates beautiful, automatically-updated academic profiles powered by the OpenAlex API. The application allows researchers to showcase their publications, impact metrics, research topics, affiliations, and academic journey in a unified dashboard. It features authentication, profile management, data synchronization with OpenAlex, and public profile viewing capabilities.
 
+# Recent Changes (October 16, 2025)
+
+## Bug Fixes
+- **Export Bibliography**: Fixed export functionality by adding proper onClick handler to navigate to download endpoint
+- **Publication Analytics Accuracy**: Removed publication query limit to ensure all publications are included in charts (previously limited to 50, now unlimited)
+- **Publication Type Classification**: Fixed publication type chart to use actual `publicationType` field from database instead of inferring from journal names
+- **Data Integrity**: Added unique constraint on `[openalex_id, data_type]` in openalexData table to prevent duplicate entries
+- **CV Upload**: Fixed ObjectStorageClient initialization with proper bucketId parameter
+- **Delete Researcher**: Implemented atomic transaction support for cascading deletes to maintain data integrity
+
+## Performance Considerations
+- Publication queries now return all records without limit for accurate analytics
+- For researchers with >10,000 publications, consider implementing pagination or server-side aggregation in the future
+- Current implementation prioritizes accuracy over performance for analytics features
+
 # User Preferences
 
 Preferred communication style: Simple, everyday language.
