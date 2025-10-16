@@ -39,6 +39,7 @@ interface Publication {
   topics?: string[];
   doi?: string;
   isOpenAccess?: boolean;
+  publicationType?: string;
 }
 
 interface ResearcherData {
@@ -159,29 +160,18 @@ export default function PublicationAnalytics({ openalexId, researcherData: propR
       }
     });
 
-    // Process publication types
-    const typeCounts = {
-      "Journal Articles": 0,
-      "Conference Papers": 0,
-      "Books/Chapters": 0,
-      "Other": 0,
-    };
+    // Process publication types using the publicationType field
+    const typeCountsMap: { [key: string]: number } = {};
 
     publications.forEach(pub => {
-      const journal = (pub.journal || "").toLowerCase();
-      if (journal.includes("conference") || journal.includes("proceedings") || journal.includes("symposium")) {
-        typeCounts["Conference Papers"]++;
-      } else if (journal.includes("book") || journal.includes("chapter")) {
-        typeCounts["Books/Chapters"]++;
-      } else if (journal) {
-        typeCounts["Journal Articles"]++;
-      } else {
-        typeCounts["Other"]++;
-      }
+      const pubType = pub.publicationType || "Unknown";
+      // Capitalize the first letter of each word for display
+      const displayType = pubType.charAt(0).toUpperCase() + pubType.slice(1);
+      typeCountsMap[displayType] = (typeCountsMap[displayType] || 0) + 1;
     });
 
-    const typesData = Object.entries(typeCounts)
-      .filter(([, count]) => count > 0)
+    const typesData = Object.entries(typeCountsMap)
+      .sort((a, b) => b[1] - a[1]) // Sort by count descending
       .map(([type, count]) => ({
         type,
         count,

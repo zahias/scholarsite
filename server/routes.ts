@@ -575,7 +575,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get cached OpenAlex data
       const researcherData = await storage.getOpenalexData(openalexId, 'researcher');
       const researchTopics = await storage.getResearchTopics(openalexId);
-      const publications = await storage.getPublications(openalexId);
+      const publications = await storage.getPublications(openalexId); // Get all publications (no limit) for complete data
       const affiliations = await storage.getAffiliations(openalexId);
 
       res.json({
@@ -792,7 +792,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get all researcher data
       const researcherData = await storage.getOpenalexData(openalexId, 'researcher');
       const researchTopics = await storage.getResearchTopics(openalexId);
-      const publications = await storage.getPublications(openalexId);
+      const publications = await storage.getPublications(openalexId); // Get all publications (no limit) for complete data
       const affiliations = await storage.getAffiliations(openalexId);
 
       const exportData = {

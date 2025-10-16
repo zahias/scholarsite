@@ -209,13 +209,19 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Publications operations
-  async getPublications(openalexId: string, limit = 50): Promise<Publication[]> {
-    return await db
+  async getPublications(openalexId: string, limit?: number): Promise<Publication[]> {
+    const query = db
       .select()
       .from(publications)
       .where(eq(publications.openalexId, openalexId))
-      .orderBy(desc(publications.publicationYear), desc(publications.citationCount))
-      .limit(limit);
+      .orderBy(desc(publications.publicationYear), desc(publications.citationCount));
+    
+    // Only apply limit if explicitly provided
+    if (limit !== undefined) {
+      return await query.limit(limit);
+    }
+    
+    return await query;
   }
 
   async upsertPublications(pubs: InsertPublication[]): Promise<void> {

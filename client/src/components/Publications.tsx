@@ -21,6 +21,10 @@ export default function Publications({ openalexId }: PublicationsProps) {
   const [publicationTypeFilter, setPublicationTypeFilter] = useState<string>("all");
   const [showAll, setShowAll] = useState(false);
 
+  const handleExportBibliography = () => {
+    window.location.href = `/api/researcher/${openalexId}/export`;
+  };
+
   const { data: researcherData, isLoading } = useQuery<{
     profile: any;
     researcher: any;
@@ -388,7 +392,7 @@ export default function Publications({ openalexId }: PublicationsProps) {
             >
               View All {filteredAndSortedPublications.length} Publications
             </Button>
-            <Button variant="outline" data-testid="button-export-bibliography">
+            <Button variant="outline" onClick={handleExportBibliography} data-testid="button-export-bibliography">
               Export Bibliography
             </Button>
           </div>
@@ -404,7 +408,7 @@ export default function Publications({ openalexId }: PublicationsProps) {
             >
               Show Less
             </Button>
-            <Button variant="outline" data-testid="button-export-bibliography">
+            <Button variant="outline" onClick={handleExportBibliography} data-testid="button-export-bibliography">
               Export Bibliography
             </Button>
           </div>
