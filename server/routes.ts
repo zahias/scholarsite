@@ -602,7 +602,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.status(401).json({ message: 'Authentication required' });
     }
     try {
-      const profileData = insertResearcherProfileSchema.parse(req.body);
+      // Get or create system admin user for admin-created profiles
+      let systemUser = await storage.getUserByEmail('system@admin.local');
+      if (!systemUser) {
+        systemUser = await storage.createUser({
+          email: 'system@admin.local',
+          firstName: 'System',
+          lastName: 'Admin'
+        });
+      }
+
+      const profileData = insertResearcherProfileSchema.parse({
+        ...req.body,
+        userId: systemUser.id
+      });
       const profile = await storage.upsertResearcherProfile(profileData);
       
       // Broadcast update to connected clients
@@ -1340,8 +1353,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                         body: JSON.stringify(data)
                     });
                 } else {
-                    // Create new profile - need to add userId (for now, using a placeholder)
-                    data.userId = 'admin-created'; // In real implementation, would use proper user management
+                    // Create new profile - userId is handled by the backend
                     response = await apiRequest('/api/admin/researcher/profile', {
                         method: 'POST',
                         body: JSON.stringify(data)
