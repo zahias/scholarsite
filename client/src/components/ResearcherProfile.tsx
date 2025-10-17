@@ -94,7 +94,7 @@ export default function ResearcherProfile() {
                 <div className="profile-image-glow"></div>
                 <div className="relative bg-white/10 backdrop-blur-sm rounded-full p-3 shadow-2xl">
                   <img 
-                    src="https://images.unsplash.com/photo-1582750433449-648ed127bb54?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&h=500" 
+                    src={profile.profileImageUrl || "https://images.unsplash.com/photo-1582750433449-648ed127bb54?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&h=500"} 
                     alt="Professional portrait" 
                     className="w-44 h-44 lg:w-56 lg:h-56 rounded-full object-cover border-4 border-white/30 shadow-2xl"
                     data-testid="img-profile-photo"

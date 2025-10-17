@@ -7,6 +7,7 @@ import { insertResearcherProfileSchema, updateResearcherProfileSchema, type Rese
 import { z } from "zod";
 import multer from "multer";
 import { Client as ObjectStorageClient } from "@replit/object-storage";
+import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
 import path from "path";
 
 // Event emitter for real-time updates
@@ -561,6 +562,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Public objects endpoint - serves files from object storage public directories
+  app.get('/public-objects/:filePath(*)', async (req, res) => {
+    const filePath = req.params.filePath;
+    const objectStorageService = new ObjectStorageService();
+    try {
+      const file = await objectStorageService.searchPublicObject(filePath);
+      if (!file) {
+        return res.status(404).json({ error: 'File not found' });
+      }
+      await objectStorageService.downloadObject(file, res);
+    } catch (error) {
+      console.error('Error serving public object:', error);
+      if (error instanceof ObjectNotFoundError) {
+        return res.status(404).json({ error: 'File not found' });
+      }
+      return res.status(500).json({ error: 'Internal server error' });
+    }
+  });
+
   // Public researcher data routes
   app.get('/api/researcher/:openalexId/data', async (req, res) => {
     try {
@@ -913,8 +933,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(500).json({ message: 'Failed to upload file to storage' });
       }
 
-      // Get public URL from Replit Object Storage
-      const cvUrl = `https://storage.googleapis.com/${storageBucketId}/${filename}`;
+      // Generate public URL using the /public-objects endpoint
+      // Extract just the path after 'public/' for the public URL
+      const publicPath = filename.replace('public/', '');
+      const cvUrl = `/public-objects/${publicPath}`;
 
       // Update profile with CV URL
       await storage.updateResearcherProfile(profile.id, {
@@ -986,8 +1008,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(500).json({ message: 'Failed to upload file to storage' });
       }
 
-      // Get public URL from Replit Object Storage
-      const profileImageUrl = `https://storage.googleapis.com/${storageBucketId}/${filename}`;
+      // Generate public URL using the /public-objects endpoint
+      // Extract just the path after 'public/' for the public URL
+      const publicPath = filename.replace('public/', '');
+      const profileImageUrl = `/public-objects/${publicPath}`;
 
       // Update profile with profile image URL
       await storage.updateResearcherProfile(profile.id, {
