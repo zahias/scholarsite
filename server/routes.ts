@@ -686,6 +686,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // QR Code generation endpoint
+  app.get('/api/researcher/:openalexId/qr-code', async (req, res) => {
+    try {
+      const { openalexId } = req.params;
+      const { url } = req.query;
+      
+      // Use provided URL or construct default profile URL
+      const qrUrl = url || `${req.protocol}://${req.get('host')}/researcher/${openalexId}`;
+      
+      // Generate QR code
+      const QRCode = (await import('qrcode')).default;
+      const qrCodeDataUrl = await QRCode.toDataURL(qrUrl as string, {
+        width: 300,
+        margin: 2,
+        color: {
+          dark: '#000000',
+          light: '#FFFFFF'
+        }
+      });
+      
+      // Return as PNG image
+      const base64Data = qrCodeDataUrl.replace(/^data:image\/png;base64,/, '');
+      const buffer = Buffer.from(base64Data, 'base64');
+      
+      res.setHeader('Content-Type', 'image/png');
+      res.setHeader('Content-Length', buffer.length);
+      res.send(buffer);
+    } catch (error) {
+      console.error("Error generating QR code:", error);
+      res.status(500).json({ message: "Failed to generate QR code" });
+    }
+  });
+
   // Public researcher data routes
   app.get('/api/researcher/:openalexId/data', async (req, res) => {
     try {

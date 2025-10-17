@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import AnimatedCounter from "./AnimatedCounter";
 
 interface StatsOverviewProps {
   openalexId: string;
@@ -58,37 +59,37 @@ export default function StatsOverview({ openalexId }: StatsOverviewProps) {
     <section className="py-16 -mt-10" data-testid="section-stats">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <Card className="stat-card bg-card rounded-lg shadow-lg border border-border">
+          <Card className="stat-card bg-card rounded-lg shadow-lg border border-border hover:shadow-xl transition-shadow">
             <CardContent className="p-6 text-center">
               <div className="text-3xl font-bold text-primary mb-2" data-testid="stat-publications">
-                {stats.works_count}
+                <AnimatedCounter end={stats.works_count} />
               </div>
               <div className="text-muted-foreground">Publications</div>
             </CardContent>
           </Card>
           
-          <Card className="stat-card bg-card rounded-lg shadow-lg border border-border">
+          <Card className="stat-card bg-card rounded-lg shadow-lg border border-border hover:shadow-xl transition-shadow">
             <CardContent className="p-6 text-center">
               <div className="text-3xl font-bold text-accent mb-2" data-testid="stat-citations">
-                {stats.cited_by_count}
+                <AnimatedCounter end={stats.cited_by_count} />
               </div>
               <div className="text-muted-foreground">Total Citations</div>
             </CardContent>
           </Card>
           
-          <Card className="stat-card bg-card rounded-lg shadow-lg border border-border">
+          <Card className="stat-card bg-card rounded-lg shadow-lg border border-border hover:shadow-xl transition-shadow">
             <CardContent className="p-6 text-center">
               <div className="text-3xl font-bold text-primary mb-2" data-testid="stat-h-index">
-                {stats.summary_stats.h_index}
+                <AnimatedCounter end={stats.summary_stats.h_index} />
               </div>
               <div className="text-muted-foreground">h-index</div>
             </CardContent>
           </Card>
           
-          <Card className="stat-card bg-card rounded-lg shadow-lg border border-border">
+          <Card className="stat-card bg-card rounded-lg shadow-lg border border-border hover:shadow-xl transition-shadow">
             <CardContent className="p-6 text-center">
               <div className="text-3xl font-bold text-accent mb-2" data-testid="stat-i10-index">
-                {stats.summary_stats.i10_index}
+                <AnimatedCounter end={stats.summary_stats.i10_index} />
               </div>
               <div className="text-muted-foreground">i10-index</div>
             </CardContent>

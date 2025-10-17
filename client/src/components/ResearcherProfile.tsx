@@ -5,11 +5,16 @@ import StatsOverview from "./StatsOverview";
 import PublicationAnalytics from "./PublicationAnalytics";
 import ResearchTopics from "./ResearchTopics";
 import Publications from "./Publications";
+import SEO from "./SEO";
+import ShareButtons from "./ShareButtons";
+import MobileBottomNav from "./MobileBottomNav";
+import CareerTimeline from "./CareerTimeline";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useRealtimeUpdates } from "@/hooks/useRealtimeUpdates";
 import type { ResearcherProfile } from "@shared/schema";
+import { useMemo } from "react";
 
 export default function ResearcherProfile() {
   const { id } = useParams();
@@ -28,6 +33,44 @@ export default function ResearcherProfile() {
     queryKey: [`/api/researcher/${id}/data`],
     retry: false,
   });
+
+  // SEO data - must be before conditional returns to satisfy Rules of Hooks
+  const profile = researcherData?.profile;
+  const researcher = researcherData?.researcher;
+  const openalexId = profile?.openalexId || id || '';
+  
+  const seoTitle = profile ? `${profile.displayName || researcher?.display_name} - Research Profile` : 'Research Profile';
+  const seoDescription = profile?.bio || (researcher ? `${profile?.displayName || researcher.display_name} - ${researcher?.works_count || 0} publications, ${researcher?.cited_by_count || 0} citations, h-index: ${researcher?.summary_stats?.h_index || 0}` : 'Research Profile Platform');
+  const profileUrl = typeof window !== 'undefined' ? window.location.href : '';
+  const profileImage = profile?.profileImageUrl || "https://images.unsplash.com/photo-1582750433449-648ed127bb54?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&h=500";
+
+  // Schema.org structured data for Google Scholar
+  const structuredData = useMemo(() => {
+    if (!profile) return null;
+    return {
+      "@context": "https://schema.org",
+      "@type": "Person",
+      "name": profile.displayName || researcher?.display_name,
+      "description": profile.bio || `Researcher with ${researcher?.works_count || 0} publications`,
+      "jobTitle": profile.title,
+      "affiliation": profile.currentAffiliation ? {
+        "@type": "Organization",
+        "name": profile.currentAffiliation
+      } : undefined,
+      "url": profileUrl,
+      "image": profileImage,
+      "email": profile.contactEmail || undefined,
+      "alumniOf": researcherData?.affiliations?.map((aff: any) => ({
+        "@type": "Organization",
+        "name": aff.institutionName
+      })),
+      "knowsAbout": researcherData?.topics?.slice(0, 10).map((topic: any) => topic.displayName),
+      "sameAs": [
+        `https://openalex.org/authors/${openalexId}`,
+        profile.cvUrl,
+      ].filter(Boolean)
+    };
+  }, [profile, researcher, researcherData, profileUrl, profileImage, openalexId]);
 
   if (isLoading) {
     return (
@@ -74,11 +117,17 @@ export default function ResearcherProfile() {
     );
   }
 
-  const { profile, researcher } = researcherData;
-  const openalexId = profile.openalexId || id || '';
-
   return (
-    <div className="min-h-screen bg-background" data-testid="page-researcher-profile">
+    <div className="min-h-screen bg-background pb-20 md:pb-0" data-testid="page-researcher-profile">
+      <SEO 
+        title={seoTitle}
+        description={seoDescription}
+        image={profileImage}
+        url={profileUrl}
+        author={profile?.displayName || researcher?.display_name || 'Researcher'}
+        type="profile"
+        structuredData={structuredData || undefined}
+      />
       <Navigation />
       
       {/* Enhanced Hero Section */}
@@ -94,7 +143,7 @@ export default function ResearcherProfile() {
                 <div className="profile-image-glow"></div>
                 <div className="relative bg-white/10 backdrop-blur-sm rounded-full p-3 shadow-2xl">
                   <img 
-                    src={profile.profileImageUrl || "https://images.unsplash.com/photo-1582750433449-648ed127bb54?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&h=500"} 
+                    src={profile?.profileImageUrl || "https://images.unsplash.com/photo-1582750433449-648ed127bb54?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&h=500"} 
                     alt="Professional portrait" 
                     className="w-44 h-44 lg:w-56 lg:h-56 rounded-full object-cover border-4 border-white/30 shadow-2xl"
                     data-testid="img-profile-photo"
@@ -113,15 +162,15 @@ export default function ResearcherProfile() {
               <div className="space-y-6">
                 <div>
                   <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold mb-4 leading-tight bg-gradient-to-r from-white via-white to-white/80 bg-clip-text text-transparent" data-testid="text-display-name">
-                    {profile.displayName || researcher.display_name || 'Researcher Profile'}
+                    {profile?.displayName || researcher?.display_name || 'Researcher Profile'}
                   </h1>
                   <p className="text-2xl sm:text-3xl mb-6 text-white/90 font-light tracking-wide" data-testid="text-title">
-                    {profile.title || 'Research Professional'}
+                    {profile?.title || 'Research Professional'}
                   </p>
                 </div>
               </div>
               
-              {profile.bio && (
+              {profile?.bio && (
                 <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-6 border border-white/10">
                   <p className="text-lg sm:text-xl text-white/90 leading-relaxed font-light" data-testid="text-bio">
                     {profile.bio}
@@ -144,7 +193,7 @@ export default function ResearcherProfile() {
                   </svg>
                   View on OpenAlex
                 </a>
-                {profile.cvUrl && (
+                {profile?.cvUrl && (
                   <a 
                     href={profile.cvUrl} 
                     target="_blank" 
@@ -158,7 +207,7 @@ export default function ResearcherProfile() {
                     Download CV/Resume
                   </a>
                 )}
-                {profile.email && (
+                {profile?.email && (
                   <a 
                     href={`mailto:${profile.email}`}
                     className="action-button group bg-gradient-to-r from-accent/20 to-accent/10 backdrop-blur-sm text-white px-8 py-4 rounded-xl hover:from-accent/30 hover:to-accent/20 transition-all duration-300 border border-accent/20 hover:border-accent/40 font-medium"
@@ -171,6 +220,17 @@ export default function ResearcherProfile() {
                     Get In Touch
                   </a>
                 )}
+              </div>
+
+              {/* Share Buttons */}
+              <div className="mt-6">
+                <p className="text-sm text-white/60 mb-3">Share this profile:</p>
+                <ShareButtons 
+                  url={profileUrl}
+                  title={profile?.displayName || researcher?.display_name || 'Researcher'}
+                  description={seoDescription}
+                  openalexId={openalexId}
+                />
               </div>
             </div>
           </div>
@@ -186,6 +246,7 @@ export default function ResearcherProfile() {
       <PublicationAnalytics openalexId={openalexId} researcherData={researcherData} />
       <ResearchTopics openalexId={openalexId} />
       <Publications openalexId={openalexId} />
+      <CareerTimeline openalexId={openalexId} />
 
       {/* Footer */}
       <footer className="bg-gradient-to-br from-card to-muted/20 border-t border-border py-8">
@@ -209,6 +270,8 @@ export default function ResearcherProfile() {
         </div>
       </footer>
 
+      {/* Mobile Bottom Navigation */}
+      <MobileBottomNav />
     </div>
   );
 }
