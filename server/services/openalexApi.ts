@@ -83,6 +83,7 @@ interface OpenAlexWorksResponse {
   results: OpenAlexWork[];
   meta: {
     count: number;
+    next_cursor?: string;
   };
 }
 
@@ -116,16 +117,41 @@ export class OpenAlexService {
     return await response.json();
   }
 
-  async getResearcherWorks(openalexId: string, limit = 200): Promise<OpenAlexWorksResponse> {
+  async getResearcherWorks(openalexId: string): Promise<OpenAlexWorksResponse> {
     const cleanId = openalexId.startsWith('A') ? openalexId : `A${openalexId}`;
-    const url = `${this.baseUrl}/works?filter=author.id:${cleanId}&per-page=${limit}&sort=cited_by_count:desc`;
+    let allResults: OpenAlexWork[] = [];
+    let page = 1;
+    let totalCount = 0;
+    const perPage = 200; // OpenAlex max per page
+    let hasMoreResults = true;
     
-    const response = await fetch(url);
-    if (!response.ok) {
-      throw new Error(`OpenAlex API error: ${response.status} ${response.statusText}`);
+    // Fetch all pages using page-based pagination
+    while (hasMoreResults) {
+      const url = `${this.baseUrl}/works?filter=author.id:${cleanId}&per-page=${perPage}&page=${page}&sort=cited_by_count:desc`;
+      
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error(`OpenAlex API error: ${response.status} ${response.statusText}`);
+      }
+      
+      const data: OpenAlexWorksResponse = await response.json();
+      allResults = allResults.concat(data.results);
+      totalCount = data.meta.count;
+      
+      console.log(`Fetched ${allResults.length} of ${totalCount} publications for ${cleanId} (page ${page})`);
+      
+      page++;
+      
+      // Continue until we have all results or no more results returned
+      hasMoreResults = allResults.length < totalCount && data.results.length > 0;
     }
     
-    return await response.json();
+    return {
+      results: allResults,
+      meta: {
+        count: totalCount
+      }
+    };
   }
 
   async syncResearcherData(openalexId: string): Promise<void> {
@@ -198,27 +224,33 @@ export class OpenAlexService {
       }
       
       if (worksResponse.results && worksResponse.results.length > 0) {
-        const publications: InsertPublication[] = worksResponse.results.map(work => {
-          // Extract type name from OpenAlex URL (e.g., "https://openalex.org/types/article" -> "article")
-          const publicationType = work.type ? work.type.split('/').pop() || null : null;
-          
-          return {
-            openalexId,
-            workId: work.id,
-            title: work.title,
-            authorNames: work.authorships.map(a => a.author.display_name).join(', '),
-            journal: work.primary_location?.source?.display_name || null,
-            publicationYear: work.publication_year || null,
-            citationCount: work.cited_by_count || 0,
-            topics: work.topics ? work.topics.map(t => t.display_name) : null,
-            doi: work.doi || null,
-            isOpenAccess: work.open_access?.is_oa || false,
-            publicationType,
-            isReviewArticle: publicationType === 'review',
-          };
-        });
+        const publications: InsertPublication[] = worksResponse.results
+          .filter(work => work.title && work.title.trim() !== '') // Filter out works without valid titles
+          .map(work => {
+            // Extract type name from OpenAlex URL (e.g., "https://openalex.org/types/article" -> "article")
+            const publicationType = work.type ? work.type.split('/').pop() || null : null;
+            
+            return {
+              openalexId,
+              workId: work.id,
+              title: work.title,
+              authorNames: work.authorships.map(a => a.author.display_name).join(', '),
+              journal: work.primary_location?.source?.display_name || null,
+              publicationYear: work.publication_year || null,
+              citationCount: work.cited_by_count || 0,
+              topics: work.topics ? work.topics.map(t => t.display_name) : null,
+              doi: work.doi || null,
+              isOpenAccess: work.open_access?.is_oa || false,
+              publicationType,
+              isReviewArticle: publicationType === 'review',
+            };
+          });
         
-        await storage.upsertPublications(publications);
+        console.log(`Processed ${publications.length} valid publications (filtered out ${worksResponse.results.length - publications.length} without titles)`);
+        
+        if (publications.length > 0) {
+          await storage.upsertPublications(publications);
+        }
       }
 
       // Cache works data
