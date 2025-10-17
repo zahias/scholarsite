@@ -382,8 +382,8 @@ export default function PublicationAnalytics({ openalexId, researcherData: propR
                     </BarChart>
                   </ResponsiveContainer>
                   
-                  {/* Legend with Colors */}
-                  <div className="space-y-3 flex flex-col justify-center">
+                  {/* Legend with Colors - Two columns when many types */}
+                  <div className={`gap-3 ${chartData.typesData.length > 4 ? 'grid grid-cols-1 md:grid-cols-2' : 'flex flex-col'} content-center`}>
                     {chartData.typesData.map((item, index) => (
                       <div key={item.type} className="flex items-center justify-between p-4 rounded-lg bg-muted/30 border border-border">
                         <div className="flex items-center gap-3">
