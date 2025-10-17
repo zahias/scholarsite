@@ -6,6 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Download, FileText, Database, Table, FileJson } from "lucide-react";
 import { useState, useMemo } from "react";
 
 interface PublicationsProps {
@@ -20,9 +22,11 @@ export default function Publications({ openalexId }: PublicationsProps) {
   const [openAccessFilter, setOpenAccessFilter] = useState<"all" | "open" | "closed">("all");
   const [publicationTypeFilter, setPublicationTypeFilter] = useState<string>("all");
   const [showAll, setShowAll] = useState(false);
+  const [exportDialogOpen, setExportDialogOpen] = useState(false);
 
-  const handleExportBibliography = () => {
-    window.location.href = `/api/researcher/${openalexId}/export`;
+  const handleExportBibliography = (format: string) => {
+    window.location.href = `/api/researcher/${openalexId}/export-bibliography?format=${format}`;
+    setExportDialogOpen(false);
   };
 
   const { data: researcherData, isLoading } = useQuery<{
@@ -392,9 +396,72 @@ export default function Publications({ openalexId }: PublicationsProps) {
             >
               View All {filteredAndSortedPublications.length} Publications
             </Button>
-            <Button variant="outline" onClick={handleExportBibliography} data-testid="button-export-bibliography">
-              Export Bibliography
-            </Button>
+            <Dialog open={exportDialogOpen} onOpenChange={setExportDialogOpen}>
+              <DialogTrigger asChild>
+                <Button variant="outline" data-testid="button-export-bibliography">
+                  <Download className="w-4 h-4 mr-2" />
+                  Export Bibliography
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-md">
+                <DialogHeader>
+                  <DialogTitle>Export Bibliography</DialogTitle>
+                  <DialogDescription>
+                    Choose your preferred format to download all {publications.length} publications.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="grid grid-cols-1 gap-3 py-4">
+                  <Button
+                    onClick={() => handleExportBibliography('bibtex')}
+                    variant="outline"
+                    className="justify-start h-auto py-4"
+                    data-testid="button-export-bibtex"
+                  >
+                    <FileText className="w-5 h-5 mr-3 text-blue-600" />
+                    <div className="text-left">
+                      <div className="font-semibold">BibTeX (.bib)</div>
+                      <div className="text-xs text-muted-foreground">LaTeX citation format</div>
+                    </div>
+                  </Button>
+                  <Button
+                    onClick={() => handleExportBibliography('ris')}
+                    variant="outline"
+                    className="justify-start h-auto py-4"
+                    data-testid="button-export-ris"
+                  >
+                    <Database className="w-5 h-5 mr-3 text-green-600" />
+                    <div className="text-left">
+                      <div className="font-semibold">RIS (.ris)</div>
+                      <div className="text-xs text-muted-foreground">Research Information Systems format</div>
+                    </div>
+                  </Button>
+                  <Button
+                    onClick={() => handleExportBibliography('csv')}
+                    variant="outline"
+                    className="justify-start h-auto py-4"
+                    data-testid="button-export-csv"
+                  >
+                    <Table className="w-5 h-5 mr-3 text-purple-600" />
+                    <div className="text-left">
+                      <div className="font-semibold">CSV (.csv)</div>
+                      <div className="text-xs text-muted-foreground">Spreadsheet format</div>
+                    </div>
+                  </Button>
+                  <Button
+                    onClick={() => handleExportBibliography('json')}
+                    variant="outline"
+                    className="justify-start h-auto py-4"
+                    data-testid="button-export-json"
+                  >
+                    <FileJson className="w-5 h-5 mr-3 text-orange-600" />
+                    <div className="text-left">
+                      <div className="font-semibold">JSON (.json)</div>
+                      <div className="text-xs text-muted-foreground">Structured data format</div>
+                    </div>
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
           </div>
         )}
 
@@ -408,9 +475,72 @@ export default function Publications({ openalexId }: PublicationsProps) {
             >
               Show Less
             </Button>
-            <Button variant="outline" onClick={handleExportBibliography} data-testid="button-export-bibliography">
-              Export Bibliography
-            </Button>
+            <Dialog open={exportDialogOpen} onOpenChange={setExportDialogOpen}>
+              <DialogTrigger asChild>
+                <Button variant="outline" data-testid="button-export-bibliography">
+                  <Download className="w-4 h-4 mr-2" />
+                  Export Bibliography
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-md">
+                <DialogHeader>
+                  <DialogTitle>Export Bibliography</DialogTitle>
+                  <DialogDescription>
+                    Choose your preferred format to download all {publications.length} publications.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="grid grid-cols-1 gap-3 py-4">
+                  <Button
+                    onClick={() => handleExportBibliography('bibtex')}
+                    variant="outline"
+                    className="justify-start h-auto py-4"
+                    data-testid="button-export-bibtex"
+                  >
+                    <FileText className="w-5 h-5 mr-3 text-blue-600" />
+                    <div className="text-left">
+                      <div className="font-semibold">BibTeX (.bib)</div>
+                      <div className="text-xs text-muted-foreground">LaTeX citation format</div>
+                    </div>
+                  </Button>
+                  <Button
+                    onClick={() => handleExportBibliography('ris')}
+                    variant="outline"
+                    className="justify-start h-auto py-4"
+                    data-testid="button-export-ris"
+                  >
+                    <Database className="w-5 h-5 mr-3 text-green-600" />
+                    <div className="text-left">
+                      <div className="font-semibold">RIS (.ris)</div>
+                      <div className="text-xs text-muted-foreground">Research Information Systems format</div>
+                    </div>
+                  </Button>
+                  <Button
+                    onClick={() => handleExportBibliography('csv')}
+                    variant="outline"
+                    className="justify-start h-auto py-4"
+                    data-testid="button-export-csv"
+                  >
+                    <Table className="w-5 h-5 mr-3 text-purple-600" />
+                    <div className="text-left">
+                      <div className="font-semibold">CSV (.csv)</div>
+                      <div className="text-xs text-muted-foreground">Spreadsheet format</div>
+                    </div>
+                  </Button>
+                  <Button
+                    onClick={() => handleExportBibliography('json')}
+                    variant="outline"
+                    className="justify-start h-auto py-4"
+                    data-testid="button-export-json"
+                  >
+                    <FileJson className="w-5 h-5 mr-3 text-orange-600" />
+                    <div className="text-left">
+                      <div className="font-semibold">JSON (.json)</div>
+                      <div className="text-xs text-muted-foreground">Structured data format</div>
+                    </div>
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
           </div>
         )}
       </div>

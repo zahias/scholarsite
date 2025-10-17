@@ -500,6 +500,111 @@ function cleanupSSEConnections() {
 // Clean up connections every 30 seconds
 setInterval(cleanupSSEConnections, 30000);
 
+// Bibliography export format generators
+function generateBibTeX(publications: Publication[]): string {
+  // Map OpenAlex publication types to valid BibTeX entry types
+  const bibtexTypeMap: Record<string, string> = {
+    'article': 'article',
+    'journal-article': 'article',
+    'review': 'article',
+    'letter': 'article',
+    'editorial': 'article',
+    'book': 'book',
+    'book-chapter': 'inbook',
+    'monograph': 'book',
+    'proceedings': 'proceedings',
+    'proceedings-article': 'inproceedings',
+    'conference-paper': 'inproceedings',
+    'dataset': 'misc',
+    'preprint': 'unpublished',
+    'report': 'techreport',
+    'dissertation': 'phdthesis',
+    'patent': 'misc',
+    'other': 'misc',
+    'erratum': 'misc',
+    'paratext': 'misc',
+  };
+
+  return publications.map((pub, index) => {
+    const openalexType = pub.publicationType?.toLowerCase() || 'article';
+    const bibtexType = bibtexTypeMap[openalexType] || 'misc';
+    const key = `${bibtexType}${pub.publicationYear || 'unknown'}${index + 1}`;
+    const authors = pub.authorNames?.replace(/,/g, ' and') || 'Unknown Author';
+    const title = pub.title || 'Untitled';
+    const year = pub.publicationYear || '';
+    const journal = pub.journal || '';
+    const doi = pub.doi || '';
+    
+    return `@${bibtexType}{${key},
+  author = {${authors}},
+  title = {${title}},
+  journal = {${journal}},
+  year = {${year}},
+  doi = {${doi}},
+  url = {https://doi.org/${doi}}
+}`;
+  }).join('\n\n');
+}
+
+function generateRIS(publications: Publication[]): string {
+  return publications.map(pub => {
+    const typeMap: Record<string, string> = {
+      'article': 'JOUR',
+      'book': 'BOOK',
+      'book-chapter': 'CHAP',
+      'preprint': 'UNPB',
+      'review': 'JOUR',
+      'letter': 'JOUR',
+      'editorial': 'JOUR',
+    };
+    
+    const type = typeMap[pub.publicationType?.toLowerCase() || ''] || 'GEN';
+    const authors = (pub.authorNames || '').split(',').map(a => a.trim()).filter(a => a);
+    
+    let ris = `TY  - ${type}\n`;
+    
+    authors.forEach(author => {
+      ris += `AU  - ${author}\n`;
+    });
+    
+    if (pub.title) ris += `TI  - ${pub.title}\n`;
+    if (pub.journal) ris += `JO  - ${pub.journal}\n`;
+    if (pub.publicationYear) ris += `PY  - ${pub.publicationYear}\n`;
+    if (pub.doi) ris += `DO  - ${pub.doi}\n`;
+    if (pub.doi) ris += `UR  - https://doi.org/${pub.doi}\n`;
+    
+    ris += `ER  - \n`;
+    
+    return ris;
+  }).join('\n');
+}
+
+function generateCSV(publications: Publication[]): string {
+  const headers = ['Title', 'Authors', 'Journal', 'Year', 'Type', 'Citations', 'DOI', 'Open Access', 'Topics'];
+  const rows = publications.map(pub => {
+    return [
+      escapeCSV(pub.title || ''),
+      escapeCSV(pub.authorNames || ''),
+      escapeCSV(pub.journal || ''),
+      pub.publicationYear || '',
+      escapeCSV(pub.publicationType || ''),
+      pub.citationCount || 0,
+      escapeCSV(pub.doi || ''),
+      pub.isOpenAccess ? 'Yes' : 'No',
+      escapeCSV(Array.isArray(pub.topics) ? pub.topics.join('; ') : '')
+    ].join(',');
+  });
+  
+  return [headers.join(','), ...rows].join('\n');
+}
+
+function escapeCSV(value: string): string {
+  if (value.includes(',') || value.includes('"') || value.includes('\n')) {
+    return `"${value.replace(/"/g, '""')}"`;
+  }
+  return value;
+}
+
 export async function registerRoutes(app: Express): Promise<Server> {
   const openalexService = new OpenAlexService();
 
@@ -795,6 +900,64 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error searching OpenAlex:", error);
       res.status(500).json({ message: "Failed to search OpenAlex" });
+    }
+  });
+
+  // Export bibliography in various formats (public)
+  app.get('/api/researcher/:openalexId/export-bibliography', async (req, res) => {
+    try {
+      const { openalexId } = req.params;
+      const format = (req.query.format as string) || 'bibtex';
+      
+      // Get researcher profile (must be public)
+      const profile = await storage.getResearcherProfileByOpenalexId(openalexId);
+      if (!profile || !profile.isPublic) {
+        return res.status(404).json({ message: "Researcher not found or not public" });
+      }
+
+      // Get all publications
+      const publications = await storage.getPublications(openalexId);
+      
+      if (publications.length === 0) {
+        return res.status(404).json({ message: "No publications found" });
+      }
+
+      let content: string;
+      let filename: string;
+      let contentType: string;
+      const sanitizedName = (profile.displayName || 'researcher').replace(/[^a-zA-Z0-9-_]/g, '_');
+
+      switch (format.toLowerCase()) {
+        case 'bibtex':
+          content = generateBibTeX(publications);
+          filename = `${sanitizedName}_bibliography.bib`;
+          contentType = 'application/x-bibtex';
+          break;
+        case 'ris':
+          content = generateRIS(publications);
+          filename = `${sanitizedName}_bibliography.ris`;
+          contentType = 'application/x-research-info-systems';
+          break;
+        case 'csv':
+          content = generateCSV(publications);
+          filename = `${sanitizedName}_bibliography.csv`;
+          contentType = 'text/csv';
+          break;
+        case 'json':
+          content = JSON.stringify(publications, null, 2);
+          filename = `${sanitizedName}_bibliography.json`;
+          contentType = 'application/json';
+          break;
+        default:
+          return res.status(400).json({ message: "Invalid format. Supported formats: bibtex, ris, csv, json" });
+      }
+
+      res.setHeader('Content-Type', contentType);
+      res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+      res.send(content);
+    } catch (error) {
+      console.error("Error exporting bibliography:", error);
+      res.status(500).json({ message: "Failed to export bibliography" });
     }
   });
 
