@@ -936,6 +936,79 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Configure multer for profile image upload
+  const uploadImage = multer({
+    storage: multer.memoryStorage(),
+    limits: {
+      fileSize: 5 * 1024 * 1024, // 5MB limit for images
+    },
+    fileFilter: (_req, file, cb) => {
+      // Only allow image files
+      if (file.mimetype.startsWith('image/')) {
+        cb(null, true);
+      } else {
+        cb(new Error('Only image files are allowed'));
+      }
+    },
+  });
+
+  // Profile image upload endpoint (ADMIN ONLY)
+  app.post('/api/admin/researcher/:openalexId/upload-profile-image', adminRateLimit, adminSessionAuthMiddleware, uploadImage.single('profileImage'), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ message: 'No file uploaded' });
+      }
+
+      const { openalexId } = req.params;
+      const profile = await storage.getResearcherProfileByOpenalexId(openalexId);
+      
+      if (!profile) {
+        return res.status(404).json({ message: 'Researcher profile not found' });
+      }
+
+      // Initialize Replit Object Storage client with bucket ID
+      const storageBucketId = process.env.DEFAULT_OBJECT_STORAGE_BUCKET_ID;
+      if (!storageBucketId) {
+        return res.status(500).json({ message: 'Object storage not configured' });
+      }
+      
+      const objectStorage = new ObjectStorageClient({ bucketId: storageBucketId });
+      
+      // Generate unique filename for public directory with proper extension
+      const fileExtension = req.file.mimetype.split('/')[1];
+      const filename = `public/profile-images/${openalexId}-profile-${Date.now()}.${fileExtension}`;
+
+      // Upload file using Replit Object Storage
+      const uploadResult = await objectStorage.uploadFromBytes(filename, req.file.buffer);
+      
+      if (!uploadResult.ok) {
+        console.error('Object storage upload error:', uploadResult.error);
+        return res.status(500).json({ message: 'Failed to upload file to storage' });
+      }
+
+      // Get public URL from Replit Object Storage
+      const profileImageUrl = `https://storage.googleapis.com/${storageBucketId}/${filename}`;
+
+      // Update profile with profile image URL
+      await storage.updateResearcherProfile(profile.id, {
+        profileImageUrl: profileImageUrl,
+      });
+
+      // Broadcast update to connected clients
+      broadcastResearcherUpdate(openalexId, 'profile');
+
+      res.json({ 
+        message: 'Profile image uploaded successfully',
+        profileImageUrl: profileImageUrl,
+      });
+    } catch (error) {
+      console.error('Error uploading profile image:', error);
+      res.status(500).json({ 
+        message: error instanceof Error ? error.message : 'Failed to upload profile image',
+      });
+    }
+  });
+
   // Get all site settings (public)
   app.get('/api/settings', async (req, res) => {
     try {
@@ -1151,6 +1224,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
                             <!-- Right Column -->
                             <div class="space-y-4">
                                 <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Profile Image</label>
+                                    <div class="space-y-2">
+                                        <input type="file" id="profileImageFile" name="profileImageFile" accept="image/*"
+                                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                                               onchange="handleProfileImageUpload(this)">
+                                        <p class="text-xs text-gray-500">Upload image file (max 5MB) or enter URL below</p>
+                                        <input type="url" id="profileImageUrl" name="profileImageUrl" 
+                                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                               placeholder="Or enter image URL: https://example.com/photo.jpg">
+                                        <div id="profileImageUploadStatus" class="text-sm hidden"></div>
+                                    </div>
+                                </div>
+                                
+                                <div>
                                     <label for="bio" class="block text-sm font-medium text-gray-700 mb-2">Biography</label>
                                     <textarea id="bio" name="bio" rows="4" 
                                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -1322,6 +1409,78 @@ export async function registerRoutes(app: Express): Promise<Server> {
             }
         }
 
+        // Handle Profile Image file upload
+        async function handleProfileImageUpload(input) {
+            const statusEl = document.getElementById('profileImageUploadStatus');
+            const profileImageUrlInput = document.getElementById('profileImageUrl');
+            
+            if (!input.files || input.files.length === 0) {
+                return;
+            }
+            
+            const file = input.files[0];
+            
+            // Validate file size (5MB max)
+            if (file.size > 5 * 1024 * 1024) {
+                statusEl.textContent = 'File too large. Maximum size is 5MB.';
+                statusEl.className = 'text-sm text-red-600';
+                statusEl.classList.remove('hidden');
+                input.value = '';
+                return;
+            }
+            
+            // Validate file type (images only)
+            if (!file.type.startsWith('image/')) {
+                statusEl.textContent = 'Only image files are allowed.';
+                statusEl.className = 'text-sm text-red-600';
+                statusEl.classList.remove('hidden');
+                input.value = '';
+                return;
+            }
+            
+            const openalexId = document.getElementById('openalexId').value;
+            if (!openalexId) {
+                statusEl.textContent = 'Please enter OpenAlex ID first before uploading profile image.';
+                statusEl.className = 'text-sm text-red-600';
+                statusEl.classList.remove('hidden');
+                input.value = '';
+                return;
+            }
+            
+            statusEl.textContent = 'Uploading profile image...';
+            statusEl.className = 'text-sm text-blue-600';
+            statusEl.classList.remove('hidden');
+            
+            try {
+                const formData = new FormData();
+                formData.append('profileImage', file);
+                
+                const response = await fetch(\`/api/admin/researcher/\${openalexId}/upload-profile-image\`, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (!response.ok) {
+                    const error = await response.json().catch(() => ({ message: 'Upload failed' }));
+                    throw new Error(error.message || 'Upload failed');
+                }
+                
+                const result = await response.json();
+                
+                // Update profile image URL input with the uploaded file URL
+                profileImageUrlInput.value = result.profileImageUrl;
+                
+                statusEl.textContent = 'Profile image uploaded successfully!';
+                statusEl.className = 'text-sm text-green-600';
+                
+                setTimeout(() => statusEl.classList.add('hidden'), 3000);
+            } catch (error) {
+                statusEl.textContent = \`Upload failed: \${error.message}\`;
+                statusEl.className = 'text-sm text-red-600';
+                input.value = '';
+            }
+        }
+
         // Show create form
         function showCreateForm() {
             currentEditingProfile = null;
@@ -1350,6 +1509,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 document.getElementById('currentPosition').value = profile.currentPosition || '';
                 document.getElementById('email').value = profile.email || '';
                 document.getElementById('bio').value = profile.bio || '';
+                document.getElementById('profileImageUrl').value = profile.profileImageUrl || '';
                 document.getElementById('cvUrl').value = profile.cvUrl || '';
                 document.getElementById('currentAffiliationUrl').value = profile.currentAffiliationUrl || '';
                 document.getElementById('currentAffiliationStartDate').value = profile.currentAffiliationStartDate || '';

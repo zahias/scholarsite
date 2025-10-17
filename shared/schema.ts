@@ -36,6 +36,7 @@ export const researcherProfiles = pgTable("researcher_profiles", {
   displayName: text("display_name"),
   title: text("title"),
   bio: text("bio"),
+  profileImageUrl: varchar("profile_image_url"),
   cvUrl: varchar("cv_url"),
   // Current affiliation fields (manually entered)
   currentAffiliation: text("current_affiliation"),
