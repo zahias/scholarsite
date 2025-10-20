@@ -6,7 +6,7 @@ export default function Navigation() {
 
   useEffect(() => {
     const handleScroll = () => {
-      const sections = ['overview', 'analytics', 'research', 'publications', 'timeline'];
+      const sections = ['overview', 'analytics', 'research', 'publications'];
       const scrollPosition = window.scrollY + window.innerHeight / 3; // Trigger earlier for better UX
 
       for (const sectionId of sections) {
@@ -38,7 +38,6 @@ export default function Navigation() {
     { id: 'analytics', label: 'Analytics' },
     { id: 'research', label: 'Research Areas' },
     { id: 'publications', label: 'Publications' },
-    { id: 'timeline', label: 'Timeline' },
   ];
 
   return (

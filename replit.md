@@ -152,7 +152,11 @@ Preferred communication style: Simple, everyday language.
 ### Frontend Components
 - **SEO.tsx**: Dynamic meta tags, Open Graph, Twitter Cards, Schema.org JSON-LD
 - **ShareButtons.tsx**: Social sharing with LinkedIn, Twitter, Email, Copy Link, QR Code
-- **MobileBottomNav.tsx**: Fixed bottom navigation for mobile devices
+- **MobileBottomNav.tsx**: Fixed bottom navigation for mobile devices with Overview, Analytics, Research, and Publications sections
 - **AnimatedCounter.tsx**: Scroll-triggered number animations
-- **Navigation.tsx**: Desktop navigation with scroll-spy highlighting
+- **Navigation.tsx**: Desktop navigation with scroll-spy highlighting for Overview, Analytics, Research, and Publications
 - **ResearcherProfile.tsx**: Main profile page integrating all components
+- **StatsOverview.tsx**: Publication metrics and impact statistics
+- **PublicationAnalytics.tsx**: Charts and visualizations of publication data
+- **ResearchTopics.tsx**: Research areas and topics
+- **Publications.tsx**: Complete publication list with search and filtering

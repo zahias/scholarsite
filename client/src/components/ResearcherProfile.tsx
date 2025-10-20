@@ -8,7 +8,6 @@ import Publications from "./Publications";
 import SEO from "./SEO";
 import ShareButtons from "./ShareButtons";
 import MobileBottomNav from "./MobileBottomNav";
-import CareerTimeline from "./CareerTimeline";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -246,7 +245,6 @@ export default function ResearcherProfile() {
       <PublicationAnalytics openalexId={openalexId} researcherData={researcherData} />
       <ResearchTopics openalexId={openalexId} />
       <Publications openalexId={openalexId} />
-      <CareerTimeline openalexId={openalexId} />
 
       {/* Footer */}
       <footer className="bg-gradient-to-br from-card to-muted/20 border-t border-border py-8">
