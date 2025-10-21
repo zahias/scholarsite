@@ -6,7 +6,6 @@ import PublicationAnalytics from "./PublicationAnalytics";
 import ResearchTopics from "./ResearchTopics";
 import Publications from "./Publications";
 import SEO from "./SEO";
-import ShareButtons from "./ShareButtons";
 import MobileBottomNav from "./MobileBottomNav";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -74,7 +73,7 @@ export default function ResearcherProfile() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background">
-        <Navigation />
+        <Navigation researcherName="Loading..." />
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
           <Card>
             <CardContent className="pt-6">
@@ -97,7 +96,7 @@ export default function ResearcherProfile() {
   if (error || !researcherData || !researcherData.profile) {
     return (
       <div className="min-h-screen bg-background">
-        <Navigation />
+        <Navigation researcherName="Researcher Profile" />
         
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
           <Card>
@@ -127,7 +126,7 @@ export default function ResearcherProfile() {
         type="profile"
         structuredData={structuredData || undefined}
       />
-      <Navigation />
+      <Navigation researcherName={profile?.displayName || researcher?.display_name || 'Researcher'} />
       
       {/* Enhanced Hero Section */}
       <section id="overview" className="hero-banner min-h-[85vh] flex items-center">
@@ -219,17 +218,6 @@ export default function ResearcherProfile() {
                     Get In Touch
                   </a>
                 )}
-              </div>
-
-              {/* Share Buttons */}
-              <div className="mt-6">
-                <p className="text-sm text-white/60 mb-3">Share this profile:</p>
-                <ShareButtons 
-                  url={profileUrl}
-                  title={profile?.displayName || researcher?.display_name || 'Researcher'}
-                  description={seoDescription}
-                  openalexId={openalexId}
-                />
               </div>
             </div>
           </div>

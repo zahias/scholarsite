@@ -1,7 +1,11 @@
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
 
-export default function Navigation() {
+interface NavigationProps {
+  researcherName?: string;
+}
+
+export default function Navigation({ researcherName = 'Researcher' }: NavigationProps) {
   const [activeSection, setActiveSection] = useState('overview');
 
   useEffect(() => {
@@ -45,7 +49,7 @@ export default function Navigation() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex items-center">
-            <h2 className="text-lg font-semibold">Research Profile</h2>
+            <h2 className="text-lg font-semibold">{researcherName}</h2>
           </div>
           <div className="hidden md:flex items-center space-x-8">
             {navItems.map((item) => (
