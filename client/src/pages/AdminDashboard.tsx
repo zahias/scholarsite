@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useLocation, Link } from "wouter";
 import { queryClient, apiRequest } from "@/lib/queryClient";
@@ -75,6 +76,12 @@ export default function AdminDashboard() {
     },
   });
 
+  useEffect(() => {
+    if (!userLoading && (!userData?.user || userData.user.role !== "admin")) {
+      navigate("/admin/login");
+    }
+  }, [userLoading, userData, navigate]);
+
   if (userLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-8">
@@ -91,7 +98,6 @@ export default function AdminDashboard() {
   }
 
   if (!userData?.user || userData.user.role !== "admin") {
-    navigate("/admin/login");
     return null;
   }
 

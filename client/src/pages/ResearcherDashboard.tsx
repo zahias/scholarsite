@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useLocation } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
@@ -26,6 +26,8 @@ import {
   Search,
   CheckCircle,
   AlertCircle,
+  Camera,
+  Upload,
 } from "lucide-react";
 
 interface CurrentUser {
@@ -47,6 +49,7 @@ interface TenantProfile {
   socialLinks: Record<string, string> | null;
   featuredWorks: string[] | null;
   lastSyncedAt: string | null;
+  profileImageUrl: string | null;
 }
 
 interface Domain {
@@ -87,6 +90,7 @@ export default function ResearcherDashboard() {
   const [linkedinUrl, setLinkedinUrl] = useState("");
   const [googleScholarUrl, setGoogleScholarUrl] = useState("");
   const [isSaving, setIsSaving] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { data: userData, isLoading: userLoading } = useQuery<{ user: CurrentUser }>({
     queryKey: ["/api/auth/me"],
@@ -171,6 +175,41 @@ export default function ResearcherDashboard() {
       toast({ title: "Not Found", description: "Could not find this author in OpenAlex. Check the ID.", variant: "destructive" });
     },
   });
+
+  const uploadPhotoMutation = useMutation({
+    mutationFn: async (file: File) => {
+      const formData = new FormData();
+      formData.append('photo', file);
+      const response = await fetch('/api/researcher/upload-photo', {
+        method: 'POST',
+        body: formData,
+        credentials: 'include',
+      });
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to upload photo');
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({ title: "Photo Updated!", description: "Your profile photo has been uploaded." });
+      queryClient.invalidateQueries({ queryKey: ["/api/researcher/my-tenant"] });
+    },
+    onError: (error: any) => {
+      toast({ title: "Upload Failed", description: error.message, variant: "destructive" });
+    },
+  });
+
+  const handlePhotoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        toast({ title: "File too large", description: "Please choose an image under 5MB", variant: "destructive" });
+        return;
+      }
+      uploadPhotoMutation.mutate(file);
+    }
+  };
 
   const handleSaveProfile = async () => {
     setIsSaving(true);
@@ -407,6 +446,62 @@ export default function ResearcherDashboard() {
           <TabsContent value="profile" className="mt-6 space-y-6">
             <Card>
               <CardHeader>
+                <CardTitle>Profile Photo</CardTitle>
+                <CardDescription>
+                  Upload a professional photo to personalize your portfolio
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center gap-6">
+                  <div className="relative">
+                    {profile?.profileImageUrl ? (
+                      <img
+                        src={profile.profileImageUrl}
+                        alt="Profile"
+                        className="w-24 h-24 rounded-full object-cover border-4 border-slate-100"
+                      />
+                    ) : (
+                      <div className="w-24 h-24 rounded-full bg-gradient-to-br from-[#0B1F3A] to-[#233F5F] flex items-center justify-center">
+                        <User className="w-10 h-10 text-white" />
+                      </div>
+                    )}
+                    <button
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={uploadPhotoMutation.isPending}
+                      className="absolute bottom-0 right-0 w-8 h-8 bg-white rounded-full shadow-lg flex items-center justify-center border border-slate-200 hover:bg-slate-50 transition-colors"
+                      data-testid="button-change-photo"
+                    >
+                      <Camera className="w-4 h-4 text-slate-600" />
+                    </button>
+                  </div>
+                  <div className="flex-1">
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={handlePhotoUpload}
+                      className="hidden"
+                      data-testid="input-photo-file"
+                    />
+                    <Button
+                      variant="outline"
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={uploadPhotoMutation.isPending}
+                      data-testid="button-upload-photo"
+                    >
+                      <Upload className="w-4 h-4 mr-2" />
+                      {uploadPhotoMutation.isPending ? "Uploading..." : "Upload Photo"}
+                    </Button>
+                    <p className="text-sm text-slate-500 mt-2">
+                      JPG, PNG or GIF. Max 5MB.
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
                 <CardTitle>Profile Information</CardTitle>
                 <CardDescription>
                   Customize how your name and biography appear on your portfolio
@@ -535,6 +630,32 @@ export default function ResearcherDashboard() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-slate-700">Preview Portfolio</label>
+                  {profile?.openalexId ? (
+                    <div className="flex items-center gap-2 p-3 bg-blue-50 rounded-lg border border-blue-100">
+                      <ExternalLink className="w-4 h-4 text-blue-500" />
+                      <span className="text-sm text-blue-700">See how visitors will view your portfolio</span>
+                      <a
+                        href={`/researcher/${profile.openalexId}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="ml-auto bg-blue-600 text-white px-3 py-1.5 rounded-md text-sm font-medium hover:bg-blue-700 flex items-center gap-1"
+                        data-testid="link-preview-portfolio"
+                      >
+                        Preview
+                        <ExternalLink className="w-3 h-3" />
+                      </a>
+                    </div>
+                  ) : (
+                    <p className="text-sm text-slate-500">
+                      Connect your OpenAlex ID to preview your portfolio
+                    </p>
+                  )}
+                </div>
+
+                <Separator />
+
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-slate-700">Your Domain</label>
                   {primaryDomain ? (

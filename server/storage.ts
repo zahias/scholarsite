@@ -170,9 +170,8 @@ export class DatabaseStorage implements IStorage {
           displayName: updates.displayName || null,
           title: updates.title || null,
           bio: updates.bio || null,
-          customCss: updates.customCss || null,
-          socialLinks: updates.socialLinks || null,
-          featuredWorks: updates.featuredWorks || null,
+          profileImageUrl: updates.profileImageUrl || null,
+          email: updates.email || null,
           lastSyncedAt: updates.lastSyncedAt ? new Date(updates.lastSyncedAt) : null,
         })
         .returning();
