@@ -18,7 +18,19 @@ The platform consists of three main surfaces:
 
 # Recent Changes (December 2, 2025)
 
-## Premium Visual Enhancements (Latest)
+## Contact-Based Sales Model (Latest)
+- **No Free Trial**: Removed all "free trial" language - contact-based sales only
+- **Contact Page**: `/contact` - Professional inquiry form with product selection (Starter $9, Professional $19, Institution $49)
+- **Legal Pages**: `/privacy` - Privacy Policy, `/terms` - Terms of Service
+- **Footer Updates**: Removed Documentation, Help Center, Blog links; added Privacy Policy and Terms of Service links
+- **API Addition**: `POST /api/contact` - Handles contact form submissions
+
+## Consistent Profile Preview Structure
+- **Banner Elements**: All preview profiles now show the same structural elements consistently
+- **Fallback Content**: Affiliation, location, and bio sections display placeholder content if data is missing from OpenAlex
+- **Preview Indicators**: Elements with placeholder data show "(Preview)" label for clarity
+
+## Premium Visual Enhancements
 - **Premium Navigation**: Navy gradient with glassmorphism (blur + transparency), orange accent border glow
 - **Layered Hero Section**: Deep navy gradient with mesh pattern overlay, floating sage/orange orbs with subtle animation
 - **Premium Buttons**: `.btn-premium` with gradient, hover glow effect, scale 1.02 on hover; `.btn-outline-light` for secondary CTAs
