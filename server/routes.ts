@@ -784,21 +784,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const institution = researcher.last_known_institutions?.[0];
         const orcid = researcher.orcid || null;
         
+        // Generate a realistic title based on publication count
+        const getAcademicTitle = (worksCount: number): string => {
+          if (worksCount > 500) return 'Distinguished Professor';
+          if (worksCount > 200) return 'Full Professor';
+          if (worksCount > 100) return 'Associate Professor';
+          if (worksCount > 50) return 'Assistant Professor';
+          if (worksCount > 20) return 'Research Scientist';
+          return 'Researcher';
+        };
+        
         // Create a virtual profile for preview with placeholder content
         const previewProfile = {
           displayName: researcher.display_name,
-          title: 'Researcher',
-          currentAffiliation: institution?.display_name || null,
+          title: getAcademicTitle(researcher.works_count || 0),
+          currentAffiliation: institution?.display_name || 'Your University',
+          department: institution?.type === 'education' ? 'Department of Research' : null,
           bio: `Distinguished researcher with ${researcher.works_count || 0} publications and ${researcher.cited_by_count || 0} citations. Research spans multiple disciplines with contributions to the academic community.`,
           profileImageUrl: null, // Will be handled on frontend with initials avatar
           cvUrl: '#cv-placeholder',
-          contactEmail: 'contact@example.edu',
-          location: institution?.country_code ? `${institution.display_name}` : null,
+          contactEmail: 'yourname@university.edu',
+          phone: '+1 (555) 123-4567',
+          officeLocation: 'Building A, Room 123',
+          location: institution?.display_name || 'Your Institution',
+          countryCode: institution?.country_code || null,
           orcidId: orcid,
           googleScholarUrl: '#scholar-placeholder',
           linkedinUrl: '#linkedin-placeholder',
-          twitterHandle: null,
+          twitterHandle: '@yourhandle',
           websiteUrl: '#website-placeholder',
+          researchInterests: topics.slice(0, 5).map((t: any) => t.displayName),
           isPublic: true,
           isPreview: true
         };
@@ -1023,7 +1038,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Search authors by name using OpenAlex autocomplete API (public - for landing page search)
+  // Search authors by name using OpenAlex full search API (public - for landing page search)
+  // Uses full search with works_count sorting to show prolific researchers first
   app.get('/api/openalex/autocomplete', async (req, res) => {
     try {
       const query = req.query.q as string;
@@ -1031,8 +1047,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.json({ results: [] });
       }
 
+      // Use full search API with sorting by works_count to show prolific researchers first
       const response = await fetch(
-        `https://api.openalex.org/autocomplete/authors?q=${encodeURIComponent(query)}`
+        `https://api.openalex.org/authors?search=${encodeURIComponent(query)}&sort=works_count:desc&per_page=10`
       );
       
       if (!response.ok) {
@@ -1045,7 +1062,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const results = data.results.map((author: any) => ({
         id: author.id.replace('https://openalex.org/', ''),
         display_name: author.display_name,
-        hint: author.hint || '',
+        hint: author.last_known_institutions?.[0]?.display_name || '',
         works_count: author.works_count || 0,
         cited_by_count: author.cited_by_count || 0,
       }));

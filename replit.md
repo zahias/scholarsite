@@ -18,16 +18,26 @@ The platform consists of three main surfaces:
 
 # Recent Changes (December 2, 2025)
 
-## New Landing Page (SaaS Marketing Site)
-- **Hero Section**: Value proposition with CTA buttons
-- **Features Section**: 6 feature cards (Domain, Analytics, Email, Themes, Auto-Update, Hosting)
-- **Autocomplete Search**: Search researchers by name using OpenAlex autocomplete API
-  - Debounced input (300ms) for efficient API calls
-  - Shows researcher name, institution, publication count, and citation count
-  - Clicking a result navigates to full profile page
-- **Example Profiles**: 3 quick-access cards (Albert Einstein, Richard Feynman, Stephen Hawking)
-- **Pricing Section**: 3 tiers (Starter $9/mo, Professional $19/mo, Institution $49/mo)
-- **Footer**: Product, Resources, Legal links
+## Premium Design System Upgrade
+- **New Color Palette**: Scholarly aesthetic with Midnight Blue (#0B1F3A), Oxford Blue (#142850), Platinum (#E4E9F7), Sage Green (#7AA874), Warm Accent (#F2994A)
+- **Typography**: Font pairing of Inter (UI) and Source Serif Pro (headings/names) for elevated academic feel
+- **Glassmorphism**: backdrop-blur effects on navigation and cards for modern premium look
+- **Premium CSS Classes**: .hero-banner, .glass, .glass-dark, .btn-premium, .card-premium
+- **Dark Mode Enhancements**: Refined gradients and contrast for dark theme
+
+## Landing Page Redesign
+- **Premium Hero Section**: Full-width gradient hero with serif typography, glassmorphism stat cards
+- **Enhanced Navigation**: Glassmorphism navbar with uppercase tracking links
+- **Features Section**: Premium cards with gradient icon backgrounds and hover lift effects
+- **Preview Section**: Improved search with badge headers and section dividers
+- **Pricing Section**: Elevated cards with accent borders and "Most Popular" badges
+- **Premium CTA Section**: Full-width gradient banner with decorative elements
+- **Footer**: Dark blue footer with improved link hierarchy
+
+## Search API Changes
+- Switched from OpenAlex autocomplete to full search API (`/works`) with `sort=works_count:desc`
+- Shows most prolific researchers first for better relevance
+- `GET /api/openalex/search?q=query` - Full text search for researchers
 
 ## API Additions
 - `GET /api/openalex/autocomplete?q=query` - Search authors by name using OpenAlex autocomplete

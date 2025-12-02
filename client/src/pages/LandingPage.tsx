@@ -178,96 +178,101 @@ export default function LandingPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Navigation */}
-      <nav className="sticky top-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border">
+      {/* Premium Navigation */}
+      <nav className="sticky top-0 z-50 glass border-b border-white/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">
             <div className="flex items-center">
               <BookOpen className="h-8 w-8 text-primary mr-2" />
-              <span className="text-xl font-bold">ScholarSite</span>
+              <span className="text-xl font-bold font-serif tracking-tight">ScholarSite</span>
             </div>
             <div className="hidden md:flex items-center space-x-8">
-              <a href="#features" className="text-muted-foreground hover:text-foreground transition-colors" data-testid="link-features">Features</a>
-              <a href="#preview" className="text-muted-foreground hover:text-foreground transition-colors" data-testid="link-preview">Preview</a>
-              <a href="#pricing" className="text-muted-foreground hover:text-foreground transition-colors" data-testid="link-pricing">Pricing</a>
-              <Button data-testid="button-get-started-nav">Get Started</Button>
+              <a href="#features" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors uppercase tracking-wider" data-testid="link-features">Features</a>
+              <a href="#preview" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors uppercase tracking-wider" data-testid="link-preview">Preview</a>
+              <a href="#pricing" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors uppercase tracking-wider" data-testid="link-pricing">Pricing</a>
+              <Button className="btn-premium px-6 py-2" data-testid="button-get-started-nav">Get Started</Button>
             </div>
           </div>
         </div>
       </nav>
 
-      {/* Hero Section */}
-      <section className="relative overflow-hidden py-20 lg:py-32">
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-background to-accent/5"></div>
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      {/* Premium Hero Section */}
+      <section className="relative overflow-hidden py-24 lg:py-36 hero-banner">
+        <div className="hero-pattern"></div>
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 z-10">
           <div className="text-center max-w-4xl mx-auto">
-            <Badge variant="secondary" className="mb-6">
-              <Sparkles className="w-3 h-3 mr-1" />
+            <Badge variant="secondary" className="mb-8 bg-white/10 text-white border-white/20 backdrop-blur-sm px-4 py-2">
+              <Sparkles className="w-4 h-4 mr-2" />
               Powered by OpenAlex
             </Badge>
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight mb-6">
-              Your Research Portfolio,{" "}
-              <span className="text-primary">Beautifully Presented</span>
+            <h1 className="text-4xl sm:text-5xl lg:text-7xl font-bold tracking-tight mb-6 font-serif text-white">
+              Your Research Legacy,{" "}
+              <span className="bg-gradient-to-r from-white via-white/90 to-white/70 bg-clip-text text-transparent">Beautifully Presented</span>
             </h1>
-            <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
+            <p className="text-xl lg:text-2xl text-white/80 mb-10 max-w-3xl mx-auto font-light leading-relaxed">
               Create a stunning academic portfolio website in minutes. Showcase your publications, 
               citations, and research impact with automatic updates from OpenAlex.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button size="lg" className="text-lg px-8" data-testid="button-start-free-trial">
+              <Button size="lg" className="btn-premium text-lg px-10 py-6" data-testid="button-start-free-trial">
                 Start Free Trial
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
-              <Button size="lg" variant="outline" className="text-lg px-8" data-testid="button-see-demo">
+              <Button size="lg" variant="outline" className="text-lg px-10 py-6 bg-white/10 border-white/30 text-white hover:bg-white/20 hover:text-white backdrop-blur-sm" data-testid="button-see-demo">
                 <a href="#preview">See a Demo</a>
               </Button>
             </div>
           </div>
 
-          {/* Stats */}
-          <div className="mt-20 grid grid-cols-2 md:grid-cols-4 gap-8 max-w-4xl mx-auto">
-            <div className="text-center">
-              <div className="text-3xl font-bold text-primary">1000+</div>
-              <div className="text-sm text-muted-foreground">Researchers</div>
+          {/* Premium Stats */}
+          <div className="mt-24 grid grid-cols-2 md:grid-cols-4 gap-6 max-w-4xl mx-auto">
+            <div className="text-center glass-dark rounded-xl p-6">
+              <div className="text-4xl font-bold text-white font-serif">1000+</div>
+              <div className="text-sm text-white/70 uppercase tracking-wider mt-1">Researchers</div>
             </div>
-            <div className="text-center">
-              <div className="text-3xl font-bold text-primary">50M+</div>
-              <div className="text-sm text-muted-foreground">Publications Indexed</div>
+            <div className="text-center glass-dark rounded-xl p-6">
+              <div className="text-4xl font-bold text-white font-serif">50M+</div>
+              <div className="text-sm text-white/70 uppercase tracking-wider mt-1">Publications</div>
             </div>
-            <div className="text-center">
-              <div className="text-3xl font-bold text-primary">99.9%</div>
-              <div className="text-sm text-muted-foreground">Uptime</div>
+            <div className="text-center glass-dark rounded-xl p-6">
+              <div className="text-4xl font-bold text-white font-serif">99.9%</div>
+              <div className="text-sm text-white/70 uppercase tracking-wider mt-1">Uptime</div>
             </div>
-            <div className="text-center">
-              <div className="text-3xl font-bold text-primary">24/7</div>
-              <div className="text-sm text-muted-foreground">Auto-Sync</div>
+            <div className="text-center glass-dark rounded-xl p-6">
+              <div className="text-4xl font-bold text-white font-serif">24/7</div>
+              <div className="text-sm text-white/70 uppercase tracking-wider mt-1">Auto-Sync</div>
             </div>
           </div>
         </div>
+        
+        {/* Decorative Elements */}
+        <div className="hero-decorative top-20 right-20 w-80 h-80 bg-gradient-to-r from-white/8 to-white/3"></div>
+        <div className="hero-decorative bottom-20 left-20 w-64 h-64 bg-gradient-to-r from-white/5 to-white/2"></div>
       </section>
 
-      {/* Features Section */}
-      <section id="features" className="py-20 bg-muted/30">
+      {/* Premium Features Section */}
+      <section id="features" className="py-24 lg:py-32 bg-gradient-to-b from-background to-muted/30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl sm:text-4xl font-bold mb-4">
-              Everything You Need to Shine
+          <div className="text-center mb-20">
+            <Badge variant="outline" className="mb-4 px-4 py-1 text-xs uppercase tracking-widest">Features</Badge>
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-6 font-serif">
+              Everything You Need to <span className="text-accent">Shine</span>
             </h2>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+            <p className="text-lg lg:text-xl text-muted-foreground max-w-2xl mx-auto">
               Professional research portfolios with powerful features designed specifically for academics.
             </p>
           </div>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {features.map((feature, index) => (
-              <Card key={index} className="border-0 shadow-md hover:shadow-lg transition-shadow">
+              <Card key={index} className="card-premium border-0 shadow-lg bg-card/80 backdrop-blur-sm hover:shadow-xl">
                 <CardHeader>
-                  <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4">
-                    <feature.icon className="w-6 h-6 text-primary" />
+                  <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-primary/10 to-accent/10 flex items-center justify-center mb-4">
+                    <feature.icon className="w-7 h-7 text-primary" />
                   </div>
-                  <CardTitle className="text-xl">{feature.title}</CardTitle>
+                  <CardTitle className="text-xl font-serif">{feature.title}</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <CardDescription className="text-base">{feature.description}</CardDescription>
+                  <CardDescription className="text-base leading-relaxed">{feature.description}</CardDescription>
                 </CardContent>
               </Card>
             ))}
@@ -275,14 +280,15 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Preview Section with Autocomplete Search */}
-      <section id="preview" className="py-20">
+      {/* Premium Preview Section with Autocomplete Search */}
+      <section id="preview" className="py-24 lg:py-32 bg-gradient-to-b from-muted/30 to-background">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl sm:text-4xl font-bold mb-4">
-              See Your Portfolio in Action
+          <div className="text-center mb-16">
+            <Badge variant="outline" className="mb-4 px-4 py-1 text-xs uppercase tracking-widest">Live Preview</Badge>
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-6 font-serif">
+              See Your Portfolio in <span className="text-accent">Action</span>
             </h2>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+            <p className="text-lg lg:text-xl text-muted-foreground max-w-2xl mx-auto">
               Search for any researcher by name and preview their complete academic portfolio.
             </p>
           </div>
@@ -419,14 +425,15 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Pricing Section */}
-      <section id="pricing" className="py-20 bg-muted/30">
+      {/* Premium Pricing Section */}
+      <section id="pricing" className="py-24 lg:py-32 bg-gradient-to-b from-background to-muted/30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl sm:text-4xl font-bold mb-4">
-              Simple, Transparent Pricing
+          <div className="text-center mb-20">
+            <Badge variant="outline" className="mb-4 px-4 py-1 text-xs uppercase tracking-widest">Pricing</Badge>
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-6 font-serif">
+              Simple, Transparent <span className="text-accent">Pricing</span>
             </h2>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+            <p className="text-lg lg:text-xl text-muted-foreground max-w-2xl mx-auto">
               Choose the plan that fits your needs. All plans include a 14-day free trial.
             </p>
           </div>
@@ -434,33 +441,35 @@ export default function LandingPage() {
             {pricingPlans.map((plan, index) => (
               <Card 
                 key={index} 
-                className={`relative ${plan.highlighted ? 'border-primary shadow-xl scale-105' : 'border-border'}`}
+                className={`relative card-premium ${plan.highlighted ? 'border-2 border-accent shadow-2xl scale-105 bg-card' : 'border-border bg-card/80 backdrop-blur-sm'}`}
                 data-testid={`card-pricing-${plan.name.toLowerCase()}`}
               >
                 {plan.highlighted && (
-                  <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                    <Badge className="bg-primary">Most Popular</Badge>
+                  <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
+                    <Badge className="btn-premium px-4 py-1 text-xs uppercase tracking-wider shadow-lg">Most Popular</Badge>
                   </div>
                 )}
-                <CardHeader className="text-center pb-2">
-                  <CardTitle className="text-xl">{plan.name}</CardTitle>
-                  <CardDescription>{plan.description}</CardDescription>
-                  <div className="mt-4">
-                    <span className="text-4xl font-bold">{plan.price}</span>
-                    <span className="text-muted-foreground">{plan.period}</span>
+                <CardHeader className="text-center pb-2 pt-8">
+                  <CardTitle className="text-2xl font-serif">{plan.name}</CardTitle>
+                  <CardDescription className="text-base">{plan.description}</CardDescription>
+                  <div className="mt-6">
+                    <span className="text-5xl font-bold font-serif">{plan.price}</span>
+                    <span className="text-muted-foreground text-lg">{plan.period}</span>
                   </div>
                 </CardHeader>
-                <CardContent>
-                  <ul className="space-y-3 mb-6">
+                <CardContent className="pt-6">
+                  <ul className="space-y-4 mb-8">
                     {plan.features.map((feature, i) => (
-                      <li key={i} className="flex items-center gap-2">
-                        <Check className="w-5 h-5 text-primary flex-shrink-0" />
+                      <li key={i} className="flex items-center gap-3">
+                        <div className="w-5 h-5 rounded-full bg-accent/20 flex items-center justify-center flex-shrink-0">
+                          <Check className="w-3 h-3 text-accent" />
+                        </div>
                         <span className="text-sm">{feature}</span>
                       </li>
                     ))}
                   </ul>
                   <Button 
-                    className="w-full" 
+                    className={`w-full py-6 ${plan.highlighted ? 'btn-premium' : ''}`}
                     variant={plan.highlighted ? "default" : "outline"}
                     data-testid={`button-select-${plan.name.toLowerCase()}`}
                   >
@@ -473,62 +482,65 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="py-20">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl sm:text-4xl font-bold mb-4">
+      {/* Premium CTA Section */}
+      <section className="py-24 lg:py-32 hero-banner relative overflow-hidden">
+        <div className="hero-pattern"></div>
+        <div className="hero-decorative top-10 right-10 w-64 h-64 bg-gradient-to-r from-white/5 to-white/2"></div>
+        <div className="hero-decorative bottom-10 left-10 w-48 h-48 bg-gradient-to-r from-white/3 to-white/1"></div>
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-6 font-serif text-white">
             Ready to Showcase Your Research?
           </h2>
-          <p className="text-lg text-muted-foreground mb-8">
+          <p className="text-xl text-white/80 mb-10 max-w-2xl mx-auto font-light">
             Join thousands of researchers who have already created their professional portfolio.
             Start your free trial today - no credit card required.
           </p>
-          <Button size="lg" className="text-lg px-8" data-testid="button-start-trial-cta">
+          <Button size="lg" className="btn-premium text-lg px-10 py-6" data-testid="button-start-trial-cta">
             Start Your Free Trial
             <ArrowRight className="ml-2 h-5 w-5" />
           </Button>
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="bg-muted/50 border-t border-border py-12">
+      {/* Premium Footer */}
+      <footer className="bg-primary text-white py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid md:grid-cols-4 gap-8">
+          <div className="grid md:grid-cols-4 gap-12">
             <div>
-              <div className="flex items-center mb-4">
-                <BookOpen className="h-6 w-6 text-primary mr-2" />
-                <span className="font-bold">ScholarSite</span>
+              <div className="flex items-center mb-6">
+                <BookOpen className="h-7 w-7 text-white mr-2" />
+                <span className="font-bold text-xl font-serif">ScholarSite</span>
               </div>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-white/70 leading-relaxed">
                 Beautiful research portfolios for academics, powered by OpenAlex.
               </p>
             </div>
             <div>
-              <h4 className="font-semibold mb-4">Product</h4>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><a href="#features" className="hover:text-foreground" data-testid="link-footer-features">Features</a></li>
-                <li><a href="#pricing" className="hover:text-foreground" data-testid="link-footer-pricing">Pricing</a></li>
-                <li><a href="#preview" className="hover:text-foreground" data-testid="link-footer-preview">Preview</a></li>
+              <h4 className="font-semibold mb-6 uppercase tracking-wider text-sm">Product</h4>
+              <ul className="space-y-3 text-white/70">
+                <li><a href="#features" className="hover:text-white transition-colors" data-testid="link-footer-features">Features</a></li>
+                <li><a href="#pricing" className="hover:text-white transition-colors" data-testid="link-footer-pricing">Pricing</a></li>
+                <li><a href="#preview" className="hover:text-white transition-colors" data-testid="link-footer-preview">Preview</a></li>
               </ul>
             </div>
             <div>
-              <h4 className="font-semibold mb-4">Resources</h4>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><a href="#" className="hover:text-foreground" data-testid="link-footer-documentation">Documentation</a></li>
-                <li><a href="#" className="hover:text-foreground" data-testid="link-footer-help">Help Center</a></li>
-                <li><a href="#" className="hover:text-foreground" data-testid="link-footer-blog">Blog</a></li>
+              <h4 className="font-semibold mb-6 uppercase tracking-wider text-sm">Resources</h4>
+              <ul className="space-y-3 text-white/70">
+                <li><a href="#" className="hover:text-white transition-colors" data-testid="link-footer-documentation">Documentation</a></li>
+                <li><a href="#" className="hover:text-white transition-colors" data-testid="link-footer-help">Help Center</a></li>
+                <li><a href="#" className="hover:text-white transition-colors" data-testid="link-footer-blog">Blog</a></li>
               </ul>
             </div>
             <div>
-              <h4 className="font-semibold mb-4">Legal</h4>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><a href="#" className="hover:text-foreground" data-testid="link-footer-privacy">Privacy Policy</a></li>
-                <li><a href="#" className="hover:text-foreground" data-testid="link-footer-terms">Terms of Service</a></li>
-                <li><a href="#" className="hover:text-foreground" data-testid="link-footer-contact">Contact</a></li>
+              <h4 className="font-semibold mb-6 uppercase tracking-wider text-sm">Legal</h4>
+              <ul className="space-y-3 text-white/70">
+                <li><a href="#" className="hover:text-white transition-colors" data-testid="link-footer-privacy">Privacy Policy</a></li>
+                <li><a href="#" className="hover:text-white transition-colors" data-testid="link-footer-terms">Terms of Service</a></li>
+                <li><a href="#" className="hover:text-white transition-colors" data-testid="link-footer-contact">Contact</a></li>
               </ul>
             </div>
           </div>
-          <div className="mt-8 pt-8 border-t border-border text-center text-sm text-muted-foreground">
+          <div className="mt-12 pt-8 border-t border-white/20 text-center text-white/60">
             <p>&copy; {new Date().getFullYear()} ScholarSite. All rights reserved.</p>
           </div>
         </div>

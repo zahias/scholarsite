@@ -1,130 +1,144 @@
-# Research Profile Platform Design Guidelines
+# ScholarSite Premium Design Guidelines
 
-## Design Approach: Material Design System
+## Design Approach: Premium Academic Refinement
 
-**Rationale**: Academic platform requires clear information hierarchy, robust data visualization, and professional credibility. Material Design provides excellent patterns for data-dense applications with strong visual feedback and component consistency.
+**Rationale**: High-end SaaS platform requires sophisticated visual language that balances scholarly credibility with modern premium aesthetics. Drawing inspiration from premium SaaS products like Linear and Stripe, combined with academic gravitas.
 
-**Core Principles**: Information clarity, scannable layouts, confident data presentation, academic professionalism
+**Core Principles**: Refined elegance, data-rich transparency, trustworthy sophistication, intentional whitespace
 
 ---
 
 ## Color System
 
 ### Light Mode
-- **Primary**: 210 90% 45% (Deep academic blue - headers, CTAs, links)
-- **Secondary**: 210 25% 25% (Charcoal - body text, labels)
-- **Surface**: 0 0% 98% (Off-white cards/panels)
-- **Background**: 210 15% 97% (Subtle blue-tinted base)
-- **Accent**: 165 70% 42% (Teal - charts, metrics, highlights)
-- **Success/Positive**: 145 65% 45% (Publication indicators)
-- **Border**: 210 15% 88%
+- **Midnight Blue**: #0B1F3A (Primary headers, navigation, key CTAs)
+- **Oxford Blue**: #142850 (Section backgrounds, card overlays)
+- **Platinum**: #E4E9F7 (Surface cards, elevated panels)
+- **Sage Green**: #7AA874 (Success indicators, publication metrics, chart accents)
+- **Warm Accent**: #F2994A (Primary CTAs, interactive highlights)
+- **Background**: #F8F9FC (Subtle blue-tinted base)
+- **Text Primary**: #0B1F3A
+- **Text Secondary**: #5A6B8C
+- **Border**: #D1D9E6
 
-### Dark Mode  
-- **Primary**: 210 85% 65% (Lighter blue)
-- **Secondary**: 210 8% 75% (Light gray text)
-- **Surface**: 215 25% 12% (Elevated cards)
-- **Background**: 220 20% 8% (Deep base)
-- **Accent**: 165 55% 55% (Brighter teal)
-- **Border**: 215 15% 20%
+### Dark Mode
+- **Midnight Blue**: #2A4A6F (Elevated elements)
+- **Oxford Blue**: #0F1826 (Base background)
+- **Platinum**: #1F2937 (Card surfaces)
+- **Sage Green**: #8BC88F (Brightened metrics)
+- **Warm Accent**: #FFB366 (Enhanced CTAs)
+- **Text Primary**: #E4E9F7
+- **Text Secondary**: #9CA3AF
+- **Border**: #2D3748
 
-### Chart Palette (Both Modes)
-Six distinct colors: Primary blue, Accent teal, 280 65% 60% (Purple), 25 85% 55% (Orange), 145 60% 48% (Green), 340 70% 55% (Pink)
+### Chart Palette
+Six-color system: Midnight Blue, Sage Green, Warm Accent, #6B5B95 (Deep Purple), #4A9EAF (Teal), #C65D7B (Rose)
 
 ---
 
 ## Typography
 
-**Fonts**: Inter (interface), Source Sans Pro (data/metrics)
+**Fonts**: 
+- Interface: Inter (navigation, body, labels, data)
+- Display: Source Serif Pro (headlines, researcher names, section headers)
 
 **Hierarchy**:
-- Hero/Landing H1: text-5xl/text-6xl font-bold (48-60px)
-- Section Headers: text-3xl/text-4xl font-semibold (30-36px)
-- Profile Names: text-2xl font-bold (24px)
-- Card Titles: text-lg font-semibold (18px)
-- Body/Stats: text-base (16px)
-- Labels/Meta: text-sm text-secondary (14px)
-- Captions: text-xs (12px)
+- Landing Hero: text-6xl/text-7xl font-serif font-bold (60-72px)
+- Section Headers: text-4xl font-serif font-semibold (36px)
+- Profile Names: text-3xl font-serif font-bold (30px)
+- Subsections: text-2xl font-serif font-medium (24px)
+- Card Titles: text-lg font-semibold (18px, Inter)
+- Body/Data: text-base (16px, Inter)
+- Labels: text-sm text-secondary (14px, Inter)
+- Micro-copy: text-xs (12px, Inter)
 
 ---
 
 ## Layout System
 
-**Spacing Primitives**: Tailwind units 2, 4, 6, 8, 12, 16 (8px base grid)
+**Spacing Primitives**: Tailwind units 4, 6, 8, 12, 16, 24 (consistent 4px rhythm)
 
 **Structure**:
-- Landing pages: Full-width hero, contained sections (max-w-7xl mx-auto px-6)
-- Profile pages: Sidebar layout (aside: w-80, main: flex-1, gap-8)
-- Dashboard: 3-column grid for metrics (grid-cols-1 md:grid-cols-3 gap-6)
-- Cards: Consistent padding p-6, rounded-xl, shadow-sm elevation
+- Landing: Full-width hero (h-screen), sections max-w-7xl mx-auto px-8 py-24
+- Profile: Two-column (sidebar w-80 sticky, main flex-1, gap-12)
+- Grids: Publications 2-col, Metrics 3-col, Features 3-col with gap-8
+- Generous vertical spacing: section gaps py-32 for breathing room
+
+---
+
+## Visual Treatments
+
+### Glassmorphism
+Cards with backdrop-blur-xl, bg-white/70 (light) or bg-midnight/30 (dark), border border-white/20, subtle shadow-2xl. Use for feature cards, stat panels, floating navigation.
+
+### Gradients
+- Hero overlays: from-midnight via-oxford/80 to-transparent
+- Card backgrounds: radial-gradient from sage/5 to transparent
+- Accent elements: linear-gradient warm accent to sage green
+- Subtle mesh backgrounds: multi-color gradient overlays at 3% opacity
+
+### Geometric Academic Motifs
+Decorative elements: Abstract connection lines (nodes and edges), geometric grid patterns in backgrounds, tessellated academic symbols (books, molecules, graphs) as subtle watermarks, floating particle effects around data visualizations.
 
 ---
 
 ## Component Library
 
 ### Navigation
-**Global Header**: Sticky top bar (h-16), logo left, search center, profile/theme toggle right, backdrop-blur-lg bg-surface/90
-
-**Profile Sidebar**: Fixed navigation showing researcher photo (w-24 h-24 rounded-full), name, title, affiliation list, quick stats (h-index, citations)
+Glassmorphic sticky header (backdrop-blur-lg bg-white/80), logo left with scholar icon, centered navigation links (text-sm tracking-wide uppercase), search with soft shadow, profile/theme toggle right. Magnetic hover effect on nav items.
 
 ### Data Display
-**Publication Cards**: White surface, border-l-4 accent border for category coding, publication title (font-semibold), authors (text-sm truncate), venue (italic text-sm), metrics row (citations, year) with icons
+**Publication Cards**: Glassmorphic surface, left accent bar (4px sage green), serif title (text-xl font-semibold), author list with truncation, venue italic below, metrics row (citation count with sparkline, year, impact badge), hover elevates with shadow expansion.
 
-**Metrics Dashboard**: Grid of stat cards - large number (text-4xl font-bold), label below (text-sm uppercase tracking-wide), sparkline charts for trends, color-coded backgrounds (accent/10 opacity)
+**Metrics Dashboard**: Premium stat cards with gradient backgrounds, large serif numbers (text-5xl font-bold), label uppercase tracking-widest, embedded sparkline charts (h-12), trend arrows, glassmorphic surfaces stacked in grid.
 
-**Research Topics**: Tag cloud with varying text sizes (text-sm to text-xl) based on frequency, pill-shaped (px-4 py-2 rounded-full), primary background with opacity
+**Impact Visualizations**: Citation graph (area chart with gradient fill), publication timeline (horizontal bars with glow effect), collaboration network (force-directed with glow nodes), h-index progression (line chart with milestone markers).
 
-**Affiliation Cards**: Institution logo (w-16 h-16), name, role, date range, stacked vertically with connecting timeline line
+**Research Topics**: Sophisticated tag system with varying sizes (text-sm to text-2xl based on frequency), glassmorphic pills with sage green borders, magnetic hover clustering effect.
 
-### Charts & Visualization
-**Publication Timeline**: Horizontal bar chart, gradient fills (accent color), interactive tooltips, grid lines (opacity-20), responsive height (h-64 to h-96)
+### Interactive Elements
+**Premium CTAs**: Warm accent background with white text, magnetic hover (element follows cursor slightly), glow effect on hover, rounded-xl, px-8 py-4, font-semibold tracking-wide.
 
-**Citation Metrics**: Line/area charts with smooth curves, dual Y-axis when comparing metrics, legend positioned top-right, grid backdrop
+**Data Cards**: Hover reveals additional metrics with slide-in animation, border glow effect in sage green, smooth scale transition (scale-105).
 
-**Co-author Network**: Force-directed graph visualization using D3.js patterns, node sizes based on collaboration frequency, edges with varying opacity
-
-### Forms (Admin Theme Customization)
-**Color Pickers**: Large preview swatch (w-20 h-20 rounded-lg border-2), HSL sliders below, live preview panel showing all UI elements with selected colors
-
-**Theme Presets**: Gallery of preset cards (grid-cols-2 lg:grid-cols-4), thumbnail previews showing color scheme, radio selection
+**Charts**: Interactive tooltips with glassmorphic backgrounds, smooth curve animations on load, highlight on hover with increased stroke width, crosshair guides.
 
 ---
 
 ## Images
 
 ### Hero Section
-**Landing Page Hero**: Full-width (h-[500px] lg:h-[600px]), overlay gradient (from-black/60 to-transparent), professional academic imagery (modern library, research lab, collaborative workspace, diverse scholars), centered content with white text
+**Landing Hero**: Full-viewport (h-screen) professional academic imagery - modern research libraries with natural light, collaborative lab spaces with diverse scholars, prestigious university architecture, innovative study environments. Apply gradient overlay (from-midnight/70 via-oxford/50 to-transparent) for text legibility. Centered content with serif display typography in white.
 
-**Profile Headers**: Banner image (h-48) showing institutional building or research context, subtle overlay, researcher photo overlapping bottom edge (-mb-12 relative positioning)
+**Profile Banners**: Wide banner (h-64) showing institutional setting or research context, subtle blur with overlay, researcher profile photo (w-32 h-32 rounded-full border-4 border-platinum) positioned overlapping (-mt-16).
 
 ### Supporting Imagery
-- Research topic cards: Abstract scientific imagery backgrounds (opacity-10)
-- Publication thumbnails: Journal covers or paper preview images (aspect-square)
-- Institutional logos: Within affiliation cards (grayscale filter)
-
----
-
-## Interactive States
-
-**Hover**: Cards elevate (shadow-md transition-shadow), buttons brighten (brightness-110), chart elements highlight stroke-width increase
-
-**Focus**: 2px accent ring (ring-2 ring-accent ring-offset-2), smooth transition
-
-**Loading**: Skeleton screens with shimmer animation, chart placeholders with pulsing gradient
+- Feature sections: Abstract academic textures (parchment, geometric patterns) at low opacity backgrounds
+- Testimonial cards: Circular researcher photos with sage green ring borders
+- Institution logos: Grayscale with slight blur, arranged in elegant grid
+- Publication previews: Journal cover thumbnails with glassmorphic overlays
 
 ---
 
 ## Page Layouts
 
-**Landing**: Hero with search, featured researchers (3-col grid), trending topics (tag cloud), platform stats (4-col metrics), recent publications feed, institutional partners logos
+### Landing Page
+Full-screen hero with dramatic imagery, headline (serif, text-7xl), subheading, dual CTAs (primary warm accent, secondary outline). Premium features grid (3-col glassmorphic cards with icons, titles, descriptions). Data-rich showcase (publication preview cards, live citation metrics, research impact visualization). Social proof (institutional partner logos, researcher testimonials with photos in glassmorphic frames). Pricing tiers (3-col comparison cards with gradient backgrounds). Footer with newsletter signup (glassmorphic input), social links, navigation columns.
 
-**Profile**: Sticky sidebar (photo, contact, quick stats), main content (about, publications infinite scroll, analytics charts stacked, topics grid, collaborators)
+### Profile Page
+Sticky glassmorphic sidebar: large profile photo, researcher name (serif, text-3xl), title/affiliation, contact links, quick impact metrics (h-index, total citations, publications count) with mini sparklines. Main content: About section (serif headings, generous line-height), publications infinite scroll (glassmorphic cards with filters), interactive analytics charts (stacked area for citations over time, bar for publications by year, network graph for collaborators), research topics tag cloud, featured collaborators grid (photos in circular frames).
 
-**Search Results**: Filters sidebar (left), results grid (2-col cards), pagination, sort controls (top right)
-
-**Admin Dashboard**: Theme customizer (split view: controls left, live preview right), analytics overview (multi-chart layout), user management table
+### Search/Directory
+Glassmorphic filter sidebar (institution, field, metrics sliders), main results (2-col researcher cards with photos, names, affiliations, key metrics), sort controls (dropdown with glassmorphic styling), pagination with elegant page indicators.
 
 ---
 
-## Accessibility & Theme
+## Micro-Interactions
 
-Consistent dark mode throughout including form inputs (bg-surface border-border). WCAG AA contrast ratios. Keyboard navigation with visible focus states. Semantic HTML5. ARIA labels for charts/interactive elements. Responsive: mobile-first, breakpoints at sm(640px), md(768px), lg(1024px), xl(1280px).
+Magnetic buttons (cursor-follow hover), scroll-triggered fade-in animations (stagger child elements), smooth parallax on hero imagery, data count-up animations on metrics, sparkline charts animate on viewport entry, glassmorphic cards glow on hover, smooth color transitions (300ms ease), skeleton loaders with shimmer gradients.
+
+---
+
+## Accessibility
+
+WCAG AA contrast maintained (dark text on platinum, white on midnight). Keyboard navigation with visible focus rings (2px sage green). Reduced motion media queries disable animations. Semantic HTML5 structure. ARIA labels for all interactive charts and data visualizations. Responsive breakpoints: mobile-first, sm(640px), md(768px), lg(1024px), xl(1280px), 2xl(1536px).

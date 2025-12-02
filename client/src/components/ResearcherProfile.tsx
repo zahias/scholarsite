@@ -1,4 +1,4 @@
-import { useParams } from "wouter";
+import { useParams, useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import Navigation from "./Navigation";
 import StatsOverview from "./StatsOverview";
@@ -14,6 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { useRealtimeUpdates } from "@/hooks/useRealtimeUpdates";
 import type { ResearcherProfile } from "@shared/schema";
 import { useMemo } from "react";
+import { ArrowLeft, MapPin, Building2, Phone, Mail } from "lucide-react";
 
 function getInitials(name: string): string {
   if (!name) return '?';
@@ -39,6 +40,7 @@ function getAvatarColor(name: string): string {
 
 export default function ResearcherProfile() {
   const { id } = useParams();
+  const [, navigate] = useLocation();
   
   // Enable real-time updates for this researcher profile
   const { isConnected } = useRealtimeUpdates();
@@ -152,9 +154,24 @@ export default function ResearcherProfile() {
       <Navigation researcherName={profile?.displayName || researcher?.display_name || 'Researcher'} />
       
       {/* Enhanced Hero Section */}
-      <section id="overview" className="hero-banner min-h-[85vh] flex items-center">
+      <section id="overview" className="hero-banner min-h-[85vh] flex items-center relative">
         {/* Enhanced Background pattern overlay */}
         <div className="hero-pattern"></div>
+        
+        {/* Back Button for Preview Mode */}
+        {profile?.isPreview && (
+          <div className="absolute top-6 left-6 z-20">
+            <Button
+              variant="outline"
+              onClick={() => navigate('/')}
+              className="bg-white/10 backdrop-blur-sm border-white/20 text-white hover:bg-white/20 hover:text-white"
+              data-testid="button-back-to-home"
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back to Home
+            </Button>
+          </div>
+        )}
         
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 z-10">
           <div className="lg:grid lg:grid-cols-12 lg:gap-12 items-center">
@@ -196,9 +213,23 @@ export default function ResearcherProfile() {
                   <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold mb-4 leading-tight bg-gradient-to-r from-white via-white to-white/80 bg-clip-text text-transparent" data-testid="text-display-name">
                     {profile?.displayName || researcher?.display_name || 'Researcher Profile'}
                   </h1>
-                  <p className="text-2xl sm:text-3xl mb-6 text-white/90 font-light tracking-wide" data-testid="text-title">
+                  <p className="text-2xl sm:text-3xl mb-4 text-white/90 font-light tracking-wide" data-testid="text-title">
                     {profile?.title || 'Research Professional'}
                   </p>
+                  {profile?.currentAffiliation && (
+                    <div className="flex flex-wrap items-center justify-center lg:justify-start gap-4 text-white/80">
+                      <span className="flex items-center gap-2">
+                        <Building2 className="w-5 h-5" />
+                        <span data-testid="text-affiliation">{profile.currentAffiliation}</span>
+                      </span>
+                      {profile?.countryCode && (
+                        <span className="flex items-center gap-2">
+                          <MapPin className="w-5 h-5" />
+                          <span>{profile.countryCode}</span>
+                        </span>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
               
