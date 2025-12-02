@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useLocation } from "wouter";
+import { useLocation, Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -188,7 +188,7 @@ export default function LandingPage() {
               <a href="#features" className="nav-link text-sm" data-testid="link-features">Features</a>
               <a href="#preview" className="nav-link text-sm" data-testid="link-preview">Preview</a>
               <a href="#pricing" className="nav-link text-sm" data-testid="link-pricing">Pricing</a>
-              <Button size="sm" className="btn-premium text-sm px-5 py-2" data-testid="button-get-started-nav">Get Started</Button>
+              <Button size="sm" className="btn-premium text-sm px-5 py-2" data-testid="button-get-started-nav" onClick={() => navigate('/contact')}>Get Started</Button>
             </div>
           </div>
         </div>
@@ -215,8 +215,13 @@ export default function LandingPage() {
               citations, and research impact with automatic updates from OpenAlex.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button size="lg" className="btn-premium text-base px-8 py-6" data-testid="button-start-free-trial">
-                Start Free Trial
+              <Button 
+                size="lg" 
+                className="btn-premium text-base px-8 py-6" 
+                data-testid="button-get-started-hero"
+                onClick={() => navigate('/contact')}
+              >
+                Get Started
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
               <Button 
@@ -397,9 +402,9 @@ export default function LandingPage() {
             </h3>
             <div className="grid sm:grid-cols-3 gap-4">
               {[
-                { name: "Albert Einstein", id: "A1410459260", field: "Physics" },
-                { name: "Richard Feynman", id: "A2779659790", field: "Physics" },
-                { name: "Stephen Hawking", id: "A2468180644", field: "Cosmology" }
+                { name: "Albert Einstein", id: "A5109805546", field: "Physics" },
+                { name: "Richard Feynman", id: "A5037710835", field: "Physics" },
+                { name: "Stephen Hawking", id: "A5066175077", field: "Cosmology" }
               ].map((researcher, index) => (
                 <Card 
                   key={index} 
@@ -429,7 +434,7 @@ export default function LandingPage() {
               Simple, Transparent Pricing
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Choose the plan that fits your needs. All plans include a 14-day free trial.
+              Choose the plan that fits your needs. Contact us to get started.
             </p>
           </div>
           <div className="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto">
@@ -465,6 +470,7 @@ export default function LandingPage() {
                     className="w-full" 
                     variant={plan.highlighted ? "default" : "outline"}
                     data-testid={`button-select-${plan.name.toLowerCase()}`}
+                    onClick={() => navigate(`/contact?plan=${plan.name.toLowerCase()}`)}
                   >
                     Get Started
                   </Button>
@@ -483,14 +489,24 @@ export default function LandingPage() {
           </h2>
           <p className="text-lg text-white/80 mb-10 max-w-2xl mx-auto">
             Join thousands of researchers who have already created their professional portfolio.
-            Start your free trial today - no credit card required.
+            Get in touch with our team to discuss your needs.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" className="btn-premium text-base px-8 py-6" data-testid="button-start-trial-cta">
-              Start Your Free Trial
+            <Button 
+              size="lg" 
+              className="btn-premium text-base px-8 py-6" 
+              data-testid="button-get-started-cta"
+              onClick={() => navigate('/contact')}
+            >
+              Get Started
               <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
-            <Button size="lg" className="btn-outline-light text-base px-8 py-6" data-testid="button-contact-sales">
+            <Button 
+              size="lg" 
+              className="btn-outline-light text-base px-8 py-6" 
+              data-testid="button-contact-sales"
+              onClick={() => navigate('/contact')}
+            >
               Contact Sales
             </Button>
           </div>
@@ -519,19 +535,11 @@ export default function LandingPage() {
               </ul>
             </div>
             <div>
-              <h4 className="font-medium mb-4">Resources</h4>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><a href="#" className="hover:text-foreground transition-colors" data-testid="link-footer-documentation">Documentation</a></li>
-                <li><a href="#" className="hover:text-foreground transition-colors" data-testid="link-footer-help">Help Center</a></li>
-                <li><a href="#" className="hover:text-foreground transition-colors" data-testid="link-footer-blog">Blog</a></li>
-              </ul>
-            </div>
-            <div>
               <h4 className="font-medium mb-4">Legal</h4>
               <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><a href="#" className="hover:text-foreground transition-colors" data-testid="link-footer-privacy">Privacy Policy</a></li>
-                <li><a href="#" className="hover:text-foreground transition-colors" data-testid="link-footer-terms">Terms of Service</a></li>
-                <li><a href="#" className="hover:text-foreground transition-colors" data-testid="link-footer-contact">Contact</a></li>
+                <li><Link href="/privacy" className="hover:text-foreground transition-colors" data-testid="link-footer-privacy">Privacy Policy</Link></li>
+                <li><Link href="/terms" className="hover:text-foreground transition-colors" data-testid="link-footer-terms">Terms of Service</Link></li>
+                <li><Link href="/contact" className="hover:text-foreground transition-colors" data-testid="link-footer-contact">Contact</Link></li>
               </ul>
             </div>
           </div>

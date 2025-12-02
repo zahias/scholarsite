@@ -1074,6 +1074,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Contact form submission (public)
+  app.post('/api/contact', async (req, res) => {
+    try {
+      const { fullName, email, institution, role, planInterest, researchField, openalexId, estimatedProfiles, message } = req.body;
+      
+      if (!fullName || !email || !role || !planInterest || !message) {
+        return res.status(400).json({ message: "Missing required fields" });
+      }
+
+      // Log the inquiry (in production, this would send an email or store in database)
+      console.log("New contact inquiry received:");
+      console.log({
+        fullName,
+        email,
+        institution,
+        role,
+        planInterest,
+        researchField,
+        openalexId,
+        estimatedProfiles,
+        message,
+        timestamp: new Date().toISOString()
+      });
+
+      res.json({ 
+        success: true, 
+        message: "Inquiry submitted successfully" 
+      });
+    } catch (error) {
+      console.error("Error processing contact form:", error);
+      res.status(500).json({ message: "Failed to process inquiry" });
+    }
+  });
+
   // Export bibliography in various formats (public)
   app.get('/api/researcher/:openalexId/export-bibliography', async (req, res) => {
     try {
