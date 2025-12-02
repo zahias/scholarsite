@@ -6,6 +6,8 @@ import {
   publications,
   affiliations,
   siteSettings,
+  tenants,
+  domains,
   type User,
   type UpsertUser,
   type SafeUser,
@@ -22,14 +24,34 @@ import {
   type InsertAffiliation,
   type SiteSetting,
   type InsertSiteSetting,
+  type Tenant,
+  type InsertTenant,
+  type Domain,
+  type InsertDomain,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, ne } from "drizzle-orm";
 
 export interface IStorage {
+  // Tenant operations
+  getTenant(id: string): Promise<Tenant | undefined>;
+  getAllTenants(): Promise<Tenant[]>;
+  createTenant(tenant: InsertTenant): Promise<Tenant>;
+  updateTenant(id: string, updates: Partial<Tenant>): Promise<Tenant | undefined>;
+  deleteTenant(id: string): Promise<void>;
+  
+  // Domain operations
+  getDomain(id: string): Promise<Domain | undefined>;
+  getDomainByHostname(hostname: string): Promise<Domain | undefined>;
+  getDomainsByTenant(tenantId: string): Promise<Domain[]>;
+  createDomain(domain: InsertDomain): Promise<Domain>;
+  updateDomain(id: string, updates: Partial<Domain>): Promise<Domain | undefined>;
+  deleteDomain(id: string): Promise<void>;
+  
   // User operations
   getUser(id: string): Promise<User | undefined>;
   getUserByEmail(email: string): Promise<User | undefined>;
+  getUsersByTenant(tenantId: string): Promise<SafeUser[]>;
   createUser(user: UpsertUser): Promise<User>;
   upsertUser(user: UpsertUser): Promise<User>;
   updateUser(id: string, updates: Partial<User>): Promise<User | undefined>;
@@ -38,7 +60,7 @@ export interface IStorage {
   getUsersByRole(role: UserRole): Promise<SafeUser[]>;
   
   // Researcher profile operations
-  getResearcherProfile(userId: string): Promise<ResearcherProfile | undefined>;
+  getResearcherProfileByTenant(tenantId: string): Promise<ResearcherProfile | undefined>;
   getResearcherProfileByOpenalexId(openalexId: string): Promise<ResearcherProfile | undefined>;
   getAllPublicResearcherProfiles(): Promise<ResearcherProfile[]>;
   upsertResearcherProfile(profile: InsertResearcherProfile): Promise<ResearcherProfile>;
@@ -68,6 +90,88 @@ export interface IStorage {
 }
 
 export class DatabaseStorage implements IStorage {
+  // Tenant operations
+  async getTenant(id: string): Promise<Tenant | undefined> {
+    const [tenant] = await db.select().from(tenants).where(eq(tenants.id, id));
+    return tenant;
+  }
+
+  async getAllTenants(): Promise<Tenant[]> {
+    return await db.select().from(tenants).orderBy(desc(tenants.createdAt));
+  }
+
+  async createTenant(tenant: InsertTenant): Promise<Tenant> {
+    const [result] = await db.insert(tenants).values(tenant).returning();
+    return result;
+  }
+
+  async updateTenant(id: string, updates: Partial<Tenant>): Promise<Tenant | undefined> {
+    const [result] = await db
+      .update(tenants)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(tenants.id, id))
+      .returning();
+    return result;
+  }
+
+  async deleteTenant(id: string): Promise<void> {
+    // Delete in order: domains, users, profiles, then tenant
+    await db.transaction(async (tx) => {
+      // Get the profile to delete related OpenAlex data
+      const [profile] = await tx.select().from(researcherProfiles).where(eq(researcherProfiles.tenantId, id));
+      if (profile && profile.openalexId) {
+        await tx.delete(openalexData).where(eq(openalexData.openalexId, profile.openalexId));
+        await tx.delete(researchTopics).where(eq(researchTopics.openalexId, profile.openalexId));
+        await tx.delete(publications).where(eq(publications.openalexId, profile.openalexId));
+        await tx.delete(affiliations).where(eq(affiliations.openalexId, profile.openalexId));
+      }
+      await tx.delete(domains).where(eq(domains.tenantId, id));
+      await tx.delete(users).where(eq(users.tenantId, id));
+      await tx.delete(researcherProfiles).where(eq(researcherProfiles.tenantId, id));
+      await tx.delete(tenants).where(eq(tenants.id, id));
+    });
+  }
+
+  // Domain operations
+  async getDomain(id: string): Promise<Domain | undefined> {
+    const [domain] = await db.select().from(domains).where(eq(domains.id, id));
+    return domain;
+  }
+
+  async getDomainByHostname(hostname: string): Promise<Domain | undefined> {
+    const [domain] = await db.select().from(domains).where(eq(domains.hostname, hostname.toLowerCase()));
+    return domain;
+  }
+
+  async getDomainsByTenant(tenantId: string): Promise<Domain[]> {
+    return await db.select().from(domains).where(eq(domains.tenantId, tenantId));
+  }
+
+  async createDomain(domain: InsertDomain): Promise<Domain> {
+    const [result] = await db.insert(domains).values({
+      ...domain,
+      hostname: domain.hostname.toLowerCase(),
+    }).returning();
+    return result;
+  }
+
+  async updateDomain(id: string, updates: Partial<Domain>): Promise<Domain | undefined> {
+    const updateData = { ...updates };
+    if (updates.hostname) {
+      updateData.hostname = updates.hostname.toLowerCase();
+    }
+    const [result] = await db
+      .update(domains)
+      .set(updateData)
+      .where(eq(domains.id, id))
+      .returning();
+    return result;
+  }
+
+  async deleteDomain(id: string): Promise<void> {
+    await db.delete(domains).where(eq(domains.id, id));
+  }
+
   // User operations
   async getUser(id: string): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.id, id));
@@ -77,6 +181,26 @@ export class DatabaseStorage implements IStorage {
   async getUserByEmail(email: string): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.email, email));
     return user;
+  }
+
+  async getUsersByTenant(tenantId: string): Promise<SafeUser[]> {
+    const tenantUsers = await db
+      .select({
+        id: users.id,
+        tenantId: users.tenantId,
+        email: users.email,
+        role: users.role,
+        firstName: users.firstName,
+        lastName: users.lastName,
+        profileImageUrl: users.profileImageUrl,
+        isActive: users.isActive,
+        createdAt: users.createdAt,
+        updatedAt: users.updatedAt,
+      })
+      .from(users)
+      .where(eq(users.tenantId, tenantId))
+      .orderBy(desc(users.createdAt));
+    return tenantUsers as SafeUser[];
   }
 
   async createUser(userData: UpsertUser): Promise<User> {
@@ -119,6 +243,7 @@ export class DatabaseStorage implements IStorage {
     const allUsers = await db
       .select({
         id: users.id,
+        tenantId: users.tenantId,
         email: users.email,
         role: users.role,
         firstName: users.firstName,
@@ -153,11 +278,11 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Researcher profile operations
-  async getResearcherProfile(userId: string): Promise<ResearcherProfile | undefined> {
+  async getResearcherProfileByTenant(tenantId: string): Promise<ResearcherProfile | undefined> {
     const [profile] = await db
       .select()
       .from(researcherProfiles)
-      .where(eq(researcherProfiles.userId, userId));
+      .where(eq(researcherProfiles.tenantId, tenantId));
     return profile;
   }
 

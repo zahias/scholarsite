@@ -11,6 +11,8 @@ import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
 import path from "path";
 import { authRouter } from "./auth";
 import { adminRouter } from "./adminRoutes";
+import tenantRouter from "./tenantRoutes";
+import { tenantResolver } from "./tenantMiddleware";
 
 // Event emitter for real-time updates
 const updateEmitter = new EventEmitter();
@@ -610,11 +612,17 @@ function escapeCSV(value: string): string {
 export async function registerRoutes(app: Express): Promise<Server> {
   const openalexService = new OpenAlexService();
 
+  // Tenant resolution middleware
+  app.use(tenantResolver);
+
   // Authentication routes
   app.use("/api/auth", authRouter);
   
   // Admin routes for user management
   app.use("/api/admin", adminRouter);
+  
+  // Tenant management routes (admin only)
+  app.use("/api/admin", tenantRouter);
 
   // Server-Sent Events endpoint for real-time updates
   app.get('/api/events', (req, res) => {

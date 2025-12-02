@@ -17,12 +17,54 @@ import { z } from "zod";
 // Note: Session table is managed by connect-pg-simple, not Drizzle
 // See server/index.ts for session configuration
 
+// Plan types for pricing tiers
+export type PlanType = 'starter' | 'professional' | 'institution';
+
+// Tenant status
+export type TenantStatus = 'active' | 'suspended' | 'cancelled' | 'pending';
+
+// Tenants table - each paying customer
+export const tenants = pgTable("tenants", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: varchar("name").notNull(), // Display name for the tenant/site
+  plan: varchar("plan").$type<PlanType>().default('starter').notNull(),
+  status: varchar("status").$type<TenantStatus>().default('pending').notNull(),
+  // Billing info
+  subscriptionStartDate: timestamp("subscription_start_date"),
+  subscriptionEndDate: timestamp("subscription_end_date"),
+  // Sync settings based on plan
+  lastSyncAt: timestamp("last_sync_at"),
+  syncFrequency: varchar("sync_frequency").default('monthly'), // monthly, weekly, daily
+  // Branding
+  primaryColor: varchar("primary_color").default('#0B1F3A'),
+  accentColor: varchar("accent_color").default('#F2994A'),
+  logoUrl: varchar("logo_url"),
+  // Contact
+  contactEmail: varchar("contact_email"),
+  notes: text("notes"), // Admin notes about this tenant
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Domains table - map custom domains to tenants
+export const domains = pgTable("domains", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  tenantId: varchar("tenant_id").references(() => tenants.id).notNull(),
+  hostname: varchar("hostname").unique().notNull(), // e.g., "dr-smith.com" or "smith.scholarsite.com"
+  isPrimary: boolean("is_primary").default(false).notNull(), // Primary domain for this tenant
+  isSubdomain: boolean("is_subdomain").default(false).notNull(), // true if *.scholarsite.com
+  sslStatus: varchar("ssl_status").default('pending'), // pending, active, failed
+  verifiedAt: timestamp("verified_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // User roles
 export type UserRole = 'admin' | 'researcher';
 
 // User storage table for authentication
 export const users = pgTable("users", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  tenantId: varchar("tenant_id").references(() => tenants.id), // null for platform admins
   email: varchar("email").unique().notNull(),
   passwordHash: varchar("password_hash").notNull(),
   role: varchar("role").$type<UserRole>().default('researcher').notNull(),
@@ -37,8 +79,8 @@ export const users = pgTable("users", {
 // Researcher profiles table
 export const researcherProfiles = pgTable("researcher_profiles", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  userId: varchar("user_id").references(() => users.id).notNull(),
-  openalexId: varchar("openalex_id").unique().notNull(),
+  tenantId: varchar("tenant_id").references(() => tenants.id).notNull(),
+  openalexId: varchar("openalex_id").unique(),
   displayName: text("display_name"),
   title: text("title"),
   bio: text("bio"),
@@ -110,6 +152,14 @@ export const affiliations = pgTable("affiliations", {
   endYear: integer("end_year"),
 });
 
+// Tenant types
+export type InsertTenant = typeof tenants.$inferInsert;
+export type Tenant = typeof tenants.$inferSelect;
+
+// Domain types
+export type InsertDomain = typeof domains.$inferInsert;
+export type Domain = typeof domains.$inferSelect;
+
 export type UpsertUser = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect;
 
@@ -180,5 +230,26 @@ export const insertResearcherProfileSchema = createInsertSchema(researcherProfil
 });
 
 export const updateResearcherProfileSchema = insertResearcherProfileSchema.partial().extend({
+  id: z.string(),
+});
+
+// Tenant schemas
+export const insertTenantSchema = createInsertSchema(tenants).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const updateTenantSchema = insertTenantSchema.partial().extend({
+  id: z.string(),
+});
+
+// Domain schemas
+export const insertDomainSchema = createInsertSchema(domains).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const updateDomainSchema = insertDomainSchema.partial().extend({
   id: z.string(),
 });
