@@ -52,6 +52,7 @@ export default function ResearcherProfile() {
     publications: any[];
     affiliations: any[];
     lastSynced: string;
+    isPreview?: boolean;
   } | null>({
     queryKey: [`/api/researcher/${id}/data`],
     retry: false,
@@ -158,8 +159,8 @@ export default function ResearcherProfile() {
         {/* Enhanced Background pattern overlay */}
         <div className="hero-pattern"></div>
         
-        {/* Back Button for Preview Mode */}
-        {profile?.isPreview && (
+        {/* Back Button - Always show for preview mode or when no database ID */}
+        {(profile?.isPreview || !profile?.id || researcherData?.isPreview) && (
           <div className="absolute top-6 left-6 z-20">
             <Button
               variant="outline"
