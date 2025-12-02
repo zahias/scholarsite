@@ -26,9 +26,20 @@ The platform consists of three main surfaces:
 - **API Addition**: `POST /api/contact` - Handles contact form submissions
 
 ## Consistent Profile Preview Structure
-- **Banner Elements**: All preview profiles now show the same structural elements consistently
-- **Fallback Content**: Affiliation, location, and bio sections display placeholder content if data is missing from OpenAlex
-- **Preview Indicators**: Elements with placeholder data show "(Preview)" label for clarity
+- **Banner Elements**: All profiles show the same structural elements consistently (affiliation, bio, CV, contact buttons)
+- **Fallback Content**: Uses OpenAlex institution data as fallback; preview profiles show "Your University" with "(Preview)" label
+- **Preview vs Production**: Preview profiles show "(Preview)" labels on placeholder content; production profiles use neutral fallbacks without labels
+- **Back Button**: Always visible on all profile pages, navigates to home
+
+## Publication Title Normalization
+- **MathML/XML Stripping**: Server-side `normalizeTitle()` helper removes all XML/HTML tags from publication titles
+- **Entity Decoding**: Decodes HTML entities (&lt;, &gt;, &amp;, etc.)
+- **Fallback**: Returns "Untitled" for empty/null titles
+
+## Loading Experience Improvements
+- **Premium Skeleton**: Engaging skeleton loading state matching profile layout
+- **Animated Elements**: Bouncing dots with "Building your portfolio preview..." message
+- **Structure Preview**: Skeleton shows placeholders for avatar, name, bio, stats cards
 
 ## Premium Visual Enhancements
 - **Premium Navigation**: Navy gradient with glassmorphism (blur + transparency), orange accent border glow
