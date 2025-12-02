@@ -73,6 +73,7 @@ export default function LandingPage() {
   const handleSelectAuthor = (authorId: string) => {
     setShowResults(false);
     setSearchQuery("");
+    window.scrollTo(0, 0);
     navigate(`/researcher/${authorId}`);
   };
 
@@ -97,8 +98,8 @@ export default function LandingPage() {
   const features = [
     {
       icon: Globe,
-      title: "Custom Domain",
-      description: "Professional yourname.scholarsite.com domain included, or connect your own."
+      title: "Professional Domain",
+      description: "Get your own yourname.scholarsite.com subdomain, or connect a custom domain."
     },
     {
       icon: BarChart3,
@@ -112,8 +113,8 @@ export default function LandingPage() {
     },
     {
       icon: Palette,
-      title: "Beautiful Themes",
-      description: "Choose from professionally designed themes that highlight your research."
+      title: "Color Themes",
+      description: "Choose from professionally designed color themes that highlight your research."
     },
     {
       icon: Zap,
@@ -136,7 +137,7 @@ export default function LandingPage() {
       features: [
         "Custom subdomain",
         "Publication analytics",
-        "Basic themes",
+        "Color themes",
         "Monthly data sync",
         "Email support"
       ],
@@ -148,11 +149,9 @@ export default function LandingPage() {
       period: "/month",
       description: "For established academics",
       features: [
+        "Everything in Starter",
         "Custom domain",
-        "Advanced analytics",
         "Professional email",
-        "Premium themes",
-        "Priority support",
         "Weekly data sync"
       ],
       highlighted: true
@@ -165,10 +164,7 @@ export default function LandingPage() {
       features: [
         "Everything in Professional",
         "Up to 10 researcher profiles",
-        "Shared branding",
-        "Admin dashboard",
-        "Daily data sync",
-        "Dedicated support"
+        "Shared branding"
       ],
       highlighted: false
     }
@@ -235,25 +231,6 @@ export default function LandingPage() {
             </div>
           </div>
 
-          {/* Premium Stats Row */}
-          <div className="mt-20 grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl mx-auto">
-            <div className="stats-card-hero text-center p-6">
-              <div className="text-3xl font-bold text-white">1000+</div>
-              <div className="text-sm text-white/60 mt-1">Researchers</div>
-            </div>
-            <div className="stats-card-hero text-center p-6">
-              <div className="text-3xl font-bold text-white">50M+</div>
-              <div className="text-sm text-white/60 mt-1">Publications</div>
-            </div>
-            <div className="stats-card-hero text-center p-6">
-              <div className="text-3xl font-bold text-white">99.9%</div>
-              <div className="text-sm text-white/60 mt-1">Uptime</div>
-            </div>
-            <div className="stats-card-hero text-center p-6">
-              <div className="text-3xl font-bold text-white">24/7</div>
-              <div className="text-sm text-white/60 mt-1">Auto-Sync</div>
-            </div>
-          </div>
         </div>
       </section>
 
@@ -409,7 +386,7 @@ export default function LandingPage() {
                 <Card 
                   key={index} 
                   className="cursor-pointer hover:shadow-md transition-all hover:-translate-y-1"
-                  onClick={() => navigate(`/researcher/${researcher.id}`)}
+                  onClick={() => { window.scrollTo(0, 0); navigate(`/researcher/${researcher.id}`); }}
                   data-testid={`card-example-${researcher.name.toLowerCase().replace(' ', '-')}`}
                 >
                   <CardContent className="pt-6 text-center">
@@ -488,28 +465,18 @@ export default function LandingPage() {
             Ready to Showcase Your Research?
           </h2>
           <p className="text-lg text-white/80 mb-10 max-w-2xl mx-auto">
-            Join thousands of researchers who have already created their professional portfolio.
+            Create your professional research portfolio today.
             Get in touch with our team to discuss your needs.
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button 
-              size="lg" 
-              className="btn-premium text-base px-8 py-6" 
-              data-testid="button-get-started-cta"
-              onClick={() => navigate('/contact')}
-            >
-              Get Started
-              <ArrowRight className="ml-2 h-4 w-4" />
-            </Button>
-            <Button 
-              size="lg" 
-              className="btn-outline-light text-base px-8 py-6" 
-              data-testid="button-contact-sales"
-              onClick={() => navigate('/contact')}
-            >
-              Contact Sales
-            </Button>
-          </div>
+          <Button 
+            size="lg" 
+            className="btn-premium text-base px-8 py-6" 
+            data-testid="button-get-started-cta"
+            onClick={() => navigate('/contact')}
+          >
+            Get Started
+            <ArrowRight className="ml-2 h-4 w-4" />
+          </Button>
         </div>
       </section>
 

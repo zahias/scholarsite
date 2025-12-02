@@ -19,12 +19,12 @@ const contactFormSchema = z.object({
   fullName: z.string().min(2, "Name must be at least 2 characters"),
   email: z.string().email("Please enter a valid email address"),
   institution: z.string().optional(),
-  role: z.string().min(1, "Please select your role"),
+  role: z.string().optional(),
   planInterest: z.string().min(1, "Please select a plan"),
   researchField: z.string().optional(),
   openalexId: z.string().optional(),
   estimatedProfiles: z.string().optional(),
-  message: z.string().min(10, "Please provide more details about your needs"),
+  biography: z.string().min(10, "Please provide a short biography").max(500, "Biography must be 500 characters or less"),
 });
 
 type ContactFormData = z.infer<typeof contactFormSchema>;
@@ -48,7 +48,7 @@ export default function ContactPage() {
       researchField: "",
       openalexId: "",
       estimatedProfiles: "",
-      message: "",
+      biography: "",
     },
   });
 
@@ -208,23 +208,10 @@ export default function ContactPage() {
                     name="role"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Your Role *</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <FormControl>
-                            <SelectTrigger data-testid="select-role">
-                              <SelectValue placeholder="Select your role" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="professor">Professor / Faculty</SelectItem>
-                            <SelectItem value="researcher">Researcher / Scientist</SelectItem>
-                            <SelectItem value="postdoc">Postdoctoral Researcher</SelectItem>
-                            <SelectItem value="phd">PhD Student</SelectItem>
-                            <SelectItem value="admin">Department Administrator</SelectItem>
-                            <SelectItem value="librarian">Librarian</SelectItem>
-                            <SelectItem value="other">Other</SelectItem>
-                          </SelectContent>
-                        </Select>
+                        <FormLabel>Your Role</FormLabel>
+                        <FormControl>
+                          <Input placeholder="e.g., Professor, Researcher, PhD Student" {...field} data-testid="input-role" />
+                        </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -356,19 +343,25 @@ export default function ContactPage() {
 
                 <FormField
                   control={form.control}
-                  name="message"
+                  name="biography"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Tell us about your needs *</FormLabel>
+                      <FormLabel>Short Biography *</FormLabel>
                       <FormControl>
                         <Textarea 
-                          placeholder="Describe what you're looking for in a research portfolio website. Any specific features, customization requirements, or questions?"
+                          placeholder="Tell us about yourself, your research interests, and academic background. This will help us understand your portfolio needs."
                           className="min-h-[120px]"
+                          maxLength={500}
                           {...field}
-                          data-testid="textarea-message"
+                          data-testid="textarea-biography"
                         />
                       </FormControl>
-                      <FormMessage />
+                      <div className="flex justify-between items-center mt-1">
+                        <FormMessage />
+                        <span className={`text-xs ${(field.value?.length || 0) > 450 ? 'text-orange-500' : 'text-muted-foreground'}`}>
+                          {field.value?.length || 0}/500 characters
+                        </span>
+                      </div>
                     </FormItem>
                   )}
                 />

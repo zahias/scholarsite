@@ -1093,9 +1093,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Contact form submission (public)
   app.post('/api/contact', async (req, res) => {
     try {
-      const { fullName, email, institution, role, planInterest, researchField, openalexId, estimatedProfiles, message } = req.body;
+      const { fullName, email, institution, role, planInterest, researchField, openalexId, estimatedProfiles, biography } = req.body;
       
-      if (!fullName || !email || !role || !planInterest || !message) {
+      if (!fullName || !email || !planInterest || !biography) {
         return res.status(400).json({ message: "Missing required fields" });
       }
 
@@ -1110,7 +1110,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         researchField,
         openalexId,
         estimatedProfiles,
-        message,
+        biography,
         timestamp: new Date().toISOString()
       });
 
