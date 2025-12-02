@@ -21,15 +21,22 @@ The platform consists of three main surfaces:
 ## New Landing Page (SaaS Marketing Site)
 - **Hero Section**: Value proposition with CTA buttons
 - **Features Section**: 6 feature cards (Domain, Analytics, Email, Themes, Auto-Update, Hosting)
-- **Live Preview Feature**: Enter OpenAlex ID to see instant portfolio preview
+- **Autocomplete Search**: Search researchers by name using OpenAlex autocomplete API
+  - Debounced input (300ms) for efficient API calls
+  - Shows researcher name, institution, publication count, and citation count
+  - Clicking a result navigates to full profile page
+- **Example Profiles**: 3 quick-access cards (Albert Einstein, Richard Feynman, Stephen Hawking)
 - **Pricing Section**: 3 tiers (Starter $9/mo, Professional $19/mo, Institution $49/mo)
 - **Footer**: Product, Resources, Legal links
 
 ## API Additions
+- `GET /api/openalex/autocomplete?q=query` - Search authors by name using OpenAlex autocomplete
 - `GET /api/openalex/author/:openalexId` - Public endpoint for author preview
+- `GET /api/researcher/:id/data` - Now supports preview mode (fetches from OpenAlex if no DB profile exists)
 
 ## Routing Changes
 - Root path `/` now shows the landing page instead of redirecting to a researcher profile
+- Researcher profiles at `/researcher/:id` work for both database profiles AND OpenAlex-only previews
 
 # Previous Changes (October 17, 2025)
 
