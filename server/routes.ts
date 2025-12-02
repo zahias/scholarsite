@@ -739,6 +739,55 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Tenant-based profile route (when accessed via custom domain)
+  app.get('/api/profile', async (req, res) => {
+    try {
+      const tenant = (req as any).tenant;
+      
+      if (!tenant) {
+        return res.status(404).json({ message: "No tenant found for this domain" });
+      }
+
+      const profile = await storage.getResearcherProfileByTenant(tenant.id);
+      
+      if (!profile || !profile.openalexId) {
+        return res.status(404).json({ 
+          message: "Profile not configured",
+          tenantName: tenant.name,
+          tenantStatus: tenant.status
+        });
+      }
+
+      // Get cached data
+      const researcherData = await storage.getOpenalexData(profile.openalexId, 'researcher');
+      const researchTopics = await storage.getResearchTopics(profile.openalexId);
+      const publications = await storage.getPublications(profile.openalexId);
+      const affiliations = await storage.getAffiliations(profile.openalexId);
+
+      return res.json({
+        profile: {
+          ...profile,
+          socialLinks: profile.socialLinks || {},
+        },
+        researcher: researcherData?.data || null,
+        topics: researchTopics,
+        publications,
+        affiliations,
+        lastSynced: profile.lastSyncedAt,
+        tenant: {
+          name: tenant.name,
+          plan: tenant.plan,
+          primaryColor: tenant.primaryColor,
+          accentColor: tenant.accentColor,
+        },
+        isPreview: false
+      });
+    } catch (error) {
+      console.error("Error fetching tenant profile:", error);
+      res.status(500).json({ message: "Failed to fetch profile" });
+    }
+  });
+
   // Public researcher data routes
   app.get('/api/researcher/:openalexId/data', async (req, res) => {
     try {

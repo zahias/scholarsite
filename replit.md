@@ -19,10 +19,17 @@ Preferred communication style: Simple, everyday language.
 # System Architecture
 
 ## Platform Structure
-The platform comprises three main surfaces:
+The platform comprises four main surfaces:
 1.  **Marketing/Landing Site**: Public-facing entry point for showcasing the platform and enabling previews.
 2.  **Researcher Profile Pages**: Individual, data-rich portfolio websites for researchers.
-3.  **Admin Dashboard (Planned)**: Backend interface for managing customer sites.
+3.  **Admin Dashboard**: Backend interface for platform owner to manage customer sites (tenants), domains, and users.
+4.  **Researcher Dashboard**: Customer-facing interface for researchers to configure their OpenAlex ID, customize their profile, and manage settings.
+
+## Multi-Tenant Architecture
+-   **Tenants Table**: Each customer is a tenant with unique ID, name, plan (starter/professional/institution), status (pending/active/suspended/cancelled).
+-   **Domains Table**: Custom domains linked to tenants, with primary domain flag and subdomain support.
+-   **Domain Routing**: Tenant resolver middleware detects domain from request and attaches tenant context.
+-   **User-Tenant Association**: Users are linked to tenants via tenantId foreign key.
 
 ## Frontend Architecture
 -   **Framework**: React with TypeScript, using Vite for building.
