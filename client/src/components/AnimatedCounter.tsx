@@ -15,9 +15,24 @@ export default function AnimatedCounter({
 }: AnimatedCounterProps) {
   const [count, setCount] = useState(0);
   const [hasAnimated, setHasAnimated] = useState(false);
+  const [lastEnd, setLastEnd] = useState(end);
   const elementRef = useRef<HTMLSpanElement>(null);
 
+  // Reset animation when end value changes significantly
   useEffect(() => {
+    if (end !== lastEnd && end > 0) {
+      setHasAnimated(false);
+      setLastEnd(end);
+    }
+  }, [end, lastEnd]);
+
+  useEffect(() => {
+    // Don't animate if end is 0, undefined, or NaN
+    if (!end || isNaN(end) || end === 0) {
+      setCount(end || 0);
+      return;
+    }
+
     if (hasAnimated) return;
 
     const observer = new IntersectionObserver(

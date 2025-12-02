@@ -92,11 +92,18 @@ interface OpenAlexResearcher {
   display_name: string;
   works_count: number;
   cited_by_count: number;
+  orcid?: string | null;
   summary_stats: {
     h_index: number;
     i10_index: number;
     "2yr_mean_citedness": number;
   };
+  last_known_institutions?: Array<{
+    id: string;
+    display_name: string;
+    country_code?: string;
+    type?: string;
+  }>;
   affiliations: OpenAlexAffiliation[];
   topics: OpenAlexTopic[];
   topic_share: OpenAlexTopicShare[];

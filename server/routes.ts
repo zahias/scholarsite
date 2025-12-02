@@ -765,25 +765,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
           years: aff.years || []
         }));
         
-        // Transform publications to match expected format
-        const publications = works.results.slice(0, 50).map((work: any) => ({
+        // Transform publications to match expected format (matching the Publication interface in frontend)
+        const publications = works.results.slice(0, 100).map((work: any) => ({
+          id: work.id || '',
           title: work.title || 'Untitled',
+          authorNames: work.authorships?.map((a: any) => a.author?.display_name).filter(Boolean).join(', ') || null,
+          journal: work.primary_location?.source?.display_name || null,
           publicationYear: work.publication_year,
-          journalName: work.primary_location?.source?.display_name || null,
-          citedByCount: work.cited_by_count || 0,
-          publicationType: work.type || 'article',
+          citationCount: work.cited_by_count || 0,
+          topics: work.topics?.slice(0, 5).map((t: any) => t.display_name) || [],
           doi: work.doi || null,
+          isOpenAccess: work.open_access?.is_oa || false,
+          publicationType: work.type || 'article',
           openAccessUrl: work.open_access?.oa_url || null
         }));
         
-        // Create a virtual profile for preview
+        // Get institution info for the profile
+        const institution = researcher.last_known_institutions?.[0];
+        const orcid = researcher.orcid || null;
+        
+        // Create a virtual profile for preview with placeholder content
         const previewProfile = {
           displayName: researcher.display_name,
           title: 'Researcher',
-          currentAffiliation: researcher.last_known_institutions?.[0]?.display_name || null,
-          bio: null,
-          profileImageUrl: null,
-          isPublic: true
+          currentAffiliation: institution?.display_name || null,
+          bio: `Distinguished researcher with ${researcher.works_count || 0} publications and ${researcher.cited_by_count || 0} citations. Research spans multiple disciplines with contributions to the academic community.`,
+          profileImageUrl: null, // Will be handled on frontend with initials avatar
+          cvUrl: '#cv-placeholder',
+          contactEmail: 'contact@example.edu',
+          location: institution?.country_code ? `${institution.display_name}` : null,
+          orcidId: orcid,
+          googleScholarUrl: '#scholar-placeholder',
+          linkedinUrl: '#linkedin-placeholder',
+          twitterHandle: null,
+          websiteUrl: '#website-placeholder',
+          isPublic: true,
+          isPreview: true
         };
 
         return res.json({

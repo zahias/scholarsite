@@ -10,9 +10,32 @@ import MobileBottomNav from "./MobileBottomNav";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Badge } from "@/components/ui/badge";
 import { useRealtimeUpdates } from "@/hooks/useRealtimeUpdates";
 import type { ResearcherProfile } from "@shared/schema";
 import { useMemo } from "react";
+
+function getInitials(name: string): string {
+  if (!name) return '?';
+  const parts = name.split(' ').filter(Boolean);
+  if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
+  return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
+}
+
+function getAvatarColor(name: string): string {
+  const colors = [
+    'from-blue-500 to-blue-600',
+    'from-purple-500 to-purple-600',
+    'from-emerald-500 to-emerald-600',
+    'from-amber-500 to-amber-600',
+    'from-rose-500 to-rose-600',
+    'from-cyan-500 to-cyan-600',
+    'from-indigo-500 to-indigo-600',
+    'from-teal-500 to-teal-600',
+  ];
+  const hash = name.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+  return colors[hash % colors.length];
+}
 
 export default function ResearcherProfile() {
   const { id } = useParams();
@@ -140,12 +163,23 @@ export default function ResearcherProfile() {
               <div className="profile-image-container">
                 <div className="profile-image-glow"></div>
                 <div className="relative bg-white/10 backdrop-blur-sm rounded-full p-3 shadow-2xl">
-                  <img 
-                    src={profile?.profileImageUrl || "https://images.unsplash.com/photo-1582750433449-648ed127bb54?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&h=500"} 
-                    alt="Professional portrait" 
-                    className="w-44 h-44 lg:w-56 lg:h-56 rounded-full object-cover border-4 border-white/30 shadow-2xl"
-                    data-testid="img-profile-photo"
-                  />
+                  {profile?.profileImageUrl ? (
+                    <img 
+                      src={profile.profileImageUrl} 
+                      alt="Professional portrait" 
+                      className="w-44 h-44 lg:w-56 lg:h-56 rounded-full object-cover border-4 border-white/30 shadow-2xl"
+                      data-testid="img-profile-photo"
+                    />
+                  ) : (
+                    <div 
+                      className={`w-44 h-44 lg:w-56 lg:h-56 rounded-full border-4 border-white/30 shadow-2xl flex items-center justify-center bg-gradient-to-br ${getAvatarColor(profile?.displayName || researcher?.display_name || '')}`}
+                      data-testid="img-profile-photo"
+                    >
+                      <span className="text-5xl lg:text-6xl font-bold text-white">
+                        {getInitials(profile?.displayName || researcher?.display_name || '')}
+                      </span>
+                    </div>
+                  )}
                   <div className="profile-badge absolute -bottom-3 -right-3 w-10 h-10 rounded-full border-4 border-white flex items-center justify-center">
                     <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
@@ -191,34 +225,47 @@ export default function ResearcherProfile() {
                   </svg>
                   View on OpenAlex
                 </a>
-                {profile?.cvUrl && (
+                {(profile?.cvUrl || profile?.isPreview) && (
                   <a 
-                    href={profile.cvUrl} 
+                    href={profile?.cvUrl || '#'} 
                     target="_blank" 
                     rel="noopener noreferrer"
-                    className="action-button group bg-white text-primary px-8 py-4 rounded-xl hover:bg-white/90 transition-all duration-300 font-medium shadow-lg hover:shadow-xl hover:scale-105"
+                    className={`action-button group bg-white text-primary px-8 py-4 rounded-xl hover:bg-white/90 transition-all duration-300 font-medium shadow-lg hover:shadow-xl hover:scale-105 ${profile?.isPreview ? 'opacity-75' : ''}`}
                     data-testid="link-cv"
+                    onClick={(e) => profile?.isPreview && e.preventDefault()}
                   >
                     <svg className="w-5 h-5 mr-3 inline text-red-600 group-hover:scale-110 transition-transform duration-300" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clipRule="evenodd" />
                     </svg>
                     Download CV/Resume
+                    {profile?.isPreview && <span className="text-xs ml-1 opacity-60">(Preview)</span>}
                   </a>
                 )}
-                {profile?.email && (
+                {(profile?.contactEmail || profile?.email || profile?.isPreview) && (
                   <a 
-                    href={`mailto:${profile.email}`}
-                    className="action-button group bg-gradient-to-r from-accent/20 to-accent/10 backdrop-blur-sm text-white px-8 py-4 rounded-xl hover:from-accent/30 hover:to-accent/20 transition-all duration-300 border border-accent/20 hover:border-accent/40 font-medium"
+                    href={profile?.contactEmail || profile?.email ? `mailto:${profile.contactEmail || profile.email}` : '#'}
+                    className={`action-button group bg-gradient-to-r from-accent/20 to-accent/10 backdrop-blur-sm text-white px-8 py-4 rounded-xl hover:from-accent/30 hover:to-accent/20 transition-all duration-300 border border-accent/20 hover:border-accent/40 font-medium ${profile?.isPreview ? 'opacity-75' : ''}`}
                     data-testid="link-contact"
+                    onClick={(e) => profile?.isPreview && e.preventDefault()}
                   >
                     <svg className="w-5 h-5 mr-3 inline group-hover:scale-110 transition-transform duration-300" fill="currentColor" viewBox="0 0 20 20">
                       <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
                       <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
                     </svg>
                     Get In Touch
+                    {profile?.isPreview && <span className="text-xs ml-1 opacity-60">(Preview)</span>}
                   </a>
                 )}
               </div>
+              
+              {/* Preview Mode Indicator */}
+              {profile?.isPreview && (
+                <div className="mt-6">
+                  <Badge variant="secondary" className="bg-amber-500/20 text-amber-200 border-amber-500/30 px-4 py-2">
+                    Preview Mode - This is how your portfolio would look
+                  </Badge>
+                </div>
+              )}
             </div>
           </div>
         </div>
