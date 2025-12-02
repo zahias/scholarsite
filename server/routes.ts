@@ -765,10 +765,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
           years: aff.years || []
         }));
         
+        // Helper function to strip MathML and other XML/HTML markup from titles
+        const normalizeTitle = (title: string | null | undefined): string => {
+          if (!title) return 'Untitled';
+          // First, remove all XML/HTML tags including self-closing ones
+          let cleaned = title
+            .replace(/<[^>]*>/g, '') // Remove ALL tags (opening, closing, self-closing)
+            .replace(/&lt;/g, '<')   // Decode common HTML entities
+            .replace(/&gt;/g, '>')
+            .replace(/&amp;/g, '&')
+            .replace(/&quot;/g, '"')
+            .replace(/&#?\w+;/g, '') // Remove any remaining HTML entities
+            .replace(/\s+/g, ' ')    // Normalize whitespace
+            .trim();
+          return cleaned || 'Untitled';
+        };
+
         // Transform publications to match expected format (matching the Publication interface in frontend)
         const publications = works.results.slice(0, 100).map((work: any) => ({
           id: work.id || '',
-          title: work.title || 'Untitled',
+          title: normalizeTitle(work.display_name || work.title),
           authorNames: work.authorships?.map((a: any) => a.author?.display_name).filter(Boolean).join(', ') || null,
           journal: work.primary_location?.source?.display_name || null,
           publicationYear: work.publication_year,

@@ -100,20 +100,86 @@ export default function ResearcherProfile() {
     return (
       <div className="min-h-screen bg-background">
         <Navigation researcherName="Loading..." />
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
-          <Card>
-            <CardContent className="pt-6">
-              <div className="text-center">
-                <Skeleton className="h-8 w-64 mx-auto mb-4" />
-                <Skeleton className="h-4 w-96 mx-auto mb-8" />
-                <div className="space-y-4">
-                  <Skeleton className="h-4 w-full" />
-                  <Skeleton className="h-4 w-3/4 mx-auto" />
+        {/* Premium Loading State with Profile Preview Structure */}
+        <section className="hero-banner min-h-[85vh] flex items-center relative">
+          <div className="hero-pattern"></div>
+          <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 z-10">
+            <div className="lg:grid lg:grid-cols-12 lg:gap-12 items-center">
+              {/* Avatar Skeleton */}
+              <div className="lg:col-span-4 flex justify-center lg:justify-start mb-12 lg:mb-0">
+                <div className="profile-image-container">
+                  <div className="profile-image-glow"></div>
+                  <div className="relative bg-white/10 backdrop-blur-sm rounded-full p-3 shadow-2xl">
+                    <div className="w-44 h-44 lg:w-56 lg:h-56 rounded-full border-4 border-white/30 shadow-2xl flex items-center justify-center bg-gradient-to-br from-primary/40 to-primary/60 animate-pulse">
+                      <div className="w-20 h-20 rounded-full bg-white/20"></div>
+                    </div>
+                  </div>
                 </div>
               </div>
-            </CardContent>
-          </Card>
-        </div>
+              
+              {/* Content Skeleton */}
+              <div className="lg:col-span-8 text-center lg:text-left text-white space-y-8">
+                <div className="space-y-6">
+                  <div>
+                    {/* Name skeleton */}
+                    <div className="h-16 lg:h-20 bg-white/20 rounded-lg mb-4 animate-pulse w-3/4 mx-auto lg:mx-0"></div>
+                    {/* Title skeleton */}
+                    <div className="h-8 bg-white/15 rounded-lg mb-4 animate-pulse w-1/2 mx-auto lg:mx-0"></div>
+                    {/* Affiliation skeleton */}
+                    <div className="flex flex-wrap items-center justify-center lg:justify-start gap-4">
+                      <div className="h-6 bg-white/10 rounded-lg animate-pulse w-48"></div>
+                      <div className="h-6 bg-white/10 rounded-lg animate-pulse w-24"></div>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Bio skeleton */}
+                <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-6 border border-white/10">
+                  <div className="space-y-3">
+                    <div className="h-4 bg-white/15 rounded animate-pulse w-full"></div>
+                    <div className="h-4 bg-white/15 rounded animate-pulse w-5/6"></div>
+                    <div className="h-4 bg-white/15 rounded animate-pulse w-4/6"></div>
+                  </div>
+                </div>
+                
+                {/* Action buttons skeleton */}
+                <div className="flex flex-wrap justify-center lg:justify-start gap-4 pt-4">
+                  <div className="h-14 bg-white/15 rounded-xl animate-pulse w-44"></div>
+                  <div className="h-14 bg-white/20 rounded-xl animate-pulse w-48"></div>
+                  <div className="h-14 bg-white/10 rounded-xl animate-pulse w-40"></div>
+                </div>
+                
+                {/* Loading indicator */}
+                <div className="flex items-center justify-center lg:justify-start gap-3 pt-4">
+                  <div className="flex gap-1">
+                    <div className="w-2 h-2 rounded-full bg-white/60 animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                    <div className="w-2 h-2 rounded-full bg-white/60 animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                    <div className="w-2 h-2 rounded-full bg-white/60 animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                  </div>
+                  <p className="text-white/70 text-sm font-medium">Building your portfolio preview...</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          {/* Decorative Elements */}
+          <div className="hero-decorative top-20 right-20 w-80 h-80 bg-gradient-to-r from-white/8 to-accent/5"></div>
+          <div className="hero-decorative bottom-20 left-20 w-64 h-64 bg-gradient-to-r from-accent/8 to-primary/5"></div>
+        </section>
+        
+        {/* Stats Section Skeleton */}
+        <section className="py-16 bg-muted/30">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} className="bg-card rounded-xl p-6 shadow-sm border animate-pulse">
+                  <div className="h-10 bg-muted rounded mb-2 w-16"></div>
+                  <div className="h-4 bg-muted/60 rounded w-24"></div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
       </div>
     );
   }
@@ -159,20 +225,18 @@ export default function ResearcherProfile() {
         {/* Enhanced Background pattern overlay */}
         <div className="hero-pattern"></div>
         
-        {/* Back Button - Always show for preview mode or when no database ID */}
-        {(profile?.isPreview || !profile?.id || researcherData?.isPreview) && (
-          <div className="absolute top-6 left-6 z-20">
-            <Button
-              variant="outline"
-              onClick={() => navigate('/')}
-              className="bg-white/10 backdrop-blur-sm border-white/20 text-white hover:bg-white/20 hover:text-white"
-              data-testid="button-back-to-home"
-            >
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Home
-            </Button>
-          </div>
-        )}
+        {/* Back Button - Always show for navigation */}
+        <div className="absolute top-6 left-6 z-20">
+          <Button
+            variant="outline"
+            onClick={() => navigate('/')}
+            className="bg-white/10 backdrop-blur-sm border-white/20 text-white hover:bg-white/20 hover:text-white"
+            data-testid="button-back-to-home"
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to Home
+          </Button>
+        </div>
         
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 z-10">
           <div className="lg:grid lg:grid-cols-12 lg:gap-12 items-center">
@@ -217,36 +281,32 @@ export default function ResearcherProfile() {
                   <p className="text-2xl sm:text-3xl mb-4 text-white/90 font-light tracking-wide" data-testid="text-title">
                     {profile?.title || 'Research Professional'}
                   </p>
-                  {(profile?.currentAffiliation || profile?.isPreview) && (
-                    <div className="flex flex-wrap items-center justify-center lg:justify-start gap-4 text-white/80">
-                      <span className="flex items-center gap-2">
-                        <Building2 className="w-5 h-5" />
-                        <span data-testid="text-affiliation">
-                          {profile?.currentAffiliation || (profile?.isPreview ? 'Your University' : '')}
-                          {profile?.isPreview && !profile?.currentAffiliation && <span className="text-xs ml-1 opacity-60">(Preview)</span>}
-                        </span>
+                  {/* Always show affiliation section - use OpenAlex data as fallback */}
+                  <div className="flex flex-wrap items-center justify-center lg:justify-start gap-4 text-white/80">
+                    <span className="flex items-center gap-2">
+                      <Building2 className="w-5 h-5" />
+                      <span data-testid="text-affiliation">
+                        {profile?.currentAffiliation || researcher?.last_known_institutions?.[0]?.display_name || (profile?.isPreview ? 'Your University' : 'Institution')}
+                        {profile?.isPreview && !profile?.currentAffiliation && !researcher?.last_known_institutions?.[0]?.display_name && <span className="text-xs ml-1 opacity-60">(Preview)</span>}
                       </span>
-                      {(profile?.countryCode || profile?.isPreview) && (
-                        <span className="flex items-center gap-2">
-                          <MapPin className="w-5 h-5" />
-                          <span>{profile?.countryCode || (profile?.isPreview ? 'Location' : '')}</span>
-                        </span>
-                      )}
-                    </div>
-                  )}
+                    </span>
+                    <span className="flex items-center gap-2">
+                      <MapPin className="w-5 h-5" />
+                      <span>{profile?.countryCode || researcher?.last_known_institutions?.[0]?.country_code || ''}</span>
+                    </span>
+                  </div>
                 </div>
               </div>
               
-              {(profile?.bio || profile?.isPreview) && (
-                <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-6 border border-white/10">
-                  <p className="text-lg sm:text-xl text-white/90 leading-relaxed font-light" data-testid="text-bio">
-                    {profile?.bio || (profile?.isPreview ? `Distinguished researcher with expertise in multiple disciplines. This bio section will showcase your research journey, achievements, and academic contributions.` : '')}
-                    {profile?.isPreview && !profile?.bio && <span className="text-xs ml-1 opacity-60">(Preview)</span>}
-                  </p>
-                </div>
-              )}
+              {/* Always show bio section - use generated bio as fallback */}
+              <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-6 border border-white/10">
+                <p className="text-lg sm:text-xl text-white/90 leading-relaxed font-light" data-testid="text-bio">
+                  {profile?.bio || `Researcher with ${researcher?.works_count || 0} publications and ${researcher?.cited_by_count || 0} citations.`}
+                  {profile?.isPreview && !profile?.bio && <span className="text-xs ml-1 opacity-60">(Preview)</span>}
+                </p>
+              </div>
               
-              {/* Enhanced Action Buttons */}
+              {/* Enhanced Action Buttons - Always show all buttons */}
               <div className="flex flex-wrap justify-center lg:justify-start gap-4 pt-4">
                 <a 
                   href={`https://openalex.org/authors/${openalexId}`} 
@@ -261,37 +321,33 @@ export default function ResearcherProfile() {
                   </svg>
                   View on OpenAlex
                 </a>
-                {(profile?.cvUrl || profile?.isPreview) && (
-                  <a 
-                    href={profile?.cvUrl || '#'} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className={`action-button group bg-white text-primary px-8 py-4 rounded-xl hover:bg-white/90 transition-all duration-300 font-medium shadow-lg hover:shadow-xl hover:scale-105 ${profile?.isPreview ? 'opacity-75' : ''}`}
-                    data-testid="link-cv"
-                    onClick={(e) => profile?.isPreview && e.preventDefault()}
-                  >
-                    <svg className="w-5 h-5 mr-3 inline text-red-600 group-hover:scale-110 transition-transform duration-300" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clipRule="evenodd" />
-                    </svg>
-                    Download CV/Resume
-                    {profile?.isPreview && <span className="text-xs ml-1 opacity-60">(Preview)</span>}
-                  </a>
-                )}
-                {(profile?.contactEmail || profile?.email || profile?.isPreview) && (
-                  <a 
-                    href={profile?.contactEmail || profile?.email ? `mailto:${profile.contactEmail || profile.email}` : '#'}
-                    className={`action-button group bg-gradient-to-r from-accent/20 to-accent/10 backdrop-blur-sm text-white px-8 py-4 rounded-xl hover:from-accent/30 hover:to-accent/20 transition-all duration-300 border border-accent/20 hover:border-accent/40 font-medium ${profile?.isPreview ? 'opacity-75' : ''}`}
-                    data-testid="link-contact"
-                    onClick={(e) => profile?.isPreview && e.preventDefault()}
-                  >
-                    <svg className="w-5 h-5 mr-3 inline group-hover:scale-110 transition-transform duration-300" fill="currentColor" viewBox="0 0 20 20">
-                      <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
-                      <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
-                    </svg>
-                    Get In Touch
-                    {profile?.isPreview && <span className="text-xs ml-1 opacity-60">(Preview)</span>}
-                  </a>
-                )}
+                <a 
+                  href={profile?.cvUrl && profile.cvUrl !== '#cv-placeholder' ? profile.cvUrl : '#'} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className={`action-button group bg-white text-primary px-8 py-4 rounded-xl hover:bg-white/90 transition-all duration-300 font-medium shadow-lg hover:shadow-xl hover:scale-105 ${!profile?.cvUrl || profile.cvUrl === '#cv-placeholder' ? 'opacity-75' : ''}`}
+                  data-testid="link-cv"
+                  onClick={(e) => (!profile?.cvUrl || profile.cvUrl === '#cv-placeholder') && e.preventDefault()}
+                >
+                  <svg className="w-5 h-5 mr-3 inline text-red-600 group-hover:scale-110 transition-transform duration-300" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clipRule="evenodd" />
+                  </svg>
+                  Download CV/Resume
+                  {profile?.isPreview && (!profile?.cvUrl || profile.cvUrl === '#cv-placeholder') && <span className="text-xs ml-1 opacity-60">(Preview)</span>}
+                </a>
+                <a 
+                  href={profile?.contactEmail || profile?.email ? `mailto:${profile.contactEmail || profile.email}` : '#'}
+                  className={`action-button group bg-gradient-to-r from-accent/20 to-accent/10 backdrop-blur-sm text-white px-8 py-4 rounded-xl hover:from-accent/30 hover:to-accent/20 transition-all duration-300 border border-accent/20 hover:border-accent/40 font-medium ${!profile?.contactEmail && !profile?.email ? 'opacity-75' : ''}`}
+                  data-testid="link-contact"
+                  onClick={(e) => (!profile?.contactEmail && !profile?.email) && e.preventDefault()}
+                >
+                  <svg className="w-5 h-5 mr-3 inline group-hover:scale-110 transition-transform duration-300" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
+                    <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
+                  </svg>
+                  Get In Touch
+                  {profile?.isPreview && (!profile?.contactEmail && !profile?.email) && <span className="text-xs ml-1 opacity-60">(Preview)</span>}
+                </a>
               </div>
               
               {/* Preview Mode Indicator */}
