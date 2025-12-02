@@ -176,68 +176,77 @@ export default function LandingPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Navigation - Clean & Simple */}
-      <nav className="sticky top-0 z-50 bg-white/95 backdrop-blur-sm border-b border-border">
+      {/* Premium Navigation */}
+      <nav className="sticky top-0 z-50 nav-premium">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">
             <div className="flex items-center">
-              <BookOpen className="h-7 w-7 text-primary mr-2" />
-              <span className="text-lg font-semibold">ScholarSite</span>
+              <BookOpen className="h-7 w-7 text-white mr-2" />
+              <span className="text-lg font-semibold text-white">ScholarSite</span>
             </div>
             <div className="hidden md:flex items-center gap-8">
-              <a href="#features" className="text-sm text-muted-foreground hover:text-foreground transition-colors" data-testid="link-features">Features</a>
-              <a href="#preview" className="text-sm text-muted-foreground hover:text-foreground transition-colors" data-testid="link-preview">Preview</a>
-              <a href="#pricing" className="text-sm text-muted-foreground hover:text-foreground transition-colors" data-testid="link-pricing">Pricing</a>
-              <Button size="sm" data-testid="button-get-started-nav">Get Started</Button>
+              <a href="#features" className="nav-link text-sm" data-testid="link-features">Features</a>
+              <a href="#preview" className="nav-link text-sm" data-testid="link-preview">Preview</a>
+              <a href="#pricing" className="nav-link text-sm" data-testid="link-pricing">Pricing</a>
+              <Button size="sm" className="btn-premium text-sm px-5 py-2" data-testid="button-get-started-nav">Get Started</Button>
             </div>
           </div>
         </div>
       </nav>
 
-      {/* Hero Section - Clean & Light */}
-      <section className="py-20 lg:py-28 bg-gradient-to-b from-white to-muted/30">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+      {/* Premium Hero Section */}
+      <section className="landing-hero py-24 lg:py-32 relative">
+        {/* Floating orbs */}
+        <div className="hero-orb hero-orb-1"></div>
+        <div className="hero-orb hero-orb-2"></div>
+        
+        <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto">
-            <Badge variant="secondary" className="mb-6">
+            <Badge className="mb-6 bg-white/10 text-white border-white/20 backdrop-blur-sm">
               <Sparkles className="w-3 h-3 mr-1" />
               Powered by OpenAlex
             </Badge>
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight mb-6">
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight mb-6 text-white">
               Your Research Portfolio,{" "}
-              <span className="text-primary">Beautifully Presented</span>
+              <span className="bg-gradient-to-r from-orange-300 via-orange-200 to-amber-200 bg-clip-text text-transparent">Beautifully Presented</span>
             </h1>
-            <p className="text-lg lg:text-xl text-muted-foreground mb-10 leading-relaxed">
+            <p className="text-lg lg:text-xl text-white/80 mb-10 leading-relaxed">
               Create a stunning academic portfolio website in minutes. Showcase your publications, 
               citations, and research impact with automatic updates from OpenAlex.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button size="lg" className="text-base px-8" data-testid="button-start-free-trial">
+              <Button size="lg" className="btn-premium text-base px-8 py-6" data-testid="button-start-free-trial">
                 Start Free Trial
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
-              <Button size="lg" variant="outline" className="text-base px-8" data-testid="button-see-demo">
-                <a href="#preview">See a Demo</a>
+              <Button 
+                size="lg" 
+                className="btn-outline-light text-base px-8 py-6" 
+                data-testid="button-see-demo"
+                onClick={() => document.getElementById('preview')?.scrollIntoView({ behavior: 'smooth' })}
+              >
+                See a Demo
               </Button>
             </div>
           </div>
 
-          {/* Stats Row */}
-          <div className="mt-20 grid grid-cols-2 md:grid-cols-4 gap-6 max-w-3xl mx-auto">
-            <div className="text-center p-4">
-              <div className="text-3xl font-bold text-primary">1000+</div>
-              <div className="text-sm text-muted-foreground mt-1">Researchers</div>
+          {/* Premium Stats Row */}
+          <div className="mt-20 grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl mx-auto">
+            <div className="stats-card-hero text-center p-6">
+              <div className="text-3xl font-bold text-white">1000+</div>
+              <div className="text-sm text-white/60 mt-1">Researchers</div>
             </div>
-            <div className="text-center p-4">
-              <div className="text-3xl font-bold text-primary">50M+</div>
-              <div className="text-sm text-muted-foreground mt-1">Publications</div>
+            <div className="stats-card-hero text-center p-6">
+              <div className="text-3xl font-bold text-white">50M+</div>
+              <div className="text-sm text-white/60 mt-1">Publications</div>
             </div>
-            <div className="text-center p-4">
-              <div className="text-3xl font-bold text-primary">99.9%</div>
-              <div className="text-sm text-muted-foreground mt-1">Uptime</div>
+            <div className="stats-card-hero text-center p-6">
+              <div className="text-3xl font-bold text-white">99.9%</div>
+              <div className="text-sm text-white/60 mt-1">Uptime</div>
             </div>
-            <div className="text-center p-4">
-              <div className="text-3xl font-bold text-primary">24/7</div>
-              <div className="text-sm text-muted-foreground mt-1">Auto-Sync</div>
+            <div className="stats-card-hero text-center p-6">
+              <div className="text-3xl font-bold text-white">24/7</div>
+              <div className="text-sm text-white/60 mt-1">Auto-Sync</div>
             </div>
           </div>
         </div>
@@ -256,9 +265,9 @@ export default function LandingPage() {
           </div>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {features.map((feature, index) => (
-              <Card key={index} className="border shadow-sm hover:shadow-md transition-shadow">
+              <Card key={index} className="group card-premium border bg-white shadow-sm hover:shadow-lg hover:border-primary/20 transition-all duration-300">
                 <CardHeader>
-                  <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4">
+                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center mb-4 group-hover:scale-105 transition-transform">
                     <feature.icon className="w-6 h-6 text-primary" />
                   </div>
                   <CardTitle className="text-lg">{feature.title}</CardTitle>
@@ -466,20 +475,25 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="py-20 lg:py-24 bg-primary text-primary-foreground">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl sm:text-4xl font-bold mb-4">
+      {/* Premium CTA Section */}
+      <section className="cta-premium py-20 lg:py-28 relative">
+        <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <h2 className="text-3xl sm:text-4xl font-bold mb-4 text-white">
             Ready to Showcase Your Research?
           </h2>
-          <p className="text-lg opacity-90 mb-8 max-w-2xl mx-auto">
+          <p className="text-lg text-white/80 mb-10 max-w-2xl mx-auto">
             Join thousands of researchers who have already created their professional portfolio.
             Start your free trial today - no credit card required.
           </p>
-          <Button size="lg" variant="secondary" className="text-base px-8" data-testid="button-start-trial-cta">
-            Start Your Free Trial
-            <ArrowRight className="ml-2 h-4 w-4" />
-          </Button>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Button size="lg" className="btn-premium text-base px-8 py-6" data-testid="button-start-trial-cta">
+              Start Your Free Trial
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
+            <Button size="lg" className="btn-outline-light text-base px-8 py-6" data-testid="button-contact-sales">
+              Contact Sales
+            </Button>
+          </div>
         </div>
       </section>
 
