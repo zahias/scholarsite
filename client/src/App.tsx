@@ -12,6 +12,8 @@ import ResearcherProfile from "@/components/ResearcherProfile";
 import AdminLogin from "@/pages/AdminLogin";
 import AdminDashboard from "@/pages/AdminDashboard";
 import TenantForm from "@/pages/TenantForm";
+import ResearcherLogin from "@/pages/ResearcherLogin";
+import ResearcherDashboard from "@/pages/ResearcherDashboard";
 
 function Router() {
   return (
@@ -24,6 +26,8 @@ function Router() {
       <Route path="/admin/login" component={AdminLogin} />
       <Route path="/admin" component={AdminDashboard} />
       <Route path="/admin/tenants/:id" component={TenantForm} />
+      <Route path="/dashboard/login" component={ResearcherLogin} />
+      <Route path="/dashboard" component={ResearcherDashboard} />
       <Route component={NotFound} />
     </Switch>
   );

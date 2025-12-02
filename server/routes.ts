@@ -12,6 +12,7 @@ import path from "path";
 import { authRouter } from "./auth";
 import { adminRouter } from "./adminRoutes";
 import tenantRouter from "./tenantRoutes";
+import researcherRouter from "./researcherRoutes";
 import { tenantResolver } from "./tenantMiddleware";
 
 // Event emitter for real-time updates
@@ -623,6 +624,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Tenant management routes (admin only)
   app.use("/api/admin", tenantRouter);
+
+  // Researcher routes (for customer dashboard)
+  app.use("/api/researcher", researcherRouter);
 
   // Server-Sent Events endpoint for real-time updates
   app.get('/api/events', (req, res) => {

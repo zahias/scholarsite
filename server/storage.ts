@@ -32,13 +32,21 @@ import {
 import { db } from "./db";
 import { eq, desc, and, ne } from "drizzle-orm";
 
+export interface TenantWithDetails extends Tenant {
+  domains: Domain[];
+  users: SafeUser[];
+  profile: ResearcherProfile | null;
+}
+
 export interface IStorage {
   // Tenant operations
   getTenant(id: string): Promise<Tenant | undefined>;
+  getTenantWithDetails(id: string): Promise<TenantWithDetails | undefined>;
   getAllTenants(): Promise<Tenant[]>;
   createTenant(tenant: InsertTenant): Promise<Tenant>;
   updateTenant(id: string, updates: Partial<Tenant>): Promise<Tenant | undefined>;
   deleteTenant(id: string): Promise<void>;
+  updateTenantProfile(tenantId: string, updates: Partial<ResearcherProfile>): Promise<ResearcherProfile | undefined>;
   
   // Domain operations
   getDomain(id: string): Promise<Domain | undefined>;
@@ -130,6 +138,58 @@ export class DatabaseStorage implements IStorage {
       await tx.delete(researcherProfiles).where(eq(researcherProfiles.tenantId, id));
       await tx.delete(tenants).where(eq(tenants.id, id));
     });
+  }
+
+  async getTenantWithDetails(id: string): Promise<TenantWithDetails | undefined> {
+    const tenant = await this.getTenant(id);
+    if (!tenant) return undefined;
+
+    const [tenantDomains, tenantUsers, profile] = await Promise.all([
+      this.getDomainsByTenant(id),
+      this.getUsersByTenant(id),
+      this.getResearcherProfileByTenant(id),
+    ]);
+
+    return {
+      ...tenant,
+      domains: tenantDomains,
+      users: tenantUsers,
+      profile: profile || null,
+    };
+  }
+
+  async updateTenantProfile(tenantId: string, updates: Partial<ResearcherProfile>): Promise<ResearcherProfile | undefined> {
+    let profile = await this.getResearcherProfileByTenant(tenantId);
+    
+    if (!profile) {
+      const [newProfile] = await db
+        .insert(researcherProfiles)
+        .values({
+          tenantId,
+          openalexId: updates.openalexId || null,
+          displayName: updates.displayName || null,
+          title: updates.title || null,
+          bio: updates.bio || null,
+          customCss: updates.customCss || null,
+          socialLinks: updates.socialLinks || null,
+          featuredWorks: updates.featuredWorks || null,
+          lastSyncedAt: updates.lastSyncedAt ? new Date(updates.lastSyncedAt) : null,
+        })
+        .returning();
+      return newProfile;
+    }
+
+    const [updatedProfile] = await db
+      .update(researcherProfiles)
+      .set({
+        ...updates,
+        lastSyncedAt: updates.lastSyncedAt ? new Date(updates.lastSyncedAt) : profile.lastSyncedAt,
+        updatedAt: new Date(),
+      })
+      .where(eq(researcherProfiles.tenantId, tenantId))
+      .returning();
+    
+    return updatedProfile;
   }
 
   // Domain operations
