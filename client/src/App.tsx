@@ -9,6 +9,9 @@ import ContactPage from "@/pages/ContactPage";
 import PrivacyPage from "@/pages/PrivacyPage";
 import TermsPage from "@/pages/TermsPage";
 import ResearcherProfile from "@/components/ResearcherProfile";
+import AdminLogin from "@/pages/AdminLogin";
+import AdminDashboard from "@/pages/AdminDashboard";
+import TenantForm from "@/pages/TenantForm";
 
 function Router() {
   return (
@@ -18,6 +21,9 @@ function Router() {
       <Route path="/privacy" component={PrivacyPage} />
       <Route path="/terms" component={TermsPage} />
       <Route path="/researcher/:id" component={ResearcherProfile} />
+      <Route path="/admin/login" component={AdminLogin} />
+      <Route path="/admin" component={AdminDashboard} />
+      <Route path="/admin/tenants/:id" component={TenantForm} />
       <Route component={NotFound} />
     </Switch>
   );

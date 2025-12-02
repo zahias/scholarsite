@@ -10,7 +10,7 @@ const router = Router();
 const createTenantSchema = z.object({
   name: z.string().min(1, "Name is required"),
   plan: z.enum(["starter", "professional", "institution"]).default("starter"),
-  contactEmail: z.string().email().optional(),
+  contactEmail: z.string().email().optional().or(z.literal("")),
   primaryColor: z.string().optional(),
   accentColor: z.string().optional(),
   notes: z.string().optional(),
