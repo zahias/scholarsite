@@ -17,13 +17,19 @@ import { z } from "zod";
 // Note: Session table is managed by connect-pg-simple, not Drizzle
 // See server/index.ts for session configuration
 
-// User storage table for Replit Auth
+// User roles
+export type UserRole = 'admin' | 'researcher';
+
+// User storage table for authentication
 export const users = pgTable("users", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  email: varchar("email").unique(),
+  email: varchar("email").unique().notNull(),
+  passwordHash: varchar("password_hash").notNull(),
+  role: varchar("role").$type<UserRole>().default('researcher').notNull(),
   firstName: varchar("first_name"),
   lastName: varchar("last_name"),
   profileImageUrl: varchar("profile_image_url"),
+  isActive: boolean("is_active").default(true).notNull(),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -106,6 +112,25 @@ export const affiliations = pgTable("affiliations", {
 
 export type UpsertUser = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect;
+
+// Auth schemas
+export const registerUserSchema = z.object({
+  email: z.string().email("Invalid email address"),
+  password: z.string().min(8, "Password must be at least 8 characters"),
+  firstName: z.string().min(1, "First name is required"),
+  lastName: z.string().min(1, "Last name is required"),
+});
+
+export const loginUserSchema = z.object({
+  email: z.string().email("Invalid email address"),
+  password: z.string().min(1, "Password is required"),
+});
+
+export type RegisterUserInput = z.infer<typeof registerUserSchema>;
+export type LoginUserInput = z.infer<typeof loginUserSchema>;
+
+// Safe user type (without password hash)
+export type SafeUser = Omit<User, 'passwordHash'>;
 
 export type InsertResearcherProfile = typeof researcherProfiles.$inferInsert;
 export type ResearcherProfile = typeof researcherProfiles.$inferSelect;

@@ -8,6 +8,8 @@ import {
   siteSettings,
   type User,
   type UpsertUser,
+  type SafeUser,
+  type UserRole,
   type ResearcherProfile,
   type InsertResearcherProfile,
   type OpenalexData,
@@ -22,14 +24,18 @@ import {
   type InsertSiteSetting,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, and } from "drizzle-orm";
+import { eq, desc, and, ne } from "drizzle-orm";
 
 export interface IStorage {
-  // User operations (mandatory for Replit Auth)
+  // User operations
   getUser(id: string): Promise<User | undefined>;
   getUserByEmail(email: string): Promise<User | undefined>;
   createUser(user: UpsertUser): Promise<User>;
   upsertUser(user: UpsertUser): Promise<User>;
+  updateUser(id: string, updates: Partial<User>): Promise<User | undefined>;
+  deleteUser(id: string): Promise<void>;
+  getAllUsers(): Promise<SafeUser[]>;
+  getUsersByRole(role: UserRole): Promise<SafeUser[]>;
   
   // Researcher profile operations
   getResearcherProfile(userId: string): Promise<ResearcherProfile | undefined>;
@@ -94,6 +100,56 @@ export class DatabaseStorage implements IStorage {
       })
       .returning();
     return user;
+  }
+
+  async updateUser(id: string, updates: Partial<User>): Promise<User | undefined> {
+    const [user] = await db
+      .update(users)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(users.id, id))
+      .returning();
+    return user;
+  }
+
+  async deleteUser(id: string): Promise<void> {
+    await db.delete(users).where(eq(users.id, id));
+  }
+
+  async getAllUsers(): Promise<SafeUser[]> {
+    const allUsers = await db
+      .select({
+        id: users.id,
+        email: users.email,
+        role: users.role,
+        firstName: users.firstName,
+        lastName: users.lastName,
+        profileImageUrl: users.profileImageUrl,
+        isActive: users.isActive,
+        createdAt: users.createdAt,
+        updatedAt: users.updatedAt,
+      })
+      .from(users)
+      .orderBy(desc(users.createdAt));
+    return allUsers as SafeUser[];
+  }
+
+  async getUsersByRole(role: UserRole): Promise<SafeUser[]> {
+    const roleUsers = await db
+      .select({
+        id: users.id,
+        email: users.email,
+        role: users.role,
+        firstName: users.firstName,
+        lastName: users.lastName,
+        profileImageUrl: users.profileImageUrl,
+        isActive: users.isActive,
+        createdAt: users.createdAt,
+        updatedAt: users.updatedAt,
+      })
+      .from(users)
+      .where(eq(users.role, role))
+      .orderBy(desc(users.createdAt));
+    return roleUsers as SafeUser[];
   }
 
   // Researcher profile operations

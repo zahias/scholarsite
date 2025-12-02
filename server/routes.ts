@@ -9,6 +9,8 @@ import multer from "multer";
 import { Client as ObjectStorageClient } from "@replit/object-storage";
 import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
 import path from "path";
+import { authRouter } from "./auth";
+import { adminRouter } from "./adminRoutes";
 
 // Event emitter for real-time updates
 const updateEmitter = new EventEmitter();
@@ -608,6 +610,12 @@ function escapeCSV(value: string): string {
 export async function registerRoutes(app: Express): Promise<Server> {
   const openalexService = new OpenAlexService();
 
+  // Authentication routes
+  app.use("/api/auth", authRouter);
+  
+  // Admin routes for user management
+  app.use("/api/admin", adminRouter);
+
   // Server-Sent Events endpoint for real-time updates
   app.get('/api/events', (req, res) => {
     console.log('📡 New SSE connection request from:', req.ip);
@@ -868,8 +876,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!systemUser) {
         systemUser = await storage.createUser({
           email: 'system@admin.local',
+          passwordHash: 'SYSTEM_USER_NO_LOGIN',
           firstName: 'System',
-          lastName: 'Admin'
+          lastName: 'Admin',
+          role: 'admin',
         });
       }
 
