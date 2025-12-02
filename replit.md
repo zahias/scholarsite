@@ -78,6 +78,19 @@ The platform comprises four main surfaces:
 -   **Data Caching**: Local database caching with sync timestamps.
 -   **Sync Strategy**: Supports manual and automated profile synchronization, including unlimited publication loading via pagination.
 
+## Automated Sync Scheduler
+-   **Background Job**: Runs every hour to check tenant sync requirements.
+-   **Plan-Based Frequency**:
+    -   **Starter Plan**: Monthly data refresh
+    -   **Professional Plan**: Weekly data refresh
+    -   **Institution Plan**: Daily data refresh
+-   **Sync Logic**: Checks lastSyncedAt against plan frequency, only syncs when due.
+-   **Admin API Endpoints**:
+    -   `GET /api/admin/sync/logs` - View sync activity logs
+    -   `POST /api/admin/sync/run` - Manually trigger sync check for all tenants
+    -   `POST /api/admin/tenants/:id/sync` - Force sync a specific tenant
+-   **Logging**: All sync activity logged with tenant name, status, and timestamps.
+
 ## Project Structure
 -   **Monorepo**: Shared types and schemas between client and server.
 -   **Client**: React SPA (`/client`).

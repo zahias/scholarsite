@@ -4,6 +4,7 @@ import session from "express-session";
 import connectPgSimple from "connect-pg-simple";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
+import { startSyncScheduler } from "./services/syncScheduler";
 
 const app = express();
 app.use(express.json());
@@ -88,5 +89,9 @@ app.use((req, res, next) => {
     reusePort: true,
   }, () => {
     log(`serving on port ${port}`);
+    
+    // Start the automated sync scheduler (checks every hour)
+    startSyncScheduler(1);
+    log('Sync scheduler started - checking tenants hourly');
   });
 })();

@@ -4,6 +4,7 @@ import bcrypt from "bcryptjs";
 import { storage } from "./storage";
 import { isAuthenticated, isAdmin } from "./auth";
 import type { PlanType, TenantStatus } from "@shared/schema";
+import { getSyncLogs, forceSyncTenant, runScheduledSync } from "./services/syncScheduler";
 
 const router = Router();
 
@@ -195,7 +196,7 @@ router.post("/tenants", isAuthenticated, isAdmin, async (req: Request, res: Resp
       ...validatedData,
       status: "pending" as TenantStatus,
       plan: validatedData.plan as PlanType,
-      syncFrequency: validatedData.plan === "professional" ? "weekly" : "monthly",
+      syncFrequency: validatedData.plan === "institution" ? "daily" : validatedData.plan === "professional" ? "weekly" : "monthly",
     });
 
     await storage.upsertResearcherProfile({
@@ -240,7 +241,7 @@ router.patch("/tenants/:id", isAuthenticated, isAdmin, async (req: Request, res:
 
     const updateData: any = { ...validatedData };
     if (validatedData.plan) {
-      updateData.syncFrequency = validatedData.plan === "professional" ? "weekly" : "monthly";
+      updateData.syncFrequency = validatedData.plan === "institution" ? "daily" : validatedData.plan === "professional" ? "weekly" : "monthly";
     }
     if (validatedData.subscriptionStartDate) {
       updateData.subscriptionStartDate = new Date(validatedData.subscriptionStartDate);
@@ -419,6 +420,46 @@ router.post("/tenants/:id/activate", isAuthenticated, isAdmin, async (req: Reque
   } catch (error) {
     console.error("Activate tenant error:", error);
     return res.status(500).json({ message: "Failed to activate tenant" });
+  }
+});
+
+// Sync management endpoints
+router.get("/sync/logs", isAuthenticated, isAdmin, async (req: Request, res: Response) => {
+  try {
+    const logs = getSyncLogs();
+    return res.json({ logs });
+  } catch (error) {
+    console.error("Get sync logs error:", error);
+    return res.status(500).json({ message: "Failed to get sync logs" });
+  }
+});
+
+router.post("/sync/run", isAuthenticated, isAdmin, async (req: Request, res: Response) => {
+  try {
+    const stats = await runScheduledSync();
+    return res.json({
+      message: "Scheduled sync completed",
+      stats,
+    });
+  } catch (error) {
+    console.error("Run sync error:", error);
+    return res.status(500).json({ message: "Failed to run sync" });
+  }
+});
+
+router.post("/tenants/:id/sync", isAuthenticated, isAdmin, async (req: Request, res: Response) => {
+  try {
+    const log = await forceSyncTenant(req.params.id);
+    if (!log) {
+      return res.status(404).json({ message: "Tenant not found" });
+    }
+    return res.json({
+      message: log.status === 'success' ? 'Sync completed successfully' : log.message,
+      log,
+    });
+  } catch (error) {
+    console.error("Force sync error:", error);
+    return res.status(500).json({ message: "Failed to sync tenant" });
   }
 });
 
