@@ -7,6 +7,113 @@ import type { PlanType, TenantStatus } from "@shared/schema";
 
 const router = Router();
 
+// Admin login schema
+const adminLoginSchema = z.object({
+  email: z.string().email("Invalid email"),
+  password: z.string().min(1, "Password is required"),
+});
+
+// Admin login
+router.post("/login", async (req: Request, res: Response) => {
+  try {
+    const { email, password } = adminLoginSchema.parse(req.body);
+
+    const user = await storage.getUserByEmail(email);
+    if (!user) {
+      return res.status(401).json({ message: "Invalid email or password" });
+    }
+
+    if (user.role !== "admin") {
+      return res.status(403).json({ message: "Access denied. Admin privileges required." });
+    }
+
+    if (!user.isActive) {
+      return res.status(403).json({ message: "Account is deactivated" });
+    }
+
+    const isValid = await bcrypt.compare(password, user.passwordHash);
+    if (!isValid) {
+      return res.status(401).json({ message: "Invalid email or password" });
+    }
+
+    // Regenerate session to prevent session fixation attacks
+    req.session.regenerate((err) => {
+      if (err) {
+        console.error("Session regeneration error:", err);
+        return res.status(500).json({ message: "Login failed" });
+      }
+
+      // Set session data
+      req.session.userId = user.id;
+      req.session.userRole = user.role;
+
+      req.session.save((saveErr) => {
+        if (saveErr) {
+          console.error("Session save error:", saveErr);
+          return res.status(500).json({ message: "Login failed" });
+        }
+
+        return res.json({
+          message: "Login successful",
+          user: {
+            id: user.id,
+            email: user.email,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            role: user.role,
+          },
+        });
+      });
+    });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ message: "Validation error", errors: error.errors });
+    }
+    console.error("Admin login error:", error);
+    return res.status(500).json({ message: "Login failed" });
+  }
+});
+
+// Admin logout
+router.post("/logout", (req: Request, res: Response) => {
+  req.session.destroy((err) => {
+    if (err) {
+      console.error("Logout error:", err);
+      return res.status(500).json({ message: "Logout failed" });
+    }
+    res.clearCookie("connect.sid");
+    return res.json({ message: "Logged out successfully" });
+  });
+});
+
+// Get current admin user (for session check)
+router.get("/me", isAuthenticated, isAdmin, async (req: Request, res: Response) => {
+  try {
+    const userId = req.session.userId;
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    const user = await storage.getUser(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    return res.json({
+      user: {
+        id: user.id,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        role: user.role,
+      },
+    });
+  } catch (error) {
+    console.error("Get admin user error:", error);
+    return res.status(500).json({ message: "Failed to get user info" });
+  }
+});
+
 const createTenantSchema = z.object({
   name: z.string().min(1, "Name is required"),
   plan: z.enum(["starter", "professional", "institution"]).default("starter"),
