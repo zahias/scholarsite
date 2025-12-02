@@ -936,6 +936,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get author preview for landing page (public - no auth required)
+  app.get('/api/openalex/author/:openalexId', async (req, res) => {
+    try {
+      const { openalexId } = req.params;
+      const data = await openalexService.getResearcher(openalexId);
+      res.json(data);
+    } catch (error) {
+      console.error("Error fetching OpenAlex author:", error);
+      if (error instanceof Error && error.message.includes('404')) {
+        return res.status(404).json({ message: "Researcher not found in OpenAlex" });
+      }
+      res.status(500).json({ message: "Failed to fetch author data" });
+    }
+  });
+
   // Export bibliography in various formats (public)
   app.get('/api/researcher/:openalexId/export-bibliography', async (req, res) => {
     try {

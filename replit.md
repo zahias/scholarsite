@@ -1,8 +1,37 @@
 # Overview
 
-This is a research profile platform that creates beautiful, automatically-updated academic profiles powered by the OpenAlex API. The application allows researchers to showcase their publications, impact metrics, research topics, affiliations, and academic journey in a unified dashboard. It features authentication, profile management, data synchronization with OpenAlex, and public profile viewing capabilities.
+ScholarSite is a SaaS platform that creates beautiful, automatically-updated academic portfolio websites powered by the OpenAlex API. The platform allows researchers to showcase their publications, impact metrics, research topics, and affiliations through professional, customizable websites.
 
-# Recent Changes (October 17, 2025)
+## Platform Architecture
+
+The platform consists of three main surfaces:
+1. **Marketing/Landing Site** (`/`): Public-facing page where researchers can preview their potential portfolio by entering their OpenAlex ID
+2. **Researcher Profile Pages** (`/researcher/:id`): Individual researcher portfolio websites with full publication analytics
+3. **Admin Dashboard** (planned): Backend management for creating and managing customer sites
+
+## Key Features
+- **OpenAlex Integration**: Automatic data fetching and synchronization
+- **Live Preview**: Enter any OpenAlex ID to see an instant preview of a potential portfolio
+- **Publication Analytics**: Charts, metrics, and visualizations of research impact
+- **Mobile-First Design**: Responsive layouts with PWA support
+- **SEO Optimization**: Dynamic meta tags, Open Graph, Schema.org structured data
+
+# Recent Changes (December 2, 2025)
+
+## New Landing Page (SaaS Marketing Site)
+- **Hero Section**: Value proposition with CTA buttons
+- **Features Section**: 6 feature cards (Domain, Analytics, Email, Themes, Auto-Update, Hosting)
+- **Live Preview Feature**: Enter OpenAlex ID to see instant portfolio preview
+- **Pricing Section**: 3 tiers (Starter $9/mo, Professional $19/mo, Institution $49/mo)
+- **Footer**: Product, Resources, Legal links
+
+## API Additions
+- `GET /api/openalex/author/:openalexId` - Public endpoint for author preview
+
+## Routing Changes
+- Root path `/` now shows the landing page instead of redirecting to a researcher profile
+
+# Previous Changes (October 17, 2025)
 
 ## Major Enhancements - UI/UX Enhancement Suite
 
