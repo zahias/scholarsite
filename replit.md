@@ -50,14 +50,21 @@ The platform comprises three main surfaces:
 -   **Publication Title Normalization**: Server-side processing to strip MathML/XML and decode HTML entities from titles.
 
 ## Database Architecture
--   **Primary Database**: PostgreSQL (configured for Neon serverless).
+-   **Primary Database**: PostgreSQL (standard pg driver for A2 Hosting compatibility).
 -   **Schema Management**: Drizzle Kit for migrations.
 -   **Key Tables**: Users, sessions, researcher profiles, cached OpenAlex data (publications, topics, affiliations), and supporting tables.
 
 ## Authentication & Authorization
--   **Provider**: Replit OIDC authentication via Passport.js.
--   **Session Storage**: PostgreSQL-backed sessions.
--   **Authorization**: Route-level middleware.
+-   **Provider**: Custom email/password authentication with bcryptjs.
+-   **Password Security**: bcryptjs with 12 salt rounds (pure JS, compatible with Node 16).
+-   **Session Storage**: PostgreSQL-backed sessions with express-session.
+-   **Session Security**: Session regeneration on login, registration, and password changes to prevent fixation attacks.
+-   **Authorization**: Role-based access control (admin, researcher) via isAuthenticated and isAdmin middleware.
+
+## User Management
+-   **User Schema**: id (UUID), email, passwordHash, role, firstName, lastName, isActive, createdAt, updatedAt.
+-   **Roles**: admin (full access), researcher (standard access).
+-   **Admin Endpoints**: List users, update users, reset passwords, delete users (with self-protection).
 
 ## Data Integration
 -   **OpenAlex API**: Core service for fetching academic data.
@@ -82,8 +89,8 @@ The platform comprises three main surfaces:
 # External Dependencies
 
 ## Core Services
--   **Neon Database**: Serverless PostgreSQL hosting.
--   **Replit Auth**: OIDC authentication provider.
+-   **PostgreSQL**: Standard pg driver (compatible with A2 Hosting and Node 16).
+-   **Custom Auth**: Email/password authentication with bcryptjs.
 -   **OpenAlex API**: Primary source for academic data.
 
 ## Cloud Storage
