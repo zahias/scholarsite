@@ -217,16 +217,19 @@ export default function ResearcherProfile() {
                   <p className="text-2xl sm:text-3xl mb-4 text-white/90 font-light tracking-wide" data-testid="text-title">
                     {profile?.title || 'Research Professional'}
                   </p>
-                  {profile?.currentAffiliation && (
+                  {(profile?.currentAffiliation || profile?.isPreview) && (
                     <div className="flex flex-wrap items-center justify-center lg:justify-start gap-4 text-white/80">
                       <span className="flex items-center gap-2">
                         <Building2 className="w-5 h-5" />
-                        <span data-testid="text-affiliation">{profile.currentAffiliation}</span>
+                        <span data-testid="text-affiliation">
+                          {profile?.currentAffiliation || (profile?.isPreview ? 'Your University' : '')}
+                          {profile?.isPreview && !profile?.currentAffiliation && <span className="text-xs ml-1 opacity-60">(Preview)</span>}
+                        </span>
                       </span>
-                      {profile?.countryCode && (
+                      {(profile?.countryCode || profile?.isPreview) && (
                         <span className="flex items-center gap-2">
                           <MapPin className="w-5 h-5" />
-                          <span>{profile.countryCode}</span>
+                          <span>{profile?.countryCode || (profile?.isPreview ? 'Location' : '')}</span>
                         </span>
                       )}
                     </div>
@@ -234,10 +237,11 @@ export default function ResearcherProfile() {
                 </div>
               </div>
               
-              {profile?.bio && (
+              {(profile?.bio || profile?.isPreview) && (
                 <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-6 border border-white/10">
                   <p className="text-lg sm:text-xl text-white/90 leading-relaxed font-light" data-testid="text-bio">
-                    {profile.bio}
+                    {profile?.bio || (profile?.isPreview ? `Distinguished researcher with expertise in multiple disciplines. This bio section will showcase your research journey, achievements, and academic contributions.` : '')}
+                    {profile?.isPreview && !profile?.bio && <span className="text-xs ml-1 opacity-60">(Preview)</span>}
                   </p>
                 </div>
               )}
