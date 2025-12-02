@@ -723,27 +723,82 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/researcher/:openalexId/data', async (req, res) => {
     try {
       const { openalexId } = req.params;
+      const preview = req.query.preview === 'true';
       
       // Get researcher profile (if public)
       const profile = await storage.getResearcherProfileByOpenalexId(openalexId);
-      if (!profile || !profile.isPublic) {
-        return res.status(404).json({ message: "Researcher not found or not public" });
+      
+      // If profile exists and is public, use cached data
+      if (profile && profile.isPublic) {
+        const researcherData = await storage.getOpenalexData(openalexId, 'researcher');
+        const researchTopics = await storage.getResearchTopics(openalexId);
+        const publications = await storage.getPublications(openalexId);
+        const affiliations = await storage.getAffiliations(openalexId);
+
+        return res.json({
+          profile,
+          researcher: researcherData?.data || null,
+          topics: researchTopics,
+          publications,
+          affiliations,
+          lastSynced: profile.lastSyncedAt,
+          isPreview: false
+        });
       }
+      
+      // If no profile exists, fetch directly from OpenAlex for preview
+      try {
+        const researcher = await openalexService.getResearcher(openalexId);
+        const works = await openalexService.getResearcherWorks(openalexId);
+        
+        // Extract topics from researcher data
+        const topics = (researcher.topics || []).slice(0, 10).map((topic: any) => ({
+          displayName: topic.display_name,
+          subfield: topic.subfield?.display_name || null,
+          field: topic.field?.display_name || null,
+          domain: topic.domain?.display_name || null
+        }));
+        
+        // Extract affiliations from researcher data
+        const affiliations = (researcher.affiliations || []).slice(0, 5).map((aff: any) => ({
+          institutionName: aff.institution?.display_name || 'Unknown Institution',
+          years: aff.years || []
+        }));
+        
+        // Transform publications to match expected format
+        const publications = works.results.slice(0, 50).map((work: any) => ({
+          title: work.title || 'Untitled',
+          publicationYear: work.publication_year,
+          journalName: work.primary_location?.source?.display_name || null,
+          citedByCount: work.cited_by_count || 0,
+          publicationType: work.type || 'article',
+          doi: work.doi || null,
+          openAccessUrl: work.open_access?.oa_url || null
+        }));
+        
+        // Create a virtual profile for preview
+        const previewProfile = {
+          displayName: researcher.display_name,
+          title: 'Researcher',
+          currentAffiliation: researcher.last_known_institutions?.[0]?.display_name || null,
+          bio: null,
+          profileImageUrl: null,
+          isPublic: true
+        };
 
-      // Get cached OpenAlex data
-      const researcherData = await storage.getOpenalexData(openalexId, 'researcher');
-      const researchTopics = await storage.getResearchTopics(openalexId);
-      const publications = await storage.getPublications(openalexId); // Get all publications (no limit) for complete data
-      const affiliations = await storage.getAffiliations(openalexId);
-
-      res.json({
-        profile,
-        researcher: researcherData?.data || null,
-        topics: researchTopics,
-        publications,
-        affiliations,
-        lastSynced: profile.lastSyncedAt
-      });
+        return res.json({
+          profile: previewProfile,
+          researcher,
+          topics,
+          publications,
+          affiliations,
+          lastSynced: new Date().toISOString(),
+          isPreview: true
+        });
+      } catch (openAlexError) {
+        console.error("Error fetching from OpenAlex for preview:", openAlexError);
+        return res.status(404).json({ message: "Researcher not found" });
+      }
     } catch (error) {
       console.error("Error fetching researcher data:", error);
       res.status(500).json({ message: "Failed to fetch researcher data" });
@@ -952,7 +1007,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Search authors by name using OpenAlex autocomplete API (public - for landing page search)
-  app.get('/api/openalex/authors/search', async (req, res) => {
+  app.get('/api/openalex/autocomplete', async (req, res) => {
     try {
       const query = req.query.q as string;
       if (!query || query.length < 2) {

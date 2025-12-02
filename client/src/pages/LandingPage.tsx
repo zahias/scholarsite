@@ -63,7 +63,12 @@ export default function LandingPage() {
   }, []);
 
   const { data: searchResults, isLoading: isSearching } = useQuery<SearchResponse>({
-    queryKey: ['/api/openalex/authors/search', debouncedQuery],
+    queryKey: ['/api/openalex/autocomplete', debouncedQuery],
+    queryFn: async () => {
+      const response = await fetch(`/api/openalex/autocomplete?q=${encodeURIComponent(debouncedQuery)}`);
+      if (!response.ok) throw new Error('Search failed');
+      return response.json();
+    },
     enabled: debouncedQuery.length >= 2,
   });
 
@@ -388,9 +393,9 @@ export default function LandingPage() {
             </h3>
             <div className="grid sm:grid-cols-3 gap-4">
               {[
-                { name: "Albert Einstein", id: "A5074309552", institution: "Institute for Advanced Study" },
-                { name: "Marie Curie", id: "A5037507408", institution: "University of Paris" },
-                { name: "Richard Feynman", id: "A5080106270", institution: "California Institute of Technology" }
+                { name: "Albert Einstein", id: "A5109805546", institution: "Princeton University" },
+                { name: "Richard Feynman", id: "A5072318964", institution: "California Institute of Technology" },
+                { name: "Stephen Hawking", id: "A5112382587", institution: "University of Cambridge" }
               ].map((example) => (
                 <Card 
                   key={example.id}
