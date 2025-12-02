@@ -1,10 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
 import { 
   Globe, 
   BarChart3, 
@@ -16,55 +16,77 @@ import {
   Sparkles,
   BookOpen,
   Users,
-  TrendingUp,
   Shield,
   Zap,
-  FileText
+  Loader2,
+  GraduationCap
 } from "lucide-react";
 
-interface OpenAlexAuthor {
+interface AuthorSearchResult {
   id: string;
   display_name: string;
+  hint: string;
   works_count: number;
   cited_by_count: number;
-  summary_stats?: {
-    h_index: number;
-    i10_index: number;
-  };
-  affiliations?: Array<{
-    institution: {
-      display_name: string;
-    };
-  }>;
-  topics?: Array<{
-    display_name: string;
-  }>;
+}
+
+interface SearchResponse {
+  results: AuthorSearchResult[];
 }
 
 export default function LandingPage() {
-  const [openalexInput, setOpenalexInput] = useState("");
-  const [searchId, setSearchId] = useState("");
+  const [, navigate] = useLocation();
+  const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedQuery, setDebouncedQuery] = useState("");
+  const [showResults, setShowResults] = useState(false);
+  const [selectedIndex, setSelectedIndex] = useState(-1);
+  const searchRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
-  const { data: previewData, isLoading: isPreviewLoading, error: previewError } = useQuery<OpenAlexAuthor>({
-    queryKey: ['/api/openalex/author', searchId],
-    enabled: !!searchId,
+  // Debounce search query
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedQuery(searchQuery);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
+        setShowResults(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const { data: searchResults, isLoading: isSearching } = useQuery<SearchResponse>({
+    queryKey: ['/api/openalex/authors/search', debouncedQuery],
+    enabled: debouncedQuery.length >= 2,
   });
 
-  const handlePreview = () => {
-    const cleanId = openalexInput.trim();
-    if (cleanId) {
-      const idMatch = cleanId.match(/A\d+/);
-      if (idMatch) {
-        setSearchId(idMatch[0]);
-      } else {
-        setSearchId(cleanId);
-      }
-    }
+  const handleSelectAuthor = (authorId: string) => {
+    setShowResults(false);
+    setSearchQuery("");
+    navigate(`/researcher/${authorId}`);
   };
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      handlePreview();
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    const results = searchResults?.results || [];
+    
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setSelectedIndex(prev => Math.min(prev + 1, results.length - 1));
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setSelectedIndex(prev => Math.max(prev - 1, -1));
+    } else if (e.key === "Enter" && selectedIndex >= 0 && results[selectedIndex]) {
+      e.preventDefault();
+      handleSelectAuthor(results[selectedIndex].id);
+    } else if (e.key === "Escape") {
+      setShowResults(false);
     }
   };
 
@@ -248,169 +270,147 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Preview Section */}
+      {/* Preview Section with Autocomplete Search */}
       <section id="preview" className="py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-3xl sm:text-4xl font-bold mb-4">
-              Preview Your Portfolio
+              See Your Portfolio in Action
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Enter your OpenAlex Author ID to see how your research portfolio would look.
+              Search for any researcher by name and preview their complete academic portfolio.
             </p>
           </div>
 
-          {/* Search Box */}
-          <div className="max-w-2xl mx-auto mb-12">
-            <div className="flex gap-4">
-              <div className="flex-1 relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-5 w-5" />
+          {/* Autocomplete Search Box */}
+          <div className="max-w-2xl mx-auto" ref={searchRef}>
+            <div className="relative">
+              <div className="relative">
+                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground h-5 w-5" />
                 <Input
+                  ref={inputRef}
                   type="text"
-                  placeholder="Enter OpenAlex ID (e.g., A5056485484)"
-                  value={openalexInput}
-                  onChange={(e) => setOpenalexInput(e.target.value)}
-                  onKeyPress={handleKeyPress}
-                  className="pl-10 h-12 text-lg"
-                  data-testid="input-openalex-id"
+                  placeholder="Search by researcher name (e.g., Albert Einstein)"
+                  value={searchQuery}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value);
+                    setShowResults(true);
+                    setSelectedIndex(-1);
+                  }}
+                  onFocus={() => setShowResults(true)}
+                  onKeyDown={handleKeyDown}
+                  className="pl-12 pr-12 h-14 text-lg rounded-xl border-2 focus:border-primary"
+                  data-testid="input-researcher-search"
                 />
+                {isSearching && (
+                  <Loader2 className="absolute right-4 top-1/2 transform -translate-y-1/2 h-5 w-5 animate-spin text-muted-foreground" />
+                )}
               </div>
-              <Button 
-                size="lg" 
-                onClick={handlePreview}
-                disabled={!openalexInput.trim()}
-                data-testid="button-preview"
-              >
-                Preview
-              </Button>
+
+              {/* Search Results Dropdown */}
+              {showResults && searchQuery.length >= 2 && (
+                <div className="absolute top-full left-0 right-0 mt-2 bg-background border-2 border-border rounded-xl shadow-xl z-50 overflow-hidden">
+                  {isSearching ? (
+                    <div className="p-6 text-center">
+                      <Loader2 className="h-6 w-6 animate-spin mx-auto mb-2 text-primary" />
+                      <p className="text-muted-foreground">Searching researchers...</p>
+                    </div>
+                  ) : searchResults?.results && searchResults.results.length > 0 ? (
+                    <ul className="max-h-96 overflow-y-auto">
+                      {searchResults.results.map((author, index) => (
+                        <li 
+                          key={author.id}
+                          onClick={() => handleSelectAuthor(author.id)}
+                          className={`p-4 cursor-pointer border-b border-border last:border-b-0 hover:bg-muted/50 transition-colors ${
+                            index === selectedIndex ? 'bg-muted/70' : ''
+                          }`}
+                          data-testid={`search-result-${index}`}
+                        >
+                          <div className="flex items-start gap-4">
+                            <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                              <GraduationCap className="w-6 h-6 text-primary" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <h4 className="font-semibold text-foreground truncate" data-testid={`author-name-${index}`}>
+                                {author.display_name}
+                              </h4>
+                              {author.hint && (
+                                <p className="text-sm text-muted-foreground truncate">
+                                  {author.hint}
+                                </p>
+                              )}
+                              <div className="flex items-center gap-4 mt-1 text-xs text-muted-foreground">
+                                <span className="flex items-center gap-1">
+                                  <BookOpen className="w-3 h-3" />
+                                  {author.works_count.toLocaleString()} publications
+                                </span>
+                                <span className="flex items-center gap-1">
+                                  <Users className="w-3 h-3" />
+                                  {author.cited_by_count.toLocaleString()} citations
+                                </span>
+                              </div>
+                            </div>
+                            <ArrowRight className="w-5 h-5 text-muted-foreground flex-shrink-0 mt-1" />
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <div className="p-6 text-center">
+                      <Search className="h-8 w-8 mx-auto mb-2 text-muted-foreground/50" />
+                      <p className="text-muted-foreground">No researchers found for "{searchQuery}"</p>
+                      <p className="text-sm text-muted-foreground/70 mt-1">Try a different name or spelling</p>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
-            <p className="text-sm text-muted-foreground mt-2 text-center">
-              Find your OpenAlex ID at{" "}
+            
+            <p className="text-sm text-muted-foreground mt-4 text-center">
+              Powered by{" "}
               <a 
-                href="https://openalex.org/authors" 
+                href="https://openalex.org" 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="text-primary hover:underline"
+                data-testid="link-openalex"
               >
-                openalex.org/authors
+                OpenAlex
               </a>
+              {" "}- an open catalog of the world's scholarly papers, researchers, and institutions.
             </p>
           </div>
 
-          {/* Preview Card */}
-          {searchId && (
-            <div className="max-w-4xl mx-auto">
-              {isPreviewLoading ? (
-                <Card className="overflow-hidden">
-                  <div className="bg-gradient-to-r from-primary to-primary/80 p-8">
-                    <div className="flex items-center gap-6">
-                      <Skeleton className="w-24 h-24 rounded-full" />
-                      <div className="flex-1">
-                        <Skeleton className="h-8 w-64 mb-2" />
-                        <Skeleton className="h-5 w-48" />
-                      </div>
+          {/* Example Profiles */}
+          <div className="mt-16 max-w-4xl mx-auto">
+            <h3 className="text-center text-lg font-medium text-muted-foreground mb-6">
+              Or try these example profiles:
+            </h3>
+            <div className="grid sm:grid-cols-3 gap-4">
+              {[
+                { name: "Albert Einstein", id: "A5074309552", institution: "Institute for Advanced Study" },
+                { name: "Marie Curie", id: "A5037507408", institution: "University of Paris" },
+                { name: "Richard Feynman", id: "A5080106270", institution: "California Institute of Technology" }
+              ].map((example) => (
+                <Card 
+                  key={example.id}
+                  className="cursor-pointer hover:shadow-lg transition-all hover:scale-105 border-2 hover:border-primary/50"
+                  onClick={() => navigate(`/researcher/${example.id}`)}
+                  data-testid={`example-profile-${example.id}`}
+                >
+                  <CardContent className="p-4 flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                      <GraduationCap className="w-5 h-5 text-primary" />
                     </div>
-                  </div>
-                  <CardContent className="p-6">
-                    <div className="grid grid-cols-3 gap-6">
-                      <Skeleton className="h-20" />
-                      <Skeleton className="h-20" />
-                      <Skeleton className="h-20" />
-                    </div>
-                  </CardContent>
-                </Card>
-              ) : previewError ? (
-                <Card className="p-8 text-center">
-                  <div className="text-destructive mb-2">Could not find researcher</div>
-                  <p className="text-muted-foreground">
-                    Please check the OpenAlex ID and try again. The ID should start with "A" followed by numbers.
-                  </p>
-                </Card>
-              ) : previewData ? (
-                <Card className="overflow-hidden shadow-xl" data-testid="card-preview-result">
-                  {/* Preview Header */}
-                  <div className="bg-gradient-to-r from-primary to-primary/80 p-8 text-white">
-                    <div className="flex items-center gap-6">
-                      <div className="w-24 h-24 rounded-full bg-white/20 flex items-center justify-center text-3xl font-bold">
-                        {previewData.display_name.charAt(0)}
-                      </div>
-                      <div>
-                        <h3 className="text-2xl font-bold mb-1" data-testid="text-researcher-name">
-                          {previewData.display_name}
-                        </h3>
-                        <p className="text-white/80">
-                          {previewData.affiliations?.[0]?.institution.display_name || "Researcher"}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Preview Stats */}
-                  <CardContent className="p-6">
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8">
-                      <div className="text-center p-4 bg-muted/50 rounded-lg">
-                        <FileText className="w-6 h-6 text-primary mx-auto mb-2" />
-                        <div className="text-2xl font-bold" data-testid="text-works-count">
-                          {previewData.works_count.toLocaleString()}
-                        </div>
-                        <div className="text-sm text-muted-foreground">Publications</div>
-                      </div>
-                      <div className="text-center p-4 bg-muted/50 rounded-lg">
-                        <TrendingUp className="w-6 h-6 text-primary mx-auto mb-2" />
-                        <div className="text-2xl font-bold" data-testid="text-citations-count">
-                          {previewData.cited_by_count.toLocaleString()}
-                        </div>
-                        <div className="text-sm text-muted-foreground">Citations</div>
-                      </div>
-                      <div className="text-center p-4 bg-muted/50 rounded-lg">
-                        <BarChart3 className="w-6 h-6 text-primary mx-auto mb-2" />
-                        <div className="text-2xl font-bold">
-                          {previewData.summary_stats?.h_index || "N/A"}
-                        </div>
-                        <div className="text-sm text-muted-foreground">h-index</div>
-                      </div>
-                      <div className="text-center p-4 bg-muted/50 rounded-lg">
-                        <Users className="w-6 h-6 text-primary mx-auto mb-2" />
-                        <div className="text-2xl font-bold">
-                          {previewData.summary_stats?.i10_index || "N/A"}
-                        </div>
-                        <div className="text-sm text-muted-foreground">i10-index</div>
-                      </div>
-                    </div>
-
-                    {/* Research Topics Preview */}
-                    {previewData.topics && previewData.topics.length > 0 && (
-                      <div className="mb-6">
-                        <h4 className="font-semibold mb-3">Research Topics</h4>
-                        <div className="flex flex-wrap gap-2">
-                          {previewData.topics.slice(0, 6).map((topic, i) => (
-                            <Badge key={i} variant="secondary">
-                              {topic.display_name}
-                            </Badge>
-                          ))}
-                          {previewData.topics.length > 6 && (
-                            <Badge variant="outline">+{previewData.topics.length - 6} more</Badge>
-                          )}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* CTA */}
-                    <div className="bg-gradient-to-r from-primary/10 to-accent/10 rounded-lg p-6 text-center">
-                      <h4 className="font-semibold mb-2">This could be your website!</h4>
-                      <p className="text-muted-foreground mb-4">
-                        Get your own professional research portfolio with custom domain and email.
-                      </p>
-                      <Button data-testid="button-create-portfolio">
-                        Create My Portfolio
-                        <ArrowRight className="ml-2 h-4 w-4" />
-                      </Button>
+                    <div className="min-w-0">
+                      <h4 className="font-medium truncate">{example.name}</h4>
+                      <p className="text-xs text-muted-foreground truncate">{example.institution}</p>
                     </div>
                   </CardContent>
                 </Card>
-              ) : null}
+              ))}
             </div>
-          )}
+          </div>
         </div>
       </section>
 

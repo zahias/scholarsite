@@ -951,6 +951,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Search authors by name using OpenAlex autocomplete API (public - for landing page search)
+  app.get('/api/openalex/authors/search', async (req, res) => {
+    try {
+      const query = req.query.q as string;
+      if (!query || query.length < 2) {
+        return res.json({ results: [] });
+      }
+
+      const response = await fetch(
+        `https://api.openalex.org/autocomplete/authors?q=${encodeURIComponent(query)}`
+      );
+      
+      if (!response.ok) {
+        throw new Error(`OpenAlex API error: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      
+      // Transform results to a simpler format
+      const results = data.results.map((author: any) => ({
+        id: author.id.replace('https://openalex.org/', ''),
+        display_name: author.display_name,
+        hint: author.hint || '',
+        works_count: author.works_count || 0,
+        cited_by_count: author.cited_by_count || 0,
+      }));
+      
+      res.json({ results });
+    } catch (error) {
+      console.error("Error searching OpenAlex authors:", error);
+      res.status(500).json({ message: "Failed to search authors" });
+    }
+  });
+
   // Export bibliography in various formats (public)
   app.get('/api/researcher/:openalexId/export-bibliography', async (req, res) => {
     try {
