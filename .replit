@@ -4,7 +4,7 @@ hidden = [".config", ".git", "generated-icon.png", "node_modules", "dist"]
 
 [nix]
 channel = "stable-24_05"
-packages = ["jq"]
+packages = ["jq", "zip"]
 
 [deployment]
 deploymentTarget = "autoscale"
@@ -14,6 +14,10 @@ run = ["npm", "run", "start"]
 [[ports]]
 localPort = 5000
 externalPort = 80
+
+[[ports]]
+localPort = 34265
+externalPort = 8099
 
 [[ports]]
 localPort = 34915
@@ -26,10 +30,6 @@ externalPort = 3001
 [[ports]]
 localPort = 36411
 externalPort = 3003
-
-[[ports]]
-localPort = 36533
-externalPort = 8099
 
 [[ports]]
 localPort = 37177
@@ -97,3 +97,6 @@ author = "agent"
 task = "shell.exec"
 args = "npm run dev"
 waitForPort = 5000
+
+[objectStorage]
+defaultBucketID = "replit-objstore-815fae29-a1a1-4f8f-a9bb-b9a576d3e49b"
