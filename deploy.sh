@@ -1,11 +1,14 @@
 #!/bin/bash
 
-# ScholarSite A2 Hosting Deployment Script
+# ScholarSite Build Script for GitHub Deployment
 # Usage: ./deploy.sh
+# 
+# This builds the production files into the production/ folder.
+# Then commit and push to GitHub, and run deploy.sh on A2.
 
 set -e
 
-echo "🚀 Starting ScholarSite deployment to A2 Hosting..."
+echo "🚀 Building ScholarSite for production..."
 
 # Step 1: Build frontend
 echo "📦 Building frontend..."
@@ -15,38 +18,17 @@ npx vite build
 echo "📦 Building backend..."
 npx esbuild server/index-production.ts --platform=node --packages=external --bundle --format=esm --outfile=dist/index.js
 
-# Step 3: Copy necessary files to dist
-echo "📋 Preparing deployment files..."
-cp package.json dist/
-cp package-lock.json dist/
+# Step 3: Prepare production folder
+echo "📋 Preparing production folder..."
+rm -rf production/*
+mkdir -p production
+cp -r dist/public production/
+cp dist/index.js production/
+cp dist/a2-starter.cjs production/
+cp package.json package-lock.json production/
 
-# Ensure a2-starter.cjs exists in dist
-if [ ! -f "dist/a2-starter.cjs" ]; then
-  cat > dist/a2-starter.cjs << 'EOF'
-// CommonJS wrapper for Passenger compatibility
-// Passenger requires a .cjs file that loads the ESM module
-
-async function start() {
-  try {
-    await import('./index.js');
-  } catch (error) {
-    console.error('Failed to start application:', error);
-    process.exit(1);
-  }
-}
-
-start();
-EOF
-fi
-
-# Step 4: Stage and commit dist folder
-echo "📝 Committing build to git..."
-git add -f dist/
-git commit -m "Deploy: $(date '+%Y-%m-%d %H:%M:%S')" --allow-empty
-
-# Step 5: Push to A2
-echo "🚀 Pushing to A2 Hosting..."
-git push a2 HEAD:main --force
-
-echo "✅ Deployment complete!"
-echo "   Your site should be live at https://scholar.name"
+echo "✅ Build complete!"
+echo ""
+echo "Next steps:"
+echo "  1. Commit and push to GitHub (use Git pane)"
+echo "  2. On A2, run: ./deploy.sh"
