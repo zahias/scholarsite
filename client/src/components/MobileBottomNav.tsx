@@ -40,7 +40,7 @@ export default function MobileBottomNav() {
   ];
 
   return (
-    <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-lg border-t border-border z-50 safe-bottom">
+    <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-lg border-t border-border z-50" style={{ paddingBottom: 'max(env(safe-area-inset-bottom), 8px)' }}>
       <div className="grid grid-cols-4 gap-1 px-2 py-2">
         {navItems.map((item) => {
           const Icon = item.icon;
