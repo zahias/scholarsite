@@ -1,0 +1,41 @@
+#!/bin/bash
+
+# Post-receive hook for A2 Hosting Git deployment
+# This script runs automatically when you push to the A2 git repository
+# 
+# Installation:
+# 1. Create bare repo via cPanel Git Version Control
+# 2. Copy this file to: /home/bannwebs/repositories/scholarsite.git/hooks/post-receive
+# 3. Make executable: chmod +x post-receive
+
+DEPLOY_DIR="/home/bannwebs/scholarsite"
+GIT_DIR="/home/bannwebs/repositories/scholarsite.git"
+
+echo "🚀 Deploying ScholarSite..."
+
+# Create deploy directory if it doesn't exist
+mkdir -p $DEPLOY_DIR
+
+# Extract the dist folder from the push
+echo "📦 Extracting files..."
+git --work-tree=$DEPLOY_DIR --git-dir=$GIT_DIR checkout -f
+
+# Move dist contents to root
+if [ -d "$DEPLOY_DIR/dist" ]; then
+  echo "📋 Moving dist contents to site root..."
+  cp -rf $DEPLOY_DIR/dist/* $DEPLOY_DIR/
+  rm -rf $DEPLOY_DIR/dist
+fi
+
+# Install production dependencies
+echo "📥 Installing dependencies..."
+cd $DEPLOY_DIR
+npm install --production --legacy-peer-deps 2>&1 || echo "npm install completed with warnings"
+
+# Touch restart.txt to trigger Passenger restart
+echo "🔄 Restarting application..."
+mkdir -p $DEPLOY_DIR/tmp
+touch $DEPLOY_DIR/tmp/restart.txt
+
+echo "✅ Deployment complete!"
+echo "   Site: https://scholar.name"
