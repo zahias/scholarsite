@@ -1066,14 +1066,14 @@ router.post("/login", async (req, res) => {
     if (!isValidPassword) {
       return res.status(401).json({ message: "Invalid email or password" });
     }
-    req.session.regenerate((err) => {
+    req.session.userId = user.id;
+    req.session.userRole = user.role;
+    req.session.isAuthenticated = true;
+    req.session.save((err) => {
       if (err) {
-        console.error("Session regeneration error:", err);
+        console.error("Session save error:", err);
         return res.status(500).json({ message: "Login failed" });
       }
-      req.session.userId = user.id;
-      req.session.userRole = user.role;
-      req.session.isAuthenticated = true;
       return res.json({
         message: "Login successful",
         user: toSafeUser(user)
