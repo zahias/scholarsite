@@ -3141,7 +3141,7 @@ app.use(express2.urlencoded({ extended: true }));
 var PgSession = connectPgSimple(session);
 app.use(session({
   store: new PgSession({
-    conString: process.env.DATABASE_URL,
+    pool,
     tableName: "sessions",
     createTableIfMissing: true
   }),

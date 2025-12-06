@@ -5,6 +5,7 @@ import connectPgSimple from "connect-pg-simple";
 import { registerRoutes } from "./routes";
 import { serveStatic, log } from "./static";
 import { startSyncScheduler } from "./services/syncScheduler";
+import { pool } from "./db";
 
 const app = express();
 app.use(express.json());
@@ -13,7 +14,7 @@ app.use(express.urlencoded({ extended: true }));
 const PgSession = connectPgSimple(session);
 app.use(session({
   store: new PgSession({
-    conString: process.env.DATABASE_URL,
+    pool: pool,
     tableName: 'sessions',
     createTableIfMissing: true
   }),
