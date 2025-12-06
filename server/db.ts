@@ -8,9 +8,14 @@ if (!process.env.DATABASE_URL) {
   );
 }
 
+// Allow disabling SSL via DB_SSL=false for hosts that don't support it (like A2 Hosting)
+const sslConfig = process.env.DB_SSL === 'false' 
+  ? false 
+  : (process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false);
+
 export const pool = new Pool({ 
   connectionString: process.env.DATABASE_URL,
-  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+  ssl: sslConfig
 });
 
 export const db = drizzle(pool, { schema });
