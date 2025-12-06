@@ -14,6 +14,7 @@ import { adminRouter } from "./adminRoutes";
 import tenantRouter from "./tenantRoutes";
 import researcherRouter from "./researcherRoutes";
 import { tenantResolver } from "./tenantMiddleware";
+import fetch from "node-fetch";
 
 // Event emitter for real-time updates
 const updateEmitter = new EventEmitter();

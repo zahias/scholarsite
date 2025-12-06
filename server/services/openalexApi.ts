@@ -5,6 +5,7 @@ import type {
   InsertAffiliation,
   InsertOpenalexData 
 } from "@shared/schema";
+import fetch from "node-fetch";
 
 interface OpenAlexInstitution {
   id: string;
@@ -121,7 +122,7 @@ export class OpenAlexService {
       throw new Error(`OpenAlex API error: ${response.status} ${response.statusText}`);
     }
     
-    return await response.json();
+    return await response.json() as OpenAlexResearcher;
   }
 
   async getResearcherWorks(openalexId: string): Promise<OpenAlexWorksResponse> {
@@ -141,7 +142,7 @@ export class OpenAlexService {
         throw new Error(`OpenAlex API error: ${response.status} ${response.statusText}`);
       }
       
-      const data: OpenAlexWorksResponse = await response.json();
+      const data = await response.json() as OpenAlexWorksResponse;
       allResults = allResults.concat(data.results);
       totalCount = data.meta.count;
       
