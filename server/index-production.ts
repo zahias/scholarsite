@@ -8,6 +8,10 @@ import { startSyncScheduler } from "./services/syncScheduler";
 import { pool } from "./db";
 
 const app = express();
+
+// Trust proxy for A2 Hosting (behind cPanel reverse proxy)
+app.set('trust proxy', 1);
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -21,9 +25,11 @@ app.use(session({
   secret: process.env.SESSION_SECRET || 'research-profile-admin-secret-key',
   resave: false,
   saveUninitialized: false,
+  proxy: true,
   cookie: {
-    secure: process.env.NODE_ENV === 'production',
+    secure: true,
     httpOnly: true,
+    sameSite: 'lax',
     maxAge: 24 * 60 * 60 * 1000
   }
 }));
