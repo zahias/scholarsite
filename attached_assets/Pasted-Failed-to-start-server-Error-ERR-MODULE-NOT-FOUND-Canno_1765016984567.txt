@@ -1,0 +1,60 @@
+Failed to start server: Error [ERR_MODULE_NOT_FOUND]: Cannot find package 'vite' imported from /home/bannwebs/scholarsite/dist/index.js
+    at new NodeError (node:internal/errors:387:5)
+    at packageResolve (node:internal/modules/esm/resolve:852:9)
+    at moduleResolve (node:internal/modules/esm/resolve:901:20)
+    at defaultResolve (node:internal/modules/esm/resolve:1115:11)
+    at nextResolve (node:internal/modules/esm/loader:163:28)
+    at ESMLoader.resolve (node:internal/modules/esm/loader:841:30)
+    at ESMLoader.getModuleJob (node:internal/modules/esm/loader:424:18)
+    at ModuleWrap.<anonymous> (node:internal/modules/esm/module_job:76:40)
+    at link (node:internal/modules/esm/module_job:75:36) {
+  code: 'ERR_MODULE_NOT_FOUND'
+}
+Failed to start server: Error [ERR_MODULE_NOT_FOUND]: Cannot find package 'vite' imported from /home/bannwebs/scholarsite/dist/index.js
+    at new NodeError (node:internal/errors:387:5)
+    at packageResolve (node:internal/modules/esm/resolve:852:9)
+    at moduleResolve (node:internal/modules/esm/resolve:901:20)
+    at defaultResolve (node:internal/modules/esm/resolve:1115:11)
+    at nextResolve (node:internal/modules/esm/loader:163:28)
+    at ESMLoader.resolve (node:internal/modules/esm/loader:841:30)
+    at ESMLoader.getModuleJob (node:internal/modules/esm/loader:424:18)
+    at ModuleWrap.<anonymous> (node:internal/modules/esm/module_job:76:40)
+    at link (node:internal/modules/esm/module_job:75:36) {
+  code: 'ERR_MODULE_NOT_FOUND'
+}
+Failed to start server: Error [ERR_MODULE_NOT_FOUND]: Cannot find package 'vite' imported from /home/bannwebs/scholarsite/dist/index.js
+    at new NodeError (node:internal/errors:387:5)
+    at packageResolve (node:internal/modules/esm/resolve:852:9)
+    at moduleResolve (node:internal/modules/esm/resolve:901:20)
+    at defaultResolve (node:internal/modules/esm/resolve:1115:11)
+    at nextResolve (node:internal/modules/esm/loader:163:28)
+    at ESMLoader.resolve (node:internal/modules/esm/loader:841:30)
+    at ESMLoader.getModuleJob (node:internal/modules/esm/loader:424:18)
+    at ModuleWrap.<anonymous> (node:internal/modules/esm/module_job:76:40)
+    at link (node:internal/modules/esm/module_job:75:36) {
+  code: 'ERR_MODULE_NOT_FOUND'
+}
+Failed to start server: Error [ERR_MODULE_NOT_FOUND]: Cannot find package 'vite' imported from /home/bannwebs/scholarsite/dist/index.js
+    at new NodeError (node:internal/errors:387:5)
+    at packageResolve (node:internal/modules/esm/resolve:852:9)
+    at moduleResolve (node:internal/modules/esm/resolve:901:20)
+    at defaultResolve (node:internal/modules/esm/resolve:1115:11)
+    at nextResolve (node:internal/modules/esm/loader:163:28)
+    at ESMLoader.resolve (node:internal/modules/esm/loader:841:30)
+    at ESMLoader.getModuleJob (node:internal/modules/esm/loader:424:18)
+    at ModuleWrap.<anonymous> (node:internal/modules/esm/module_job:76:40)
+    at link (node:internal/modules/esm/module_job:75:36) {
+  code: 'ERR_MODULE_NOT_FOUND'
+}
+Failed to start server: Error [ERR_MODULE_NOT_FOUND]: Cannot find package 'vite' imported from /home/bannwebs/scholarsite/dist/index.js
+    at new NodeError (node:internal/errors:387:5)
+    at packageResolve (node:internal/modules/esm/resolve:852:9)
+    at moduleResolve (node:internal/modules/esm/resolve:901:20)
+    at defaultResolve (node:internal/modules/esm/resolve:1115:11)
+    at nextResolve (node:internal/modules/esm/loader:163:28)
+    at ESMLoader.resolve (node:internal/modules/esm/loader:841:30)
+    at ESMLoader.getModuleJob (node:internal/modules/esm/loader:424:18)
+    at ModuleWrap.<anonymous> (node:internal/modules/esm/module_job:76:40)
+    at link (node:internal/modules/esm/module_job:75:36) {
+  code: 'ERR_MODULE_NOT_FOUND'
+}
