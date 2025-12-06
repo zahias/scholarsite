@@ -8,10 +8,14 @@ if (!process.env.DATABASE_URL) {
   );
 }
 
-// Allow disabling SSL via DB_SSL=false for hosts that don't support it (like A2 Hosting)
-const sslConfig = process.env.DB_SSL === 'false' 
-  ? false 
-  : (process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false);
+// Determine SSL configuration
+// Default to no SSL unless DB_SSL=true is explicitly set
+// Most self-hosted PostgreSQL (like A2 Hosting) don't support SSL
+const dbUrl = process.env.DATABASE_URL || '';
+const requiresSSL = process.env.DB_SSL === 'true' || dbUrl.includes('sslmode=require');
+const sslConfig = requiresSSL ? { rejectUnauthorized: false } : false;
+
+console.log(`Database SSL mode: ${requiresSSL ? 'enabled' : 'disabled'}`);
 
 export const pool = new Pool({ 
   connectionString: process.env.DATABASE_URL,

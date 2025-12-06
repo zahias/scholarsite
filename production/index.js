@@ -235,7 +235,10 @@ if (!process.env.DATABASE_URL) {
     "DATABASE_URL must be set. Did you forget to provision a database?"
   );
 }
-var sslConfig = process.env.DB_SSL === "false" ? false : process.env.NODE_ENV === "production" ? { rejectUnauthorized: false } : false;
+var dbUrl = process.env.DATABASE_URL || "";
+var requiresSSL = process.env.DB_SSL === "true" || dbUrl.includes("sslmode=require");
+var sslConfig = requiresSSL ? { rejectUnauthorized: false } : false;
+console.log(`Database SSL mode: ${requiresSSL ? "enabled" : "disabled"}`);
 var pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: sslConfig
