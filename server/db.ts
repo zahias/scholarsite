@@ -8,18 +8,18 @@ if (!process.env.DATABASE_URL) {
   );
 }
 
-// Determine SSL configuration
-// Default to no SSL unless DB_SSL=true is explicitly set
-// Most self-hosted PostgreSQL (like A2 Hosting) don't support SSL
-const dbUrl = process.env.DATABASE_URL || '';
-const requiresSSL = process.env.DB_SSL === 'true' || dbUrl.includes('sslmode=require');
-const sslConfig = requiresSSL ? { rejectUnauthorized: false } : false;
+// Remove any SSL params from connection string and explicitly disable SSL
+// A2 Hosting PostgreSQL does not support SSL connections
+let connectionString = process.env.DATABASE_URL || '';
+connectionString = connectionString
+  .replace(/[?&]sslmode=[^&]*/gi, '')
+  .replace(/[?&]ssl=[^&]*/gi, '');
 
-console.log(`Database SSL mode: ${requiresSSL ? 'enabled' : 'disabled'}`);
+console.log('Database connection initialized (SSL disabled for A2 Hosting compatibility)');
 
 export const pool = new Pool({ 
-  connectionString: process.env.DATABASE_URL,
-  ssl: sslConfig
+  connectionString: connectionString,
+  ssl: false
 });
 
 export const db = drizzle(pool, { schema });

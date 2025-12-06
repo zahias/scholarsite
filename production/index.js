@@ -235,13 +235,12 @@ if (!process.env.DATABASE_URL) {
     "DATABASE_URL must be set. Did you forget to provision a database?"
   );
 }
-var dbUrl = process.env.DATABASE_URL || "";
-var requiresSSL = process.env.DB_SSL === "true" || dbUrl.includes("sslmode=require");
-var sslConfig = requiresSSL ? { rejectUnauthorized: false } : false;
-console.log(`Database SSL mode: ${requiresSSL ? "enabled" : "disabled"}`);
+var connectionString = process.env.DATABASE_URL || "";
+connectionString = connectionString.replace(/[?&]sslmode=[^&]*/gi, "").replace(/[?&]ssl=[^&]*/gi, "");
+console.log("Database connection initialized (SSL disabled for A2 Hosting compatibility)");
 var pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: sslConfig
+  connectionString,
+  ssl: false
 });
 var db = drizzle(pool, { schema: schema_exports });
 
