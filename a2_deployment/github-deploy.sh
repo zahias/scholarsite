@@ -13,7 +13,7 @@
 
 REPO_DIR="/home/bannwebs/scholarsite-repo"
 DEPLOY_DIR="/home/bannwebs/scholarsite"
-GITHUB_REPO="https://github.com/YOUR_USERNAME/YOUR_REPO.git"
+GITHUB_REPO="https://github.com/zahias/scholarsite.git"
 
 echo "🚀 Starting deployment from GitHub..."
 
