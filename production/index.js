@@ -3145,7 +3145,7 @@ app.use(session({
   store: new PgSession({
     pool,
     tableName: "sessions",
-    createTableIfMissing: true
+    createTableIfMissing: false
   }),
   secret: process.env.SESSION_SECRET || "research-profile-admin-secret-key",
   resave: false,
