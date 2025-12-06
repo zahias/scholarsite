@@ -1,0 +1,48 @@
+}
+Error [ERR_HTTP_HEADERS_SENT]: Cannot set headers after they are sent to the client
+    at new NodeError (node:internal/errors:387:5)
+    at ServerResponse.setHeader (node:_http_outgoing:644:11)
+    at ServerResponse.header (/home/bannwebs/scholarsite/node_modules/express/lib/response.js:794:10)
+    at ServerResponse.send (/home/bannwebs/scholarsite/node_modules/express/lib/response.js:174:12)
+    at ServerResponse.json (/home/bannwebs/scholarsite/node_modules/express/lib/response.js:278:15)
+    at ServerResponse.res.json (file:///home/bannwebs/scholarsite/dist/index.js:3166:28)
+    at file:///home/bannwebs/scholarsite/dist/index.js:3188:24
+    at Layer.handle_error (/home/bannwebs/scholarsite/node_modules/express/lib/router/layer.js:71:5)
+    at trim_prefix (/home/bannwebs/scholarsite/node_modules/express/lib/router/index.js:326:13)
+    at /home/bannwebs/scholarsite/node_modules/express/lib/router/index.js:286:9
+Session regeneration error: error: relation "session_pkey" already exists
+    at /home/bannwebs/scholarsite/node_modules/pg-pool/index.js:45:11
+    at runMicrotasks (<anonymous>)
+    at processTicksAndRejections (node:internal/process/task_queues:96:5)
+    at async PGStore._asyncQuery (/home/bannwebs/scholarsite/node_modules/connect-pg-simple/index.js:322:21)
+    at async PGStore._rawEnsureSessionStoreTable (/home/bannwebs/scholarsite/node_modules/connect-pg-simple/index.js:186:9)
+    at async PGStore._asyncQuery (/home/bannwebs/scholarsite/node_modules/connect-pg-simple/index.js:315:7) {
+  length: 94,
+  severity: 'ERROR',
+  code: '42P07',
+  detail: undefined,
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'index.c',
+  line: '820',
+  routine: 'index_create'
+}
+Error [ERR_HTTP_HEADERS_SENT]: Cannot set headers after they are sent to the client
+    at new NodeError (node:internal/errors:387:5)
+    at ServerResponse.setHeader (node:_http_outgoing:644:11)
+    at ServerResponse.header (/home/bannwebs/scholarsite/node_modules/express/lib/response.js:794:10)
+    at ServerResponse.send (/home/bannwebs/scholarsite/node_modules/express/lib/response.js:174:12)
+    at ServerResponse.json (/home/bannwebs/scholarsite/node_modules/express/lib/response.js:278:15)
+    at ServerResponse.res.json (file:///home/bannwebs/scholarsite/dist/index.js:3166:28)
+    at file:///home/bannwebs/scholarsite/dist/index.js:3188:24
+    at Layer.handle_error (/home/bannwebs/scholarsite/node_modules/express/lib/router/layer.js:71:5)
+    at trim_prefix (/home/bannwebs/scholarsite/node_modules/express/lib/router/index.js:326:13)
+    at /home/bannwebs/scholarsite/node_modules/express/lib/router/index.js:286:9

@@ -1,0 +1,168 @@
+Tenant resolution error: error: permission denied for relation domains
+    at /home/bannwebs/scholarsite/node_modules/pg-pool/index.js:45:11
+    at processTicksAndRejections (node:internal/process/task_queues:96:5)
+    at async file:///home/bannwebs/scholarsite/node_modules/drizzle-orm/node-postgres/session.js:83:22
+    at async DatabaseStorage.getDomainByHostname (file:///home/bannwebs/scholarsite/dist/index.js:324:22)
+    at async tenantResolver (file:///home/bannwebs/scholarsite/dist/index.js:2067:20) {
+  length: 98,
+  severity: 'ERROR',
+  code: '42501',
+  detail: undefined,
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'aclchk.c',
+  line: '3413',
+  routine: 'aclcheck_error'
+}
+Tenant resolution error: error: permission denied for relation domains
+    at /home/bannwebs/scholarsite/node_modules/pg-pool/index.js:45:11
+    at processTicksAndRejections (node:internal/process/task_queues:96:5)
+    at async file:///home/bannwebs/scholarsite/node_modules/drizzle-orm/node-postgres/session.js:83:22
+    at async DatabaseStorage.getDomainByHostname (file:///home/bannwebs/scholarsite/dist/index.js:324:22)
+    at async tenantResolver (file:///home/bannwebs/scholarsite/dist/index.js:2067:20) {
+  length: 98,
+  severity: 'ERROR',
+  code: '42501',
+  detail: undefined,
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'aclchk.c',
+  line: '3413',
+  routine: 'aclcheck_error'
+}
+Tenant resolution error: error: permission denied for relation domains
+    at /home/bannwebs/scholarsite/node_modules/pg-pool/index.js:45:11
+    at processTicksAndRejections (node:internal/process/task_queues:96:5)
+    at async file:///home/bannwebs/scholarsite/node_modules/drizzle-orm/node-postgres/session.js:83:22
+    at async DatabaseStorage.getDomainByHostname (file:///home/bannwebs/scholarsite/dist/index.js:324:22)
+    at async tenantResolver (file:///home/bannwebs/scholarsite/dist/index.js:2067:20) {
+  length: 98,
+  severity: 'ERROR',
+  code: '42501',
+  detail: undefined,
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'aclchk.c',
+  line: '3413',
+  routine: 'aclcheck_error'
+}
+Tenant resolution error: error: permission denied for relation domains
+    at /home/bannwebs/scholarsite/node_modules/pg-pool/index.js:45:11
+    at processTicksAndRejections (node:internal/process/task_queues:96:5)
+    at async file:///home/bannwebs/scholarsite/node_modules/drizzle-orm/node-postgres/session.js:83:22
+    at async DatabaseStorage.getDomainByHostname (file:///home/bannwebs/scholarsite/dist/index.js:324:22)
+    at async tenantResolver (file:///home/bannwebs/scholarsite/dist/index.js:2067:20) {
+  length: 98,
+  severity: 'ERROR',
+  code: '42501',
+  detail: undefined,
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'aclchk.c',
+  line: '3413',
+  routine: 'aclcheck_error'
+}
+Tenant resolution error: error: permission denied for relation domains
+    at /home/bannwebs/scholarsite/node_modules/pg-pool/index.js:45:11
+    at processTicksAndRejections (node:internal/process/task_queues:96:5)
+    at async file:///home/bannwebs/scholarsite/node_modules/drizzle-orm/node-postgres/session.js:83:22
+    at async DatabaseStorage.getDomainByHostname (file:///home/bannwebs/scholarsite/dist/index.js:324:22)
+    at async tenantResolver (file:///home/bannwebs/scholarsite/dist/index.js:2067:20) {
+  length: 98,
+  severity: 'ERROR',
+  code: '42501',
+  detail: undefined,
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'aclchk.c',
+  line: '3413',
+  routine: 'aclcheck_error'
+}
+Tenant resolution error: error: permission denied for relation domains
+    at /home/bannwebs/scholarsite/node_modules/pg-pool/index.js:45:11
+    at processTicksAndRejections (node:internal/process/task_queues:96:5)
+    at async file:///home/bannwebs/scholarsite/node_modules/drizzle-orm/node-postgres/session.js:83:22
+    at async DatabaseStorage.getDomainByHostname (file:///home/bannwebs/scholarsite/dist/index.js:324:22)
+    at async tenantResolver (file:///home/bannwebs/scholarsite/dist/index.js:2067:20) {
+  length: 98,
+  severity: 'ERROR',
+  code: '42501',
+  detail: undefined,
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'aclchk.c',
+  line: '3413',
+  routine: 'aclcheck_error'
+}
+Error fetching researcher data: error: permission denied for relation researcher_profiles
+    at /home/bannwebs/scholarsite/node_modules/pg-pool/index.js:45:11
+    at processTicksAndRejections (node:internal/process/task_queues:96:5)
+    at async file:///home/bannwebs/scholarsite/node_modules/drizzle-orm/node-postgres/session.js:83:22
+    at async DatabaseStorage.getResearcherProfileByOpenalexId (file:///home/bannwebs/scholarsite/dist/index.js:428:23)
+    at async file:///home/bannwebs/scholarsite/dist/index.js:2593:23 {
+  length: 110,
+  severity: 'ERROR',
+  code: '42501',
+  detail: undefined,
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'aclchk.c',
+  line: '3413',
+  routine: 'aclcheck_error'
+}

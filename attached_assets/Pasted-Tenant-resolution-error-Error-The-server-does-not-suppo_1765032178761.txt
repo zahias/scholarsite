@@ -1,0 +1,59 @@
+Tenant resolution error: Error: The server does not support SSL connections
+    at /home/bannwebs/scholarsite/node_modules/pg-pool/index.js:45:11
+    at processTicksAndRejections (node:internal/process/task_queues:96:5)
+    at async file:///home/bannwebs/scholarsite/node_modules/drizzle-orm/node-postgres/session.js:83:22
+    at async DatabaseStorage.getDomainByHostname (file:///home/bannwebs/scholarsite/dist/index.js:321:22)
+    at async tenantResolver (file:///home/bannwebs/scholarsite/dist/index.js:2063:20)
+Tenant resolution error: Error: The server does not support SSL connections
+    at /home/bannwebs/scholarsite/node_modules/pg-pool/index.js:45:11
+    at processTicksAndRejections (node:internal/process/task_queues:96:5)
+    at async file:///home/bannwebs/scholarsite/node_modules/drizzle-orm/node-postgres/session.js:83:22
+    at async DatabaseStorage.getDomainByHostname (file:///home/bannwebs/scholarsite/dist/index.js:321:22)
+    at async tenantResolver (file:///home/bannwebs/scholarsite/dist/index.js:2063:20)
+Tenant resolution error: Error: The server does not support SSL connections
+    at /home/bannwebs/scholarsite/node_modules/pg-pool/index.js:45:11
+    at processTicksAndRejections (node:internal/process/task_queues:96:5)
+    at async file:///home/bannwebs/scholarsite/node_modules/drizzle-orm/node-postgres/session.js:83:22
+    at async DatabaseStorage.getDomainByHostname (file:///home/bannwebs/scholarsite/dist/index.js:321:22)
+    at async tenantResolver (file:///home/bannwebs/scholarsite/dist/index.js:2063:20)
+Tenant resolution error: Error: The server does not support SSL connections
+    at /home/bannwebs/scholarsite/node_modules/pg-pool/index.js:45:11
+    at processTicksAndRejections (node:internal/process/task_queues:96:5)
+    at async file:///home/bannwebs/scholarsite/node_modules/drizzle-orm/node-postgres/session.js:83:22
+    at async DatabaseStorage.getDomainByHostname (file:///home/bannwebs/scholarsite/dist/index.js:321:22)
+    at async tenantResolver (file:///home/bannwebs/scholarsite/dist/index.js:2063:20)
+Error searching OpenAlex authors: ReferenceError: fetch is not defined
+    at file:///home/bannwebs/scholarsite/dist/index.js:2843:24
+    at Layer.handle [as handle_request] (/home/bannwebs/scholarsite/node_modules/express/lib/router/layer.js:95:5)
+    at next (/home/bannwebs/scholarsite/node_modules/express/lib/router/route.js:149:13)
+    at Route.dispatch (/home/bannwebs/scholarsite/node_modules/express/lib/router/route.js:119:3)
+    at Layer.handle [as handle_request] (/home/bannwebs/scholarsite/node_modules/express/lib/router/layer.js:95:5)
+    at /home/bannwebs/scholarsite/node_modules/express/lib/router/index.js:284:15
+    at Function.process_params (/home/bannwebs/scholarsite/node_modules/express/lib/router/index.js:346:12)
+    at next (/home/bannwebs/scholarsite/node_modules/express/lib/router/index.js:280:10)
+    at tenantResolver (file:///home/bannwebs/scholarsite/dist/index.js:2080:5)
+    at processTicksAndRejections (node:internal/process/task_queues:96:5)
+Tenant resolution error: Error: The server does not support SSL connections
+    at /home/bannwebs/scholarsite/node_modules/pg-pool/index.js:45:11
+    at processTicksAndRejections (node:internal/process/task_queues:96:5)
+    at async file:///home/bannwebs/scholarsite/node_modules/drizzle-orm/node-postgres/session.js:83:22
+    at async DatabaseStorage.getDomainByHostname (file:///home/bannwebs/scholarsite/dist/index.js:321:22)
+    at async tenantResolver (file:///home/bannwebs/scholarsite/dist/index.js:2063:20)
+Tenant resolution error: Error: The server does not support SSL connections
+    at /home/bannwebs/scholarsite/node_modules/pg-pool/index.js:45:11
+    at processTicksAndRejections (node:internal/process/task_queues:96:5)
+    at async file:///home/bannwebs/scholarsite/node_modules/drizzle-orm/node-postgres/session.js:83:22
+    at async DatabaseStorage.getDomainByHostname (file:///home/bannwebs/scholarsite/dist/index.js:321:22)
+    at async tenantResolver (file:///home/bannwebs/scholarsite/dist/index.js:2063:20)
+Tenant resolution error: Error: The server does not support SSL connections
+    at /home/bannwebs/scholarsite/node_modules/pg-pool/index.js:45:11
+    at processTicksAndRejections (node:internal/process/task_queues:96:5)
+    at async file:///home/bannwebs/scholarsite/node_modules/drizzle-orm/node-postgres/session.js:83:22
+    at async DatabaseStorage.getDomainByHostname (file:///home/bannwebs/scholarsite/dist/index.js:321:22)
+    at async tenantResolver (file:///home/bannwebs/scholarsite/dist/index.js:2063:20)
+Error fetching researcher data: Error: The server does not support SSL connections
+    at /home/bannwebs/scholarsite/node_modules/pg-pool/index.js:45:11
+    at processTicksAndRejections (node:internal/process/task_queues:96:5)
+    at async file:///home/bannwebs/scholarsite/node_modules/drizzle-orm/node-postgres/session.js:83:22
+    at async DatabaseStorage.getResearcherProfileByOpenalexId (file:///home/bannwebs/scholarsite/dist/index.js:425:23)
+    at async file:///home/bannwebs/scholarsite/dist/index.js:2588:23
