@@ -78,20 +78,31 @@ app.use((req, res, next) => {
     serveStatic(app);
   }
 
-  // ALWAYS serve the app on the port specified in the environment variable PORT
-  // Other ports are firewalled. Default to 5000 if not specified.
-  // this serves both the API and the client.
-  // It is the only port that is not firewalled.
+  // Port configuration:
+  // - Replit: Uses PORT env var, defaults to 5000
+  // - A2 Hosting Passenger: Uses PORT env var set by Passenger
   const port = parseInt(process.env.PORT || '5000', 10);
-  server.listen({
-    port,
-    host: "0.0.0.0",
-    reusePort: true,
-  }, () => {
-    log(`serving on port ${port}`);
-    
-    // Start the automated sync scheduler (checks every hour)
-    startSyncScheduler(1);
-    log('Sync scheduler started - checking tenants hourly');
-  });
+  
+  // For Passenger compatibility, use simpler listen() when in production
+  if (process.env.NODE_ENV === 'production') {
+    server.listen(port, () => {
+      log(`serving on port ${port}`);
+      
+      // Start the automated sync scheduler (checks every hour)
+      startSyncScheduler(1);
+      log('Sync scheduler started - checking tenants hourly');
+    });
+  } else {
+    server.listen({
+      port,
+      host: "0.0.0.0",
+      reusePort: true,
+    }, () => {
+      log(`serving on port ${port}`);
+      
+      // Start the automated sync scheduler (checks every hour)
+      startSyncScheduler(1);
+      log('Sync scheduler started - checking tenants hourly');
+    });
+  }
 })();
