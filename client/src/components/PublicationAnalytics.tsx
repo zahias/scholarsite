@@ -268,12 +268,12 @@ export default function PublicationAnalytics({ openalexId, researcherData: propR
   };
 
   return (
-    <section id="analytics" className="py-16" data-testid="section-analytics">
+    <section id="analytics" className="py-8 md:py-16" data-testid="section-analytics">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header with summary stats */}
-        <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold mb-4">Publication Analytics</h2>
-          <p className="text-muted-foreground max-w-2xl mx-auto mb-8">
+        <div className="text-center mb-6 md:mb-12">
+          <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mb-2 md:mb-4">Publication Analytics</h2>
+          <p className="text-sm md:text-base text-muted-foreground max-w-2xl mx-auto mb-4 md:mb-8 px-4">
             Comprehensive insights into research output and impact patterns over time.
           </p>
         </div>

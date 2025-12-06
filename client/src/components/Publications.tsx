@@ -152,27 +152,27 @@ export default function Publications({ openalexId }: PublicationsProps) {
   }
 
   return (
-    <section id="publications" className="py-16" data-testid="section-publications">
+    <section id="publications" className="py-8 md:py-16" data-testid="section-publications">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold mb-4">
+        <div className="text-center mb-6 md:mb-12">
+          <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mb-2 md:mb-4">
             Publications
             {publications.length > 0 && (
-              <Badge variant="secondary" className="ml-2 text-sm">
+              <Badge variant="secondary" className="ml-2 text-xs md:text-sm">
                 {filteredAndSortedPublications.length} of {publications.length}
               </Badge>
             )}
           </h2>
-          <p className="text-muted-foreground max-w-2xl mx-auto">
+          <p className="text-sm md:text-base text-muted-foreground max-w-2xl mx-auto px-4">
             Research contributions with search and filtering capabilities.
           </p>
         </div>
 
         {/* Search and Filter Controls */}
         {publications.length > 0 && (
-          <Card className="mb-8">
-            <CardContent className="p-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
+          <Card className="mb-4 md:mb-8">
+            <CardContent className="p-4 md:p-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 md:gap-4 items-end">
                 {/* Search */}
                 <div className="lg:col-span-2">
                   <label className="text-sm font-medium mb-2 block">Search Publications</label>

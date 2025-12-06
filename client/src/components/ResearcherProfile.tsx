@@ -220,50 +220,51 @@ export default function ResearcherProfile() {
       />
       <Navigation researcherName={profile?.displayName || researcher?.display_name || 'Researcher'} />
       
-      {/* Enhanced Hero Section */}
-      <section id="overview" className="hero-banner min-h-[85vh] flex items-center relative">
+      {/* Enhanced Hero Section - Mobile Optimized */}
+      <section id="overview" className="hero-banner min-h-[70vh] md:min-h-[85vh] flex items-center relative pt-16 md:pt-0">
         {/* Enhanced Background pattern overlay */}
         <div className="hero-pattern"></div>
         
         {/* Back Button - Always show for navigation */}
-        <div className="absolute top-6 left-6 z-20">
+        <div className="absolute top-4 left-4 md:top-6 md:left-6 z-20">
           <Button
             variant="outline"
             onClick={() => navigate('/')}
-            className="bg-white/10 backdrop-blur-sm border-white/20 text-white hover:bg-white/20 hover:text-white"
+            className="bg-white/10 backdrop-blur-sm border-white/20 text-white hover:bg-white/20 hover:text-white text-sm md:text-base px-3 py-2 md:px-4 md:py-2 min-h-[44px]"
             data-testid="button-back-to-home"
           >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Home
+            <ArrowLeft className="w-4 h-4 mr-1 md:mr-2" />
+            <span className="hidden sm:inline">Back to Home</span>
+            <span className="sm:hidden">Back</span>
           </Button>
         </div>
         
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 z-10">
+        <div className="relative max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-8 md:py-20 z-10 w-full">
           <div className="lg:grid lg:grid-cols-12 lg:gap-12 items-center">
-            {/* Profile Image Section */}
-            <div className="lg:col-span-4 flex justify-center lg:justify-start mb-12 lg:mb-0">
+            {/* Profile Image Section - Smaller on mobile */}
+            <div className="lg:col-span-4 flex justify-center lg:justify-start mb-6 md:mb-12 lg:mb-0">
               <div className="profile-image-container">
                 <div className="profile-image-glow"></div>
-                <div className="relative bg-white/10 backdrop-blur-sm rounded-full p-3 shadow-2xl">
+                <div className="relative bg-white/10 backdrop-blur-sm rounded-full p-2 md:p-3 shadow-2xl">
                   {profile?.profileImageUrl ? (
                     <img 
                       src={profile.profileImageUrl} 
                       alt="Professional portrait" 
-                      className="w-44 h-44 lg:w-56 lg:h-56 rounded-full object-cover border-4 border-white/30 shadow-2xl"
+                      className="w-28 h-28 sm:w-36 sm:h-36 md:w-44 md:h-44 lg:w-56 lg:h-56 rounded-full object-cover border-3 md:border-4 border-white/30 shadow-2xl"
                       data-testid="img-profile-photo"
                     />
                   ) : (
                     <div 
-                      className={`w-44 h-44 lg:w-56 lg:h-56 rounded-full border-4 border-white/30 shadow-2xl flex items-center justify-center bg-gradient-to-br ${getAvatarColor(profile?.displayName || researcher?.display_name || '')}`}
+                      className={`w-28 h-28 sm:w-36 sm:h-36 md:w-44 md:h-44 lg:w-56 lg:h-56 rounded-full border-3 md:border-4 border-white/30 shadow-2xl flex items-center justify-center bg-gradient-to-br ${getAvatarColor(profile?.displayName || researcher?.display_name || '')}`}
                       data-testid="img-profile-photo"
                     >
-                      <span className="text-5xl lg:text-6xl font-bold text-white">
+                      <span className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-white">
                         {getInitials(profile?.displayName || researcher?.display_name || '')}
                       </span>
                     </div>
                   )}
-                  <div className="profile-badge absolute -bottom-3 -right-3 w-10 h-10 rounded-full border-4 border-white flex items-center justify-center">
-                    <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                  <div className="profile-badge absolute -bottom-2 -right-2 md:-bottom-3 md:-right-3 w-8 h-8 md:w-10 md:h-10 rounded-full border-3 md:border-4 border-white flex items-center justify-center">
+                    <svg className="w-3 h-3 md:w-4 md:h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                     </svg>
                   </div>
@@ -271,51 +272,51 @@ export default function ResearcherProfile() {
               </div>
             </div>
             
-            {/* Content Section */}
-            <div className="lg:col-span-8 text-center lg:text-left text-white space-y-8">
-              <div className="space-y-6">
+            {/* Content Section - Mobile optimized spacing */}
+            <div className="lg:col-span-8 text-center lg:text-left text-white space-y-4 md:space-y-8">
+              <div className="space-y-3 md:space-y-6">
                 <div>
-                  <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold mb-4 leading-tight bg-gradient-to-r from-white via-white to-white/80 bg-clip-text text-transparent" data-testid="text-display-name">
+                  <h1 className="text-2xl sm:text-3xl md:text-5xl lg:text-6xl xl:text-7xl font-bold mb-2 md:mb-4 leading-tight bg-gradient-to-r from-white via-white to-white/80 bg-clip-text text-transparent" data-testid="text-display-name">
                     {profile?.displayName || researcher?.display_name || 'Researcher Profile'}
                   </h1>
-                  <p className="text-2xl sm:text-3xl mb-4 text-white/90 font-light tracking-wide" data-testid="text-title">
+                  <p className="text-lg sm:text-xl md:text-2xl lg:text-3xl mb-2 md:mb-4 text-white/90 font-light tracking-wide" data-testid="text-title">
                     {profile?.title || 'Research Professional'}
                   </p>
                   {/* Always show affiliation section - use OpenAlex data as fallback */}
-                  <div className="flex flex-wrap items-center justify-center lg:justify-start gap-4 text-white/80">
-                    <span className="flex items-center gap-2">
-                      <Building2 className="w-5 h-5" />
-                      <span data-testid="text-affiliation">
+                  <div className="flex flex-wrap items-center justify-center lg:justify-start gap-2 md:gap-4 text-sm md:text-base text-white/80">
+                    <span className="flex items-center gap-1 md:gap-2">
+                      <Building2 className="w-4 h-4 md:w-5 md:h-5 flex-shrink-0" />
+                      <span data-testid="text-affiliation" className="text-sm md:text-base">
                         {profile?.currentAffiliation || researcher?.last_known_institutions?.[0]?.display_name || (profile?.isPreview ? 'Your University' : 'Institution')}
                         {profile?.isPreview && !profile?.currentAffiliation && !researcher?.last_known_institutions?.[0]?.display_name && <span className="text-xs ml-1 opacity-60">(Preview)</span>}
                       </span>
                     </span>
-                    <span className="flex items-center gap-2">
-                      <MapPin className="w-5 h-5" />
-                      <span>{profile?.countryCode || researcher?.last_known_institutions?.[0]?.country_code || ''}</span>
+                    <span className="flex items-center gap-1 md:gap-2">
+                      <MapPin className="w-4 h-4 md:w-5 md:h-5 flex-shrink-0" />
+                      <span className="text-sm md:text-base">{profile?.countryCode || researcher?.last_known_institutions?.[0]?.country_code || ''}</span>
                     </span>
                   </div>
                 </div>
               </div>
               
               {/* Always show bio section - use generated bio as fallback */}
-              <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-6 border border-white/10">
-                <p className="text-lg sm:text-xl text-white/90 leading-relaxed font-light" data-testid="text-bio">
+              <div className="bg-white/5 backdrop-blur-sm rounded-xl md:rounded-2xl p-4 md:p-6 border border-white/10">
+                <p className="text-sm sm:text-base md:text-lg lg:text-xl text-white/90 leading-relaxed font-light" data-testid="text-bio">
                   {profile?.bio || `Researcher with ${researcher?.works_count || 0} publications and ${researcher?.cited_by_count || 0} citations.`}
                   {profile?.isPreview && !profile?.bio && <span className="text-xs ml-1 opacity-60">(Preview)</span>}
                 </p>
               </div>
               
-              {/* Enhanced Action Buttons - Always show all buttons */}
-              <div className="flex flex-wrap justify-center lg:justify-start gap-4 pt-4">
+              {/* Enhanced Action Buttons - Stack on mobile */}
+              <div className="flex flex-col sm:flex-row flex-wrap justify-center lg:justify-start gap-2 sm:gap-3 md:gap-4 pt-2 md:pt-4">
                 <a 
                   href={`https://openalex.org/authors/${openalexId}`} 
                   target="_blank" 
                   rel="noopener noreferrer"
-                  className="action-button group bg-white/15 backdrop-blur-sm text-white px-8 py-4 rounded-xl hover:bg-white/25 transition-all duration-300 border border-white/20 hover:border-white/40 hover:scale-105 font-medium"
+                  className="action-button group bg-white/15 backdrop-blur-sm text-white px-4 sm:px-6 md:px-8 py-3 md:py-4 rounded-xl hover:bg-white/25 transition-all duration-300 border border-white/20 hover:border-white/40 hover:scale-105 font-medium text-sm md:text-base min-h-[44px] flex items-center justify-center w-full sm:w-auto"
                   data-testid="link-openalex"
                 >
-                  <svg className="w-5 h-5 mr-3 inline group-hover:rotate-12 transition-transform duration-300" fill="currentColor" viewBox="0 0 20 20">
+                  <svg className="w-4 h-4 md:w-5 md:h-5 mr-2 md:mr-3 inline-block group-hover:rotate-12 transition-transform duration-300 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                     <path d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z" />
                     <path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z" />
                   </svg>
@@ -325,23 +326,23 @@ export default function ResearcherProfile() {
                   href={profile?.cvUrl && profile.cvUrl !== '#cv-placeholder' ? profile.cvUrl : '#'} 
                   target="_blank" 
                   rel="noopener noreferrer"
-                  className={`action-button group bg-white text-primary px-8 py-4 rounded-xl hover:bg-white/90 transition-all duration-300 font-medium shadow-lg hover:shadow-xl hover:scale-105 ${!profile?.cvUrl || profile.cvUrl === '#cv-placeholder' ? 'opacity-75' : ''}`}
+                  className={`action-button group bg-white text-primary px-4 sm:px-6 md:px-8 py-3 md:py-4 rounded-xl hover:bg-white/90 transition-all duration-300 font-medium shadow-lg hover:shadow-xl hover:scale-105 text-sm md:text-base min-h-[44px] flex items-center justify-center w-full sm:w-auto ${!profile?.cvUrl || profile.cvUrl === '#cv-placeholder' ? 'opacity-75' : ''}`}
                   data-testid="link-cv"
                   onClick={(e) => (!profile?.cvUrl || profile.cvUrl === '#cv-placeholder') && e.preventDefault()}
                 >
-                  <svg className="w-5 h-5 mr-3 inline text-red-600 group-hover:scale-110 transition-transform duration-300" fill="currentColor" viewBox="0 0 20 20">
+                  <svg className="w-4 h-4 md:w-5 md:h-5 mr-2 md:mr-3 inline-block text-red-600 group-hover:scale-110 transition-transform duration-300 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clipRule="evenodd" />
                   </svg>
-                  Download CV/Resume
+                  <span>Download CV</span>
                   {profile?.isPreview && (!profile?.cvUrl || profile.cvUrl === '#cv-placeholder') && <span className="text-xs ml-1 opacity-60">(Preview)</span>}
                 </a>
                 <a 
                   href={profile?.contactEmail || profile?.email ? `mailto:${profile.contactEmail || profile.email}` : '#'}
-                  className={`action-button group bg-gradient-to-r from-accent/20 to-accent/10 backdrop-blur-sm text-white px-8 py-4 rounded-xl hover:from-accent/30 hover:to-accent/20 transition-all duration-300 border border-accent/20 hover:border-accent/40 font-medium ${!profile?.contactEmail && !profile?.email ? 'opacity-75' : ''}`}
+                  className={`action-button group bg-gradient-to-r from-accent/20 to-accent/10 backdrop-blur-sm text-white px-4 sm:px-6 md:px-8 py-3 md:py-4 rounded-xl hover:from-accent/30 hover:to-accent/20 transition-all duration-300 border border-accent/20 hover:border-accent/40 font-medium text-sm md:text-base min-h-[44px] flex items-center justify-center w-full sm:w-auto ${!profile?.contactEmail && !profile?.email ? 'opacity-75' : ''}`}
                   data-testid="link-contact"
                   onClick={(e) => (!profile?.contactEmail && !profile?.email) && e.preventDefault()}
                 >
-                  <svg className="w-5 h-5 mr-3 inline group-hover:scale-110 transition-transform duration-300" fill="currentColor" viewBox="0 0 20 20">
+                  <svg className="w-4 h-4 md:w-5 md:h-5 mr-2 md:mr-3 inline-block group-hover:scale-110 transition-transform duration-300 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                     <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
                     <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
                   </svg>
