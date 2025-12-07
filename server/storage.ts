@@ -31,6 +31,11 @@ import {
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, ne } from "drizzle-orm";
+import crypto from "crypto";
+
+function generateUUID(): string {
+  return crypto.randomUUID();
+}
 
 export interface TenantWithDetails extends Tenant {
   domains: Domain[];
@@ -109,7 +114,10 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createTenant(tenant: InsertTenant): Promise<Tenant> {
-    const [result] = await db.insert(tenants).values(tenant).returning();
+    const [result] = await db.insert(tenants).values({
+      ...tenant,
+      id: generateUUID(),
+    }).returning();
     return result;
   }
 
@@ -165,6 +173,7 @@ export class DatabaseStorage implements IStorage {
       const [newProfile] = await db
         .insert(researcherProfiles)
         .values({
+          id: generateUUID(),
           tenantId,
           openalexId: updates.openalexId || null,
           displayName: updates.displayName || null,
@@ -209,6 +218,7 @@ export class DatabaseStorage implements IStorage {
   async createDomain(domain: InsertDomain): Promise<Domain> {
     const [result] = await db.insert(domains).values({
       ...domain,
+      id: generateUUID(),
       hostname: domain.hostname.toLowerCase(),
     }).returning();
     return result;
@@ -265,15 +275,22 @@ export class DatabaseStorage implements IStorage {
   async createUser(userData: UpsertUser): Promise<User> {
     const [user] = await db
       .insert(users)
-      .values(userData)
+      .values({
+        ...userData,
+        id: generateUUID(),
+      })
       .returning();
     return user;
   }
 
   async upsertUser(userData: UpsertUser): Promise<User> {
+    const dataWithId = {
+      ...userData,
+      id: userData.id || generateUUID(),
+    };
     const [user] = await db
       .insert(users)
-      .values(userData)
+      .values(dataWithId)
       .onConflictDoUpdate({
         target: users.id,
         set: {
@@ -362,9 +379,13 @@ export class DatabaseStorage implements IStorage {
   }
 
   async upsertResearcherProfile(profile: InsertResearcherProfile): Promise<ResearcherProfile> {
+    const profileWithId = {
+      ...profile,
+      id: generateUUID(),
+    };
     const [result] = await db
       .insert(researcherProfiles)
-      .values(profile)
+      .values(profileWithId)
       .onConflictDoUpdate({
         target: researcherProfiles.openalexId,
         set: {
