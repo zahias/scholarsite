@@ -60,6 +60,7 @@ The platform comprises four main surfaces:
 -   **Primary Database**: PostgreSQL (standard pg driver for A2 Hosting compatibility).
 -   **Schema Management**: Drizzle Kit for migrations.
 -   **Key Tables**: Users, sessions, researcher profiles, cached OpenAlex data (publications, topics, affiliations), and supporting tables.
+-   **UUID Generation**: All UUIDs are generated application-side using `crypto.randomUUID()` in `server/storage.ts`. This is required because A2 Hosting's PostgreSQL lacks the `pgcrypto` extension for `gen_random_uuid()`.
 
 ## Authentication & Authorization
 -   **Provider**: Custom email/password authentication with bcryptjs.
