@@ -375,6 +375,10 @@ var db = drizzle(pool, { schema: schema_exports });
 
 // server/storage.ts
 import { eq, desc, and } from "drizzle-orm";
+import crypto from "crypto";
+function generateUUID() {
+  return crypto.randomUUID();
+}
 var DatabaseStorage = class {
   // Tenant operations
   async getTenant(id) {
@@ -385,7 +389,10 @@ var DatabaseStorage = class {
     return await db.select().from(tenants).orderBy(desc(tenants.createdAt));
   }
   async createTenant(tenant) {
-    const [result] = await db.insert(tenants).values(tenant).returning();
+    const [result] = await db.insert(tenants).values({
+      ...tenant,
+      id: generateUUID()
+    }).returning();
     return result;
   }
   async updateTenant(id, updates) {
@@ -426,6 +433,7 @@ var DatabaseStorage = class {
     let profile = await this.getResearcherProfileByTenant(tenantId);
     if (!profile) {
       const [newProfile] = await db.insert(researcherProfiles).values({
+        id: generateUUID(),
         tenantId,
         openalexId: updates.openalexId || null,
         displayName: updates.displayName || null,
@@ -459,6 +467,7 @@ var DatabaseStorage = class {
   async createDomain(domain) {
     const [result] = await db.insert(domains).values({
       ...domain,
+      id: generateUUID(),
       hostname: domain.hostname.toLowerCase()
     }).returning();
     return result;
@@ -499,11 +508,18 @@ var DatabaseStorage = class {
     return tenantUsers;
   }
   async createUser(userData) {
-    const [user] = await db.insert(users).values(userData).returning();
+    const [user] = await db.insert(users).values({
+      ...userData,
+      id: generateUUID()
+    }).returning();
     return user;
   }
   async upsertUser(userData) {
-    const [user] = await db.insert(users).values(userData).onConflictDoUpdate({
+    const dataWithId = {
+      ...userData,
+      id: userData.id || generateUUID()
+    };
+    const [user] = await db.insert(users).values(dataWithId).onConflictDoUpdate({
       target: users.id,
       set: {
         ...userData,
@@ -561,7 +577,11 @@ var DatabaseStorage = class {
     return await db.select().from(researcherProfiles).where(eq(researcherProfiles.isPublic, true)).orderBy(desc(researcherProfiles.updatedAt));
   }
   async upsertResearcherProfile(profile) {
-    const [result] = await db.insert(researcherProfiles).values(profile).onConflictDoUpdate({
+    const profileWithId = {
+      ...profile,
+      id: generateUUID()
+    };
+    const [result] = await db.insert(researcherProfiles).values(profileWithId).onConflictDoUpdate({
       target: researcherProfiles.openalexId,
       set: {
         ...profile,
