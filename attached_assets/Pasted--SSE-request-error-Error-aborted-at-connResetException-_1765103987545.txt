@@ -1,0 +1,275 @@
+❌ SSE request error: Error: aborted
+    at connResetException (node:internal/errors:705:14)
+    at abortIncoming (node:_http_server:642:17)
+    at socketOnClose (node:_http_server:636:3)
+    at Socket.emit (node:events:525:35)
+    at Pipe.<anonymous> (node:net:301:12) {
+  code: 'ECONNRESET'
+}
+Create tenant error: error: null value in column "id" violates not-null constraint
+    at /home/bannwebs/scholarsite/node_modules/pg-pool/index.js:45:11
+    at processTicksAndRejections (node:internal/process/task_queues:96:5)
+    at async file:///home/bannwebs/scholarsite/node_modules/drizzle-orm/node-postgres/session.js:83:22
+    at async DatabaseStorage.createTenant (file:///home/bannwebs/scholarsite/dist/index.js:259:22)
+    at async file:///home/bannwebs/scholarsite/dist/index.js:1666:20 {
+  length: 349,
+  severity: 'ERROR',
+  code: '23502',
+  detail: 'Failing row contains (null, Zahi Abdul Sater, professional, pending, null, null, null, weekly, #0B1F3A, #F2994A, null, zahi.abdul.sater@gmail.com, test, 2025-12-07 04:38:05.511262, 2025-12-07 04:38:05.511262).',
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: 'public',
+  table: 'tenants',
+  column: 'id',
+  dataType: undefined,
+  constraint: undefined,
+  file: 'execMain.c',
+  line: '2021',
+  routine: 'ExecConstraints'
+}
+Create tenant error: error: null value in column "id" violates not-null constraint
+    at /home/bannwebs/scholarsite/node_modules/pg-pool/index.js:45:11
+    at processTicksAndRejections (node:internal/process/task_queues:96:5)
+    at async file:///home/bannwebs/scholarsite/node_modules/drizzle-orm/node-postgres/session.js:83:22
+    at async DatabaseStorage.createTenant (file:///home/bannwebs/scholarsite/dist/index.js:259:22)
+    at async file:///home/bannwebs/scholarsite/dist/index.js:1666:20 {
+  length: 349,
+  severity: 'ERROR',
+  code: '23502',
+  detail: 'Failing row contains (null, Zahi Abdul Sater, professional, pending, null, null, null, weekly, #0B1F3A, #F2994A, null, zahi.abdul.sater@gmail.com, test, 2025-12-07 04:38:10.003581, 2025-12-07 04:38:10.003581).',
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: 'public',
+  table: 'tenants',
+  column: 'id',
+  dataType: undefined,
+  constraint: undefined,
+  file: 'execMain.c',
+  line: '2021',
+  routine: 'ExecConstraints'
+}
+❌ SSE request error: Error: aborted
+    at connResetException (node:internal/errors:705:14)
+    at abortIncoming (node:_http_server:642:17)
+    at socketOnClose (node:_http_server:636:3)
+    at Socket.emit (node:events:525:35)
+    at Pipe.<anonymous> (node:net:301:12) {
+  code: 'ECONNRESET'
+}
+Error searching OpenAlex authors: FetchError: request to https://api.openalex.org/authors?search=ali%20ab&sort=works_count:desc&per_page=10 failed, reason: connect ECONNREFUSED 104.20.26.229:443
+    at ClientRequest.<anonymous> (file:///home/bannwebs/scholarsite/node_modules/node-fetch/src/index.js:108:11)
+    at ClientRequest.emit (node:events:513:28)
+    at TLSSocket.socketErrorListener (node:_http_client:494:9)
+    at TLSSocket.emit (node:events:513:28)
+    at emitErrorNT (node:internal/streams/destroy:157:8)
+    at emitErrorCloseNT (node:internal/streams/destroy:122:3)
+    at processTicksAndRejections (node:internal/process/task_queues:83:21) {
+  type: 'system',
+  errno: 'ECONNREFUSED',
+  code: 'ECONNREFUSED',
+  erroredSysCall: 'connect'
+}
+Error searching OpenAlex authors: FetchError: request to https://api.openalex.org/authors?search=ali%20abd&sort=works_count:desc&per_page=10 failed, reason: connect ECONNREFUSED 172.66.159.136:443
+    at ClientRequest.<anonymous> (file:///home/bannwebs/scholarsite/node_modules/node-fetch/src/index.js:108:11)
+    at ClientRequest.emit (node:events:513:28)
+    at TLSSocket.socketErrorListener (node:_http_client:494:9)
+    at TLSSocket.emit (node:events:513:28)
+    at emitErrorNT (node:internal/streams/destroy:157:8)
+    at emitErrorCloseNT (node:internal/streams/destroy:122:3)
+    at processTicksAndRejections (node:internal/process/task_queues:83:21) {
+  type: 'system',
+  errno: 'ECONNREFUSED',
+  code: 'ECONNREFUSED',
+  erroredSysCall: 'connect'
+}
+Error searching OpenAlex authors: FetchError: request to https://api.openalex.org/authors?search=ali%20abdu&sort=works_count:desc&per_page=10 failed, reason: connect ECONNREFUSED 172.66.159.136:443
+    at ClientRequest.<anonymous> (file:///home/bannwebs/scholarsite/node_modules/node-fetch/src/index.js:108:11)
+    at ClientRequest.emit (node:events:513:28)
+    at TLSSocket.socketErrorListener (node:_http_client:494:9)
+    at TLSSocket.emit (node:events:513:28)
+    at emitErrorNT (node:internal/streams/destroy:157:8)
+    at emitErrorCloseNT (node:internal/streams/destroy:122:3)
+    at processTicksAndRejections (node:internal/process/task_queues:83:21) {
+  type: 'system',
+  errno: 'ECONNREFUSED',
+  code: 'ECONNREFUSED',
+  erroredSysCall: 'connect'
+}
+Error searching OpenAlex authors: FetchError: request to https://api.openalex.org/authors?search=ali%20abdul%20&sort=works_count:desc&per_page=10 failed, reason: connect ECONNREFUSED 104.20.26.229:443
+    at ClientRequest.<anonymous> (file:///home/bannwebs/scholarsite/node_modules/node-fetch/src/index.js:108:11)
+    at ClientRequest.emit (node:events:513:28)
+    at TLSSocket.socketErrorListener (node:_http_client:494:9)
+    at TLSSocket.emit (node:events:513:28)
+    at emitErrorNT (node:internal/streams/destroy:157:8)
+    at emitErrorCloseNT (node:internal/streams/destroy:122:3)
+    at processTicksAndRejections (node:internal/process/task_queues:83:21) {
+  type: 'system',
+  errno: 'ECONNREFUSED',
+  code: 'ECONNREFUSED',
+  erroredSysCall: 'connect'
+}
+Error searching OpenAlex authors: FetchError: request to https://api.openalex.org/authors?search=ali%20abdul%20sa&sort=works_count:desc&per_page=10 failed, reason: connect ECONNREFUSED 104.20.26.229:443
+    at ClientRequest.<anonymous> (file:///home/bannwebs/scholarsite/node_modules/node-fetch/src/index.js:108:11)
+    at ClientRequest.emit (node:events:513:28)
+    at TLSSocket.socketErrorListener (node:_http_client:494:9)
+    at TLSSocket.emit (node:events:513:28)
+    at emitErrorNT (node:internal/streams/destroy:157:8)
+    at emitErrorCloseNT (node:internal/streams/destroy:122:3)
+    at processTicksAndRejections (node:internal/process/task_queues:83:21) {
+  type: 'system',
+  errno: 'ECONNREFUSED',
+  code: 'ECONNREFUSED',
+  erroredSysCall: 'connect'
+}
+Error searching OpenAlex authors: FetchError: request to https://api.openalex.org/authors?search=ali%20abdul%20sater&sort=works_count:desc&per_page=10 failed, reason: connect ECONNREFUSED 172.66.159.136:443
+    at ClientRequest.<anonymous> (file:///home/bannwebs/scholarsite/node_modules/node-fetch/src/index.js:108:11)
+    at ClientRequest.emit (node:events:513:28)
+    at TLSSocket.socketErrorListener (node:_http_client:494:9)
+    at TLSSocket.emit (node:events:513:28)
+    at emitErrorNT (node:internal/streams/destroy:157:8)
+    at emitErrorCloseNT (node:internal/streams/destroy:122:3)
+    at processTicksAndRejections (node:internal/process/task_queues:83:21) {
+  type: 'system',
+  errno: 'ECONNREFUSED',
+  code: 'ECONNREFUSED',
+  erroredSysCall: 'connect'
+}
+❌ SSE request error: Error: aborted
+    at connResetException (node:internal/errors:705:14)
+    at abortIncoming (node:_http_server:642:17)
+    at socketOnClose (node:_http_server:636:3)
+    at Socket.emit (node:events:525:35)
+    at Pipe.<anonymous> (node:net:301:12) {
+  code: 'ECONNRESET'
+}
+❌ SSE request error: Error: aborted
+    at connResetException (node:internal/errors:705:14)
+    at abortIncoming (node:_http_server:642:17)
+    at socketOnClose (node:_http_server:636:3)
+    at Socket.emit (node:events:525:35)
+    at Pipe.<anonymous> (node:net:301:12) {
+  code: 'ECONNRESET'
+}
+❌ SSE request error: Error: aborted
+    at connResetException (node:internal/errors:705:14)
+    at abortIncoming (node:_http_server:642:17)
+    at socketOnClose (node:_http_server:636:3)
+    at Socket.emit (node:events:525:35)
+    at Pipe.<anonymous> (node:net:301:12) {
+  code: 'ECONNRESET'
+}
+❌ SSE request error: Error: aborted
+    at connResetException (node:internal/errors:705:14)
+    at abortIncoming (node:_http_server:642:17)
+    at socketOnClose (node:_http_server:636:3)
+    at Socket.emit (node:events:525:35)
+    at Pipe.<anonymous> (node:net:301:12) {
+  code: 'ECONNRESET'
+}
+❌ SSE request error: Error: aborted
+    at connResetException (node:internal/errors:705:14)
+    at abortIncoming (node:_http_server:642:17)
+    at socketOnClose (node:_http_server:636:3)
+    at Socket.emit (node:events:525:35)
+    at Pipe.<anonymous> (node:net:301:12) {
+  code: 'ECONNRESET'
+}
+❌ SSE request error: Error: aborted
+    at connResetException (node:internal/errors:705:14)
+    at abortIncoming (node:_http_server:642:17)
+    at socketOnClose (node:_http_server:636:3)
+    at Socket.emit (node:events:525:35)
+    at Pipe.<anonymous> (node:net:301:12) {
+  code: 'ECONNRESET'
+}
+Create tenant error: error: null value in column "id" violates not-null constraint
+    at /home/bannwebs/scholarsite/node_modules/pg-pool/index.js:45:11
+    at runMicrotasks (<anonymous>)
+    at processTicksAndRejections (node:internal/process/task_queues:96:5)
+    at async file:///home/bannwebs/scholarsite/node_modules/drizzle-orm/node-postgres/session.js:83:22
+    at async DatabaseStorage.createTenant (file:///home/bannwebs/scholarsite/dist/index.js:259:22)
+    at async file:///home/bannwebs/scholarsite/dist/index.js:1666:20 {
+  length: 345,
+  severity: 'ERROR',
+  code: '23502',
+  detail: 'Failing row contains (null, Zahi Abdul Sater, professional, pending, null, null, null, weekly, #0B1F3A, #F2994A, null, zahi.abdul.sater@gmail.com, , 2025-12-07 05:35:52.841113, 2025-12-07 05:35:52.841113).',
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: 'public',
+  table: 'tenants',
+  column: 'id',
+  dataType: undefined,
+  constraint: undefined,
+  file: 'execMain.c',
+  line: '2021',
+  routine: 'ExecConstraints'
+}
+Failed to start server: Error [ERR_MODULE_NOT_FOUND]: Cannot find package 'vite' imported from /home/bannwebs/scholarsite/dist/index.js
+    at new NodeError (node:internal/errors:387:5)
+    at packageResolve (node:internal/modules/esm/resolve:852:9)
+    at moduleResolve (node:internal/modules/esm/resolve:901:20)
+    at defaultResolve (node:internal/modules/esm/resolve:1115:11)
+    at nextResolve (node:internal/modules/esm/loader:163:28)
+    at ESMLoader.resolve (node:internal/modules/esm/loader:841:30)
+    at ESMLoader.getModuleJob (node:internal/modules/esm/loader:424:18)
+    at ModuleWrap.<anonymous> (node:internal/modules/esm/module_job:76:40)
+    at link (node:internal/modules/esm/module_job:75:36) {
+  code: 'ERR_MODULE_NOT_FOUND'
+}
+Failed to start server: Error [ERR_MODULE_NOT_FOUND]: Cannot find package 'vite' imported from /home/bannwebs/scholarsite/dist/index.js
+    at new NodeError (node:internal/errors:387:5)
+    at packageResolve (node:internal/modules/esm/resolve:852:9)
+    at moduleResolve (node:internal/modules/esm/resolve:901:20)
+    at defaultResolve (node:internal/modules/esm/resolve:1115:11)
+    at nextResolve (node:internal/modules/esm/loader:163:28)
+    at ESMLoader.resolve (node:internal/modules/esm/loader:841:30)
+    at ESMLoader.getModuleJob (node:internal/modules/esm/loader:424:18)
+    at ModuleWrap.<anonymous> (node:internal/modules/esm/module_job:76:40)
+    at link (node:internal/modules/esm/module_job:75:36) {
+  code: 'ERR_MODULE_NOT_FOUND'
+}
+Failed to start server: Error [ERR_MODULE_NOT_FOUND]: Cannot find package 'vite' imported from /home/bannwebs/scholarsite/dist/index.js
+    at new NodeError (node:internal/errors:387:5)
+    at packageResolve (node:internal/modules/esm/resolve:852:9)
+    at moduleResolve (node:internal/modules/esm/resolve:901:20)
+    at defaultResolve (node:internal/modules/esm/resolve:1115:11)
+    at nextResolve (node:internal/modules/esm/loader:163:28)
+    at ESMLoader.resolve (node:internal/modules/esm/loader:841:30)
+    at ESMLoader.getModuleJob (node:internal/modules/esm/loader:424:18)
+    at ModuleWrap.<anonymous> (node:internal/modules/esm/module_job:76:40)
+    at link (node:internal/modules/esm/module_job:75:36) {
+  code: 'ERR_MODULE_NOT_FOUND'
+}
+Failed to start server: Error [ERR_MODULE_NOT_FOUND]: Cannot find package 'vite' imported from /home/bannwebs/scholarsite/dist/index.js
+    at new NodeError (node:internal/errors:387:5)
+    at packageResolve (node:internal/modules/esm/resolve:852:9)
+    at moduleResolve (node:internal/modules/esm/resolve:901:20)
+    at defaultResolve (node:internal/modules/esm/resolve:1115:11)
+    at nextResolve (node:internal/modules/esm/loader:163:28)
+    at ESMLoader.resolve (node:internal/modules/esm/loader:841:30)
+    at ESMLoader.getModuleJob (node:internal/modules/esm/loader:424:18)
+    at ModuleWrap.<anonymous> (node:internal/modules/esm/module_job:76:40)
+    at link (node:internal/modules/esm/module_job:75:36) {
+  code: 'ERR_MODULE_NOT_FOUND'
+}
+Failed to start server: Error [ERR_MODULE_NOT_FOUND]: Cannot find package 'vite' imported from /home/bannwebs/scholarsite/dist/index.js
+    at new NodeError (node:internal/errors:387:5)
+    at packageResolve (node:internal/modules/esm/resolve:852:9)
+    at moduleResolve (node:internal/modules/esm/resolve:901:20)
+    at defaultResolve (node:internal/modules/esm/resolve:1115:11)
+    at nextResolve (node:internal/modules/esm/loader:163:28)
+    at ESMLoader.resolve (node:internal/modules/esm/loader:841:30)
+    at ESMLoader.getModuleJob (node:internal/modules/esm/loader:424:18)
+    at ModuleWrap.<anonymous> (node:internal/modules/esm/module_job:76:40)
+    at link (node:internal/modules/esm/module_job:75:36) {
+  code: 'ERR_MODULE_NOT_FOUND'
+}
