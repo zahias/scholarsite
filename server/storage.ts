@@ -436,7 +436,10 @@ export class DatabaseStorage implements IStorage {
   async upsertOpenalexData(data: InsertOpenalexData): Promise<OpenalexData> {
     const [result] = await db
       .insert(openalexData)
-      .values(data)
+      .values({
+        ...data,
+        id: generateUUID(),
+      })
       .onConflictDoUpdate({
         target: [openalexData.openalexId, openalexData.dataType],
         set: {
@@ -465,8 +468,12 @@ export class DatabaseStorage implements IStorage {
       .delete(researchTopics)
       .where(eq(researchTopics.openalexId, topics[0].openalexId));
     
-    // Insert new topics
-    await db.insert(researchTopics).values(topics);
+    // Insert new topics with generated IDs
+    const topicsWithIds = topics.map(topic => ({
+      ...topic,
+      id: generateUUID(),
+    }));
+    await db.insert(researchTopics).values(topicsWithIds);
   }
 
   // Publications operations
@@ -493,8 +500,12 @@ export class DatabaseStorage implements IStorage {
       .delete(publications)
       .where(eq(publications.openalexId, pubs[0].openalexId));
     
-    // Insert new publications
-    await db.insert(publications).values(pubs);
+    // Insert new publications with generated IDs
+    const pubsWithIds = pubs.map(pub => ({
+      ...pub,
+      id: generateUUID(),
+    }));
+    await db.insert(publications).values(pubsWithIds);
   }
 
   // Affiliations operations
@@ -514,8 +525,12 @@ export class DatabaseStorage implements IStorage {
       .delete(affiliations)
       .where(eq(affiliations.openalexId, affs[0].openalexId));
     
-    // Insert new affiliations
-    await db.insert(affiliations).values(affs);
+    // Insert new affiliations with generated IDs
+    const affsWithIds = affs.map(aff => ({
+      ...aff,
+      id: generateUUID(),
+    }));
+    await db.insert(affiliations).values(affsWithIds);
   }
 
   // Site settings operations
@@ -534,7 +549,7 @@ export class DatabaseStorage implements IStorage {
   async upsertSetting(key: string, value: string): Promise<SiteSetting> {
     const [setting] = await db
       .insert(siteSettings)
-      .values({ settingKey: key, settingValue: value })
+      .values({ id: generateUUID(), settingKey: key, settingValue: value })
       .onConflictDoUpdate({
         target: siteSettings.settingKey,
         set: {
