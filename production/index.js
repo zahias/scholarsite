@@ -2581,6 +2581,40 @@ async function registerRoutes(app2) {
       res.status(500).json({ message: "Failed to generate QR code" });
     }
   });
+  app2.get("/api/site-context", async (req, res) => {
+    try {
+      const tenant = req.tenant;
+      const isMarketingSite = req.isMarketingSite;
+      if (isMarketingSite || !tenant) {
+        return res.json({
+          isTenantSite: false,
+          isMarketingSite: true,
+          tenant: null
+        });
+      }
+      const profile = await storage.getResearcherProfileByTenant(tenant.id);
+      return res.json({
+        isTenantSite: true,
+        isMarketingSite: false,
+        tenant: {
+          id: tenant.id,
+          name: tenant.name,
+          plan: tenant.plan,
+          primaryColor: tenant.primaryColor,
+          accentColor: tenant.accentColor
+        },
+        hasProfile: !!profile?.openalexId,
+        openalexId: profile?.openalexId || null
+      });
+    } catch (error) {
+      console.error("Error getting site context:", error);
+      res.json({
+        isTenantSite: false,
+        isMarketingSite: true,
+        tenant: null
+      });
+    }
+  });
   app2.get("/api/profile", async (req, res) => {
     try {
       const tenant = req.tenant;

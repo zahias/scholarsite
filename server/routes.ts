@@ -632,6 +632,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Site context - tells frontend if this is a tenant site or marketing site
+  app.get('/api/site-context', async (req, res) => {
+    try {
+      const tenant = (req as any).tenant;
+      const isMarketingSite = (req as any).isMarketingSite;
+      
+      if (isMarketingSite || !tenant) {
+        return res.json({
+          isTenantSite: false,
+          isMarketingSite: true,
+          tenant: null
+        });
+      }
+      
+      // Get the researcher profile for this tenant
+      const profile = await storage.getResearcherProfileByTenant(tenant.id);
+      
+      return res.json({
+        isTenantSite: true,
+        isMarketingSite: false,
+        tenant: {
+          id: tenant.id,
+          name: tenant.name,
+          plan: tenant.plan,
+          primaryColor: tenant.primaryColor,
+          accentColor: tenant.accentColor,
+        },
+        hasProfile: !!profile?.openalexId,
+        openalexId: profile?.openalexId || null
+      });
+    } catch (error) {
+      console.error("Error getting site context:", error);
+      res.json({
+        isTenantSite: false,
+        isMarketingSite: true,
+        tenant: null
+      });
+    }
+  });
+
   // Tenant-based profile route (when accessed via custom domain)
   app.get('/api/profile', async (req, res) => {
     try {
