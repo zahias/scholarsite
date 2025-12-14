@@ -1415,6 +1415,117 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ================== THEME ROUTES ==================
+
+  // Get all active themes (public)
+  app.get('/api/themes', async (req, res) => {
+    try {
+      const activeThemes = await storage.getActiveThemes();
+      res.json(activeThemes);
+    } catch (error) {
+      console.error('Error fetching themes:', error);
+      res.status(500).json({ message: 'Failed to fetch themes' });
+    }
+  });
+
+  // Get default theme (public)
+  app.get('/api/themes/default', async (req, res) => {
+    try {
+      const defaultTheme = await storage.getDefaultTheme();
+      res.json(defaultTheme || null);
+    } catch (error) {
+      console.error('Error fetching default theme:', error);
+      res.status(500).json({ message: 'Failed to fetch default theme' });
+    }
+  });
+
+  // Get single theme by ID (public)
+  app.get('/api/themes/:id', async (req, res) => {
+    try {
+      const theme = await storage.getTheme(req.params.id);
+      if (!theme) {
+        return res.status(404).json({ message: 'Theme not found' });
+      }
+      res.json(theme);
+    } catch (error) {
+      console.error('Error fetching theme:', error);
+      res.status(500).json({ message: 'Failed to fetch theme' });
+    }
+  });
+
+  // Get all themes including inactive (ADMIN ONLY)
+  app.get('/api/admin/themes', adminRateLimit, adminSessionAuthMiddleware, async (req, res) => {
+    try {
+      const allThemes = await storage.getAllThemes();
+      res.json(allThemes);
+    } catch (error) {
+      console.error('Error fetching all themes:', error);
+      res.status(500).json({ message: 'Failed to fetch themes' });
+    }
+  });
+
+  // Create new theme (ADMIN ONLY)
+  app.post('/api/admin/themes', adminRateLimit, adminSessionAuthMiddleware, async (req, res) => {
+    try {
+      const themeData = req.body;
+      const newTheme = await storage.createTheme(themeData);
+      res.status(201).json(newTheme);
+    } catch (error) {
+      console.error('Error creating theme:', error);
+      res.status(500).json({ message: 'Failed to create theme' });
+    }
+  });
+
+  // Update theme (ADMIN ONLY)
+  app.patch('/api/admin/themes/:id', adminRateLimit, adminSessionAuthMiddleware, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const updates = req.body;
+      const updatedTheme = await storage.updateTheme(id, updates);
+      if (!updatedTheme) {
+        return res.status(404).json({ message: 'Theme not found' });
+      }
+      res.json(updatedTheme);
+    } catch (error) {
+      console.error('Error updating theme:', error);
+      res.status(500).json({ message: 'Failed to update theme' });
+    }
+  });
+
+  // Set default theme (ADMIN ONLY)
+  app.post('/api/admin/themes/:id/set-default', adminRateLimit, adminSessionAuthMiddleware, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const updatedTheme = await storage.setDefaultTheme(id);
+      if (!updatedTheme) {
+        return res.status(404).json({ message: 'Theme not found' });
+      }
+      res.json(updatedTheme);
+    } catch (error) {
+      console.error('Error setting default theme:', error);
+      res.status(500).json({ message: 'Failed to set default theme' });
+    }
+  });
+
+  // Delete theme (ADMIN ONLY)
+  app.delete('/api/admin/themes/:id', adminRateLimit, adminSessionAuthMiddleware, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const theme = await storage.getTheme(id);
+      if (!theme) {
+        return res.status(404).json({ message: 'Theme not found' });
+      }
+      if (theme.isDefault) {
+        return res.status(400).json({ message: 'Cannot delete the default theme' });
+      }
+      await storage.deleteTheme(id);
+      res.json({ message: 'Theme deleted successfully' });
+    } catch (error) {
+      console.error('Error deleting theme:', error);
+      res.status(500).json({ message: 'Failed to delete theme' });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

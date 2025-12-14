@@ -8,6 +8,7 @@ import {
   siteSettings,
   tenants,
   domains,
+  themes,
   type User,
   type UpsertUser,
   type SafeUser,
@@ -28,6 +29,8 @@ import {
   type InsertTenant,
   type Domain,
   type InsertDomain,
+  type Theme,
+  type InsertTheme,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, ne } from "drizzle-orm";
@@ -100,6 +103,17 @@ export interface IStorage {
   getSetting(key: string): Promise<SiteSetting | undefined>;
   getAllSettings(): Promise<SiteSetting[]>;
   upsertSetting(key: string, value: string): Promise<SiteSetting>;
+  
+  // Theme operations
+  getTheme(id: string): Promise<Theme | undefined>;
+  getThemeByName(name: string): Promise<Theme | undefined>;
+  getAllThemes(): Promise<Theme[]>;
+  getActiveThemes(): Promise<Theme[]>;
+  getDefaultTheme(): Promise<Theme | undefined>;
+  createTheme(theme: InsertTheme): Promise<Theme>;
+  updateTheme(id: string, updates: Partial<Theme>): Promise<Theme | undefined>;
+  deleteTheme(id: string): Promise<void>;
+  setDefaultTheme(id: string): Promise<Theme | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -559,6 +573,73 @@ export class DatabaseStorage implements IStorage {
       })
       .returning();
     return setting;
+  }
+
+  // Theme operations
+  async getTheme(id: string): Promise<Theme | undefined> {
+    const [theme] = await db.select().from(themes).where(eq(themes.id, id));
+    return theme;
+  }
+
+  async getThemeByName(name: string): Promise<Theme | undefined> {
+    const [theme] = await db.select().from(themes).where(eq(themes.name, name));
+    return theme;
+  }
+
+  async getAllThemes(): Promise<Theme[]> {
+    return await db.select().from(themes).orderBy(themes.sortOrder, themes.name);
+  }
+
+  async getActiveThemes(): Promise<Theme[]> {
+    return await db
+      .select()
+      .from(themes)
+      .where(eq(themes.isActive, true))
+      .orderBy(themes.sortOrder, themes.name);
+  }
+
+  async getDefaultTheme(): Promise<Theme | undefined> {
+    const [theme] = await db
+      .select()
+      .from(themes)
+      .where(and(eq(themes.isDefault, true), eq(themes.isActive, true)));
+    return theme;
+  }
+
+  async createTheme(theme: InsertTheme): Promise<Theme> {
+    const [result] = await db
+      .insert(themes)
+      .values({
+        ...theme,
+        id: generateUUID(),
+      })
+      .returning();
+    return result;
+  }
+
+  async updateTheme(id: string, updates: Partial<Theme>): Promise<Theme | undefined> {
+    const [result] = await db
+      .update(themes)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(themes.id, id))
+      .returning();
+    return result;
+  }
+
+  async deleteTheme(id: string): Promise<void> {
+    await db.delete(themes).where(eq(themes.id, id));
+  }
+
+  async setDefaultTheme(id: string): Promise<Theme | undefined> {
+    // First, unset any existing default theme
+    await db.update(themes).set({ isDefault: false }).where(eq(themes.isDefault, true));
+    // Then set the new default
+    const [result] = await db
+      .update(themes)
+      .set({ isDefault: true, updatedAt: new Date() })
+      .where(eq(themes.id, id))
+      .returning();
+    return result;
   }
 }
 

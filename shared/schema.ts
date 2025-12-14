@@ -39,6 +39,7 @@ export const tenants = pgTable("tenants", {
   primaryColor: varchar("primary_color").default('#0B1F3A'),
   accentColor: varchar("accent_color").default('#F2994A'),
   logoUrl: varchar("logo_url"),
+  selectedThemeId: varchar("selected_theme_id"), // Reference to themes table
   // Contact
   contactEmail: varchar("contact_email"),
   notes: text("notes"), // Admin notes about this tenant
@@ -99,6 +100,7 @@ export const researcherProfiles = pgTable("researcher_profiles", {
   linkedinUrl: varchar("linkedin_url"),
   websiteUrl: varchar("website_url"),
   twitterUrl: varchar("twitter_url"),
+  selectedThemeId: varchar("selected_theme_id"), // Reference to themes table
   isPublic: boolean("is_public").default(true),
   lastSyncedAt: timestamp("last_synced_at"),
   createdAt: timestamp("created_at").defaultNow(),
@@ -214,6 +216,50 @@ export const siteSettings = pgTable("site_settings", {
 
 export type InsertSiteSetting = typeof siteSettings.$inferInsert;
 export type SiteSetting = typeof siteSettings.$inferSelect;
+
+// Theme configuration type
+export type ThemeConfig = {
+  colors: {
+    primary: string;       // Main brand color
+    primaryDark: string;   // Darker variant for gradients
+    accent: string;        // Accent/highlight color
+    background: string;    // Page background
+    surface: string;       // Card/section backgrounds
+    text: string;          // Primary text color
+    textMuted: string;     // Secondary text color
+  };
+  typography?: {
+    headingFont?: string;
+    bodyFont?: string;
+  };
+};
+
+// Themes table - predefined color themes for researcher profiles
+export const themes = pgTable("themes", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: varchar("name").notNull().unique(),
+  description: text("description"),
+  config: jsonb("config").$type<ThemeConfig>().notNull(),
+  previewImageUrl: varchar("preview_image_url"),
+  isActive: boolean("is_active").default(true).notNull(),
+  isDefault: boolean("is_default").default(false).notNull(),
+  sortOrder: integer("sort_order").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export type InsertTheme = typeof themes.$inferInsert;
+export type Theme = typeof themes.$inferSelect;
+
+export const insertThemeSchema = createInsertSchema(themes).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const updateThemeSchema = insertThemeSchema.partial().extend({
+  id: z.string(),
+});
 
 export const insertResearcherProfileSchema = createInsertSchema(researcherProfiles).omit({
   id: true,
