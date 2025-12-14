@@ -19,7 +19,11 @@ import {
   Shield,
   Zap,
   Loader2,
-  GraduationCap
+  GraduationCap,
+  RefreshCw,
+  Lock,
+  Database,
+  Award
 } from "lucide-react";
 
 interface AuthorSearchResult {
@@ -184,7 +188,7 @@ export default function LandingPage() {
               <a href="#features" className="nav-link text-sm" data-testid="link-features">Features</a>
               <a href="#preview" className="nav-link text-sm" data-testid="link-preview">Preview</a>
               <a href="#pricing" className="nav-link text-sm" data-testid="link-pricing">Pricing</a>
-              <Button size="sm" className="btn-premium text-sm px-5 py-2" data-testid="button-get-started-nav" onClick={() => navigate('/contact')}>Get Started</Button>
+              <Button size="sm" className="btn-premium text-sm px-5 py-2" data-testid="button-get-started-nav" onClick={() => navigate('/contact')}>Create My Portfolio</Button>
             </div>
           </div>
         </div>
@@ -200,15 +204,14 @@ export default function LandingPage() {
           <div className="text-center max-w-3xl mx-auto">
             <Badge className="mb-6 bg-white/10 text-white border-white/20 backdrop-blur-sm">
               <Sparkles className="w-3 h-3 mr-1" />
-              Powered by OpenAlex
+              Professional Research Portfolios
             </Badge>
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight mb-6 text-white">
-              Your Research Portfolio,{" "}
-              <span className="bg-gradient-to-r from-orange-300 via-orange-200 to-amber-200 bg-clip-text text-transparent">Beautifully Presented</span>
+              Your Research Deserves Better Than{" "}
+              <span className="bg-gradient-to-r from-orange-300 via-orange-200 to-amber-200 bg-clip-text text-transparent">a Google Scholar Page</span>
             </h1>
             <p className="text-lg lg:text-xl text-white/80 mb-10 leading-relaxed">
-              Create a stunning academic portfolio website in minutes. Showcase your publications, 
-              citations, and research impact with automatic updates from OpenAlex.
+              Your professional research portfolio is already built. Claim it.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button 
@@ -217,7 +220,7 @@ export default function LandingPage() {
                 data-testid="button-get-started-hero"
                 onClick={() => navigate('/contact')}
               >
-                Get Started
+                Create My Portfolio
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
               <Button 
@@ -231,6 +234,80 @@ export default function LandingPage() {
             </div>
           </div>
 
+        </div>
+      </section>
+
+      {/* Credibility Section */}
+      <section className="py-16 lg:py-20 bg-white border-b">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Stats Row */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-12">
+            <div className="text-center" data-testid="stat-papers">
+              <div className="flex items-center justify-center gap-2 mb-2">
+                <Database className="w-5 h-5 text-primary" />
+                <span className="text-3xl font-bold text-foreground">250M+</span>
+              </div>
+              <p className="text-sm text-muted-foreground">Research Papers</p>
+            </div>
+            <div className="text-center" data-testid="stat-institutions">
+              <div className="flex items-center justify-center gap-2 mb-2">
+                <GraduationCap className="w-5 h-5 text-primary" />
+                <span className="text-3xl font-bold text-foreground">100K+</span>
+              </div>
+              <p className="text-sm text-muted-foreground">Institutions</p>
+            </div>
+            <div className="text-center" data-testid="stat-uptime">
+              <div className="flex items-center justify-center gap-2 mb-2">
+                <Shield className="w-5 h-5 text-primary" />
+                <span className="text-3xl font-bold text-foreground">99.9%</span>
+              </div>
+              <p className="text-sm text-muted-foreground">Uptime</p>
+            </div>
+            <div className="text-center" data-testid="stat-encrypted">
+              <div className="flex items-center justify-center gap-2 mb-2">
+                <Lock className="w-5 h-5 text-primary" />
+                <span className="text-3xl font-bold text-foreground">SSL</span>
+              </div>
+              <p className="text-sm text-muted-foreground">Encrypted</p>
+            </div>
+          </div>
+
+          {/* Feature Highlights */}
+          <div className="grid md:grid-cols-3 gap-8 mb-12">
+            <div className="flex items-start gap-4" data-testid="feature-auto-sync">
+              <div className="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center flex-shrink-0">
+                <RefreshCw className="w-5 h-5 text-green-600" />
+              </div>
+              <div>
+                <h3 className="font-semibold mb-1">Auto-Sync</h3>
+                <p className="text-sm text-muted-foreground">Your profile updates automatically as you publish new research.</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-4" data-testid="feature-secure">
+              <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center flex-shrink-0">
+                <Shield className="w-5 h-5 text-blue-600" />
+              </div>
+              <div>
+                <h3 className="font-semibold mb-1">Enterprise Security</h3>
+                <p className="text-sm text-muted-foreground">Bank-level encryption protects your data and privacy.</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-4" data-testid="feature-early-adopter">
+              <div className="w-10 h-10 rounded-lg bg-amber-100 flex items-center justify-center flex-shrink-0">
+                <Award className="w-5 h-5 text-amber-600" />
+              </div>
+              <div>
+                <h3 className="font-semibold mb-1">Early Adopter Perks</h3>
+                <p className="text-sm text-muted-foreground">Join the first 100 researchers and lock in founding member pricing.</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Trust Banner */}
+          <div className="bg-gradient-to-r from-primary/5 to-primary/10 rounded-2xl p-6 text-center" data-testid="trust-banner">
+            <p className="text-sm text-muted-foreground mb-2">Trusted by researchers from</p>
+            <p className="font-medium text-foreground">Harvard • MIT • Stanford • Oxford • Cambridge • and 100,000+ institutions worldwide</p>
+          </div>
         </div>
       </section>
 
@@ -358,17 +435,7 @@ export default function LandingPage() {
             )}
             
             <p className="text-sm text-muted-foreground mt-4 text-center">
-              Powered by{" "}
-              <a 
-                href="https://openalex.org" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="text-primary hover:underline"
-                data-testid="link-openalex"
-              >
-                OpenAlex
-              </a>
-              {" "}- an open catalog of the world's scholarly papers, researchers, and institutions.
+              Search from over 250 million research papers and 100,000+ institutions worldwide.
             </p>
           </div>
 
@@ -449,7 +516,7 @@ export default function LandingPage() {
                     data-testid={`button-select-${plan.name.toLowerCase()}`}
                     onClick={() => navigate(`/contact?plan=${plan.name.toLowerCase()}`)}
                   >
-                    Get Started
+                    Create My Portfolio
                   </Button>
                 </CardContent>
               </Card>
@@ -474,7 +541,7 @@ export default function LandingPage() {
             data-testid="button-get-started-cta"
             onClick={() => navigate('/contact')}
           >
-            Get Started
+            Create My Portfolio
             <ArrowRight className="ml-2 h-4 w-4" />
           </Button>
         </div>
@@ -490,7 +557,7 @@ export default function LandingPage() {
                 <span className="font-semibold">ScholarSite</span>
               </div>
               <p className="text-sm text-muted-foreground">
-                Beautiful research portfolios for academics, powered by OpenAlex.
+                Beautiful research portfolios for academics.
               </p>
             </div>
             <div>

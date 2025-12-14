@@ -13,8 +13,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { useRealtimeUpdates } from "@/hooks/useRealtimeUpdates";
 import type { ResearcherProfile } from "@shared/schema";
-import { useMemo } from "react";
-import { ArrowLeft, MapPin, Building2, Phone, Mail, Globe, Linkedin } from "lucide-react";
+import { useMemo, useState, useEffect } from "react";
+import { ArrowLeft, MapPin, Building2, Phone, Mail, Globe, Linkedin, Clock, X } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { SiOrcid, SiGooglescholar, SiResearchgate } from "react-icons/si";
 import { FaXTwitter } from "react-icons/fa6";
 
@@ -59,6 +60,46 @@ export default function ResearcherProfile() {
     queryKey: [`/api/researcher/${id}/data`],
     retry: false,
   });
+
+  // Preview expiration tracking (24 hours)
+  const [showExpirationModal, setShowExpirationModal] = useState(false);
+  const PREVIEW_EXPIRATION_HOURS = 24;
+  
+  useEffect(() => {
+    // Guard for SSR - localStorage is only available in browser
+    if (typeof window === 'undefined') return;
+    if (!researcherData?.isPreview || !id) return;
+    
+    try {
+      const storageKey = `preview_session_${id}`;
+      const storedSession = localStorage.getItem(storageKey);
+      
+      if (storedSession) {
+        const sessionData = JSON.parse(storedSession);
+        const firstViewTime = new Date(sessionData.firstView).getTime();
+        const now = Date.now();
+        const hoursPassed = (now - firstViewTime) / (1000 * 60 * 60);
+        
+        if (hoursPassed >= PREVIEW_EXPIRATION_HOURS) {
+          // Preview has expired
+          setShowExpirationModal(true);
+        } else {
+          // Update view count
+          sessionData.viewCount = (sessionData.viewCount || 0) + 1;
+          localStorage.setItem(storageKey, JSON.stringify(sessionData));
+        }
+      } else {
+        // First time viewing this preview
+        localStorage.setItem(storageKey, JSON.stringify({
+          firstView: new Date().toISOString(),
+          viewCount: 1
+        }));
+      }
+    } catch (e) {
+      // Silently handle localStorage errors (e.g., private browsing)
+      console.warn('Unable to access localStorage for preview tracking');
+    }
+  }, [researcherData?.isPreview, id]);
 
   // SEO data - must be before conditional returns to satisfy Rules of Hooks
   const profile = researcherData?.profile;
@@ -211,6 +252,57 @@ export default function ResearcherProfile() {
 
   return (
     <div className="min-h-screen bg-background pb-20 md:pb-0" data-testid="page-researcher-profile">
+      {/* Preview Expiration Modal */}
+      <Dialog open={showExpirationModal} onOpenChange={setShowExpirationModal}>
+        <DialogContent className="sm:max-w-md" data-testid="modal-preview-expired">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Clock className="w-5 h-5 text-primary" />
+              Preview Session Expired
+            </DialogTitle>
+            <DialogDescription className="pt-2">
+              Your 24-hour preview session has ended. Ready to claim your professional research portfolio?
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 pt-4">
+            <p className="text-sm text-muted-foreground">
+              Create your own ScholarSite portfolio to:
+            </p>
+            <ul className="text-sm space-y-2 text-muted-foreground">
+              <li className="flex items-center gap-2">
+                <span className="w-1.5 h-1.5 bg-primary rounded-full"></span>
+                Get your own professional domain
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="w-1.5 h-1.5 bg-primary rounded-full"></span>
+                Customize your profile with your own bio and photo
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="w-1.5 h-1.5 bg-primary rounded-full"></span>
+                Auto-sync your latest publications
+              </li>
+            </ul>
+            <div className="flex flex-col gap-2 pt-4">
+              <Button
+                onClick={() => navigate('/contact')}
+                className="w-full"
+                data-testid="button-claim-expired"
+              >
+                Create My Portfolio
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => setShowExpirationModal(false)}
+                className="w-full"
+                data-testid="button-continue-preview"
+              >
+                Continue Browsing
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       <SEO 
         title={seoTitle}
         description={seoDescription}
@@ -475,6 +567,49 @@ export default function ResearcherProfile() {
           </div>
         </div>
       </footer>
+
+      {/* Sticky Claim Profile CTA Banner - Preview Mode Only */}
+      {researcherData?.isPreview && (
+        <div className="fixed bottom-0 left-0 right-0 z-50 bg-gradient-to-r from-primary to-primary/90 shadow-lg border-t border-primary/20 md:block hidden" data-testid="banner-claim-profile">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+                <p className="text-white text-sm md:text-base font-medium">
+                  This is a preview. Claim your profile at <span className="font-semibold">{(profile?.displayName || researcher?.display_name || 'yourname').toLowerCase().replace(/\s+/g, '')}.scholarsite.com</span>
+                </p>
+              </div>
+              <Button
+                onClick={() => navigate('/contact')}
+                className="bg-white text-primary hover:bg-white/90 font-semibold px-6 py-2 rounded-lg shadow-md hover:shadow-lg transition-all"
+                data-testid="button-claim-profile"
+              >
+                Claim This Profile
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Mobile Sticky CTA for Preview Mode */}
+      {researcherData?.isPreview && (
+        <div className="fixed bottom-16 left-0 right-0 z-40 bg-gradient-to-r from-primary to-primary/90 shadow-lg border-t border-primary/20 md:hidden" data-testid="banner-claim-profile-mobile">
+          <div className="px-4 py-3">
+            <div className="flex flex-col gap-2 text-center">
+              <p className="text-white text-sm font-medium">
+                Preview Mode - Claim your profile today!
+              </p>
+              <Button
+                onClick={() => navigate('/contact')}
+                className="bg-white text-primary hover:bg-white/90 font-semibold px-6 py-2 rounded-lg shadow-md w-full"
+                data-testid="button-claim-profile-mobile"
+              >
+                Claim This Profile
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Mobile Bottom Navigation */}
       <MobileBottomNav />
