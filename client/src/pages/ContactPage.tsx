@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useLocation, Link } from "wouter";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -8,12 +8,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { BookOpen, ArrowLeft, Send, Building2, User, Users } from "lucide-react";
+import { BookOpen, ArrowLeft, Send, Building2, User, Users, Palette } from "lucide-react";
+import type { Theme, ThemeConfig } from "@shared/schema";
 
 const contactFormSchema = z.object({
   fullName: z.string().min(2, "Name must be at least 2 characters"),
@@ -25,6 +26,7 @@ const contactFormSchema = z.object({
   openalexId: z.string().optional(),
   estimatedProfiles: z.string().optional(),
   biography: z.string().min(10, "Please provide a short biography").max(500, "Biography must be 500 characters or less"),
+  preferredTheme: z.string().optional(),
 });
 
 type ContactFormData = z.infer<typeof contactFormSchema>;
@@ -36,6 +38,10 @@ export default function ContactPage() {
   
   const urlParams = new URLSearchParams(window.location.search);
   const preselectedPlan = urlParams.get('plan') || '';
+
+  const { data: themes = [] } = useQuery<Theme[]>({
+    queryKey: ['/api/themes'],
+  });
 
   const form = useForm<ContactFormData>({
     resolver: zodResolver(contactFormSchema),
@@ -49,6 +55,7 @@ export default function ContactPage() {
       openalexId: "",
       estimatedProfiles: "",
       biography: "",
+      preferredTheme: "",
     },
   });
 
@@ -365,6 +372,54 @@ export default function ContactPage() {
                     </FormItem>
                   )}
                 />
+
+                {themes.length > 0 && (
+                  <FormField
+                    control={form.control}
+                    name="preferredTheme"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="flex items-center gap-2">
+                          <Palette className="w-4 h-4" />
+                          Preferred Theme
+                        </FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger data-testid="select-theme">
+                              <SelectValue placeholder="Choose your portfolio theme" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {themes.map((theme) => {
+                              const config = theme.config as ThemeConfig;
+                              return (
+                                <SelectItem key={theme.id} value={theme.id}>
+                                  <div className="flex items-center gap-3">
+                                    <div className="flex gap-1">
+                                      <div
+                                        className="w-4 h-4 rounded-full border border-border"
+                                        style={{ backgroundColor: config.colors.primary }}
+                                      />
+                                      <div
+                                        className="w-4 h-4 rounded-full border border-border -ml-1"
+                                        style={{ backgroundColor: config.colors.accent }}
+                                      />
+                                    </div>
+                                    <span>{theme.name}</span>
+                                  </div>
+                                </SelectItem>
+                              );
+                            })}
+                          </SelectContent>
+                        </Select>
+                        <FormDescription>
+                          Select a color theme for your portfolio. You can change this later.
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
 
                 <Button 
                   type="submit" 

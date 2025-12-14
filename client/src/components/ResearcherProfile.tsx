@@ -43,9 +43,12 @@ function getAvatarColor(name: string): string {
   return colors[hash % colors.length];
 }
 
-export default function ResearcherProfile() {
+function ResearcherProfileContent() {
   const { id } = useParams();
   const [, navigate] = useLocation();
+  
+  // Get theme context for dynamic styling
+  const { themeConfig } = useProfileTheme();
   
   // Enable real-time updates for this researcher profile
   const { isConnected } = useRealtimeUpdates();
@@ -253,7 +256,7 @@ export default function ResearcherProfile() {
   }
 
   return (
-    <div className="min-h-screen bg-background pb-20 md:pb-0" data-testid="page-researcher-profile">
+    <div className="min-h-screen bg-background pb-20 md:pb-0" data-testid="page-researcher-profile" style={getThemeStyles(themeConfig)}>
       {/* Preview Expiration Modal */}
       <Dialog open={showExpirationModal} onOpenChange={setShowExpirationModal}>
         <DialogContent className="sm:max-w-md" data-testid="modal-preview-expired">
@@ -625,6 +628,19 @@ export default function ResearcherProfile() {
 
       {/* Mobile Bottom Navigation */}
       <MobileBottomNav />
+
+      {/* Theme Switcher - Floating button for theme preview */}
+      <ThemeSwitcher isPreview={researcherData?.isPreview} />
     </div>
+  );
+}
+
+export default function ResearcherProfile() {
+  const { id } = useParams();
+  
+  return (
+    <ProfileThemeProvider initialThemeId={null}>
+      <ResearcherProfileContent />
+    </ProfileThemeProvider>
   );
 }

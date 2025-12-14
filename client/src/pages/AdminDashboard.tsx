@@ -18,6 +18,7 @@ import {
   Clock,
   XCircle,
   AlertCircle,
+  Palette,
 } from "lucide-react";
 
 interface Tenant {
@@ -177,13 +178,45 @@ export default function AdminDashboard() {
         </div>
 
         <div className="flex items-center justify-between">
-          <h2 className="text-xl font-semibold text-white">Customer Sites</h2>
-          <Link href="/admin/tenants/new">
-            <Button className="bg-orange-500 hover:bg-orange-600" data-testid="button-new-tenant">
-              <Plus className="w-4 h-4 mr-2" />
-              New Customer
-            </Button>
+          <h2 className="text-xl font-semibold text-white">Quick Actions</h2>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Link href="/admin/themes">
+            <Card className="bg-white/5 border-white/10 hover:bg-white/10 transition-colors cursor-pointer" data-testid="link-themes">
+              <CardContent className="py-4">
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 bg-purple-500/20 rounded-xl flex items-center justify-center">
+                    <Palette className="w-5 h-5 text-purple-400" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-medium text-white">Theme Management</h3>
+                    <p className="text-sm text-slate-400">Customize portfolio color themes</p>
+                  </div>
+                  <ChevronRight className="w-5 h-5 text-slate-500" />
+                </div>
+              </CardContent>
+            </Card>
           </Link>
+          <Link href="/admin/tenants/new">
+            <Card className="bg-white/5 border-white/10 hover:bg-white/10 transition-colors cursor-pointer" data-testid="button-new-tenant">
+              <CardContent className="py-4">
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 bg-orange-500/20 rounded-xl flex items-center justify-center">
+                    <Plus className="w-5 h-5 text-orange-400" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-medium text-white">New Customer</h3>
+                    <p className="text-sm text-slate-400">Create a new customer site</p>
+                  </div>
+                  <ChevronRight className="w-5 h-5 text-slate-500" />
+                </div>
+              </CardContent>
+            </Card>
+          </Link>
+        </div>
+
+        <div className="flex items-center justify-between">
+          <h2 className="text-xl font-semibold text-white">Customer Sites</h2>
         </div>
 
         {tenantsLoading ? (
