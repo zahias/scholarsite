@@ -92,6 +92,13 @@ export const researcherProfiles = pgTable("researcher_profiles", {
   currentAffiliationUrl: varchar("current_affiliation_url"),
   currentAffiliationStartDate: date("current_affiliation_start_date"),
   email: varchar("email"), // Contact email for the researcher
+  // Social/Academic profile links
+  orcidUrl: varchar("orcid_url"),
+  googleScholarUrl: varchar("google_scholar_url"),
+  researchGateUrl: varchar("research_gate_url"),
+  linkedinUrl: varchar("linkedin_url"),
+  websiteUrl: varchar("website_url"),
+  twitterUrl: varchar("twitter_url"),
   isPublic: boolean("is_public").default(true),
   lastSyncedAt: timestamp("last_synced_at"),
   createdAt: timestamp("created_at").defaultNow(),
