@@ -28,6 +28,8 @@ import {
   AlertCircle,
   Camera,
   Upload,
+  QrCode,
+  Download,
 } from "lucide-react";
 
 interface CurrentUser {
@@ -50,6 +52,12 @@ interface TenantProfile {
   featuredWorks: string[] | null;
   lastSyncedAt: string | null;
   profileImageUrl: string | null;
+  orcidUrl: string | null;
+  googleScholarUrl: string | null;
+  researchGateUrl: string | null;
+  linkedinUrl: string | null;
+  websiteUrl: string | null;
+  twitterUrl: string | null;
 }
 
 interface Domain {
@@ -89,6 +97,8 @@ export default function ResearcherDashboard() {
   const [twitterUrl, setTwitterUrl] = useState("");
   const [linkedinUrl, setLinkedinUrl] = useState("");
   const [googleScholarUrl, setGoogleScholarUrl] = useState("");
+  const [orcidUrl, setOrcidUrl] = useState("");
+  const [researchGateUrl, setResearchGateUrl] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -113,11 +123,12 @@ export default function ResearcherDashboard() {
       setDisplayName(profile.displayName || "");
       setTitle(profile.title || "");
       setBio(profile.bio || "");
-      const social = profile.socialLinks || {};
-      setWebsiteUrl(social.website || "");
-      setTwitterUrl(social.twitter || "");
-      setLinkedinUrl(social.linkedin || "");
-      setGoogleScholarUrl(social.googleScholar || "");
+      setWebsiteUrl(profile.websiteUrl || "");
+      setTwitterUrl(profile.twitterUrl || "");
+      setLinkedinUrl(profile.linkedinUrl || "");
+      setGoogleScholarUrl(profile.googleScholarUrl || "");
+      setOrcidUrl(profile.orcidUrl || "");
+      setResearchGateUrl(profile.researchGateUrl || "");
     }
   }, [tenantData]);
 
@@ -214,17 +225,16 @@ export default function ResearcherDashboard() {
   const handleSaveProfile = async () => {
     setIsSaving(true);
     try {
-      const socialLinks: Record<string, string> = {};
-      if (websiteUrl) socialLinks.website = websiteUrl;
-      if (twitterUrl) socialLinks.twitter = twitterUrl;
-      if (linkedinUrl) socialLinks.linkedin = linkedinUrl;
-      if (googleScholarUrl) socialLinks.googleScholar = googleScholarUrl;
-
       await updateProfileMutation.mutateAsync({
         displayName: displayName || null,
         title: title || null,
         bio: bio || null,
-        socialLinks: Object.keys(socialLinks).length > 0 ? socialLinks : null,
+        websiteUrl: websiteUrl || null,
+        twitterUrl: twitterUrl || null,
+        linkedinUrl: linkedinUrl || null,
+        googleScholarUrl: googleScholarUrl || null,
+        orcidUrl: orcidUrl || null,
+        researchGateUrl: researchGateUrl || null,
       });
     } finally {
       setIsSaving(false);
@@ -608,6 +618,28 @@ export default function ResearcherDashboard() {
                   />
                 </div>
 
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-slate-700">ORCID</label>
+                  <Input
+                    value={orcidUrl}
+                    onChange={(e) => setOrcidUrl(e.target.value)}
+                    placeholder="https://orcid.org/0000-0000-0000-0000"
+                    type="url"
+                    data-testid="input-orcid"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-slate-700">ResearchGate</label>
+                  <Input
+                    value={researchGateUrl}
+                    onChange={(e) => setResearchGateUrl(e.target.value)}
+                    placeholder="https://www.researchgate.net/profile/Your-Name"
+                    type="url"
+                    data-testid="input-researchgate"
+                  />
+                </div>
+
                 <Button
                   onClick={handleSaveProfile}
                   disabled={isSaving}
@@ -650,6 +682,31 @@ export default function ResearcherDashboard() {
                   ) : (
                     <p className="text-sm text-slate-500">
                       Connect your OpenAlex ID to preview your portfolio
+                    </p>
+                  )}
+                </div>
+
+                <Separator />
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-slate-700">QR Code</label>
+                  {profile?.openalexId ? (
+                    <div className="flex items-center gap-2 p-3 bg-purple-50 rounded-lg border border-purple-100">
+                      <QrCode className="w-4 h-4 text-purple-500" />
+                      <span className="text-sm text-purple-700">Download a QR code linking to your portfolio</span>
+                      <a
+                        href={`/api/researcher/${profile.openalexId}/qr-code${primaryDomain ? `?url=https://${primaryDomain.hostname}` : ''}`}
+                        download={`${profile.displayName || 'portfolio'}-qr-code.png`}
+                        className="ml-auto bg-purple-600 text-white px-3 py-1.5 rounded-md text-sm font-medium hover:bg-purple-700 flex items-center gap-1"
+                        data-testid="link-download-qr"
+                      >
+                        <Download className="w-3 h-3" />
+                        Download QR
+                      </a>
+                    </div>
+                  ) : (
+                    <p className="text-sm text-slate-500">
+                      Connect your OpenAlex ID to generate a QR code
                     </p>
                   )}
                 </div>

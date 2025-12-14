@@ -62,6 +62,12 @@ const updateProfileSchema = z.object({
   customCss: z.string().nullable().optional(),
   socialLinks: z.record(z.string()).nullable().optional(),
   featuredWorks: z.array(z.string()).nullable().optional(),
+  orcidUrl: z.string().nullable().optional(),
+  googleScholarUrl: z.string().nullable().optional(),
+  researchGateUrl: z.string().nullable().optional(),
+  linkedinUrl: z.string().nullable().optional(),
+  websiteUrl: z.string().nullable().optional(),
+  twitterUrl: z.string().nullable().optional(),
 });
 
 router.patch("/profile", isAuthenticated, async (req: Request, res: Response) => {

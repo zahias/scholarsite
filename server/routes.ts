@@ -1135,9 +1135,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { openalexId } = req.params;
       const format = (req.query.format as string) || 'bibtex';
       
-      // Get researcher profile (must be public)
+      // Get researcher profile - allow if public OR if accessed from tenant domain
       const profile = await storage.getResearcherProfileByOpenalexId(openalexId);
-      if (!profile || !profile.isPublic) {
+      const tenant = (req as any).tenant;
+      
+      // Allow access if: profile is public OR request comes from a tenant site with matching profile
+      const isAuthorized = profile && (profile.isPublic || (tenant && profile.tenantId === tenant.id));
+      
+      if (!isAuthorized) {
         return res.status(404).json({ message: "Researcher not found or not public" });
       }
 

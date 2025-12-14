@@ -8,7 +8,9 @@ import SEO from "@/components/SEO";
 import MobileBottomNav from "@/components/MobileBottomNav";
 import { Card, CardContent } from "@/components/ui/card";
 import { useMemo } from "react";
-import { MapPin, Building2 } from "lucide-react";
+import { MapPin, Building2, Globe, Linkedin } from "lucide-react";
+import { SiOrcid, SiGooglescholar, SiResearchgate } from "react-icons/si";
+import { FaXTwitter } from "react-icons/fa6";
 
 function getInitials(name: string): string {
   if (!name) return '?';
@@ -212,6 +214,84 @@ export default function TenantProfilePage() {
                   {profile?.bio || `Researcher with ${researcher?.works_count || 0} publications and ${researcher?.cited_by_count || 0} citations.`}
                 </p>
               </div>
+              
+              {/* Social/Academic Profile Links */}
+              {(profile?.orcidUrl || profile?.googleScholarUrl || profile?.researchGateUrl || profile?.linkedinUrl || profile?.websiteUrl || profile?.twitterUrl) && (
+                <div className="flex flex-wrap items-center justify-center lg:justify-start gap-3 md:gap-4" data-testid="social-links-container">
+                  {profile?.orcidUrl && (
+                    <a
+                      href={profile.orcidUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 flex items-center justify-center text-white hover:bg-white/20 hover:scale-110 transition-all duration-300"
+                      title="ORCID"
+                      data-testid="link-orcid"
+                    >
+                      <SiOrcid className="w-5 h-5 md:w-6 md:h-6" />
+                    </a>
+                  )}
+                  {profile?.googleScholarUrl && (
+                    <a
+                      href={profile.googleScholarUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 flex items-center justify-center text-white hover:bg-white/20 hover:scale-110 transition-all duration-300"
+                      title="Google Scholar"
+                      data-testid="link-google-scholar"
+                    >
+                      <SiGooglescholar className="w-5 h-5 md:w-6 md:h-6" />
+                    </a>
+                  )}
+                  {profile?.researchGateUrl && (
+                    <a
+                      href={profile.researchGateUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 flex items-center justify-center text-white hover:bg-white/20 hover:scale-110 transition-all duration-300"
+                      title="ResearchGate"
+                      data-testid="link-researchgate"
+                    >
+                      <SiResearchgate className="w-5 h-5 md:w-6 md:h-6" />
+                    </a>
+                  )}
+                  {profile?.linkedinUrl && (
+                    <a
+                      href={profile.linkedinUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 flex items-center justify-center text-white hover:bg-white/20 hover:scale-110 transition-all duration-300"
+                      title="LinkedIn"
+                      data-testid="link-linkedin"
+                    >
+                      <Linkedin className="w-5 h-5 md:w-6 md:h-6" />
+                    </a>
+                  )}
+                  {profile?.websiteUrl && (
+                    <a
+                      href={profile.websiteUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 flex items-center justify-center text-white hover:bg-white/20 hover:scale-110 transition-all duration-300"
+                      title="Website"
+                      data-testid="link-website"
+                    >
+                      <Globe className="w-5 h-5 md:w-6 md:h-6" />
+                    </a>
+                  )}
+                  {profile?.twitterUrl && (
+                    <a
+                      href={profile.twitterUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 flex items-center justify-center text-white hover:bg-white/20 hover:scale-110 transition-all duration-300"
+                      title="X (Twitter)"
+                      data-testid="link-twitter"
+                    >
+                      <FaXTwitter className="w-5 h-5 md:w-6 md:h-6" />
+                    </a>
+                  )}
+                </div>
+              )}
               
               <div className="flex flex-col sm:flex-row flex-wrap justify-center lg:justify-start gap-2 sm:gap-3 md:gap-4 pt-2 md:pt-4">
                 <a 
