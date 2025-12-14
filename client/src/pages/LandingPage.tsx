@@ -211,7 +211,7 @@ export default function LandingPage() {
               <span className="bg-gradient-to-r from-orange-300 via-orange-200 to-amber-200 bg-clip-text text-transparent">a Google Scholar Page</span>
             </h1>
             <p className="text-lg lg:text-xl text-white/80 mb-10 leading-relaxed">
-              Your professional research portfolio is already built. Claim it.
+              Build your professional research presence in minutes.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button 
@@ -301,12 +301,6 @@ export default function LandingPage() {
                 <p className="text-sm text-muted-foreground">Join the first 100 researchers and lock in founding member pricing.</p>
               </div>
             </div>
-          </div>
-
-          {/* Trust Banner */}
-          <div className="bg-gradient-to-r from-primary/5 to-primary/10 rounded-2xl p-6 text-center" data-testid="trust-banner">
-            <p className="text-sm text-muted-foreground mb-2">Trusted by researchers from</p>
-            <p className="font-medium text-foreground">Harvard • MIT • Stanford • Oxford • Cambridge • and 100,000+ institutions worldwide</p>
           </div>
         </div>
       </section>

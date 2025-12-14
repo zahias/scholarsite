@@ -14,7 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { useRealtimeUpdates } from "@/hooks/useRealtimeUpdates";
 import type { ResearcherProfile } from "@shared/schema";
 import { useMemo, useState, useEffect } from "react";
-import { ArrowLeft, MapPin, Building2, Phone, Mail, Globe, Linkedin, Clock, X } from "lucide-react";
+import { ArrowLeft, MapPin, Building2, Phone, Mail, Globe, Linkedin, Clock, X, QrCode } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { SiOrcid, SiGooglescholar, SiResearchgate } from "react-icons/si";
 import { FaXTwitter } from "react-icons/fa6";
@@ -401,19 +401,19 @@ export default function ResearcherProfile() {
                 </p>
               </div>
               
-              {/* Social/Academic Profile Links */}
+              {/* Social/Academic Profile Links - Redesigned as pills */}
               {(profile?.orcidUrl || profile?.googleScholarUrl || profile?.researchGateUrl || profile?.linkedinUrl || profile?.websiteUrl || profile?.twitterUrl) && (
-                <div className="flex flex-wrap items-center justify-center lg:justify-start gap-3 md:gap-4" data-testid="social-links-container">
+                <div className="flex flex-wrap items-center justify-center lg:justify-start gap-2 md:gap-3" data-testid="social-links-container">
                   {profile?.orcidUrl && (
                     <a
                       href={profile.orcidUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 flex items-center justify-center text-white hover:bg-white/20 hover:scale-110 transition-all duration-300"
-                      title="ORCID"
+                      className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 text-white text-sm hover:bg-white/20 transition-all duration-300"
                       data-testid="link-orcid"
                     >
-                      <SiOrcid className="w-5 h-5 md:w-6 md:h-6" />
+                      <SiOrcid className="w-4 h-4" />
+                      <span>ORCID</span>
                     </a>
                   )}
                   {profile?.googleScholarUrl && (
@@ -421,11 +421,11 @@ export default function ResearcherProfile() {
                       href={profile.googleScholarUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 flex items-center justify-center text-white hover:bg-white/20 hover:scale-110 transition-all duration-300"
-                      title="Google Scholar"
+                      className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 text-white text-sm hover:bg-white/20 transition-all duration-300"
                       data-testid="link-google-scholar"
                     >
-                      <SiGooglescholar className="w-5 h-5 md:w-6 md:h-6" />
+                      <SiGooglescholar className="w-4 h-4" />
+                      <span>Scholar</span>
                     </a>
                   )}
                   {profile?.researchGateUrl && (
@@ -433,11 +433,11 @@ export default function ResearcherProfile() {
                       href={profile.researchGateUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 flex items-center justify-center text-white hover:bg-white/20 hover:scale-110 transition-all duration-300"
-                      title="ResearchGate"
+                      className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 text-white text-sm hover:bg-white/20 transition-all duration-300"
                       data-testid="link-researchgate"
                     >
-                      <SiResearchgate className="w-5 h-5 md:w-6 md:h-6" />
+                      <SiResearchgate className="w-4 h-4" />
+                      <span>ResearchGate</span>
                     </a>
                   )}
                   {profile?.linkedinUrl && (
@@ -445,11 +445,11 @@ export default function ResearcherProfile() {
                       href={profile.linkedinUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 flex items-center justify-center text-white hover:bg-white/20 hover:scale-110 transition-all duration-300"
-                      title="LinkedIn"
+                      className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 text-white text-sm hover:bg-white/20 transition-all duration-300"
                       data-testid="link-linkedin"
                     >
-                      <Linkedin className="w-5 h-5 md:w-6 md:h-6" />
+                      <Linkedin className="w-4 h-4" />
+                      <span>LinkedIn</span>
                     </a>
                   )}
                   {profile?.websiteUrl && (
@@ -457,11 +457,11 @@ export default function ResearcherProfile() {
                       href={profile.websiteUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 flex items-center justify-center text-white hover:bg-white/20 hover:scale-110 transition-all duration-300"
-                      title="Website"
+                      className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 text-white text-sm hover:bg-white/20 transition-all duration-300"
                       data-testid="link-website"
                     >
-                      <Globe className="w-5 h-5 md:w-6 md:h-6" />
+                      <Globe className="w-4 h-4" />
+                      <span>Website</span>
                     </a>
                   )}
                   {profile?.twitterUrl && (
@@ -469,11 +469,11 @@ export default function ResearcherProfile() {
                       href={profile.twitterUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 flex items-center justify-center text-white hover:bg-white/20 hover:scale-110 transition-all duration-300"
-                      title="X (Twitter)"
+                      className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 text-white text-sm hover:bg-white/20 transition-all duration-300"
                       data-testid="link-twitter"
                     >
-                      <FaXTwitter className="w-5 h-5 md:w-6 md:h-6" />
+                      <FaXTwitter className="w-4 h-4" />
+                      <span>X</span>
                     </a>
                   )}
                 </div>
@@ -493,6 +493,16 @@ export default function ResearcherProfile() {
                     <path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z" />
                   </svg>
                   View on OpenAlex
+                </a>
+                <a 
+                  href={`/api/researcher/${openalexId}/qr`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="action-button group bg-white/15 backdrop-blur-sm text-white px-4 sm:px-6 md:px-8 py-3 md:py-4 rounded-xl hover:bg-white/25 transition-all duration-300 border border-white/20 hover:border-white/40 hover:scale-105 font-medium text-sm md:text-base min-h-[44px] flex items-center justify-center w-full sm:w-auto"
+                  data-testid="link-qr-code"
+                >
+                  <QrCode className="w-4 h-4 md:w-5 md:h-5 mr-2 md:mr-3 inline-block group-hover:scale-110 transition-transform duration-300 flex-shrink-0" />
+                  QR Code
                 </a>
                 <a 
                   href={profile?.cvUrl && profile.cvUrl !== '#cv-placeholder' ? profile.cvUrl : '#'} 
