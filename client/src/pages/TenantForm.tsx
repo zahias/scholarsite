@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation, useRoute, Link } from "wouter";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -14,7 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Plus, Trash2, Globe, User, CheckCircle, Save } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, Globe, User, CheckCircle, Save, BookOpen } from "lucide-react";
 
 const tenantSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -63,6 +63,7 @@ export default function TenantFormPage() {
 
   const [newDomain, setNewDomain] = useState("");
   const [newUser, setNewUser] = useState({ email: "", password: "", firstName: "", lastName: "" });
+  const [openalexId, setOpenalexId] = useState("");
 
   const { data: tenantData, isLoading } = useQuery<{ tenant: Tenant }>({
     queryKey: ["/api/admin/tenants", tenantId],
@@ -182,6 +183,30 @@ export default function TenantFormPage() {
       toast({ title: "Error", description: error.message, variant: "destructive" });
     },
   });
+
+  const updateProfileMutation = useMutation({
+    mutationFn: async (newOpenalexId: string) => {
+      const response = await apiRequest("PATCH", `/api/admin/tenants/${tenantId}/profile`, {
+        openalexId: newOpenalexId || null,
+      });
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({ title: "Success", description: "OpenAlex ID updated" });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/tenants", tenantId] });
+    },
+    onError: (error: any) => {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    },
+  });
+
+  // Sync openalexId state when tenant data loads
+  const currentOpenalexId = tenant?.profile?.openalexId || "";
+  useEffect(() => {
+    if (currentOpenalexId) {
+      setOpenalexId(currentOpenalexId);
+    }
+  }, [currentOpenalexId]);
 
   const onSubmit = (data: TenantForm) => {
     if (isNew) {
@@ -481,6 +506,47 @@ export default function TenantFormPage() {
                   <Plus className="w-4 h-4 mr-1" />
                   Add User
                 </Button>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-white/5 border-white/10">
+              <CardHeader>
+                <CardTitle className="text-white flex items-center gap-2">
+                  <BookOpen className="w-5 h-5" />
+                  OpenAlex Profile
+                </CardTitle>
+                <CardDescription className="text-slate-400">
+                  Link this customer to their OpenAlex researcher profile
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center gap-2 p-3 bg-white/5 rounded-lg">
+                  <span className="text-slate-400 text-sm">Current:</span>
+                  <span className="text-white font-mono">
+                    {tenant.profile?.openalexId || "Not set"}
+                  </span>
+                </div>
+                <div className="flex gap-2">
+                  <Input
+                    value={openalexId}
+                    onChange={(e) => setOpenalexId(e.target.value)}
+                    placeholder="A1234567890 (OpenAlex Author ID)"
+                    className="bg-white/5 border-white/10 text-white font-mono"
+                    data-testid="input-openalexid"
+                  />
+                  <Button
+                    onClick={() => updateProfileMutation.mutate(openalexId)}
+                    disabled={updateProfileMutation.isPending}
+                    className="bg-purple-500 hover:bg-purple-600"
+                    data-testid="button-update-openalexid"
+                  >
+                    <Save className="w-4 h-4 mr-1" />
+                    Save
+                  </Button>
+                </div>
+                <p className="text-xs text-slate-500">
+                  Find the OpenAlex ID by searching on openalex.org. The ID starts with "A" followed by numbers.
+                </p>
               </CardContent>
             </Card>
 
