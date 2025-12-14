@@ -1870,6 +1870,34 @@ router3.post("/tenants/:id/users", isAuthenticated, isAdmin, async (req, res) =>
     return res.status(500).json({ message: "Failed to create user" });
   }
 });
+router3.patch("/tenants/:id/profile", isAuthenticated, isAdmin, async (req, res) => {
+  try {
+    const tenant = await storage.getTenant(req.params.id);
+    if (!tenant) {
+      return res.status(404).json({ message: "Tenant not found" });
+    }
+    const updateProfileSchema2 = z4.object({
+      openalexId: z4.string().optional().nullable()
+    });
+    const validatedData = updateProfileSchema2.parse(req.body);
+    const profile = await storage.updateTenantProfile(req.params.id, {
+      openalexId: validatedData.openalexId || null
+    });
+    return res.json({
+      message: "Profile updated",
+      profile
+    });
+  } catch (error) {
+    if (error instanceof z4.ZodError) {
+      return res.status(400).json({
+        message: "Validation error",
+        errors: error.errors
+      });
+    }
+    console.error("Update profile error:", error);
+    return res.status(500).json({ message: "Failed to update profile" });
+  }
+});
 router3.post("/tenants/:id/activate", isAuthenticated, isAdmin, async (req, res) => {
   try {
     const tenant = await storage.getTenant(req.params.id);
