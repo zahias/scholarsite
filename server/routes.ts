@@ -1077,7 +1077,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         throw new Error(`OpenAlex API error: ${response.status}`);
       }
       
-      const data = await response.json();
+      const data = await response.json() as { results: any[] };
       
       // Transform results to a simpler format
       const results = data.results.map((author: any) => ({

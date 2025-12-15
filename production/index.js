@@ -3410,6 +3410,7 @@ function serveStatic(app2) {
 
 // server/index.production.ts
 var app = express2();
+app.set("trust proxy", 1);
 app.use(express2.json());
 app.use(express2.urlencoded({ extended: true }));
 var PgSession = connectPgSimple(session);
@@ -3422,10 +3423,12 @@ app.use(session({
   secret: process.env.SESSION_SECRET || "research-profile-admin-secret-key",
   resave: false,
   saveUninitialized: false,
+  proxy: true,
   cookie: {
-    secure: process.env.NODE_ENV === "production",
+    secure: "auto",
     httpOnly: true,
-    maxAge: 24 * 60 * 60 * 1e3
+    maxAge: 24 * 60 * 60 * 1e3,
+    sameSite: "lax"
   }
 }));
 app.use((req, res, next) => {

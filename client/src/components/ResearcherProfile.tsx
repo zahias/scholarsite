@@ -16,7 +16,7 @@ import { Badge } from "@/components/ui/badge";
 import { useRealtimeUpdates } from "@/hooks/useRealtimeUpdates";
 import type { ResearcherProfile as ResearcherProfileType } from "@shared/schema";
 import { useMemo, useState, useEffect } from "react";
-import { ArrowLeft, MapPin, Building2, Phone, Mail, Globe, Linkedin, Clock, X, QrCode } from "lucide-react";
+import { ArrowLeft, MapPin, Building2, Mail, Globe, Linkedin, Clock } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { SiOrcid, SiGooglescholar, SiResearchgate } from "react-icons/si";
 import { FaXTwitter } from "react-icons/fa6";
@@ -484,57 +484,44 @@ function ResearcherProfileContent() {
                 </div>
               )}
               
-              {/* Enhanced Action Buttons - Stack on mobile */}
-              <div className="flex flex-col sm:flex-row flex-wrap justify-center lg:justify-start gap-2 sm:gap-3 md:gap-4 pt-2 md:pt-4">
+              {/* Streamlined Action Buttons - Primary actions only */}
+              <div className="flex flex-col sm:flex-row flex-wrap justify-center lg:justify-start gap-3 pt-2 md:pt-4">
+                {(profile?.contactEmail || profile?.email) && (
+                  <a 
+                    href={`mailto:${profile.contactEmail || profile.email}`}
+                    className="action-button group bg-white text-primary px-6 md:px-8 py-3 md:py-4 rounded-xl hover:bg-white/90 transition-all duration-300 font-medium shadow-lg hover:shadow-xl hover:scale-105 text-sm md:text-base min-h-[44px] flex items-center justify-center w-full sm:w-auto"
+                    data-testid="link-contact"
+                  >
+                    <Mail className="w-4 h-4 md:w-5 md:h-5 mr-2 md:mr-3 group-hover:scale-110 transition-transform duration-300 flex-shrink-0" />
+                    Get In Touch
+                  </a>
+                )}
+                {profile?.cvUrl && profile.cvUrl !== '#cv-placeholder' && (
+                  <a 
+                    href={profile.cvUrl} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="action-button group bg-white/15 backdrop-blur-sm text-white px-6 md:px-8 py-3 md:py-4 rounded-xl hover:bg-white/25 transition-all duration-300 border border-white/20 hover:border-white/40 hover:scale-105 font-medium text-sm md:text-base min-h-[44px] flex items-center justify-center w-full sm:w-auto"
+                    data-testid="link-cv"
+                  >
+                    <svg className="w-4 h-4 md:w-5 md:h-5 mr-2 md:mr-3 inline-block group-hover:scale-110 transition-transform duration-300 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clipRule="evenodd" />
+                    </svg>
+                    Download CV
+                  </a>
+                )}
                 <a 
                   href={`https://openalex.org/authors/${openalexId}`} 
                   target="_blank" 
                   rel="noopener noreferrer"
-                  className="action-button group bg-white/15 backdrop-blur-sm text-white px-4 sm:px-6 md:px-8 py-3 md:py-4 rounded-xl hover:bg-white/25 transition-all duration-300 border border-white/20 hover:border-white/40 hover:scale-105 font-medium text-sm md:text-base min-h-[44px] flex items-center justify-center w-full sm:w-auto"
+                  className="action-button group bg-white/10 backdrop-blur-sm text-white px-6 md:px-8 py-3 md:py-4 rounded-xl hover:bg-white/20 transition-all duration-300 border border-white/15 hover:border-white/30 font-medium text-sm md:text-base min-h-[44px] flex items-center justify-center w-full sm:w-auto"
                   data-testid="link-openalex"
                 >
                   <svg className="w-4 h-4 md:w-5 md:h-5 mr-2 md:mr-3 inline-block group-hover:rotate-12 transition-transform duration-300 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                     <path d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z" />
                     <path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z" />
                   </svg>
-                  View on OpenAlex
-                </a>
-                <a 
-                  href={`/api/researcher/${openalexId}/qr`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="action-button group bg-white/15 backdrop-blur-sm text-white px-4 sm:px-6 md:px-8 py-3 md:py-4 rounded-xl hover:bg-white/25 transition-all duration-300 border border-white/20 hover:border-white/40 hover:scale-105 font-medium text-sm md:text-base min-h-[44px] flex items-center justify-center w-full sm:w-auto"
-                  data-testid="link-qr-code"
-                >
-                  <QrCode className="w-4 h-4 md:w-5 md:h-5 mr-2 md:mr-3 inline-block group-hover:scale-110 transition-transform duration-300 flex-shrink-0" />
-                  QR Code
-                </a>
-                <a 
-                  href={profile?.cvUrl && profile.cvUrl !== '#cv-placeholder' ? profile.cvUrl : '#'} 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className={`action-button group bg-white text-primary px-4 sm:px-6 md:px-8 py-3 md:py-4 rounded-xl hover:bg-white/90 transition-all duration-300 font-medium shadow-lg hover:shadow-xl hover:scale-105 text-sm md:text-base min-h-[44px] flex items-center justify-center w-full sm:w-auto ${!profile?.cvUrl || profile.cvUrl === '#cv-placeholder' ? 'opacity-75' : ''}`}
-                  data-testid="link-cv"
-                  onClick={(e) => (!profile?.cvUrl || profile.cvUrl === '#cv-placeholder') && e.preventDefault()}
-                >
-                  <svg className="w-4 h-4 md:w-5 md:h-5 mr-2 md:mr-3 inline-block text-red-600 group-hover:scale-110 transition-transform duration-300 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clipRule="evenodd" />
-                  </svg>
-                  <span>Download CV</span>
-                  {profile?.isPreview && (!profile?.cvUrl || profile.cvUrl === '#cv-placeholder') && <span className="text-xs ml-1 opacity-60">(Preview)</span>}
-                </a>
-                <a 
-                  href={profile?.contactEmail || profile?.email ? `mailto:${profile.contactEmail || profile.email}` : '#'}
-                  className={`action-button group bg-gradient-to-r from-accent/20 to-accent/10 backdrop-blur-sm text-white px-4 sm:px-6 md:px-8 py-3 md:py-4 rounded-xl hover:from-accent/30 hover:to-accent/20 transition-all duration-300 border border-accent/20 hover:border-accent/40 font-medium text-sm md:text-base min-h-[44px] flex items-center justify-center w-full sm:w-auto ${!profile?.contactEmail && !profile?.email ? 'opacity-75' : ''}`}
-                  data-testid="link-contact"
-                  onClick={(e) => (!profile?.contactEmail && !profile?.email) && e.preventDefault()}
-                >
-                  <svg className="w-4 h-4 md:w-5 md:h-5 mr-2 md:mr-3 inline-block group-hover:scale-110 transition-transform duration-300 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
-                    <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
-                  </svg>
-                  Get In Touch
-                  {profile?.isPreview && (!profile?.contactEmail && !profile?.email) && <span className="text-xs ml-1 opacity-60">(Preview)</span>}
+                  OpenAlex Profile
                 </a>
               </div>
               

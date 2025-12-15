@@ -7,6 +7,10 @@ import { serveStatic, log } from "./static";
 import { startSyncScheduler } from "./services/syncScheduler";
 
 const app = express();
+
+// Trust proxy for proper HTTPS detection behind reverse proxy
+app.set('trust proxy', 1);
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true })); // Changed to true for form parsing
 
@@ -21,10 +25,12 @@ app.use(session({
   secret: process.env.SESSION_SECRET || 'research-profile-admin-secret-key',
   resave: false,
   saveUninitialized: false,
+  proxy: true,
   cookie: {
-    secure: process.env.NODE_ENV === 'production',
+    secure: 'auto',
     httpOnly: true,
-    maxAge: 24 * 60 * 60 * 1000 // 24 hours
+    maxAge: 24 * 60 * 60 * 1000, // 24 hours
+    sameSite: 'lax'
   }
 }));
 
