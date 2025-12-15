@@ -1,12 +1,141 @@
 var __defProp = Object.defineProperty;
+var __getOwnPropNames = Object.getOwnPropertyNames;
+var __esm = (fn, res) => function __init() {
+  return fn && (res = (0, fn[__getOwnPropNames(fn)[0]])(fn = 0)), res;
+};
 var __export = (target, all) => {
   for (var name in all)
     __defProp(target, name, { get: all[name], enumerable: true });
 };
 
-// server/index-production.ts
-import "dotenv/config";
+// vite.config.ts
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
+import path2 from "path";
+import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
+var vite_config_default;
+var init_vite_config = __esm({
+  async "vite.config.ts"() {
+    "use strict";
+    vite_config_default = defineConfig({
+      plugins: [
+        react(),
+        runtimeErrorOverlay(),
+        ...process.env.NODE_ENV !== "production" && process.env.REPL_ID !== void 0 ? [
+          await import("@replit/vite-plugin-cartographer").then(
+            (m) => m.cartographer()
+          )
+        ] : []
+      ],
+      resolve: {
+        alias: {
+          "@": path2.resolve(import.meta.dirname, "client", "src"),
+          "@shared": path2.resolve(import.meta.dirname, "shared"),
+          "@assets": path2.resolve(import.meta.dirname, "attached_assets")
+        }
+      },
+      root: path2.resolve(import.meta.dirname, "client"),
+      build: {
+        outDir: path2.resolve(import.meta.dirname, "dist/public"),
+        emptyOutDir: true
+      },
+      server: {
+        fs: {
+          strict: true,
+          deny: ["**/.*"]
+        }
+      }
+    });
+  }
+});
+
+// server/vite.ts
+var vite_exports = {};
+__export(vite_exports, {
+  log: () => log2,
+  serveStatic: () => serveStatic2,
+  setupVite: () => setupVite
+});
 import express2 from "express";
+import fs2 from "fs";
+import path3 from "path";
+import { createServer as createViteServer, createLogger } from "vite";
+import { nanoid } from "nanoid";
+function log2(message, source = "express") {
+  const formattedTime = (/* @__PURE__ */ new Date()).toLocaleTimeString("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: true
+  });
+  console.log(`${formattedTime} [${source}] ${message}`);
+}
+async function setupVite(app2, server) {
+  const serverOptions = {
+    middlewareMode: true,
+    hmr: { server },
+    allowedHosts: true
+  };
+  const vite = await createViteServer({
+    ...vite_config_default,
+    configFile: false,
+    customLogger: {
+      ...viteLogger,
+      error: (msg, options) => {
+        viteLogger.error(msg, options);
+        process.exit(1);
+      }
+    },
+    server: serverOptions,
+    appType: "custom"
+  });
+  app2.use(vite.middlewares);
+  app2.use("*", async (req, res, next) => {
+    const url = req.originalUrl;
+    try {
+      const clientTemplate = path3.resolve(
+        import.meta.dirname,
+        "..",
+        "client",
+        "index.html"
+      );
+      let template = await fs2.promises.readFile(clientTemplate, "utf-8");
+      template = template.replace(
+        `src="/src/main.tsx"`,
+        `src="/src/main.tsx?v=${nanoid()}"`
+      );
+      const page = await vite.transformIndexHtml(url, template);
+      res.status(200).set({ "Content-Type": "text/html" }).end(page);
+    } catch (e) {
+      vite.ssrFixStacktrace(e);
+      next(e);
+    }
+  });
+}
+function serveStatic2(app2) {
+  const distPath = path3.resolve(import.meta.dirname, "public");
+  if (!fs2.existsSync(distPath)) {
+    throw new Error(
+      `Could not find the build directory: ${distPath}, make sure to build the client first`
+    );
+  }
+  app2.use(express2.static(distPath));
+  app2.use("*", (_req, res) => {
+    res.sendFile(path3.resolve(distPath, "index.html"));
+  });
+}
+var viteLogger;
+var init_vite = __esm({
+  async "server/vite.ts"() {
+    "use strict";
+    await init_vite_config();
+    viteLogger = createLogger();
+  }
+});
+
+// server/index.ts
+import "dotenv/config";
+import express3 from "express";
 import session from "express-session";
 import connectPgSimple from "connect-pg-simple";
 
@@ -22,6 +151,7 @@ __export(schema_exports, {
   insertDomainSchema: () => insertDomainSchema,
   insertResearcherProfileSchema: () => insertResearcherProfileSchema,
   insertTenantSchema: () => insertTenantSchema,
+  insertThemeSchema: () => insertThemeSchema,
   loginUserSchema: () => loginUserSchema,
   openalexData: () => openalexData,
   publications: () => publications,
@@ -30,9 +160,11 @@ __export(schema_exports, {
   researcherProfiles: () => researcherProfiles,
   siteSettings: () => siteSettings,
   tenants: () => tenants,
+  themes: () => themes,
   updateDomainSchema: () => updateDomainSchema,
   updateResearcherProfileSchema: () => updateResearcherProfileSchema,
   updateTenantSchema: () => updateTenantSchema,
+  updateThemeSchema: () => updateThemeSchema,
   users: () => users
 });
 import { sql } from "drizzle-orm";
@@ -66,6 +198,8 @@ var tenants = pgTable("tenants", {
   primaryColor: varchar("primary_color").default("#0B1F3A"),
   accentColor: varchar("accent_color").default("#F2994A"),
   logoUrl: varchar("logo_url"),
+  selectedThemeId: varchar("selected_theme_id"),
+  // Reference to themes table
   // Contact
   contactEmail: varchar("contact_email"),
   notes: text("notes"),
@@ -117,6 +251,15 @@ var researcherProfiles = pgTable("researcher_profiles", {
   currentAffiliationStartDate: date("current_affiliation_start_date"),
   email: varchar("email"),
   // Contact email for the researcher
+  // Social/Academic profile links
+  orcidUrl: varchar("orcid_url"),
+  googleScholarUrl: varchar("google_scholar_url"),
+  researchGateUrl: varchar("research_gate_url"),
+  linkedinUrl: varchar("linkedin_url"),
+  websiteUrl: varchar("website_url"),
+  twitterUrl: varchar("twitter_url"),
+  selectedThemeId: varchar("selected_theme_id"),
+  // Reference to themes table
   isPublic: boolean("is_public").default(true),
   lastSyncedAt: timestamp("last_synced_at"),
   createdAt: timestamp("created_at").defaultNow(),
@@ -189,6 +332,26 @@ var siteSettings = pgTable("site_settings", {
   // e.g., 'theme', 'contact_email', 'platform_name'
   settingValue: text("setting_value").notNull(),
   updatedAt: timestamp("updated_at").defaultNow()
+});
+var themes = pgTable("themes", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: varchar("name").notNull().unique(),
+  description: text("description"),
+  config: jsonb("config").$type().notNull(),
+  previewImageUrl: varchar("preview_image_url"),
+  isActive: boolean("is_active").default(true).notNull(),
+  isDefault: boolean("is_default").default(false).notNull(),
+  sortOrder: integer("sort_order").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow()
+});
+var insertThemeSchema = createInsertSchema(themes).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true
+});
+var updateThemeSchema = insertThemeSchema.partial().extend({
+  id: z.string()
 });
 var insertResearcherProfileSchema = createInsertSchema(researcherProfiles).omit({
   id: true,
@@ -556,6 +719,44 @@ var DatabaseStorage = class {
     }).returning();
     return setting;
   }
+  // Theme operations
+  async getTheme(id) {
+    const [theme] = await db.select().from(themes).where(eq(themes.id, id));
+    return theme;
+  }
+  async getThemeByName(name) {
+    const [theme] = await db.select().from(themes).where(eq(themes.name, name));
+    return theme;
+  }
+  async getAllThemes() {
+    return await db.select().from(themes).orderBy(themes.sortOrder, themes.name);
+  }
+  async getActiveThemes() {
+    return await db.select().from(themes).where(eq(themes.isActive, true)).orderBy(themes.sortOrder, themes.name);
+  }
+  async getDefaultTheme() {
+    const [theme] = await db.select().from(themes).where(and(eq(themes.isDefault, true), eq(themes.isActive, true)));
+    return theme;
+  }
+  async createTheme(theme) {
+    const [result] = await db.insert(themes).values({
+      ...theme,
+      id: generateUUID()
+    }).returning();
+    return result;
+  }
+  async updateTheme(id, updates) {
+    const [result] = await db.update(themes).set({ ...updates, updatedAt: /* @__PURE__ */ new Date() }).where(eq(themes.id, id)).returning();
+    return result;
+  }
+  async deleteTheme(id) {
+    await db.delete(themes).where(eq(themes.id, id));
+  }
+  async setDefaultTheme(id) {
+    await db.update(themes).set({ isDefault: false }).where(eq(themes.isDefault, true));
+    const [result] = await db.update(themes).set({ isDefault: true, updatedAt: /* @__PURE__ */ new Date() }).where(eq(themes.id, id)).returning();
+    return result;
+  }
 };
 var storage = new DatabaseStorage();
 
@@ -805,7 +1006,7 @@ var ObjectStorageService = class {
     const pathsStr = process.env.PUBLIC_OBJECT_SEARCH_PATHS || "";
     const paths = Array.from(
       new Set(
-        pathsStr.split(",").map((path2) => path2.trim()).filter((path2) => path2.length > 0)
+        pathsStr.split(",").map((path4) => path4.trim()).filter((path4) => path4.length > 0)
       )
     );
     if (paths.length === 0) {
@@ -965,11 +1166,11 @@ var ObjectStorageService = class {
     });
   }
 };
-function parseObjectPath(path2) {
-  if (!path2.startsWith("/")) {
-    path2 = `/${path2}`;
+function parseObjectPath(path4) {
+  if (!path4.startsWith("/")) {
+    path4 = `/${path4}`;
   }
-  const pathParts = path2.split("/");
+  const pathParts = path4.split("/");
   if (pathParts.length < 3) {
     throw new Error("Invalid path: must contain at least a bucket name");
   }
@@ -1385,8 +1586,8 @@ import bcrypt3 from "bcryptjs";
 var openalexService = new OpenAlexService();
 var syncLogs = [];
 var MAX_LOGS = 100;
-function addSyncLog(log2) {
-  syncLogs.unshift(log2);
+function addSyncLog(log3) {
+  syncLogs.unshift(log3);
   if (syncLogs.length > MAX_LOGS) {
     syncLogs.pop();
   }
@@ -1415,7 +1616,7 @@ function isDueForSync(lastSyncedAt, frequency) {
   return now - lastSync >= intervalMs;
 }
 async function syncTenant(tenantId, tenantName, openalexId, syncFrequency) {
-  const log2 = {
+  const log3 = {
     tenantId,
     tenantName,
     openalexId,
@@ -1437,16 +1638,16 @@ async function syncTenant(tenantId, tenantName, openalexId, syncFrequency) {
     await storage.updateTenant(tenantId, {
       lastSyncAt: /* @__PURE__ */ new Date()
     });
-    log2.status = "success";
-    log2.message = "Data synced successfully from OpenAlex";
-    log2.lastSyncedAt = /* @__PURE__ */ new Date();
+    log3.status = "success";
+    log3.message = "Data synced successfully from OpenAlex";
+    log3.lastSyncedAt = /* @__PURE__ */ new Date();
     console.log(`[SyncScheduler] Completed sync for tenant: ${tenantName}`);
   } catch (error) {
-    log2.status = "error";
-    log2.message = error instanceof Error ? error.message : "Unknown error";
+    log3.status = "error";
+    log3.message = error instanceof Error ? error.message : "Unknown error";
     console.error(`[SyncScheduler] Error syncing tenant ${tenantName}:`, error);
   }
-  return log2;
+  return log3;
 }
 async function runScheduledSync() {
   console.log("[SyncScheduler] Starting scheduled sync check...");
@@ -1489,9 +1690,9 @@ async function runScheduledSync() {
         stats.skipped++;
         continue;
       }
-      const log2 = await syncTenant(tenant.id, tenant.name, profile.openalexId, syncFrequency);
-      addSyncLog(log2);
-      if (log2.status === "success") {
+      const log3 = await syncTenant(tenant.id, tenant.name, profile.openalexId, syncFrequency);
+      addSyncLog(log3);
+      if (log3.status === "success") {
         stats.synced++;
       } else {
         stats.errors++;
@@ -1538,9 +1739,9 @@ async function forceSyncTenant(tenantId) {
       timestamp: /* @__PURE__ */ new Date()
     };
   }
-  const log2 = await syncTenant(tenantId, tenant.name, profile.openalexId, tenant.syncFrequency || "monthly");
-  addSyncLog(log2);
-  return log2;
+  const log3 = await syncTenant(tenantId, tenant.name, profile.openalexId, tenant.syncFrequency || "monthly");
+  addSyncLog(log3);
+  return log3;
 }
 
 // server/tenantRoutes.ts
@@ -1948,13 +2149,13 @@ router3.post("/sync/run", isAuthenticated, isAdmin, async (req, res) => {
 });
 router3.post("/tenants/:id/sync", isAuthenticated, isAdmin, async (req, res) => {
   try {
-    const log2 = await forceSyncTenant(req.params.id);
-    if (!log2) {
+    const log3 = await forceSyncTenant(req.params.id);
+    if (!log3) {
       return res.status(404).json({ message: "Tenant not found" });
     }
     return res.json({
-      message: log2.status === "success" ? "Sync completed successfully" : log2.message,
-      log: log2
+      message: log3.status === "success" ? "Sync completed successfully" : log3.message,
+      log: log3
     });
   } catch (error) {
     console.error("Force sync error:", error);
@@ -2017,7 +2218,13 @@ var updateProfileSchema = z5.object({
   bio: z5.string().nullable().optional(),
   customCss: z5.string().nullable().optional(),
   socialLinks: z5.record(z5.string()).nullable().optional(),
-  featuredWorks: z5.array(z5.string()).nullable().optional()
+  featuredWorks: z5.array(z5.string()).nullable().optional(),
+  orcidUrl: z5.string().nullable().optional(),
+  googleScholarUrl: z5.string().nullable().optional(),
+  researchGateUrl: z5.string().nullable().optional(),
+  linkedinUrl: z5.string().nullable().optional(),
+  websiteUrl: z5.string().nullable().optional(),
+  twitterUrl: z5.string().nullable().optional()
 });
 router4.patch("/profile", isAuthenticated2, async (req, res) => {
   try {
@@ -2995,7 +3202,9 @@ async function registerRoutes(app2) {
       const { openalexId } = req.params;
       const format = req.query.format || "bibtex";
       const profile = await storage.getResearcherProfileByOpenalexId(openalexId);
-      if (!profile || !profile.isPublic) {
+      const tenant = req.tenant;
+      const isAuthorized = profile && (profile.isPublic || tenant && profile.tenantId === tenant.id);
+      if (!isAuthorized) {
         return res.status(404).json({ message: "Researcher not found or not public" });
       }
       const publications2 = await storage.getPublications(openalexId);
@@ -3200,6 +3409,99 @@ async function registerRoutes(app2) {
       res.status(500).json({ message: "Failed to update settings" });
     }
   });
+  app2.get("/api/themes", async (req, res) => {
+    try {
+      const activeThemes = await storage.getActiveThemes();
+      res.json(activeThemes);
+    } catch (error) {
+      console.error("Error fetching themes:", error);
+      res.status(500).json({ message: "Failed to fetch themes" });
+    }
+  });
+  app2.get("/api/themes/default", async (req, res) => {
+    try {
+      const defaultTheme = await storage.getDefaultTheme();
+      res.json(defaultTheme || null);
+    } catch (error) {
+      console.error("Error fetching default theme:", error);
+      res.status(500).json({ message: "Failed to fetch default theme" });
+    }
+  });
+  app2.get("/api/themes/:id", async (req, res) => {
+    try {
+      const theme = await storage.getTheme(req.params.id);
+      if (!theme) {
+        return res.status(404).json({ message: "Theme not found" });
+      }
+      res.json(theme);
+    } catch (error) {
+      console.error("Error fetching theme:", error);
+      res.status(500).json({ message: "Failed to fetch theme" });
+    }
+  });
+  app2.get("/api/admin/themes", adminRateLimit, adminSessionAuthMiddleware, async (req, res) => {
+    try {
+      const allThemes = await storage.getAllThemes();
+      res.json(allThemes);
+    } catch (error) {
+      console.error("Error fetching all themes:", error);
+      res.status(500).json({ message: "Failed to fetch themes" });
+    }
+  });
+  app2.post("/api/admin/themes", adminRateLimit, adminSessionAuthMiddleware, async (req, res) => {
+    try {
+      const themeData = req.body;
+      const newTheme = await storage.createTheme(themeData);
+      res.status(201).json(newTheme);
+    } catch (error) {
+      console.error("Error creating theme:", error);
+      res.status(500).json({ message: "Failed to create theme" });
+    }
+  });
+  app2.patch("/api/admin/themes/:id", adminRateLimit, adminSessionAuthMiddleware, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const updates = req.body;
+      const updatedTheme = await storage.updateTheme(id, updates);
+      if (!updatedTheme) {
+        return res.status(404).json({ message: "Theme not found" });
+      }
+      res.json(updatedTheme);
+    } catch (error) {
+      console.error("Error updating theme:", error);
+      res.status(500).json({ message: "Failed to update theme" });
+    }
+  });
+  app2.post("/api/admin/themes/:id/set-default", adminRateLimit, adminSessionAuthMiddleware, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const updatedTheme = await storage.setDefaultTheme(id);
+      if (!updatedTheme) {
+        return res.status(404).json({ message: "Theme not found" });
+      }
+      res.json(updatedTheme);
+    } catch (error) {
+      console.error("Error setting default theme:", error);
+      res.status(500).json({ message: "Failed to set default theme" });
+    }
+  });
+  app2.delete("/api/admin/themes/:id", adminRateLimit, adminSessionAuthMiddleware, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const theme = await storage.getTheme(id);
+      if (!theme) {
+        return res.status(404).json({ message: "Theme not found" });
+      }
+      if (theme.isDefault) {
+        return res.status(400).json({ message: "Cannot delete the default theme" });
+      }
+      await storage.deleteTheme(id);
+      res.json({ message: "Theme deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting theme:", error);
+      res.status(500).json({ message: "Failed to delete theme" });
+    }
+  });
   const httpServer = createServer(app2);
   return httpServer;
 }
@@ -3233,32 +3535,32 @@ function serveStatic(app2) {
   });
 }
 
-// server/index-production.ts
-var app = express2();
-app.set("trust proxy", 1);
-app.use(express2.json());
-app.use(express2.urlencoded({ extended: true }));
+// server/index.ts
+var app = express3();
+app.use(express3.json());
+app.use(express3.urlencoded({ extended: true }));
 var PgSession = connectPgSimple(session);
 app.use(session({
   store: new PgSession({
-    pool,
+    conString: process.env.DATABASE_URL,
     tableName: "sessions",
-    createTableIfMissing: false
+    // Managed by connect-pg-simple
+    createTableIfMissing: true
+    // Allow connect-pg-simple to manage the sessions table
   }),
   secret: process.env.SESSION_SECRET || "research-profile-admin-secret-key",
   resave: false,
   saveUninitialized: false,
-  proxy: true,
   cookie: {
-    secure: true,
+    secure: process.env.NODE_ENV === "production",
     httpOnly: true,
-    sameSite: "lax",
     maxAge: 24 * 60 * 60 * 1e3
+    // 24 hours
   }
 }));
 app.use((req, res, next) => {
   const start = Date.now();
-  const path2 = req.path;
+  const path4 = req.path;
   let capturedJsonResponse = void 0;
   const originalResJson = res.json;
   res.json = function(bodyJson, ...args) {
@@ -3267,8 +3569,8 @@ app.use((req, res, next) => {
   };
   res.on("finish", () => {
     const duration = Date.now() - start;
-    if (path2.startsWith("/api")) {
-      let logLine = `${req.method} ${path2} ${res.statusCode} in ${duration}ms`;
+    if (path4.startsWith("/api")) {
+      let logLine = `${req.method} ${path4} ${res.statusCode} in ${duration}ms`;
       if (capturedJsonResponse) {
         logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
       }
@@ -3288,11 +3590,28 @@ app.use((req, res, next) => {
     res.status(status).json({ message });
     throw err;
   });
-  serveStatic(app);
+  if (app.get("env") === "development") {
+    const { setupVite: setupVite2 } = await init_vite().then(() => vite_exports);
+    await setupVite2(app, server);
+  } else {
+    serveStatic(app);
+  }
   const port = parseInt(process.env.PORT || "5000", 10);
-  server.listen(port, () => {
-    log(`serving on port ${port}`);
-    startSyncScheduler(1);
-    log("Sync scheduler started - checking tenants hourly");
-  });
+  if (process.env.NODE_ENV === "production") {
+    server.listen(port, () => {
+      log(`serving on port ${port}`);
+      startSyncScheduler(1);
+      log("Sync scheduler started - checking tenants hourly");
+    });
+  } else {
+    server.listen({
+      port,
+      host: "0.0.0.0",
+      reusePort: true
+    }, () => {
+      log(`serving on port ${port}`);
+      startSyncScheduler(1);
+      log("Sync scheduler started - checking tenants hourly");
+    });
+  }
 })();
