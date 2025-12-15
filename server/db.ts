@@ -8,18 +8,17 @@ if (!process.env.DATABASE_URL) {
   );
 }
 
-// Remove any SSL params from connection string and explicitly disable SSL
-// A2 Hosting PostgreSQL does not support SSL connections
-let connectionString = process.env.DATABASE_URL || '';
-connectionString = connectionString
-  .replace(/[?&]sslmode=[^&]*/gi, '')
-  .replace(/[?&]ssl=[^&]*/gi, '');
+const connectionString = process.env.DATABASE_URL || '';
 
-console.log('Database connection initialized (SSL disabled for A2 Hosting compatibility)');
+// Determine SSL configuration based on database host
+// Neon databases require SSL, A2 Hosting local PostgreSQL does not
+const isNeonDatabase = connectionString.includes('neon.tech') || connectionString.includes('neon.com');
+
+console.log(`Database connection initialized (SSL ${isNeonDatabase ? 'enabled' : 'disabled'})`);
 
 export const pool = new Pool({ 
   connectionString: connectionString,
-  ssl: false
+  ssl: isNeonDatabase ? { rejectUnauthorized: false } : false
 });
 
 export const db = drizzle(pool, { schema });
