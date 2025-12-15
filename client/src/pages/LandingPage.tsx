@@ -206,9 +206,19 @@ export default function LandingPage() {
               Your Research Deserves Better Than{" "}
               <span className="bg-gradient-to-r from-orange-300 via-orange-200 to-amber-200 bg-clip-text text-transparent">a Google Scholar Page</span>
             </h1>
-            <p className="text-lg lg:text-xl text-white/80 mb-10 leading-relaxed">
+            <p className="text-lg lg:text-xl text-white/80 mb-6 leading-relaxed">
               Build your professional research presence in minutes.
             </p>
+            <div className="flex items-center justify-center gap-6 mb-10 text-white/70 text-sm">
+              <span className="flex items-center gap-2">
+                <Database className="w-4 h-4" />
+                250M+ Research Papers
+              </span>
+              <span className="flex items-center gap-2">
+                <GraduationCap className="w-4 h-4" />
+                100K+ Institutions
+              </span>
+            </div>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button 
                 size="lg" 
@@ -236,23 +246,6 @@ export default function LandingPage() {
       {/* Credibility Section */}
       <section className="py-16 lg:py-20 bg-white border-b">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Stats Row */}
-          <div className="grid grid-cols-2 gap-6 mb-12 max-w-md mx-auto">
-            <div className="text-center" data-testid="stat-papers">
-              <div className="flex items-center justify-center gap-2 mb-2">
-                <Database className="w-5 h-5 text-primary" />
-                <span className="text-3xl font-bold text-foreground">250M+</span>
-              </div>
-              <p className="text-sm text-muted-foreground">Research Papers</p>
-            </div>
-            <div className="text-center" data-testid="stat-institutions">
-              <div className="flex items-center justify-center gap-2 mb-2">
-                <GraduationCap className="w-5 h-5 text-primary" />
-                <span className="text-3xl font-bold text-foreground">100K+</span>
-              </div>
-              <p className="text-sm text-muted-foreground">Institutions</p>
-            </div>
-          </div>
 
           {/* Feature Highlights */}
           <div className="grid md:grid-cols-3 gap-8 mb-12">
