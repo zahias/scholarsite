@@ -206,19 +206,9 @@ export default function LandingPage() {
               Your Research Deserves Better Than{" "}
               <span className="bg-gradient-to-r from-orange-300 via-orange-200 to-amber-200 bg-clip-text text-transparent">a Google Scholar Page</span>
             </h1>
-            <p className="text-lg lg:text-xl text-white/80 mb-6 leading-relaxed">
+            <p className="text-lg lg:text-xl text-white/80 mb-10 leading-relaxed">
               Build your professional research presence in minutes.
             </p>
-            <div className="flex items-center justify-center gap-6 mb-10 text-white/70 text-sm">
-              <span className="flex items-center gap-2">
-                <Database className="w-4 h-4" />
-                250M+ Research Papers
-              </span>
-              <span className="flex items-center gap-2">
-                <GraduationCap className="w-4 h-4" />
-                100K+ Institutions
-              </span>
-            </div>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button 
                 size="lg" 
