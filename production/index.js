@@ -270,11 +270,11 @@ if (!process.env.DATABASE_URL) {
   );
 }
 var connectionString = process.env.DATABASE_URL || "";
-connectionString = connectionString.replace(/[?&]sslmode=[^&]*/gi, "").replace(/[?&]ssl=[^&]*/gi, "");
-console.log("Database connection initialized (SSL disabled for A2 Hosting compatibility)");
+var isNeonDatabase = connectionString.includes("neon.tech") || connectionString.includes("neon.com");
+console.log(`Database connection initialized (SSL ${isNeonDatabase ? "enabled" : "disabled"})`);
 var pool = new Pool({
   connectionString,
-  ssl: false
+  ssl: isNeonDatabase ? { rejectUnauthorized: false } : false
 });
 var db = drizzle(pool, { schema: schema_exports });
 
