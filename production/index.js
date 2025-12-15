@@ -2194,8 +2194,10 @@ var researcherRoutes_default = router4;
 var MARKETING_DOMAINS = [
   "localhost",
   "127.0.0.1",
-  "scholarsite.com",
-  "www.scholarsite.com"
+  "scholar.name",
+  "www.scholar.name",
+  "scholarname.com",
+  "www.scholarname.com"
 ];
 async function tenantResolver(req, res, next) {
   try {

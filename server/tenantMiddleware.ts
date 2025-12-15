@@ -15,8 +15,10 @@ declare global {
 const MARKETING_DOMAINS = [
   "localhost",
   "127.0.0.1",
-  "scholarsite.com",
-  "www.scholarsite.com",
+  "scholar.name",
+  "www.scholar.name",
+  "scholarname.com",
+  "www.scholarname.com",
 ];
 
 export async function tenantResolver(
