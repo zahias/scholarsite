@@ -1,141 +1,12 @@
 var __defProp = Object.defineProperty;
-var __getOwnPropNames = Object.getOwnPropertyNames;
-var __esm = (fn, res) => function __init() {
-  return fn && (res = (0, fn[__getOwnPropNames(fn)[0]])(fn = 0)), res;
-};
 var __export = (target, all) => {
   for (var name in all)
     __defProp(target, name, { get: all[name], enumerable: true });
 };
 
-// vite.config.ts
-import { defineConfig } from "vite";
-import react from "@vitejs/plugin-react";
-import path2 from "path";
-import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
-var vite_config_default;
-var init_vite_config = __esm({
-  async "vite.config.ts"() {
-    "use strict";
-    vite_config_default = defineConfig({
-      plugins: [
-        react(),
-        runtimeErrorOverlay(),
-        ...process.env.NODE_ENV !== "production" && process.env.REPL_ID !== void 0 ? [
-          await import("@replit/vite-plugin-cartographer").then(
-            (m) => m.cartographer()
-          )
-        ] : []
-      ],
-      resolve: {
-        alias: {
-          "@": path2.resolve(import.meta.dirname, "client", "src"),
-          "@shared": path2.resolve(import.meta.dirname, "shared"),
-          "@assets": path2.resolve(import.meta.dirname, "attached_assets")
-        }
-      },
-      root: path2.resolve(import.meta.dirname, "client"),
-      build: {
-        outDir: path2.resolve(import.meta.dirname, "dist/public"),
-        emptyOutDir: true
-      },
-      server: {
-        fs: {
-          strict: true,
-          deny: ["**/.*"]
-        }
-      }
-    });
-  }
-});
-
-// server/vite.ts
-var vite_exports = {};
-__export(vite_exports, {
-  log: () => log2,
-  serveStatic: () => serveStatic2,
-  setupVite: () => setupVite
-});
-import express2 from "express";
-import fs2 from "fs";
-import path3 from "path";
-import { createServer as createViteServer, createLogger } from "vite";
-import { nanoid } from "nanoid";
-function log2(message, source = "express") {
-  const formattedTime = (/* @__PURE__ */ new Date()).toLocaleTimeString("en-US", {
-    hour: "numeric",
-    minute: "2-digit",
-    second: "2-digit",
-    hour12: true
-  });
-  console.log(`${formattedTime} [${source}] ${message}`);
-}
-async function setupVite(app2, server) {
-  const serverOptions = {
-    middlewareMode: true,
-    hmr: { server },
-    allowedHosts: true
-  };
-  const vite = await createViteServer({
-    ...vite_config_default,
-    configFile: false,
-    customLogger: {
-      ...viteLogger,
-      error: (msg, options) => {
-        viteLogger.error(msg, options);
-        process.exit(1);
-      }
-    },
-    server: serverOptions,
-    appType: "custom"
-  });
-  app2.use(vite.middlewares);
-  app2.use("*", async (req, res, next) => {
-    const url = req.originalUrl;
-    try {
-      const clientTemplate = path3.resolve(
-        import.meta.dirname,
-        "..",
-        "client",
-        "index.html"
-      );
-      let template = await fs2.promises.readFile(clientTemplate, "utf-8");
-      template = template.replace(
-        `src="/src/main.tsx"`,
-        `src="/src/main.tsx?v=${nanoid()}"`
-      );
-      const page = await vite.transformIndexHtml(url, template);
-      res.status(200).set({ "Content-Type": "text/html" }).end(page);
-    } catch (e) {
-      vite.ssrFixStacktrace(e);
-      next(e);
-    }
-  });
-}
-function serveStatic2(app2) {
-  const distPath = path3.resolve(import.meta.dirname, "public");
-  if (!fs2.existsSync(distPath)) {
-    throw new Error(
-      `Could not find the build directory: ${distPath}, make sure to build the client first`
-    );
-  }
-  app2.use(express2.static(distPath));
-  app2.use("*", (_req, res) => {
-    res.sendFile(path3.resolve(distPath, "index.html"));
-  });
-}
-var viteLogger;
-var init_vite = __esm({
-  async "server/vite.ts"() {
-    "use strict";
-    await init_vite_config();
-    viteLogger = createLogger();
-  }
-});
-
-// server/index.ts
+// server/index.production.ts
 import "dotenv/config";
-import express3 from "express";
+import express2 from "express";
 import session from "express-session";
 import connectPgSimple from "connect-pg-simple";
 
@@ -1006,7 +877,7 @@ var ObjectStorageService = class {
     const pathsStr = process.env.PUBLIC_OBJECT_SEARCH_PATHS || "";
     const paths = Array.from(
       new Set(
-        pathsStr.split(",").map((path4) => path4.trim()).filter((path4) => path4.length > 0)
+        pathsStr.split(",").map((path2) => path2.trim()).filter((path2) => path2.length > 0)
       )
     );
     if (paths.length === 0) {
@@ -1166,11 +1037,11 @@ var ObjectStorageService = class {
     });
   }
 };
-function parseObjectPath(path4) {
-  if (!path4.startsWith("/")) {
-    path4 = `/${path4}`;
+function parseObjectPath(path2) {
+  if (!path2.startsWith("/")) {
+    path2 = `/${path2}`;
   }
-  const pathParts = path4.split("/");
+  const pathParts = path2.split("/");
   if (pathParts.length < 3) {
     throw new Error("Invalid path: must contain at least a bucket name");
   }
@@ -1586,8 +1457,8 @@ import bcrypt3 from "bcryptjs";
 var openalexService = new OpenAlexService();
 var syncLogs = [];
 var MAX_LOGS = 100;
-function addSyncLog(log3) {
-  syncLogs.unshift(log3);
+function addSyncLog(log2) {
+  syncLogs.unshift(log2);
   if (syncLogs.length > MAX_LOGS) {
     syncLogs.pop();
   }
@@ -1616,7 +1487,7 @@ function isDueForSync(lastSyncedAt, frequency) {
   return now - lastSync >= intervalMs;
 }
 async function syncTenant(tenantId, tenantName, openalexId, syncFrequency) {
-  const log3 = {
+  const log2 = {
     tenantId,
     tenantName,
     openalexId,
@@ -1638,16 +1509,16 @@ async function syncTenant(tenantId, tenantName, openalexId, syncFrequency) {
     await storage.updateTenant(tenantId, {
       lastSyncAt: /* @__PURE__ */ new Date()
     });
-    log3.status = "success";
-    log3.message = "Data synced successfully from OpenAlex";
-    log3.lastSyncedAt = /* @__PURE__ */ new Date();
+    log2.status = "success";
+    log2.message = "Data synced successfully from OpenAlex";
+    log2.lastSyncedAt = /* @__PURE__ */ new Date();
     console.log(`[SyncScheduler] Completed sync for tenant: ${tenantName}`);
   } catch (error) {
-    log3.status = "error";
-    log3.message = error instanceof Error ? error.message : "Unknown error";
+    log2.status = "error";
+    log2.message = error instanceof Error ? error.message : "Unknown error";
     console.error(`[SyncScheduler] Error syncing tenant ${tenantName}:`, error);
   }
-  return log3;
+  return log2;
 }
 async function runScheduledSync() {
   console.log("[SyncScheduler] Starting scheduled sync check...");
@@ -1690,9 +1561,9 @@ async function runScheduledSync() {
         stats.skipped++;
         continue;
       }
-      const log3 = await syncTenant(tenant.id, tenant.name, profile.openalexId, syncFrequency);
-      addSyncLog(log3);
-      if (log3.status === "success") {
+      const log2 = await syncTenant(tenant.id, tenant.name, profile.openalexId, syncFrequency);
+      addSyncLog(log2);
+      if (log2.status === "success") {
         stats.synced++;
       } else {
         stats.errors++;
@@ -1739,9 +1610,9 @@ async function forceSyncTenant(tenantId) {
       timestamp: /* @__PURE__ */ new Date()
     };
   }
-  const log3 = await syncTenant(tenantId, tenant.name, profile.openalexId, tenant.syncFrequency || "monthly");
-  addSyncLog(log3);
-  return log3;
+  const log2 = await syncTenant(tenantId, tenant.name, profile.openalexId, tenant.syncFrequency || "monthly");
+  addSyncLog(log2);
+  return log2;
 }
 
 // server/tenantRoutes.ts
@@ -2149,13 +2020,13 @@ router3.post("/sync/run", isAuthenticated, isAdmin, async (req, res) => {
 });
 router3.post("/tenants/:id/sync", isAuthenticated, isAdmin, async (req, res) => {
   try {
-    const log3 = await forceSyncTenant(req.params.id);
-    if (!log3) {
+    const log2 = await forceSyncTenant(req.params.id);
+    if (!log2) {
       return res.status(404).json({ message: "Tenant not found" });
     }
     return res.json({
-      message: log3.status === "success" ? "Sync completed successfully" : log3.message,
-      log: log3
+      message: log2.status === "success" ? "Sync completed successfully" : log2.message,
+      log: log2
     });
   } catch (error) {
     console.error("Force sync error:", error);
@@ -3535,18 +3406,16 @@ function serveStatic(app2) {
   });
 }
 
-// server/index.ts
-var app = express3();
-app.use(express3.json());
-app.use(express3.urlencoded({ extended: true }));
+// server/index.production.ts
+var app = express2();
+app.use(express2.json());
+app.use(express2.urlencoded({ extended: true }));
 var PgSession = connectPgSimple(session);
 app.use(session({
   store: new PgSession({
     conString: process.env.DATABASE_URL,
     tableName: "sessions",
-    // Managed by connect-pg-simple
     createTableIfMissing: true
-    // Allow connect-pg-simple to manage the sessions table
   }),
   secret: process.env.SESSION_SECRET || "research-profile-admin-secret-key",
   resave: false,
@@ -3555,12 +3424,11 @@ app.use(session({
     secure: process.env.NODE_ENV === "production",
     httpOnly: true,
     maxAge: 24 * 60 * 60 * 1e3
-    // 24 hours
   }
 }));
 app.use((req, res, next) => {
   const start = Date.now();
-  const path4 = req.path;
+  const path2 = req.path;
   let capturedJsonResponse = void 0;
   const originalResJson = res.json;
   res.json = function(bodyJson, ...args) {
@@ -3569,8 +3437,8 @@ app.use((req, res, next) => {
   };
   res.on("finish", () => {
     const duration = Date.now() - start;
-    if (path4.startsWith("/api")) {
-      let logLine = `${req.method} ${path4} ${res.statusCode} in ${duration}ms`;
+    if (path2.startsWith("/api")) {
+      let logLine = `${req.method} ${path2} ${res.statusCode} in ${duration}ms`;
       if (capturedJsonResponse) {
         logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
       }
@@ -3590,28 +3458,11 @@ app.use((req, res, next) => {
     res.status(status).json({ message });
     throw err;
   });
-  if (app.get("env") === "development") {
-    const { setupVite: setupVite2 } = await init_vite().then(() => vite_exports);
-    await setupVite2(app, server);
-  } else {
-    serveStatic(app);
-  }
+  serveStatic(app);
   const port = parseInt(process.env.PORT || "5000", 10);
-  if (process.env.NODE_ENV === "production") {
-    server.listen(port, () => {
-      log(`serving on port ${port}`);
-      startSyncScheduler(1);
-      log("Sync scheduler started - checking tenants hourly");
-    });
-  } else {
-    server.listen({
-      port,
-      host: "0.0.0.0",
-      reusePort: true
-    }, () => {
-      log(`serving on port ${port}`);
-      startSyncScheduler(1);
-      log("Sync scheduler started - checking tenants hourly");
-    });
-  }
+  server.listen(port, () => {
+    log(`serving on port ${port}`);
+    startSyncScheduler(1);
+    log("Sync scheduler started - checking tenants hourly");
+  });
 })();
