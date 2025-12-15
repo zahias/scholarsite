@@ -271,7 +271,7 @@ function ResearcherProfileContent() {
           </DialogHeader>
           <div className="space-y-4 pt-4">
             <p className="text-sm text-muted-foreground">
-              Create your own ScholarSite portfolio to:
+              Create your own ScholarName portfolio to:
             </p>
             <ul className="text-sm space-y-2 text-muted-foreground">
               <li className="flex items-center gap-2">
@@ -591,7 +591,7 @@ function ResearcherProfileContent() {
               <div className="flex items-center gap-3">
                 <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
                 <p className="text-white text-sm md:text-base font-medium">
-                  This is a preview. Claim your profile at <span className="font-semibold">{(profile?.displayName || researcher?.display_name || 'yourname').toLowerCase().replace(/\s+/g, '')}.scholarsite.com</span>
+                  This is a preview. Claim your profile at <span className="font-semibold">{(profile?.displayName || researcher?.display_name || 'yourname').toLowerCase().replace(/\s+/g, '')}.scholarname.com</span>
                 </p>
               </div>
               <Button

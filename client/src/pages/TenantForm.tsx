@@ -128,7 +128,7 @@ export default function TenantFormPage() {
       const response = await apiRequest("POST", `/api/admin/tenants/${tenantId}/domains`, {
         hostname,
         isPrimary: !tenant?.domains?.length,
-        isSubdomain: hostname.includes("scholarsite"),
+        isSubdomain: hostname.includes("scholarname"),
       });
       return response.json();
     },
@@ -409,7 +409,7 @@ export default function TenantFormPage() {
                   <Input
                     value={newDomain}
                     onChange={(e) => setNewDomain(e.target.value)}
-                    placeholder="drsmith.scholarsite.com or dr-smith.com"
+                    placeholder="drsmith.scholarname.com or dr-smith.com"
                     className="bg-white/5 border-white/10 text-white"
                     data-testid="input-new-domain"
                   />

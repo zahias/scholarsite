@@ -10,7 +10,7 @@ export default function TermsPage() {
           <div className="flex justify-between h-16">
             <Link href="/" className="flex items-center">
               <BookOpen className="h-7 w-7 text-white mr-2" />
-              <span className="text-lg font-semibold text-white">ScholarSite</span>
+              <span className="text-lg font-semibold text-white">ScholarName</span>
             </Link>
           </div>
         </div>
@@ -31,7 +31,7 @@ export default function TermsPage() {
           <section className="mb-8">
             <h2 className="text-2xl font-semibold mb-4">1. Agreement to Terms</h2>
             <p className="text-muted-foreground leading-relaxed mb-4">
-              These Terms of Service ("Terms") constitute a legally binding agreement between you and ScholarSite ("Company", "we", "our", or "us") governing your access to and use of our research portfolio website service.
+              These Terms of Service ("Terms") constitute a legally binding agreement between you and ScholarName ("Company", "we", "our", or "us") governing your access to and use of our research portfolio website service.
             </p>
             <p className="text-muted-foreground leading-relaxed">
               By accessing or using our service, you agree to be bound by these Terms. If you disagree with any part of these Terms, you may not access or use the service.
@@ -41,7 +41,7 @@ export default function TermsPage() {
           <section className="mb-8">
             <h2 className="text-2xl font-semibold mb-4">2. Description of Service</h2>
             <p className="text-muted-foreground leading-relaxed mb-4">
-              ScholarSite provides a platform for researchers and academics to create professional portfolio websites that showcase their publications, research impact, and academic achievements. Our service integrates with OpenAlex to automatically retrieve and display publicly available academic data.
+              ScholarName provides a platform for researchers and academics to create professional portfolio websites that showcase their publications, research impact, and academic achievements. Our service integrates with OpenAlex to automatically retrieve and display publicly available academic data.
             </p>
             <p className="text-muted-foreground leading-relaxed">
               The service includes website hosting, publication analytics, automatic data synchronization, and customization features as described in our pricing plans.
@@ -108,7 +108,7 @@ export default function TermsPage() {
             
             <h3 className="text-xl font-medium mb-3">6.1 Our Content</h3>
             <p className="text-muted-foreground leading-relaxed mb-4">
-              The service, including its original content, features, and functionality, is owned by ScholarSite and is protected by copyright, trademark, and other intellectual property laws.
+              The service, including its original content, features, and functionality, is owned by ScholarName and is protected by copyright, trademark, and other intellectual property laws.
             </p>
 
             <h3 className="text-xl font-medium mb-3">6.2 Your Content</h3>
@@ -145,14 +145,14 @@ export default function TermsPage() {
           <section className="mb-8">
             <h2 className="text-2xl font-semibold mb-4">9. Limitation of Liability</h2>
             <p className="text-muted-foreground leading-relaxed">
-              TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL SCHOLARSITE BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES, OR ANY LOSS OF PROFITS OR REVENUES, WHETHER INCURRED DIRECTLY OR INDIRECTLY, OR ANY LOSS OF DATA, USE, GOODWILL, OR OTHER INTANGIBLE LOSSES, RESULTING FROM YOUR ACCESS TO OR USE OF OR INABILITY TO ACCESS OR USE THE SERVICE.
+              TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL SCHOLARNAME BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES, OR ANY LOSS OF PROFITS OR REVENUES, WHETHER INCURRED DIRECTLY OR INDIRECTLY, OR ANY LOSS OF DATA, USE, GOODWILL, OR OTHER INTANGIBLE LOSSES, RESULTING FROM YOUR ACCESS TO OR USE OF OR INABILITY TO ACCESS OR USE THE SERVICE.
             </p>
           </section>
 
           <section className="mb-8">
             <h2 className="text-2xl font-semibold mb-4">10. Indemnification</h2>
             <p className="text-muted-foreground leading-relaxed">
-              You agree to indemnify and hold harmless ScholarSite and its officers, directors, employees, and agents from any claims, damages, losses, or expenses (including reasonable attorneys' fees) arising from your use of the service or violation of these Terms.
+              You agree to indemnify and hold harmless ScholarName and its officers, directors, employees, and agents from any claims, damages, losses, or expenses (including reasonable attorneys' fees) arising from your use of the service or violation of these Terms.
             </p>
           </section>
 
@@ -173,7 +173,7 @@ export default function TermsPage() {
           <section className="mb-8">
             <h2 className="text-2xl font-semibold mb-4">13. Governing Law</h2>
             <p className="text-muted-foreground leading-relaxed">
-              These Terms shall be governed by and construed in accordance with the laws of the jurisdiction in which ScholarSite operates, without regard to its conflict of law provisions.
+              These Terms shall be governed by and construed in accordance with the laws of the jurisdiction in which ScholarName operates, without regard to its conflict of law provisions.
             </p>
           </section>
 
@@ -189,7 +189,7 @@ export default function TermsPage() {
 
       <footer className="bg-muted/50 border-t border-border py-8 mt-12">
         <div className="max-w-4xl mx-auto px-4 text-center text-sm text-muted-foreground">
-          <p>&copy; {new Date().getFullYear()} ScholarSite. All rights reserved.</p>
+          <p>&copy; {new Date().getFullYear()} ScholarName. All rights reserved.</p>
         </div>
       </footer>
     </div>

@@ -103,7 +103,7 @@ export default function LandingPage() {
     {
       icon: Globe,
       title: "Professional Domain",
-      description: "Get your own yourname.scholarsite.com subdomain, or connect a custom domain."
+      description: "Get your own yourname.scholarname.com subdomain, or connect a custom domain."
     },
     {
       icon: BarChart3,
@@ -182,7 +182,7 @@ export default function LandingPage() {
           <div className="flex justify-between h-16">
             <div className="flex items-center">
               <BookOpen className="h-7 w-7 text-white mr-2" />
-              <span className="text-lg font-semibold text-white">ScholarSite</span>
+              <span className="text-lg font-semibold text-white">ScholarName</span>
             </div>
             <div className="hidden md:flex items-center gap-8">
               <a href="#features" className="nav-link text-sm" data-testid="link-features">Features</a>
@@ -202,17 +202,23 @@ export default function LandingPage() {
         
         <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto">
-            <Badge className="mb-6 bg-white/10 text-white border-white/20 backdrop-blur-sm">
-              <Sparkles className="w-3 h-3 mr-1" />
-              Professional Research Portfolios
-            </Badge>
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight mb-6 text-white">
               Your Research Deserves Better Than{" "}
               <span className="bg-gradient-to-r from-orange-300 via-orange-200 to-amber-200 bg-clip-text text-transparent">a Google Scholar Page</span>
             </h1>
-            <p className="text-lg lg:text-xl text-white/80 mb-10 leading-relaxed">
+            <p className="text-lg lg:text-xl text-white/80 mb-6 leading-relaxed">
               Build your professional research presence in minutes.
             </p>
+            <div className="flex items-center justify-center gap-6 mb-10 text-white/70 text-sm">
+              <span className="flex items-center gap-2">
+                <Database className="w-4 h-4" />
+                250M+ Research Papers
+              </span>
+              <span className="flex items-center gap-2">
+                <GraduationCap className="w-4 h-4" />
+                100K+ Institutions
+              </span>
+            </div>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button 
                 size="lg" 
@@ -241,7 +247,7 @@ export default function LandingPage() {
       <section className="py-16 lg:py-20 bg-white border-b">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Stats Row */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-12">
+          <div className="grid grid-cols-2 gap-6 mb-12 max-w-md mx-auto">
             <div className="text-center" data-testid="stat-papers">
               <div className="flex items-center justify-center gap-2 mb-2">
                 <Database className="w-5 h-5 text-primary" />
@@ -255,20 +261,6 @@ export default function LandingPage() {
                 <span className="text-3xl font-bold text-foreground">100K+</span>
               </div>
               <p className="text-sm text-muted-foreground">Institutions</p>
-            </div>
-            <div className="text-center" data-testid="stat-uptime">
-              <div className="flex items-center justify-center gap-2 mb-2">
-                <Shield className="w-5 h-5 text-primary" />
-                <span className="text-3xl font-bold text-foreground">99.9%</span>
-              </div>
-              <p className="text-sm text-muted-foreground">Uptime</p>
-            </div>
-            <div className="text-center" data-testid="stat-encrypted">
-              <div className="flex items-center justify-center gap-2 mb-2">
-                <Lock className="w-5 h-5 text-primary" />
-                <span className="text-3xl font-bold text-foreground">SSL</span>
-              </div>
-              <p className="text-sm text-muted-foreground">Encrypted</p>
             </div>
           </div>
 
@@ -548,7 +540,7 @@ export default function LandingPage() {
             <div>
               <div className="flex items-center mb-4">
                 <BookOpen className="h-6 w-6 text-primary mr-2" />
-                <span className="font-semibold">ScholarSite</span>
+                <span className="font-semibold">ScholarName</span>
               </div>
               <p className="text-sm text-muted-foreground">
                 Beautiful research portfolios for academics.
@@ -572,7 +564,7 @@ export default function LandingPage() {
             </div>
           </div>
           <div className="mt-8 pt-8 border-t border-border text-center text-sm text-muted-foreground">
-            <p>&copy; {new Date().getFullYear()} ScholarSite. All rights reserved.</p>
+            <p>&copy; {new Date().getFullYear()} ScholarName. All rights reserved.</p>
           </div>
         </div>
       </footer>

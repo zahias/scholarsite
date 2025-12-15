@@ -70,7 +70,7 @@ export default function ResearcherLogin() {
           <div className="mx-auto w-12 h-12 bg-gradient-to-br from-[#0B1F3A] to-[#233F5F] rounded-xl flex items-center justify-center mb-4">
             <GraduationCap className="w-6 h-6 text-white" />
           </div>
-          <CardTitle className="text-2xl">ScholarSite</CardTitle>
+          <CardTitle className="text-2xl">ScholarName</CardTitle>
           <CardDescription>
             Sign in to manage your academic portfolio
           </CardDescription>
