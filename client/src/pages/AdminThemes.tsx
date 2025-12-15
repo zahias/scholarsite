@@ -39,7 +39,10 @@ import {
   Check,
   Star,
   Settings,
+  Users,
+  RefreshCw,
 } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 import type { Theme, ThemeConfig } from "@shared/schema";
 
 interface CurrentUser {
@@ -68,6 +71,13 @@ const defaultNewTheme: Partial<Theme> & { config: ThemeConfig } = {
   isDefault: false,
 };
 
+interface TenantThemeInfo {
+  id: string;
+  name: string;
+  currentThemeId: string | null;
+  currentThemeName: string | null;
+}
+
 export default function AdminThemes() {
   const [, navigate] = useLocation();
   const { toast } = useToast();
@@ -75,6 +85,9 @@ export default function AdminThemes() {
   const [newTheme, setNewTheme] = useState(defaultNewTheme);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
+  const [isBulkApplyOpen, setIsBulkApplyOpen] = useState(false);
+  const [selectedThemeForBulk, setSelectedThemeForBulk] = useState<Theme | null>(null);
+  const [selectedTenants, setSelectedTenants] = useState<string[]>([]);
 
   const { data: userData, isLoading: userLoading } = useQuery<{ user: CurrentUser }>({
     queryKey: ["/api/auth/me"],
@@ -145,6 +158,55 @@ export default function AdminThemes() {
     },
   });
 
+  const { data: tenantsData, isLoading: tenantsLoading, refetch: refetchTenants } = useQuery<TenantThemeInfo[]>({
+    queryKey: ["/api/admin/themes/tenants"],
+    enabled: !!userData?.user && isBulkApplyOpen,
+  });
+
+  const bulkApplyMutation = useMutation({
+    mutationFn: async ({ themeId, tenantIds }: { themeId: string; tenantIds?: string[] }) => {
+      return apiRequest("POST", `/api/admin/themes/${themeId}/apply-bulk`, { tenantIds });
+    },
+    onSuccess: (data: any) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/themes/tenants"] });
+      setIsBulkApplyOpen(false);
+      setSelectedThemeForBulk(null);
+      setSelectedTenants([]);
+      toast({ 
+        title: "Theme applied", 
+        description: data.message || "Theme has been applied to selected tenants." 
+      });
+    },
+    onError: () => {
+      toast({ title: "Error", description: "Failed to apply theme to tenants.", variant: "destructive" });
+    },
+  });
+
+  const handleBulkApply = () => {
+    if (!selectedThemeForBulk) return;
+    bulkApplyMutation.mutate({
+      themeId: selectedThemeForBulk.id,
+      tenantIds: selectedTenants.length > 0 ? selectedTenants : undefined,
+    });
+  };
+
+  const toggleTenantSelection = (tenantId: string) => {
+    setSelectedTenants(prev => 
+      prev.includes(tenantId) 
+        ? prev.filter(id => id !== tenantId)
+        : [...prev, tenantId]
+    );
+  };
+
+  const selectAllTenants = () => {
+    if (!tenantsData) return;
+    setSelectedTenants(tenantsData.map(t => t.id));
+  };
+
+  const deselectAllTenants = () => {
+    setSelectedTenants([]);
+  };
+
   if (userLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-8">
@@ -189,15 +251,148 @@ export default function AdminThemes() {
       </header>
 
       <main className="max-w-4xl mx-auto px-4 py-8 space-y-6">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between flex-wrap gap-3">
           <h2 className="text-lg font-medium text-white">Available Themes</h2>
-          <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-            <DialogTrigger asChild>
-              <Button className="bg-purple-500 hover:bg-purple-600" data-testid="button-create-theme">
-                <Plus className="w-4 h-4 mr-2" />
-                Create Theme
-              </Button>
-            </DialogTrigger>
+          <div className="flex items-center gap-2">
+            <Dialog open={isBulkApplyOpen} onOpenChange={(open) => {
+              setIsBulkApplyOpen(open);
+              if (!open) {
+                setSelectedThemeForBulk(null);
+                setSelectedTenants([]);
+              }
+            }}>
+              <DialogTrigger asChild>
+                <Button variant="outline" className="border-white/20 text-white hover:bg-white/10" data-testid="button-bulk-apply">
+                  <Users className="w-4 h-4 mr-2" />
+                  Apply Theme to Sites
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-xl">
+                <DialogHeader>
+                  <DialogTitle>Apply Theme to Sites</DialogTitle>
+                  <DialogDescription>
+                    Select a theme and apply it to all or selected sites. This will update the design across those sites.
+                  </DialogDescription>
+                </DialogHeader>
+                
+                <div className="space-y-4">
+                  <div>
+                    <Label className="text-sm font-medium mb-2 block">Select Theme to Apply</Label>
+                    <div className="grid gap-2 max-h-48 overflow-y-auto">
+                      {themes.map((theme) => {
+                        const config = theme.config as ThemeConfig;
+                        return (
+                          <button
+                            key={theme.id}
+                            onClick={() => setSelectedThemeForBulk(theme)}
+                            className={`flex items-center gap-3 p-3 rounded-lg border transition-all ${
+                              selectedThemeForBulk?.id === theme.id
+                                ? 'border-purple-500 bg-purple-500/10'
+                                : 'border-border hover:border-purple-500/50'
+                            }`}
+                            data-testid={`button-select-theme-${theme.id}`}
+                          >
+                            <div className="flex gap-1">
+                              <div className="w-6 h-6 rounded border border-white/20" style={{ backgroundColor: config.colors.primary }} />
+                              <div className="w-6 h-6 rounded border border-white/20 -ml-2" style={{ backgroundColor: config.colors.accent }} />
+                            </div>
+                            <div className="flex-1 text-left">
+                              <p className="text-sm font-medium">{theme.name}</p>
+                            </div>
+                            {selectedThemeForBulk?.id === theme.id && (
+                              <Check className="w-4 h-4 text-purple-500" />
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {selectedThemeForBulk && (
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <Label className="text-sm font-medium">Select Sites</Label>
+                        <div className="flex gap-2">
+                          <Button variant="ghost" size="sm" onClick={selectAllTenants} className="text-xs h-7">
+                            Select All
+                          </Button>
+                          <Button variant="ghost" size="sm" onClick={deselectAllTenants} className="text-xs h-7">
+                            Deselect All
+                          </Button>
+                        </div>
+                      </div>
+                      <p className="text-xs text-muted-foreground mb-2">
+                        Leave all unchecked to apply to ALL sites, or select specific sites.
+                      </p>
+                      {tenantsLoading ? (
+                        <div className="space-y-2">
+                          <Skeleton className="h-10" />
+                          <Skeleton className="h-10" />
+                        </div>
+                      ) : tenantsData && tenantsData.length > 0 ? (
+                        <div className="border rounded-lg max-h-48 overflow-y-auto">
+                          {tenantsData.map((tenant) => (
+                            <div
+                              key={tenant.id}
+                              className="flex items-center gap-3 p-3 border-b last:border-b-0 hover:bg-muted/50"
+                            >
+                              <Checkbox
+                                id={`tenant-${tenant.id}`}
+                                checked={selectedTenants.includes(tenant.id)}
+                                onCheckedChange={() => toggleTenantSelection(tenant.id)}
+                                data-testid={`checkbox-tenant-${tenant.id}`}
+                              />
+                              <label htmlFor={`tenant-${tenant.id}`} className="flex-1 cursor-pointer">
+                                <p className="text-sm font-medium">{tenant.name}</p>
+                                <p className="text-xs text-muted-foreground">
+                                  Current: {tenant.currentThemeName || 'Default theme'}
+                                  {tenant.currentThemeId === selectedThemeForBulk.id && (
+                                    <span className="ml-2 text-green-500">(Already using this theme)</span>
+                                  )}
+                                </p>
+                              </label>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-sm text-muted-foreground text-center py-4">No sites found</p>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                <DialogFooter>
+                  <Button variant="outline" onClick={() => setIsBulkApplyOpen(false)}>
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={handleBulkApply}
+                    disabled={!selectedThemeForBulk || bulkApplyMutation.isPending}
+                    className="bg-purple-500 hover:bg-purple-600"
+                    data-testid="button-confirm-bulk-apply"
+                  >
+                    {bulkApplyMutation.isPending ? (
+                      <>
+                        <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                        Applying...
+                      </>
+                    ) : (
+                      <>
+                        Apply to {selectedTenants.length > 0 ? `${selectedTenants.length} Sites` : 'All Sites'}
+                      </>
+                    )}
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+            
+            <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
+              <DialogTrigger asChild>
+                <Button className="bg-purple-500 hover:bg-purple-600" data-testid="button-create-theme">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Create Theme
+                </Button>
+              </DialogTrigger>
             <DialogContent className="sm:max-w-lg">
               <DialogHeader>
                 <DialogTitle>Create New Theme</DialogTitle>
@@ -223,6 +418,7 @@ export default function AdminThemes() {
               </DialogFooter>
             </DialogContent>
           </Dialog>
+          </div>
         </div>
 
         {themesLoading ? (

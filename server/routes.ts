@@ -1526,6 +1526,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get tenants with their current theme info (ADMIN ONLY)
+  app.get('/api/admin/themes/tenants', adminRateLimit, adminSessionAuthMiddleware, async (req, res) => {
+    try {
+      const tenantsWithThemes = await storage.getTenantsWithThemeInfo();
+      res.json(tenantsWithThemes);
+    } catch (error) {
+      console.error('Error fetching tenants with theme info:', error);
+      res.status(500).json({ message: 'Failed to fetch tenants' });
+    }
+  });
+
+  // Bulk apply theme to tenants (ADMIN ONLY)
+  app.post('/api/admin/themes/:id/apply-bulk', adminRateLimit, adminSessionAuthMiddleware, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { tenantIds } = req.body; // Optional array of tenant IDs, if empty applies to all
+      
+      const theme = await storage.getTheme(id);
+      if (!theme) {
+        return res.status(404).json({ message: 'Theme not found' });
+      }
+      
+      const result = await storage.bulkApplyThemeToTenants(id, tenantIds);
+      res.json({ 
+        message: `Theme "${theme.name}" applied successfully`,
+        updated: result.updated 
+      });
+    } catch (error) {
+      console.error('Error applying theme to tenants:', error);
+      res.status(500).json({ message: 'Failed to apply theme' });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

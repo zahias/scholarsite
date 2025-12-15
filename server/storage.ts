@@ -33,7 +33,7 @@ import {
   type InsertTheme,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, and, ne } from "drizzle-orm";
+import { eq, desc, and, ne, inArray } from "drizzle-orm";
 import crypto from "crypto";
 
 function generateUUID(): string {
@@ -114,6 +114,8 @@ export interface IStorage {
   updateTheme(id: string, updates: Partial<Theme>): Promise<Theme | undefined>;
   deleteTheme(id: string): Promise<void>;
   setDefaultTheme(id: string): Promise<Theme | undefined>;
+  bulkApplyThemeToTenants(themeId: string, tenantIds?: string[]): Promise<{ updated: number }>;
+  getTenantsWithThemeInfo(): Promise<Array<{ id: string; name: string; currentThemeId: string | null; currentThemeName: string | null }>>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -640,6 +642,34 @@ export class DatabaseStorage implements IStorage {
       .where(eq(themes.id, id))
       .returning();
     return result;
+  }
+
+  async bulkApplyThemeToTenants(themeId: string, tenantIds?: string[]): Promise<{ updated: number }> {
+    let query = db
+      .update(tenants)
+      .set({ selectedThemeId: themeId, updatedAt: new Date() });
+    
+    if (tenantIds && tenantIds.length > 0) {
+      query = query.where(inArray(tenants.id, tenantIds)) as typeof query;
+    }
+    
+    const result = await query;
+    return { updated: (result as any).rowCount || 0 };
+  }
+
+  async getTenantsWithThemeInfo(): Promise<Array<{ id: string; name: string; currentThemeId: string | null; currentThemeName: string | null }>> {
+    const results = await db
+      .select({
+        id: tenants.id,
+        name: tenants.name,
+        currentThemeId: tenants.selectedThemeId,
+        currentThemeName: themes.name,
+      })
+      .from(tenants)
+      .leftJoin(themes, eq(tenants.selectedThemeId, themes.id))
+      .orderBy(tenants.name);
+    
+    return results;
   }
 }
 
