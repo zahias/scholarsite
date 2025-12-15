@@ -279,7 +279,7 @@ var pool = new Pool({
 var db = drizzle(pool, { schema: schema_exports });
 
 // server/storage.ts
-import { eq, desc, and } from "drizzle-orm";
+import { eq, desc, and, inArray } from "drizzle-orm";
 import crypto from "crypto";
 function generateUUID() {
   return crypto.randomUUID();
@@ -627,6 +627,23 @@ var DatabaseStorage = class {
     await db.update(themes).set({ isDefault: false }).where(eq(themes.isDefault, true));
     const [result] = await db.update(themes).set({ isDefault: true, updatedAt: /* @__PURE__ */ new Date() }).where(eq(themes.id, id)).returning();
     return result;
+  }
+  async bulkApplyThemeToTenants(themeId, tenantIds) {
+    let query = db.update(tenants).set({ selectedThemeId: themeId, updatedAt: /* @__PURE__ */ new Date() });
+    if (tenantIds && tenantIds.length > 0) {
+      query = query.where(inArray(tenants.id, tenantIds));
+    }
+    const result = await query;
+    return { updated: result.rowCount || 0 };
+  }
+  async getTenantsWithThemeInfo() {
+    const results = await db.select({
+      id: tenants.id,
+      name: tenants.name,
+      currentThemeId: tenants.selectedThemeId,
+      currentThemeName: themes.name
+    }).from(tenants).leftJoin(themes, eq(tenants.selectedThemeId, themes.id)).orderBy(tenants.name);
+    return results;
   }
 };
 var storage = new DatabaseStorage();
@@ -3373,6 +3390,33 @@ async function registerRoutes(app2) {
     } catch (error) {
       console.error("Error deleting theme:", error);
       res.status(500).json({ message: "Failed to delete theme" });
+    }
+  });
+  app2.get("/api/admin/themes/tenants", adminRateLimit, adminSessionAuthMiddleware, async (req, res) => {
+    try {
+      const tenantsWithThemes = await storage.getTenantsWithThemeInfo();
+      res.json(tenantsWithThemes);
+    } catch (error) {
+      console.error("Error fetching tenants with theme info:", error);
+      res.status(500).json({ message: "Failed to fetch tenants" });
+    }
+  });
+  app2.post("/api/admin/themes/:id/apply-bulk", adminRateLimit, adminSessionAuthMiddleware, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { tenantIds } = req.body;
+      const theme = await storage.getTheme(id);
+      if (!theme) {
+        return res.status(404).json({ message: "Theme not found" });
+      }
+      const result = await storage.bulkApplyThemeToTenants(id, tenantIds);
+      res.json({
+        message: `Theme "${theme.name}" applied successfully`,
+        updated: result.updated
+      });
+    } catch (error) {
+      console.error("Error applying theme to tenants:", error);
+      res.status(500).json({ message: "Failed to apply theme" });
     }
   });
   const httpServer = createServer(app2);
