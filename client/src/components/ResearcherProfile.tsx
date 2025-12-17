@@ -379,30 +379,36 @@ function ResearcherProfileContent() {
                     {profile?.displayName || researcher?.display_name || 'Researcher Profile'}
                   </h1>
                   <p className="text-lg sm:text-xl md:text-2xl lg:text-3xl mb-2 md:mb-4 text-white/90 font-light tracking-wide" data-testid="text-title">
-                    {profile?.title || 'Research Professional'}
+                    {researcherData?.isPreview && !profile?.title 
+                      ? <span className="italic opacity-70">Position</span>
+                      : (profile?.title || 'Research Professional')}
                   </p>
-                  {/* Always show affiliation section - use OpenAlex data as fallback */}
+                  {/* Always show affiliation section - use placeholders for preview */}
                   <div className="flex flex-wrap items-center justify-center lg:justify-start gap-2 md:gap-4 text-sm md:text-base text-white/80">
                     <span className="flex items-center gap-1 md:gap-2">
                       <Building2 className="w-4 h-4 md:w-5 md:h-5 flex-shrink-0" />
                       <span data-testid="text-affiliation" className="text-sm md:text-base">
-                        {profile?.currentAffiliation || researcher?.last_known_institutions?.[0]?.display_name || (profile?.isPreview ? 'Your University' : 'Institution')}
-                        {profile?.isPreview && !profile?.currentAffiliation && !researcher?.last_known_institutions?.[0]?.display_name && <span className="text-xs ml-1 opacity-60">(Preview)</span>}
+                        {researcherData?.isPreview && !profile?.currentAffiliation
+                          ? <span className="italic opacity-70">Institution</span>
+                          : (profile?.currentAffiliation || researcher?.last_known_institutions?.[0]?.display_name || 'Institution')}
                       </span>
                     </span>
-                    <span className="flex items-center gap-1 md:gap-2">
-                      <MapPin className="w-4 h-4 md:w-5 md:h-5 flex-shrink-0" />
-                      <span className="text-sm md:text-base">{profile?.countryCode || researcher?.last_known_institutions?.[0]?.country_code || ''}</span>
-                    </span>
+                    {(profile?.countryCode || researcher?.last_known_institutions?.[0]?.country_code) && (
+                      <span className="flex items-center gap-1 md:gap-2">
+                        <MapPin className="w-4 h-4 md:w-5 md:h-5 flex-shrink-0" />
+                        <span className="text-sm md:text-base">{profile?.countryCode || researcher?.last_known_institutions?.[0]?.country_code}</span>
+                      </span>
+                    )}
                   </div>
                 </div>
               </div>
               
-              {/* Always show bio section - use generated bio as fallback */}
+              {/* Always show bio section - use placeholder for preview */}
               <div className="bg-white/5 backdrop-blur-sm rounded-xl md:rounded-2xl p-4 md:p-6 border border-white/10">
                 <p className="text-sm sm:text-base md:text-lg lg:text-xl text-white/90 leading-relaxed font-light" data-testid="text-bio">
-                  {profile?.bio || `Researcher with ${researcher?.works_count || 0} publications and ${researcher?.cited_by_count || 0} citations.`}
-                  {profile?.isPreview && !profile?.bio && <span className="text-xs ml-1 opacity-60">(Preview)</span>}
+                  {researcherData?.isPreview && !profile?.bio 
+                    ? <span className="italic opacity-70">Your research bio and description will appear here once you customize your profile.</span>
+                    : (profile?.bio || `Researcher with ${researcher?.works_count || 0} publications and ${researcher?.cited_by_count || 0} citations.`)}
                 </p>
               </div>
               
