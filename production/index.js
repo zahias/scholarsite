@@ -2843,23 +2843,29 @@ async function registerRoutes(app2) {
         };
         const previewProfile = {
           displayName: researcher.display_name,
-          title: getAcademicTitle(researcher.works_count || 0),
-          currentAffiliation: institution?.display_name || "Your University",
-          department: institution?.type === "education" ? "Department of Research" : null,
-          bio: `Distinguished researcher with ${researcher.works_count || 0} publications and ${researcher.cited_by_count || 0} citations. Research spans multiple disciplines with contributions to the academic community.`,
+          title: null,
+          // Leave empty so frontend shows "Position" placeholder
+          currentAffiliation: null,
+          // Leave empty so frontend shows "Institution" placeholder
+          department: null,
+          bio: null,
+          // Leave empty so frontend shows bio placeholder
           profileImageUrl: null,
           // Will be handled on frontend with initials avatar
-          cvUrl: "#cv-placeholder",
-          contactEmail: "yourname@university.edu",
-          phone: "+1 (555) 123-4567",
-          officeLocation: "Building A, Room 123",
-          location: institution?.display_name || "Your Institution",
+          cvUrl: null,
+          contactEmail: null,
+          // Leave empty - no fake contact info in preview
+          phone: null,
+          officeLocation: null,
+          location: null,
           countryCode: institution?.country_code || null,
+          // Keep country code if available
           orcidId: orcid,
-          googleScholarUrl: "#scholar-placeholder",
-          linkedinUrl: "#linkedin-placeholder",
-          twitterHandle: "@yourhandle",
-          websiteUrl: "#website-placeholder",
+          // Keep ORCID if available from OpenAlex
+          googleScholarUrl: null,
+          linkedinUrl: null,
+          twitterHandle: null,
+          websiteUrl: null,
           researchInterests: topics.slice(0, 5).map((t) => t.displayName),
           isPublic: true,
           isPreview: true
