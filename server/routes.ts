@@ -826,10 +826,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           location: null,
           countryCode: institution?.country_code || null, // Keep country code if available
           orcidId: orcid, // Keep ORCID if available from OpenAlex
-          googleScholarUrl: null,
-          linkedinUrl: null,
-          twitterHandle: null,
-          websiteUrl: null,
+          orcidUrl: orcid ? `https://orcid.org/${orcid.replace('https://orcid.org/', '')}` : '#', // Show ORCID button
+          googleScholarUrl: '#', // Show button but doesn't navigate
+          linkedinUrl: '#', // Show button but doesn't navigate
+          twitterUrl: null,
+          websiteUrl: '#', // Show button but doesn't navigate
           researchInterests: topics.slice(0, 5).map((t: any) => t.displayName),
           isPublic: true,
           isPreview: true
