@@ -103,7 +103,7 @@ export default function LandingPage() {
     {
       icon: Globe,
       title: "Professional Domain",
-      description: "Get your own yourname.scholarname.com subdomain, or connect a custom domain."
+      description: "Connect your own domain like yourname.com, or start with a scholar.name subdomain."
     },
     {
       icon: BarChart3,
