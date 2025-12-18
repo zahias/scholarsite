@@ -1,8 +1,13 @@
+import { useEffect } from "react";
 import { Link } from "wouter";
 import { BookOpen, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export default function TermsPage() {
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   return (
     <div className="min-h-screen bg-background">
       <nav className="sticky top-0 z-50 nav-premium">

@@ -159,14 +159,14 @@ export default function LandingPage() {
       <nav className="sticky top-0 z-50 nav-premium">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">
-            <div className="flex items-center">
+            <Link href="/" className="flex items-center cursor-pointer" onClick={() => window.scrollTo(0, 0)} data-testid="link-logo">
               <BookOpen className="h-7 w-7 text-white mr-2" />
               <span className="text-lg font-semibold text-white">ScholarName</span>
-            </div>
+            </Link>
             <div className="hidden md:flex items-center gap-8">
               <a href="#features" className="nav-link text-sm" data-testid="link-features">Features</a>
               <a href="#pricing" className="nav-link text-sm" data-testid="link-pricing">Pricing</a>
-              <Button size="sm" className="btn-premium text-sm px-5 py-2" data-testid="button-get-started-nav" onClick={() => navigate('/contact')}>Get Started</Button>
+              <Button size="sm" className="btn-premium text-sm px-5 py-2" data-testid="button-get-started-nav" onClick={() => { window.scrollTo(0, 0); navigate('/contact'); }}>Get Started</Button>
             </div>
           </div>
         </div>
@@ -428,7 +428,7 @@ export default function LandingPage() {
                     className="w-full" 
                     variant={plan.highlighted ? "default" : "outline"}
                     data-testid={`button-select-${plan.name.toLowerCase()}`}
-                    onClick={() => navigate(`/contact?plan=${plan.name.toLowerCase()}`)}
+                    onClick={() => { window.scrollTo(0, 0); navigate(`/contact?plan=${plan.name.toLowerCase()}`); }}
                   >
                     Get Started
                   </Button>
@@ -462,9 +462,9 @@ export default function LandingPage() {
             <div>
               <h4 className="font-medium mb-4">Legal</h4>
               <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><Link href="/privacy" className="hover:text-foreground transition-colors" data-testid="link-footer-privacy">Privacy Policy</Link></li>
-                <li><Link href="/terms" className="hover:text-foreground transition-colors" data-testid="link-footer-terms">Terms of Service</Link></li>
-                <li><Link href="/contact" className="hover:text-foreground transition-colors" data-testid="link-footer-contact">Contact</Link></li>
+                <li><button onClick={() => { window.scrollTo(0, 0); navigate('/privacy'); }} className="hover:text-foreground transition-colors" data-testid="link-footer-privacy">Privacy Policy</button></li>
+                <li><button onClick={() => { window.scrollTo(0, 0); navigate('/terms'); }} className="hover:text-foreground transition-colors" data-testid="link-footer-terms">Terms of Service</button></li>
+                <li><button onClick={() => { window.scrollTo(0, 0); navigate('/contact'); }} className="hover:text-foreground transition-colors" data-testid="link-footer-contact">Contact</button></li>
               </ul>
             </div>
           </div>

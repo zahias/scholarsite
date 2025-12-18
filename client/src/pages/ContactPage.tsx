@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation, Link } from "wouter";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
@@ -36,6 +36,10 @@ export default function ContactPage() {
   const { toast } = useToast();
   const [isSubmitted, setIsSubmitted] = useState(false);
   
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   const urlParams = new URLSearchParams(window.location.search);
   const preselectedPlan = urlParams.get('plan') || '';
 
