@@ -40,7 +40,7 @@ export default function Navigation({ researcherName = 'Researcher' }: Navigation
   const navItems = [
     { id: 'overview', label: 'Overview' },
     { id: 'analytics', label: 'Analytics' },
-    { id: 'network', label: 'Network' },
+    { id: 'network', label: 'Collaborators' },
     { id: 'research', label: 'Topics' },
     { id: 'publications', label: 'Publications' },
   ];

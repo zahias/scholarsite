@@ -235,7 +235,7 @@ export default function ContactPage() {
                         <RadioGroup
                           onValueChange={field.onChange}
                           defaultValue={field.value}
-                          className="grid sm:grid-cols-3 gap-4"
+                          className="grid sm:grid-cols-2 gap-4"
                         >
                           <div className="relative">
                             <RadioGroupItem
@@ -250,7 +250,7 @@ export default function ContactPage() {
                             >
                               <User className="mb-2 h-6 w-6" />
                               <span className="font-semibold">Starter</span>
-                              <span className="text-sm text-muted-foreground">$9/month</span>
+                              <span className="text-sm text-muted-foreground">$9.99/month</span>
                             </Label>
                           </div>
                           <div className="relative">
@@ -265,24 +265,8 @@ export default function ContactPage() {
                               className="flex flex-col items-center justify-center rounded-lg border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary cursor-pointer"
                             >
                               <Building2 className="mb-2 h-6 w-6" />
-                              <span className="font-semibold">Professional</span>
-                              <span className="text-sm text-muted-foreground">$19/month</span>
-                            </Label>
-                          </div>
-                          <div className="relative">
-                            <RadioGroupItem
-                              value="institution"
-                              id="institution"
-                              className="peer sr-only"
-                              data-testid="radio-institution"
-                            />
-                            <Label
-                              htmlFor="institution"
-                              className="flex flex-col items-center justify-center rounded-lg border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary cursor-pointer"
-                            >
-                              <Users className="mb-2 h-6 w-6" />
-                              <span className="font-semibold">Institution</span>
-                              <span className="text-sm text-muted-foreground">$49/month</span>
+                              <span className="font-semibold">Pro</span>
+                              <span className="text-sm text-muted-foreground">$19.99/month</span>
                             </Label>
                           </div>
                         </RadioGroup>

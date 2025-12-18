@@ -439,29 +439,8 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="cta-premium py-16 lg:py-20 relative">
-        <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl sm:text-4xl font-bold mb-4 text-white">
-            Ready to Get Started?
-          </h2>
-          <p className="text-lg text-white/80 mb-8 max-w-2xl mx-auto">
-            Create your professional research portfolio today.
-          </p>
-          <Button 
-            size="lg" 
-            className="btn-premium text-base px-8 py-6" 
-            data-testid="button-get-started-cta"
-            onClick={() => navigate('/contact')}
-          >
-            Start Your Portfolio
-            <ArrowRight className="ml-2 h-4 w-4" />
-          </Button>
-        </div>
-      </section>
-
       {/* Footer */}
-      <footer className="bg-muted/50 border-t border-border py-12">
+      <footer className="bg-muted/30 border-t border-border py-12">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid md:grid-cols-3 gap-8">
             <div>

@@ -554,7 +554,6 @@ function ResearcherProfileContent() {
       <PublicationAnalytics openalexId={openalexId} researcherData={researcherData} />
       <ResearchNetwork 
         publications={researcherData?.publications || []}
-        affiliations={researcherData?.affiliations || []}
         researcherName={profile?.displayName || researcher?.display_name || ''} 
         isLoading={isLoading}
       />
