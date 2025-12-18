@@ -35,6 +35,7 @@ export default function ContactPage() {
   const [, navigate] = useLocation();
   const { toast } = useToast();
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [deliveryTarget, setDeliveryTarget] = useState<string | null>(null);
   
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -75,8 +76,9 @@ export default function ContactPage() {
       if (!response.ok) throw new Error("Failed to submit inquiry");
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       setIsSubmitted(true);
+      setDeliveryTarget(data?.deliveredTo || null);
       toast({
         title: "Inquiry Submitted",
         description: "We'll get back to you within 1-2 business days.",
@@ -119,6 +121,11 @@ export default function ContactPage() {
               <p className="text-muted-foreground mb-8 max-w-md mx-auto">
                 Your inquiry has been submitted successfully. Our team will review your request and get back to you within 1-2 business days.
               </p>
+              {deliveryTarget && (
+                <p className="text-sm text-muted-foreground mb-6">
+                  Confirmation sent to <span className="font-medium text-foreground">{deliveryTarget}</span>. Reply directly if you have more details.
+                </p>
+              )}
               <Button onClick={() => navigate("/")} data-testid="button-back-home">
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Back to Home
@@ -353,7 +360,15 @@ export default function ContactPage() {
                       </FormControl>
                       <div className="flex justify-between items-center mt-1">
                         <FormMessage />
-                        <span className={`text-xs ${(field.value?.length || 0) > 450 ? 'text-orange-500' : 'text-muted-foreground'}`}>
+                        <span
+                          className={`text-xs ${
+                            (field.value?.length || 0) > 450
+                              ? 'text-red-500'
+                              : (field.value?.length || 0) > 350
+                              ? 'text-orange-500'
+                              : 'text-muted-foreground'
+                          }`}
+                        >
                           {field.value?.length || 0}/500 characters
                         </span>
                       </div>
@@ -409,14 +424,19 @@ export default function ContactPage() {
                   />
                 )}
 
-                <Button 
-                  type="submit" 
-                  className="w-full btn-premium py-6"
-                  disabled={submitMutation.isPending}
-                  data-testid="button-submit-inquiry"
-                >
-                  {submitMutation.isPending ? "Submitting..." : "Submit Inquiry"}
-                </Button>
+                <div className="space-y-2">
+                  <Button 
+                    type="submit" 
+                    className="w-full btn-premium py-6"
+                    disabled={submitMutation.isPending}
+                    data-testid="button-submit-inquiry"
+                  >
+                    {submitMutation.isPending ? "Submitting..." : "Submit Inquiry"}
+                  </Button>
+                  <p className="text-xs text-muted-foreground text-center">
+                    We respect your privacy. Your details are only used to respond to this inquiry and will not be shared.
+                  </p>
+                </div>
               </form>
             </Form>
           </CardContent>
