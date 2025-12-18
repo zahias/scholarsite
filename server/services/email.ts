@@ -1,7 +1,10 @@
+import nodemailer from 'nodemailer';
+
 const CONTACT_RECIPIENT = process.env.CONTACT_RECIPIENT || "info@scholar.name";
-const CONTACT_FROM = process.env.CONTACT_FROM_EMAIL || "no-reply@scholar.name";
-const RESEND_API_URL = process.env.RESEND_API_URL || "https://api.resend.com/emails";
-const RESEND_API_KEY = process.env.RESEND_API_KEY;
+const SMTP_HOST = process.env.SMTP_HOST || "mail.scholar.name";
+const SMTP_PORT = parseInt(process.env.SMTP_PORT || "465", 10);
+const SMTP_USER = process.env.SMTP_USER || "info@scholar.name";
+const SMTP_PASS = process.env.SMTP_PASS;
 
 interface ContactInquiry {
   fullName: string;
@@ -74,40 +77,35 @@ const toText = (inquiry: ContactInquiry) => {
 
 export const contactRecipientEmail = CONTACT_RECIPIENT;
 
-export async function sendContactEmail(inquiry: ContactInquiry) {
-  if (!RESEND_API_KEY) {
-    throw new Error("Email service not configured (missing RESEND_API_KEY).");
+const createTransporter = () => {
+  if (!SMTP_PASS) {
+    throw new Error("Email service not configured (missing SMTP_PASS).");
   }
 
-  const response = await fetch(RESEND_API_URL, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${RESEND_API_KEY}`,
-      "Content-Type": "application/json",
+  return nodemailer.createTransport({
+    host: SMTP_HOST,
+    port: SMTP_PORT,
+    secure: SMTP_PORT === 465,
+    auth: {
+      user: SMTP_USER,
+      pass: SMTP_PASS,
     },
-    body: JSON.stringify({
-      from: `ScholarSite <${CONTACT_FROM}>`,
-      to: [CONTACT_RECIPIENT],
-      reply_to: inquiry.email,
-      subject: `New contact inquiry from ${inquiry.fullName}`,
-      text: toText(inquiry),
-      html: toHtml(inquiry),
-    }),
   });
+};
 
-  if (!response.ok) {
-    const errorBody = await safeReadText(response);
-    throw new Error(`Failed to send contact email: ${response.status} ${errorBody}`);
-  }
+export async function sendContactEmail(inquiry: ContactInquiry) {
+  const transporter = createTransporter();
 
-  return response.json() as Promise<{ id: string }>;
-}
+  const mailOptions = {
+    from: `ScholarName <${SMTP_USER}>`,
+    to: CONTACT_RECIPIENT,
+    replyTo: inquiry.email,
+    subject: `New contact inquiry from ${inquiry.fullName}`,
+    text: toText(inquiry),
+    html: toHtml(inquiry),
+  };
 
-async function safeReadText(response: Response) {
-  try {
-    return await response.text();
-  } catch (error) {
-    console.error("Failed to read response body for contact email:", error);
-    return "<unavailable>";
-  }
+  const info = await transporter.sendMail(mailOptions);
+  console.log("Email sent:", info.messageId);
+  return { id: info.messageId };
 }
