@@ -8,27 +8,38 @@
   --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
   --font-serif: 'Source Serif 4', ui-serif, Georgia, serif;
   
-  --background: hsl(210, 25%, 98%);
-  --foreground: hsl(220, 30%, 15%);
-  --card: hsl(0, 0%, 100%);
-  --card-foreground: hsl(220, 30%, 15%);
-  --popover: hsl(0, 0%, 100%);
-  --popover-foreground: hsl(220, 30%, 15%);
+  /* Theme variables (set dynamically by ThemeContext) */
+  --theme-primary: #1e3a5f;
+  --theme-primary-dark: #0d1f35;
+  --theme-accent: #c9a227;
+  --theme-background: #fafbfc;
+  --theme-surface: #f0f4f8;
+  --theme-text: #1a2332;
+  --theme-text-muted: #5a6a7a;
+  --theme-primary-hsl: 212 52% 25%;
+  --theme-accent-hsl: 45 68% 47%;
   
-  /* Primary - Deep Navy Blue */
-  --primary: hsl(216, 50%, 30%);
+  --background: var(--theme-background);
+  --foreground: var(--theme-text);
+  --card: hsl(0, 0%, 100%);
+  --card-foreground: var(--theme-text);
+  --popover: hsl(0, 0%, 100%);
+  --popover-foreground: var(--theme-text);
+  
+  /* Primary - Theme Driven */
+  --primary: var(--theme-primary);
   --primary-foreground: hsl(0, 0%, 100%);
   
-  /* Secondary - Warm Gray */
-  --secondary: hsl(220, 15%, 94%);
-  --secondary-foreground: hsl(220, 30%, 25%);
+  /* Secondary - Derived from surface */
+  --secondary: var(--theme-surface);
+  --secondary-foreground: var(--theme-text);
   
-  /* Muted - Soft Gray */
-  --muted: hsl(220, 15%, 96%);
-  --muted-foreground: hsl(220, 15%, 45%);
+  /* Muted - Soft Gray derived from theme */
+  --muted: var(--theme-surface);
+  --muted-foreground: var(--theme-text-muted);
   
-  /* Accent - Warm Orange */
-  --accent: hsl(24, 90%, 55%);
+  /* Accent - Theme Driven */
+  --accent: var(--theme-accent);
   --accent-foreground: hsl(0, 0%, 100%);
   
   /* Sage Green - Success/Metrics */
@@ -40,25 +51,25 @@
   
   --border: hsl(220, 15%, 90%);
   --input: hsl(220, 15%, 90%);
-  --ring: hsl(216, 50%, 45%);
+  --ring: var(--theme-primary);
   --radius: 0.625rem;
   
-  /* Chart colors */
-  --chart-1: hsl(216, 50%, 35%);
+  /* Chart colors - theme driven */
+  --chart-1: var(--theme-primary);
   --chart-2: hsl(142, 35%, 48%);
-  --chart-3: hsl(24, 90%, 55%);
+  --chart-3: var(--theme-accent);
   --chart-4: hsl(280, 45%, 55%);
   --chart-5: hsl(190, 50%, 45%);
   --chart-6: hsl(340, 55%, 55%);
   
   --sidebar-background: hsl(0, 0%, 100%);
-  --sidebar-foreground: hsl(220, 30%, 15%);
-  --sidebar-primary: hsl(216, 50%, 30%);
+  --sidebar-foreground: var(--theme-text);
+  --sidebar-primary: var(--theme-primary);
   --sidebar-primary-foreground: hsl(0, 0%, 100%);
-  --sidebar-accent: hsl(220, 15%, 96%);
-  --sidebar-accent-foreground: hsl(220, 30%, 25%);
+  --sidebar-accent: var(--theme-surface);
+  --sidebar-accent-foreground: var(--theme-text);
   --sidebar-border: hsl(220, 15%, 90%);
-  --sidebar-ring: hsl(216, 50%, 45%);
+  --sidebar-ring: var(--theme-primary);
 }
 
 .dark {
@@ -123,14 +134,14 @@
 .nav-premium {
   background: linear-gradient(
     135deg,
-    rgba(11, 31, 58, 0.95) 0%,
-    rgba(20, 40, 80, 0.92) 60%,
-    rgba(35, 55, 95, 0.88) 100%
+    color-mix(in srgb, var(--theme-primary) 95%, black) 0%,
+    color-mix(in srgb, var(--theme-primary) 92%, black) 60%,
+    color-mix(in srgb, var(--theme-primary) 88%, white) 100%
   );
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border-bottom: 1px solid rgba(242, 153, 74, 0.2);
-  box-shadow: 0 4px 20px rgba(11, 31, 58, 0.15);
+  border-bottom: 1px solid color-mix(in srgb, var(--theme-accent) 20%, transparent);
+  box-shadow: 0 4px 20px color-mix(in srgb, var(--theme-primary-dark) 15%, transparent);
 }
 
 .nav-premium .nav-link {
@@ -150,7 +161,7 @@
   left: 0;
   width: 0;
   height: 2px;
-  background: linear-gradient(90deg, hsl(24, 90%, 55%), hsl(142, 35%, 48%));
+  background: linear-gradient(90deg, var(--theme-accent), color-mix(in srgb, var(--theme-accent) 60%, var(--theme-primary)));
   transition: width 0.3s ease;
 }
 
@@ -343,7 +354,7 @@
 
 /* ===== PREMIUM BUTTON ===== */
 .btn-premium {
-  background: linear-gradient(135deg, hsl(24, 90%, 55%) 0%, hsl(24, 85%, 48%) 100%);
+  background: linear-gradient(135deg, var(--theme-accent) 0%, color-mix(in srgb, var(--theme-accent) 85%, black) 100%);
   color: white;
   font-weight: 600;
   padding: 0.875rem 2rem;
