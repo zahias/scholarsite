@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import Navigation from "./Navigation";
 import StatsOverview from "./StatsOverview";
 import PublicationAnalytics from "./PublicationAnalytics";
+import CollaborationMap from "./CollaborationMap";
 import ResearchTopics from "./ResearchTopics";
 import Publications from "./Publications";
 import SEO from "./SEO";
@@ -551,6 +552,11 @@ function ResearcherProfileContent() {
 
       <StatsOverview openalexId={openalexId} />
       <PublicationAnalytics openalexId={openalexId} researcherData={researcherData} />
+      <CollaborationMap 
+        publications={researcherData?.publications || []} 
+        researcherName={profile?.displayName || researcher?.display_name || ''} 
+        isLoading={isLoading}
+      />
       <ResearchTopics openalexId={openalexId} />
       <Publications openalexId={openalexId} />
 

@@ -18,9 +18,8 @@ import {
   Shield,
   Award,
   FileText,
-  Network,
-  Palette,
-  Clock
+  BarChart3,
+  Palette
 } from "lucide-react";
 
 interface AuthorSearchResult {
@@ -101,12 +100,12 @@ export default function LandingPage() {
     {
       icon: FileText,
       title: "Research Passport",
-      description: "Download a printable PDF with your name, institution, and QR code linking to your portfolio. Perfect for conferences and networking."
+      description: "Download a printable PDF with your name, institution, and QR code linking to your portfolio. Perfect for conferences."
     },
     {
-      icon: Network,
-      title: "Collaboration Map",
-      description: "Visual network showing your co-author connections and research collaborations across institutions."
+      icon: BarChart3,
+      title: "Research Visuals",
+      description: "Interactive charts, topic clouds, citation trends, and co-author network maps that bring your research to life."
     },
     {
       icon: Palette,
@@ -165,7 +164,6 @@ export default function LandingPage() {
               <span className="text-lg font-semibold text-white">ScholarName</span>
             </div>
             <div className="hidden md:flex items-center gap-8">
-              <a href="#demo" className="nav-link text-sm" data-testid="link-demo">Demo</a>
               <a href="#features" className="nav-link text-sm" data-testid="link-features">Features</a>
               <a href="#pricing" className="nav-link text-sm" data-testid="link-pricing">Pricing</a>
               <Button size="sm" className="btn-premium text-sm px-5 py-2" data-testid="button-get-started-nav" onClick={() => navigate('/contact')}>Get Started</Button>
@@ -174,33 +172,126 @@ export default function LandingPage() {
         </div>
       </nav>
 
-      {/* Hero Section - Simplified */}
-      <section className="landing-hero py-20 lg:py-28 relative">
+      {/* Hero Section with Embedded Search */}
+      <section className="landing-hero py-16 lg:py-24 relative">
         <div className="hero-orb hero-orb-1"></div>
         <div className="hero-orb hero-orb-2"></div>
         
         <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto">
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight mb-6 text-white">
-              Your Research Deserves{" "}
-              <span className="bg-gradient-to-r from-orange-300 via-orange-200 to-amber-200 bg-clip-text text-transparent">Better</span>
+              Your Research Deserves Better Than{" "}
+              <span className="bg-gradient-to-r from-orange-300 via-orange-200 to-amber-200 bg-clip-text text-transparent">a Google Scholar Page</span>
             </h1>
-            <p className="text-lg lg:text-xl text-white/80 mb-4 leading-relaxed">
-              Professional research portfolios that update automatically.
+            <p className="text-lg lg:text-xl text-white/80 mb-8 leading-relaxed">
+              See it in action
             </p>
-            <div className="flex items-center justify-center gap-2 mb-8 text-white/70 text-sm">
-              <Clock className="w-4 h-4" />
-              <span>Set up in 60 seconds</span>
+
+            {/* Search Box - Embedded in Hero */}
+            <div className="max-w-xl mx-auto relative" ref={searchRef}>
+              <div className="relative">
+                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground h-5 w-5" />
+                <Input
+                  ref={inputRef}
+                  type="text"
+                  placeholder="Search for any researcher..."
+                  value={searchQuery}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value);
+                    setShowResults(true);
+                    setSelectedIndex(-1);
+                  }}
+                  onFocus={() => setShowResults(true)}
+                  onKeyDown={handleKeyDown}
+                  className="pl-12 pr-12 h-14 text-base rounded-xl border-2 focus:border-primary bg-white shadow-lg"
+                  data-testid="input-researcher-search"
+                />
+                {isSearching && (
+                  <Loader2 className="absolute right-4 top-1/2 transform -translate-y-1/2 h-5 w-5 animate-spin text-muted-foreground" />
+                )}
+              </div>
+
+              {/* Search Results Dropdown */}
+              {showResults && searchQuery.length >= 2 && (
+                <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-border rounded-xl shadow-lg z-40 max-h-80 overflow-hidden">
+                  {isSearching ? (
+                    <div className="p-6 text-center">
+                      <Loader2 className="h-6 w-6 animate-spin mx-auto mb-2 text-primary" />
+                      <p className="text-muted-foreground">Searching researchers...</p>
+                    </div>
+                  ) : searchResults?.results && searchResults.results.length > 0 ? (
+                    <ul className="max-h-72 overflow-y-auto">
+                      {searchResults.results.map((author, index) => (
+                        <li 
+                          key={author.id}
+                          onClick={() => handleSelectAuthor(author.id)}
+                          className={`p-4 cursor-pointer border-b border-border last:border-b-0 hover:bg-muted/50 transition-colors ${
+                            index === selectedIndex ? 'bg-muted/70' : ''
+                          }`}
+                          data-testid={`search-result-${index}`}
+                        >
+                          <div className="flex items-start gap-3">
+                            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                              <GraduationCap className="w-5 h-5 text-primary" />
+                            </div>
+                            <div className="flex-1 min-w-0 text-left">
+                              <h4 className="font-medium text-foreground truncate" data-testid={`author-name-${index}`}>
+                                {author.display_name}
+                              </h4>
+                              {author.hint && (
+                                <p className="text-sm text-muted-foreground truncate">
+                                  {author.hint}
+                                </p>
+                              )}
+                              <div className="flex items-center gap-4 mt-1 text-xs text-muted-foreground">
+                                <span className="flex items-center gap-1">
+                                  <BookOpen className="w-3 h-3" />
+                                  {author.works_count.toLocaleString()} publications
+                                </span>
+                                <span className="flex items-center gap-1">
+                                  <Users className="w-3 h-3" />
+                                  {author.cited_by_count.toLocaleString()} citations
+                                </span>
+                              </div>
+                            </div>
+                            <ArrowRight className="w-4 h-4 text-muted-foreground flex-shrink-0 mt-1" />
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <div className="p-6 text-center">
+                      <Search className="h-8 w-8 mx-auto mb-2 text-muted-foreground/50" />
+                      <p className="text-muted-foreground">No researchers found for "{searchQuery}"</p>
+                      <p className="text-sm text-muted-foreground/70 mt-1">Try a different name</p>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
-            <Button 
-              size="lg" 
-              className="btn-premium text-base px-8 py-6" 
-              data-testid="button-get-started-hero"
-              onClick={() => document.getElementById('demo')?.scrollIntoView({ behavior: 'smooth' })}
-            >
-              Try the Demo
-              <ArrowRight className="ml-2 h-4 w-4" />
-            </Button>
+
+            {/* Example Profiles */}
+            <div className="mt-10">
+              <p className="text-white/60 text-sm mb-4">Or try these examples:</p>
+              <div className="flex flex-wrap justify-center gap-3">
+                {[
+                  { name: "Albert Einstein", id: "A5109805546" },
+                  { name: "Richard Feynman", id: "A5037710835" },
+                  { name: "Stephen Hawking", id: "A5066175077" }
+                ].map((researcher, index) => (
+                  <Button
+                    key={index}
+                    variant="outline"
+                    className="bg-white/10 border-white/20 text-white hover:bg-white/20 hover:text-white"
+                    onClick={() => { window.scrollTo(0, 0); navigate(`/researcher/${researcher.id}`); }}
+                    data-testid={`button-example-${researcher.name.toLowerCase().replace(' ', '-')}`}
+                  >
+                    <GraduationCap className="w-4 h-4 mr-2" />
+                    {researcher.name}
+                  </Button>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -240,134 +331,8 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Live Demo Section - Main focus */}
-      <section id="demo" className="py-16 lg:py-24 bg-muted/30">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-10">
-            <h2 className="text-3xl sm:text-4xl font-bold mb-4">
-              See It In Action
-            </h2>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Search for any researcher and preview their portfolio instantly.
-            </p>
-          </div>
-
-          {/* Search Box */}
-          <div className="max-w-xl mx-auto relative" ref={searchRef}>
-            <div className="relative">
-              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground h-5 w-5" />
-              <Input
-                ref={inputRef}
-                type="text"
-                placeholder="Search by researcher name..."
-                value={searchQuery}
-                onChange={(e) => {
-                  setSearchQuery(e.target.value);
-                  setShowResults(true);
-                  setSelectedIndex(-1);
-                }}
-                onFocus={() => setShowResults(true)}
-                onKeyDown={handleKeyDown}
-                className="pl-12 pr-12 h-14 text-base rounded-xl border-2 focus:border-primary bg-white shadow-sm"
-                data-testid="input-researcher-search"
-              />
-              {isSearching && (
-                <Loader2 className="absolute right-4 top-1/2 transform -translate-y-1/2 h-5 w-5 animate-spin text-muted-foreground" />
-              )}
-            </div>
-
-            {/* Search Results Dropdown */}
-            {showResults && searchQuery.length >= 2 && (
-              <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-border rounded-xl shadow-lg z-40 max-h-80 overflow-hidden">
-                {isSearching ? (
-                  <div className="p-6 text-center">
-                    <Loader2 className="h-6 w-6 animate-spin mx-auto mb-2 text-primary" />
-                    <p className="text-muted-foreground">Searching researchers...</p>
-                  </div>
-                ) : searchResults?.results && searchResults.results.length > 0 ? (
-                  <ul className="max-h-72 overflow-y-auto">
-                    {searchResults.results.map((author, index) => (
-                      <li 
-                        key={author.id}
-                        onClick={() => handleSelectAuthor(author.id)}
-                        className={`p-4 cursor-pointer border-b border-border last:border-b-0 hover:bg-muted/50 transition-colors ${
-                          index === selectedIndex ? 'bg-muted/70' : ''
-                        }`}
-                        data-testid={`search-result-${index}`}
-                      >
-                        <div className="flex items-start gap-3">
-                          <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                            <GraduationCap className="w-5 h-5 text-primary" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <h4 className="font-medium text-foreground truncate" data-testid={`author-name-${index}`}>
-                              {author.display_name}
-                            </h4>
-                            {author.hint && (
-                              <p className="text-sm text-muted-foreground truncate">
-                                {author.hint}
-                              </p>
-                            )}
-                            <div className="flex items-center gap-4 mt-1 text-xs text-muted-foreground">
-                              <span className="flex items-center gap-1">
-                                <BookOpen className="w-3 h-3" />
-                                {author.works_count.toLocaleString()} publications
-                              </span>
-                              <span className="flex items-center gap-1">
-                                <Users className="w-3 h-3" />
-                                {author.cited_by_count.toLocaleString()} citations
-                              </span>
-                            </div>
-                          </div>
-                          <ArrowRight className="w-4 h-4 text-muted-foreground flex-shrink-0 mt-1" />
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <div className="p-6 text-center">
-                    <Search className="h-8 w-8 mx-auto mb-2 text-muted-foreground/50" />
-                    <p className="text-muted-foreground">No researchers found for "{searchQuery}"</p>
-                    <p className="text-sm text-muted-foreground/70 mt-1">Try a different name</p>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-
-          {/* Example Profiles */}
-          <div className="mt-12 max-w-3xl mx-auto">
-            <h3 className="text-center text-sm font-medium text-muted-foreground mb-6">
-              Or try these examples:
-            </h3>
-            <div className="grid sm:grid-cols-3 gap-4">
-              {[
-                { name: "Albert Einstein", id: "A5109805546", field: "Physics" },
-                { name: "Richard Feynman", id: "A5037710835", field: "Physics" },
-                { name: "Stephen Hawking", id: "A5066175077", field: "Cosmology" }
-              ].map((researcher, index) => (
-                <Card 
-                  key={index} 
-                  className="cursor-pointer hover:shadow-md transition-all hover:-translate-y-1 bg-white"
-                  onClick={() => { window.scrollTo(0, 0); navigate(`/researcher/${researcher.id}`); }}
-                  data-testid={`card-example-${researcher.name.toLowerCase().replace(' ', '-')}`}
-                >
-                  <CardContent className="pt-6 text-center">
-                    <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-3">
-                      <GraduationCap className="w-6 h-6 text-primary" />
-                    </div>
-                    <h4 className="font-medium">{researcher.name}</h4>
-                    <p className="text-sm text-muted-foreground">{researcher.field}</p>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* Features Section */}
-      <section id="features" className="py-16 lg:py-24 bg-white">
+      <section id="features" className="py-16 lg:py-24 bg-muted/30">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-3xl sm:text-4xl font-bold mb-4">
@@ -396,7 +361,7 @@ export default function LandingPage() {
       </section>
 
       {/* Pricing Section */}
-      <section id="pricing" className="py-16 lg:py-24 bg-muted/30">
+      <section id="pricing" className="py-16 lg:py-24 bg-white">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <Badge className="mb-4 bg-amber-100 text-amber-800 hover:bg-amber-100">
@@ -481,7 +446,7 @@ export default function LandingPage() {
             Ready to Get Started?
           </h2>
           <p className="text-lg text-white/80 mb-8 max-w-2xl mx-auto">
-            Create your professional research portfolio in 60 seconds.
+            Create your professional research portfolio today.
           </p>
           <Button 
             size="lg" 
@@ -511,7 +476,6 @@ export default function LandingPage() {
             <div>
               <h4 className="font-medium mb-4">Product</h4>
               <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><a href="#demo" className="hover:text-foreground transition-colors" data-testid="link-footer-demo">Demo</a></li>
                 <li><a href="#features" className="hover:text-foreground transition-colors" data-testid="link-footer-features">Features</a></li>
                 <li><a href="#pricing" className="hover:text-foreground transition-colors" data-testid="link-footer-pricing">Pricing</a></li>
               </ul>
