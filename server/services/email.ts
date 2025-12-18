@@ -65,9 +65,21 @@ function expectCode(response: string, allowed: number[]) {
 
 function readResponse(socket: SocketLike): Promise<string> {
   return new Promise((resolve, reject) => {
+    let buffer = "";
     const onData = (data: Buffer) => {
-      cleanup();
-      resolve(data.toString());
+      buffer += data.toString();
+      const lines = buffer.split("\r\n");
+      for (const line of lines) {
+        if (line.length < 4) continue;
+        const code = line.slice(0, 3);
+        const separator = line[3];
+        if (!/^\d{3}$/.test(code)) continue;
+        if (separator === " ") {
+          cleanup();
+          resolve(buffer.trim());
+          return;
+        }
+      }
     };
     const onError = (error: Error) => {
       cleanup();
@@ -107,7 +119,7 @@ export async function sendContactEmail(inquiry: ContactInquiry) {
     throw new Error("Email service not configured (missing SMTP_HOST/SMTP_USER/SMTP_PASS).");
   }
 
-  const socket: SocketLike = SMTP_SECURE
+  let socket: SocketLike = SMTP_SECURE
     ? tls.connect({
         host: SMTP_HOST,
         port: SMTP_PORT,
@@ -122,8 +134,23 @@ export async function sendContactEmail(inquiry: ContactInquiry) {
     const welcome = await readResponse(socket);
     expectCode(welcome, [220]);
 
-    const ehlo = await sendCommand(socket, `EHLO ${SMTP_HOST}`);
+    let ehlo = await sendCommand(socket, `EHLO ${SMTP_HOST}`);
     expectCode(ehlo, [250]);
+
+    // Upgrade via STARTTLS when SMTP_SECURE is false (common for port 587)
+    if (!SMTP_SECURE) {
+      const startTlsResp = await sendCommand(socket, "STARTTLS");
+      expectCode(startTlsResp, [220]);
+
+      socket = tls.connect({
+        host: SMTP_HOST,
+        socket: socket as net.Socket,
+        rejectUnauthorized: false,
+      });
+
+      ehlo = await sendCommand(socket, `EHLO ${SMTP_HOST}`);
+      expectCode(ehlo, [250]);
+    }
 
     const authLogin = await sendCommand(socket, "AUTH LOGIN");
     expectCode(authLogin, [334]);
