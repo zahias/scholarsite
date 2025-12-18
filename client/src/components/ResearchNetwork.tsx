@@ -71,32 +71,28 @@ export default function ResearchNetwork({ publications, researcherName, isLoadin
           </div>
         </div>
 
-        <Card className="overflow-hidden max-w-md" data-testid="card-collaborators">
-          <CardContent className="p-6">
-            <div className="space-y-3">
-              {collaborators.map((collab, index) => (
-                <div 
-                  key={collab.name}
-                  className="flex items-center gap-3 p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors"
-                  data-testid={`item-collaborator-${index}`}
-                >
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center flex-shrink-0">
-                    <span className="text-primary font-semibold text-sm">#{index + 1}</span>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium text-sm truncate" data-testid={`text-collaborator-name-${index}`}>
-                      {collab.name}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {collab.count} joint paper{collab.count > 1 ? 's' : ''}
-                    </p>
-                  </div>
-                  <BookOpen className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4" data-testid="grid-collaborators">
+          {collaborators.map((collab, index) => (
+            <Card 
+              key={collab.name}
+              className="overflow-hidden hover:shadow-md transition-shadow"
+              data-testid={`card-collaborator-${index}`}
+            >
+              <CardContent className="p-4 text-center">
+                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center mx-auto mb-3">
+                  <span className="text-primary font-bold text-lg">#{index + 1}</span>
                 </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+                <p className="font-medium text-sm truncate mb-1" data-testid={`text-collaborator-name-${index}`}>
+                  {collab.name}
+                </p>
+                <div className="flex items-center justify-center gap-1 text-xs text-muted-foreground">
+                  <BookOpen className="w-3 h-3" />
+                  <span>{collab.count} paper{collab.count > 1 ? 's' : ''}</span>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
       </div>
     </section>
   );

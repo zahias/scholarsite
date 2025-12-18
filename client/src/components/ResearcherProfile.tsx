@@ -9,6 +9,7 @@ import Publications from "./Publications";
 import SEO from "./SEO";
 import MobileBottomNav from "./MobileBottomNav";
 import { ThemeSwitcher } from "./ThemeSwitcher";
+import ResearchPassport from "./ResearchPassport";
 import { ProfileThemeProvider, useProfileTheme, getThemeStyles } from "@/context/ThemeContext";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -530,6 +531,17 @@ function ResearcherProfileContent() {
                   </svg>
                   OpenAlex Profile
                 </a>
+                <div className="w-full sm:w-auto">
+                  <ResearchPassport
+                    openalexId={openalexId}
+                    name={profile?.displayName || researcher?.display_name || 'Researcher'}
+                    title={profile?.title}
+                    institution={profile?.currentAffiliation || researcher?.last_known_institutions?.[0]?.display_name}
+                    publicationCount={researcher?.works_count || 0}
+                    citationCount={researcher?.cited_by_count || 0}
+                    profileUrl={window.location.href}
+                  />
+                </div>
               </div>
               
               {/* Preview Mode Indicator */}

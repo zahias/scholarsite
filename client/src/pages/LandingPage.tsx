@@ -428,7 +428,7 @@ export default function LandingPage() {
                     className="w-full" 
                     variant={plan.highlighted ? "default" : "outline"}
                     data-testid={`button-select-${plan.name.toLowerCase()}`}
-                    onClick={() => navigate(`/checkout?plan=${plan.name.toLowerCase()}&billing=${isYearly ? 'yearly' : 'monthly'}`)}
+                    onClick={() => navigate(`/contact?plan=${plan.name.toLowerCase()}`)}
                   >
                     Get Started
                   </Button>
