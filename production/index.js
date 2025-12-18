@@ -3144,7 +3144,7 @@ async function registerRoutes(app2) {
           let cleaned = title.replace(/<[^>]*>/g, "").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&amp;/g, "&").replace(/&quot;/g, '"').replace(/&#?\w+;/g, "").replace(/\s+/g, " ").trim();
           return cleaned || "Untitled";
         };
-        const publications2 = works.results.slice(0, 100).map((work) => ({
+        const publications2 = works.results.slice(0, 500).map((work) => ({
           id: work.id || "",
           title: normalizeTitle(work.display_name || work.title),
           authorNames: work.authorships?.map((a) => a.author?.display_name).filter(Boolean).join(", ") || null,

@@ -79,6 +79,7 @@ export default function PublicationAnalytics({ openalexId, researcherData: propR
     if (!researcherData?.publications || researcherData.publications.length === 0) {
       return {
         cumulativeData: [],
+        cumulativeCitationsData: [],
         yearlyData: [],
         topicsData: [],
         typesData: [],
@@ -112,20 +113,29 @@ export default function PublicationAnalytics({ openalexId, researcherData: propR
     const startYear = Math.min(...Object.keys(yearCounts).map(Number));
     const endYear = Math.max(...Object.keys(yearCounts).map(Number));
 
-    // Create cumulative and yearly data
+    // Create cumulative publications, cumulative citations, and yearly data
     const cumulativeData = [];
+    const cumulativeCitationsData = [];
     const yearlyData = [];
     let cumulative = 0;
+    let cumulativeCitations = 0;
 
     for (let year = startYear; year <= endYear; year++) {
       const count = yearCounts[year] || 0;
       cumulative += count;
       const citations = yearCitations[year] || 0;
+      cumulativeCitations += citations;
 
       cumulativeData.push({
         year,
         cumulative,
         publications: count,
+      });
+
+      cumulativeCitationsData.push({
+        year,
+        cumulative: cumulativeCitations,
+        citations,
       });
 
       if (count > 0) {
@@ -187,6 +197,7 @@ export default function PublicationAnalytics({ openalexId, researcherData: propR
 
     return {
       cumulativeData,
+      cumulativeCitationsData,
       yearlyData,
       topicsData: [],
       typesData,
@@ -334,22 +345,38 @@ export default function PublicationAnalytics({ openalexId, researcherData: propR
                 </CardContent>
               </Card>
 
-              <Card data-testid="card-yearly-chart">
+              <Card data-testid="card-cumulative-citations-chart">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
-                    <BarChart3 className="w-5 h-5 text-accent" />
-                    Publications by Year
+                    <Award className="w-5 h-5 text-accent" />
+                    Cumulative Citations
+                    <Badge variant="secondary" className="ml-auto">
+                      {chartData.totalCitations.toLocaleString()} total
+                    </Badge>
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <ResponsiveContainer width="100%" height={300}>
-                    <BarChart data={chartData.yearlyData}>
+                    <AreaChart data={chartData.cumulativeCitationsData}>
+                      <defs>
+                        <linearGradient id="colorCumulativeCitations" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="hsl(var(--accent))" stopOpacity={0.3}/>
+                          <stop offset="95%" stopColor="hsl(var(--accent))" stopOpacity={0}/>
+                        </linearGradient>
+                      </defs>
                       <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
                       <XAxis dataKey="year" />
                       <YAxis />
                       <Tooltip content={<CustomTooltip />} />
-                      <Bar dataKey="publications" fill="hsl(var(--accent))" radius={[4, 4, 0, 0]} />
-                    </BarChart>
+                      <Area
+                        type="monotone"
+                        dataKey="cumulative"
+                        name="Total Citations"
+                        stroke="hsl(var(--accent))"
+                        fill="url(#colorCumulativeCitations)"
+                        strokeWidth={3}
+                      />
+                    </AreaChart>
                   </ResponsiveContainer>
                 </CardContent>
               </Card>

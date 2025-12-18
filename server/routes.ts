@@ -787,7 +787,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         };
 
         // Transform publications to match expected format (matching the Publication interface in frontend)
-        const publications = works.results.slice(0, 100).map((work: any) => ({
+        // Limit to 500 for preview mode to avoid very large payloads (full data available after profile creation)
+        const publications = works.results.slice(0, 500).map((work: any) => ({
           id: work.id || '',
           title: normalizeTitle(work.display_name || work.title),
           authorNames: work.authorships?.map((a: any) => a.author?.display_name).filter(Boolean).join(', ') || null,
