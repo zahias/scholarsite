@@ -5,25 +5,24 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
 import { 
   Globe, 
-  BarChart3, 
-  Mail, 
-  Palette, 
   Search, 
   ArrowRight, 
   Check, 
-  Sparkles,
   BookOpen,
   Users,
-  Shield,
   Zap,
   Loader2,
   GraduationCap,
   RefreshCw,
-  Lock,
-  Database,
-  Award
+  Shield,
+  Award,
+  FileText,
+  Network,
+  Palette,
+  Clock
 } from "lucide-react";
 
 interface AuthorSearchResult {
@@ -44,6 +43,7 @@ export default function LandingPage() {
   const [debouncedQuery, setDebouncedQuery] = useState("");
   const [showResults, setShowResults] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(-1);
+  const [isYearly, setIsYearly] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -101,45 +101,36 @@ export default function LandingPage() {
 
   const features = [
     {
-      icon: Globe,
-      title: "Professional Domain",
-      description: "Connect your own domain like yourname.com, or start with a scholar.name subdomain."
+      icon: FileText,
+      title: "Research Passport",
+      description: "Download a printable PDF with your name, institution, and QR code linking to your portfolio. Perfect for conferences and networking."
     },
     {
-      icon: BarChart3,
-      title: "Publication Analytics",
-      description: "Interactive charts showing citations, h-index trends, and research impact over time."
-    },
-    {
-      icon: Mail,
-      title: "Professional Email",
-      description: "Contact form integration so colleagues can reach you professionally."
+      icon: Network,
+      title: "Collaboration Map",
+      description: "Visual network showing your co-author connections and research collaborations across institutions."
     },
     {
       icon: Palette,
-      title: "Color Themes",
-      description: "Choose from professionally designed color themes that highlight your research."
+      title: "Custom Bio Sections",
+      description: "Add awards, grants, teaching experience, media mentions, and other achievements to your profile."
     },
     {
-      icon: Zap,
-      title: "Auto-Update",
-      description: "Your profile stays current with automatic synchronization from OpenAlex."
-    },
-    {
-      icon: Shield,
-      title: "Reliable Hosting",
-      description: "Fast, secure hosting with 99.9% uptime and SSL encryption."
+      icon: RefreshCw,
+      title: "Auto-Sync",
+      description: "Your publications update automatically from OpenAlex. No manual entry needed."
     }
   ];
 
   const pricingPlans = [
     {
       name: "Starter",
-      price: "$9",
-      period: "/month",
+      monthlyPrice: 9.99,
+      yearlyPrice: 95.88,
+      yearlySavings: 24,
       description: "Perfect for individual researchers",
       features: [
-        "Custom subdomain",
+        "scholar.name subdomain",
         "Publication analytics",
         "Color themes",
         "Monthly data sync",
@@ -148,29 +139,20 @@ export default function LandingPage() {
       highlighted: false
     },
     {
-      name: "Professional",
-      price: "$19",
-      period: "/month",
+      name: "Pro",
+      monthlyPrice: 19.99,
+      yearlyPrice: 191.88,
+      yearlySavings: 48,
       description: "For established academics",
       features: [
         "Everything in Starter",
-        "Custom domain",
-        "Professional email",
-        "Weekly data sync"
+        "Custom domain (yourname.com)",
+        "Research Passport download",
+        "Collaboration Map",
+        "Weekly data sync",
+        "Priority support"
       ],
       highlighted: true
-    },
-    {
-      name: "Institution",
-      price: "$49",
-      period: "/month",
-      description: "For research groups & labs",
-      features: [
-        "Everything in Professional",
-        "Up to 10 researcher profiles",
-        "Shared branding"
-      ],
-      highlighted: false
     }
   ];
 
@@ -185,150 +167,101 @@ export default function LandingPage() {
               <span className="text-lg font-semibold text-white">ScholarName</span>
             </div>
             <div className="hidden md:flex items-center gap-8">
+              <a href="#demo" className="nav-link text-sm" data-testid="link-demo">Demo</a>
               <a href="#features" className="nav-link text-sm" data-testid="link-features">Features</a>
-              <a href="#preview" className="nav-link text-sm" data-testid="link-preview">Preview</a>
               <a href="#pricing" className="nav-link text-sm" data-testid="link-pricing">Pricing</a>
-              <Button size="sm" className="btn-premium text-sm px-5 py-2" data-testid="button-get-started-nav" onClick={() => navigate('/contact')}>Create My Portfolio</Button>
+              <Button size="sm" className="btn-premium text-sm px-5 py-2" data-testid="button-get-started-nav" onClick={() => navigate('/contact')}>Get Started</Button>
             </div>
           </div>
         </div>
       </nav>
 
-      {/* Premium Hero Section */}
-      <section className="landing-hero py-24 lg:py-32 relative">
-        {/* Floating orbs */}
+      {/* Hero Section - Simplified */}
+      <section className="landing-hero py-20 lg:py-28 relative">
         <div className="hero-orb hero-orb-1"></div>
         <div className="hero-orb hero-orb-2"></div>
         
         <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto">
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight mb-6 text-white">
-              Your Research Deserves Better Than{" "}
-              <span className="bg-gradient-to-r from-orange-300 via-orange-200 to-amber-200 bg-clip-text text-transparent">a Google Scholar Page</span>
+              Your Research Deserves{" "}
+              <span className="bg-gradient-to-r from-orange-300 via-orange-200 to-amber-200 bg-clip-text text-transparent">Better</span>
             </h1>
-            <p className="text-lg lg:text-xl text-white/80 mb-6 leading-relaxed">
-              Build your professional research presence in minutes.
+            <p className="text-lg lg:text-xl text-white/80 mb-4 leading-relaxed">
+              Professional research portfolios that update automatically.
             </p>
-            <div className="flex items-center justify-center gap-6 mb-10 text-white/70 text-sm">
-              <span className="flex items-center gap-2">
-                <Database className="w-4 h-4" />
-                250M+ Research Papers
-              </span>
-              <span className="flex items-center gap-2">
-                <GraduationCap className="w-4 h-4" />
-                100K+ Institutions
-              </span>
+            <div className="flex items-center justify-center gap-2 mb-8 text-white/70 text-sm">
+              <Clock className="w-4 h-4" />
+              <span>Set up in 60 seconds</span>
             </div>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button 
-                size="lg" 
-                className="btn-premium text-base px-8 py-6" 
-                data-testid="button-get-started-hero"
-                onClick={() => navigate('/contact')}
-              >
-                Create My Portfolio
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
-              <Button 
-                size="lg" 
-                className="btn-outline-light text-base px-8 py-6" 
-                data-testid="button-see-demo"
-                onClick={() => document.getElementById('preview')?.scrollIntoView({ behavior: 'smooth' })}
-              >
-                See a Demo
-              </Button>
-            </div>
+            <Button 
+              size="lg" 
+              className="btn-premium text-base px-8 py-6" 
+              data-testid="button-get-started-hero"
+              onClick={() => document.getElementById('demo')?.scrollIntoView({ behavior: 'smooth' })}
+            >
+              Try the Demo
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
           </div>
-
         </div>
       </section>
 
-      {/* Credibility Section */}
-      <section className="py-16 lg:py-20 bg-white border-b">
+      {/* Credibility Badges */}
+      <section className="py-8 bg-white border-b">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-
-          {/* Feature Highlights */}
-          <div className="grid md:grid-cols-3 gap-8 mb-12">
-            <div className="flex items-start gap-4" data-testid="feature-auto-sync">
+          <div className="grid md:grid-cols-3 gap-6">
+            <div className="flex items-center justify-center gap-3" data-testid="badge-auto-sync">
               <div className="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center flex-shrink-0">
                 <RefreshCw className="w-5 h-5 text-green-600" />
               </div>
               <div>
-                <h3 className="font-semibold mb-1">Auto-Sync</h3>
-                <p className="text-sm text-muted-foreground">Your profile updates automatically as you publish new research.</p>
+                <h3 className="font-semibold text-sm">Auto-Sync</h3>
+                <p className="text-xs text-muted-foreground">Updates automatically</p>
               </div>
             </div>
-            <div className="flex items-start gap-4" data-testid="feature-secure">
+            <div className="flex items-center justify-center gap-3" data-testid="badge-enterprise">
               <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center flex-shrink-0">
                 <Shield className="w-5 h-5 text-blue-600" />
               </div>
               <div>
-                <h3 className="font-semibold mb-1">Enterprise Security</h3>
-                <p className="text-sm text-muted-foreground">Bank-level encryption protects your data and privacy.</p>
+                <h3 className="font-semibold text-sm">Enterprise Security</h3>
+                <p className="text-xs text-muted-foreground">Bank-level encryption</p>
               </div>
             </div>
-            <div className="flex items-start gap-4" data-testid="feature-early-adopter">
+            <div className="flex items-center justify-center gap-3" data-testid="badge-early-adopter">
               <div className="w-10 h-10 rounded-lg bg-amber-100 flex items-center justify-center flex-shrink-0">
                 <Award className="w-5 h-5 text-amber-600" />
               </div>
               <div>
-                <h3 className="font-semibold mb-1">Early Adopter Perks</h3>
-                <p className="text-sm text-muted-foreground">Join the first 100 researchers and lock in founding member pricing.</p>
+                <h3 className="font-semibold text-sm">Early Adopters</h3>
+                <p className="text-xs text-muted-foreground">Lock in founder pricing</p>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Features Section */}
-      <section id="features" className="py-20 lg:py-28 bg-white">
+      {/* Live Demo Section - Main focus */}
+      <section id="demo" className="py-16 lg:py-24 bg-muted/30">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
+          <div className="text-center mb-10">
             <h2 className="text-3xl sm:text-4xl font-bold mb-4">
-              Everything You Need to Shine
+              See It In Action
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Professional research portfolios with powerful features designed specifically for academics.
-            </p>
-          </div>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {features.map((feature, index) => (
-              <Card key={index} className="group card-premium border bg-white shadow-sm hover:shadow-lg hover:border-primary/20 transition-all duration-300">
-                <CardHeader>
-                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center mb-4 group-hover:scale-105 transition-transform">
-                    <feature.icon className="w-6 h-6 text-primary" />
-                  </div>
-                  <CardTitle className="text-lg">{feature.title}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <CardDescription className="text-base leading-relaxed">{feature.description}</CardDescription>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Preview Section - Search */}
-      <section id="preview" className="py-20 lg:py-28 bg-muted/30">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl sm:text-4xl font-bold mb-4">
-              See Your Portfolio in Action
-            </h2>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Search for any researcher by name and preview their complete academic portfolio.
+              Search for any researcher and preview their portfolio instantly.
             </p>
           </div>
 
-          {/* Search Box with Fixed Dropdown */}
+          {/* Search Box */}
           <div className="max-w-xl mx-auto relative" ref={searchRef}>
             <div className="relative">
               <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground h-5 w-5" />
               <Input
                 ref={inputRef}
                 type="text"
-                placeholder="Search by researcher name (e.g., Albert Einstein)"
+                placeholder="Search by researcher name..."
                 value={searchQuery}
                 onChange={(e) => {
                   setSearchQuery(e.target.value);
@@ -337,7 +270,7 @@ export default function LandingPage() {
                 }}
                 onFocus={() => setShowResults(true)}
                 onKeyDown={handleKeyDown}
-                className="pl-12 pr-12 h-14 text-base rounded-lg border-2 focus:border-primary bg-white"
+                className="pl-12 pr-12 h-14 text-base rounded-xl border-2 focus:border-primary bg-white shadow-sm"
                 data-testid="input-researcher-search"
               />
               {isSearching && (
@@ -345,9 +278,9 @@ export default function LandingPage() {
               )}
             </div>
 
-            {/* Search Results Dropdown - Properly contained */}
+            {/* Search Results Dropdown */}
             {showResults && searchQuery.length >= 2 && (
-              <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-border rounded-lg shadow-lg z-40 max-h-80 overflow-hidden">
+              <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-border rounded-xl shadow-lg z-40 max-h-80 overflow-hidden">
                 {isSearching ? (
                   <div className="p-6 text-center">
                     <Loader2 className="h-6 w-6 animate-spin mx-auto mb-2 text-primary" />
@@ -397,21 +330,17 @@ export default function LandingPage() {
                   <div className="p-6 text-center">
                     <Search className="h-8 w-8 mx-auto mb-2 text-muted-foreground/50" />
                     <p className="text-muted-foreground">No researchers found for "{searchQuery}"</p>
-                    <p className="text-sm text-muted-foreground/70 mt-1">Try a different name or spelling</p>
+                    <p className="text-sm text-muted-foreground/70 mt-1">Try a different name</p>
                   </div>
                 )}
               </div>
             )}
-            
-            <p className="text-sm text-muted-foreground mt-4 text-center">
-              Search from over 250 million research papers and 100,000+ institutions worldwide.
-            </p>
           </div>
 
           {/* Example Profiles */}
-          <div className="mt-16 max-w-3xl mx-auto">
-            <h3 className="text-center text-base font-medium text-muted-foreground mb-6">
-              Or try these example profiles:
+          <div className="mt-12 max-w-3xl mx-auto">
+            <h3 className="text-center text-sm font-medium text-muted-foreground mb-6">
+              Or try these examples:
             </h3>
             <div className="grid sm:grid-cols-3 gap-4">
               {[
@@ -421,7 +350,7 @@ export default function LandingPage() {
               ].map((researcher, index) => (
                 <Card 
                   key={index} 
-                  className="cursor-pointer hover:shadow-md transition-all hover:-translate-y-1"
+                  className="cursor-pointer hover:shadow-md transition-all hover:-translate-y-1 bg-white"
                   onClick={() => { window.scrollTo(0, 0); navigate(`/researcher/${researcher.id}`); }}
                   data-testid={`card-example-${researcher.name.toLowerCase().replace(' ', '-')}`}
                 >
@@ -439,22 +368,70 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Pricing Section */}
-      <section id="pricing" className="py-20 lg:py-28 bg-white">
+      {/* Features Section */}
+      <section id="features" className="py-16 lg:py-24 bg-white">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
+          <div className="text-center mb-12">
             <h2 className="text-3xl sm:text-4xl font-bold mb-4">
-              Simple, Transparent Pricing
+              Built for Researchers
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Choose the plan that fits your needs. Contact us to get started.
+              Features designed to showcase your academic achievements.
             </p>
           </div>
-          <div className="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+          <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+            {features.map((feature, index) => (
+              <Card key={index} className="group border bg-white shadow-sm hover:shadow-lg hover:border-primary/20 transition-all duration-300">
+                <CardHeader className="pb-2">
+                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center mb-4 group-hover:scale-105 transition-transform">
+                    <feature.icon className="w-6 h-6 text-primary" />
+                  </div>
+                  <CardTitle className="text-lg">{feature.title}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <CardDescription className="text-base leading-relaxed">{feature.description}</CardDescription>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Pricing Section */}
+      <section id="pricing" className="py-16 lg:py-24 bg-muted/30">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <Badge className="mb-4 bg-amber-100 text-amber-800 hover:bg-amber-100">
+              <Award className="w-3 h-3 mr-1" />
+              Early Adopter Pricing
+            </Badge>
+            <h2 className="text-3xl sm:text-4xl font-bold mb-4">
+              Simple Pricing
+            </h2>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
+              Lock in these rates as a founding member.
+            </p>
+            
+            {/* Monthly/Yearly Toggle */}
+            <div className="flex items-center justify-center gap-3 mb-8">
+              <span className={`text-sm font-medium ${!isYearly ? 'text-foreground' : 'text-muted-foreground'}`}>Monthly</span>
+              <Switch
+                checked={isYearly}
+                onCheckedChange={setIsYearly}
+                data-testid="switch-billing-toggle"
+              />
+              <span className={`text-sm font-medium ${isYearly ? 'text-foreground' : 'text-muted-foreground'}`}>
+                Yearly
+                <Badge variant="secondary" className="ml-2 text-xs bg-green-100 text-green-700">Save 2 months</Badge>
+              </span>
+            </div>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-6 max-w-3xl mx-auto">
             {pricingPlans.map((plan, index) => (
               <Card 
                 key={index} 
-                className={`relative ${plan.highlighted ? 'border-2 border-primary shadow-lg' : 'border'}`}
+                className={`relative ${plan.highlighted ? 'border-2 border-primary shadow-lg' : 'border bg-white'}`}
                 data-testid={`card-pricing-${plan.name.toLowerCase()}`}
               >
                 {plan.highlighted && (
@@ -462,12 +439,17 @@ export default function LandingPage() {
                     <Badge className="bg-primary text-primary-foreground">Most Popular</Badge>
                   </div>
                 )}
-                <CardHeader className="text-center pb-2 pt-6">
+                <CardHeader className="text-center pb-2 pt-8">
                   <CardTitle className="text-xl">{plan.name}</CardTitle>
                   <CardDescription>{plan.description}</CardDescription>
                   <div className="mt-4">
-                    <span className="text-4xl font-bold">{plan.price}</span>
-                    <span className="text-muted-foreground">{plan.period}</span>
+                    <span className="text-4xl font-bold">
+                      ${isYearly ? plan.yearlyPrice.toFixed(2) : plan.monthlyPrice.toFixed(2)}
+                    </span>
+                    <span className="text-muted-foreground">/{isYearly ? 'year' : 'month'}</span>
+                    {isYearly && (
+                      <p className="text-sm text-green-600 mt-1">Save ${plan.yearlySavings}</p>
+                    )}
                   </div>
                 </CardHeader>
                 <CardContent>
@@ -485,7 +467,7 @@ export default function LandingPage() {
                     data-testid={`button-select-${plan.name.toLowerCase()}`}
                     onClick={() => navigate(`/contact?plan=${plan.name.toLowerCase()}`)}
                   >
-                    Create My Portfolio
+                    Get Started
                   </Button>
                 </CardContent>
               </Card>
@@ -494,15 +476,14 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Premium CTA Section */}
-      <section className="cta-premium py-20 lg:py-28 relative">
+      {/* CTA Section */}
+      <section className="cta-premium py-16 lg:py-20 relative">
         <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl sm:text-4xl font-bold mb-4 text-white">
-            Ready to Showcase Your Research?
+            Ready to Get Started?
           </h2>
-          <p className="text-lg text-white/80 mb-10 max-w-2xl mx-auto">
-            Create your professional research portfolio today.
-            Get in touch with our team to discuss your needs.
+          <p className="text-lg text-white/80 mb-8 max-w-2xl mx-auto">
+            Create your professional research portfolio in 60 seconds.
           </p>
           <Button 
             size="lg" 
@@ -510,7 +491,7 @@ export default function LandingPage() {
             data-testid="button-get-started-cta"
             onClick={() => navigate('/contact')}
           >
-            Create My Portfolio
+            Start Your Portfolio
             <ArrowRight className="ml-2 h-4 w-4" />
           </Button>
         </div>
@@ -519,22 +500,22 @@ export default function LandingPage() {
       {/* Footer */}
       <footer className="bg-muted/50 border-t border-border py-12">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid md:grid-cols-4 gap-8">
+          <div className="grid md:grid-cols-3 gap-8">
             <div>
               <div className="flex items-center mb-4">
                 <BookOpen className="h-6 w-6 text-primary mr-2" />
                 <span className="font-semibold">ScholarName</span>
               </div>
               <p className="text-sm text-muted-foreground">
-                Beautiful research portfolios for academics.
+                Professional research portfolios for academics.
               </p>
             </div>
             <div>
               <h4 className="font-medium mb-4">Product</h4>
               <ul className="space-y-2 text-sm text-muted-foreground">
+                <li><a href="#demo" className="hover:text-foreground transition-colors" data-testid="link-footer-demo">Demo</a></li>
                 <li><a href="#features" className="hover:text-foreground transition-colors" data-testid="link-footer-features">Features</a></li>
                 <li><a href="#pricing" className="hover:text-foreground transition-colors" data-testid="link-footer-pricing">Pricing</a></li>
-                <li><a href="#preview" className="hover:text-foreground transition-colors" data-testid="link-footer-preview">Preview</a></li>
               </ul>
             </div>
             <div>
