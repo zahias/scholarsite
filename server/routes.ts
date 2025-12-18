@@ -13,6 +13,7 @@ import { authRouter } from "./auth";
 import { adminRouter } from "./adminRoutes";
 import tenantRouter from "./tenantRoutes";
 import researcherRouter from "./researcherRoutes";
+import checkoutRouter from "./checkoutRoutes";
 import { tenantResolver } from "./tenantMiddleware";
 import fetch from "node-fetch";
 
@@ -520,6 +521,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Researcher routes (for customer dashboard)
   app.use("/api/researcher", researcherRouter);
+
+  // Checkout routes for payment processing
+  app.use("/api/checkout", checkoutRouter);
 
   // Server-Sent Events endpoint for real-time updates
   app.get('/api/events', (req, res) => {

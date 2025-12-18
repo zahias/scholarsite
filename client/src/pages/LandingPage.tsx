@@ -194,7 +194,7 @@ export default function LandingPage() {
                 <Input
                   ref={inputRef}
                   type="text"
-                  placeholder="Search for any researcher..."
+                  placeholder="Search for yourself or a colleague..."
                   value={searchQuery}
                   onChange={(e) => {
                     setSearchQuery(e.target.value);
@@ -428,7 +428,7 @@ export default function LandingPage() {
                     className="w-full" 
                     variant={plan.highlighted ? "default" : "outline"}
                     data-testid={`button-select-${plan.name.toLowerCase()}`}
-                    onClick={() => navigate(`/contact?plan=${plan.name.toLowerCase()}`)}
+                    onClick={() => navigate(`/checkout?plan=${plan.name.toLowerCase()}&billing=${isYearly ? 'yearly' : 'monthly'}`)}
                   >
                     Get Started
                   </Button>

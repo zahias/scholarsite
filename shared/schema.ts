@@ -306,3 +306,43 @@ export const insertDomainSchema = createInsertSchema(domains).omit({
 export const updateDomainSchema = insertDomainSchema.partial().extend({
   id: z.string(),
 });
+
+// Payment status types
+export type PaymentStatus = 'pending' | 'completed' | 'failed' | 'refunded' | 'cancelled';
+
+// Payments table - track all payment transactions
+export const payments = pgTable("payments", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  tenantId: varchar("tenant_id").references(() => tenants.id),
+  orderNumber: varchar("order_number").unique().notNull(),
+  amount: varchar("amount").notNull(),
+  currency: varchar("currency").default('USD').notNull(),
+  status: varchar("status").$type<PaymentStatus>().default('pending').notNull(),
+  plan: varchar("plan").$type<PlanType>().notNull(),
+  billingPeriod: varchar("billing_period").default('monthly').notNull(),
+  customerEmail: varchar("customer_email").notNull(),
+  customerName: varchar("customer_name").notNull(),
+  montyPaySessionId: varchar("montypay_session_id"),
+  montyPayTransactionId: varchar("montypay_transaction_id"),
+  metadata: jsonb("metadata"),
+  createdAt: timestamp("created_at").defaultNow(),
+  completedAt: timestamp("completed_at"),
+});
+
+export type InsertPayment = typeof payments.$inferInsert;
+export type Payment = typeof payments.$inferSelect;
+
+export const insertPaymentSchema = createInsertSchema(payments).omit({
+  id: true,
+  createdAt: true,
+  completedAt: true,
+});
+
+// Checkout session request schema
+export const checkoutSessionSchema = z.object({
+  plan: z.enum(['starter', 'pro']),
+  billingPeriod: z.enum(['monthly', 'yearly']),
+  customerName: z.string().min(1, "Name is required"),
+  customerEmail: z.string().email("Valid email is required"),
+  openalexId: z.string().optional(),
+});

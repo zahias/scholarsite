@@ -16,6 +16,9 @@ import TenantForm from "@/pages/TenantForm";
 import ResearcherLogin from "@/pages/ResearcherLogin";
 import ResearcherDashboard from "@/pages/ResearcherDashboard";
 import TenantProfilePage from "@/pages/TenantProfilePage";
+import CheckoutPage from "@/pages/CheckoutPage";
+import CheckoutSuccessPage from "@/pages/CheckoutSuccessPage";
+import CheckoutCancelPage from "@/pages/CheckoutCancelPage";
 
 interface SiteContext {
   isTenantSite: boolean;
@@ -71,6 +74,9 @@ function Router() {
       <Route path="/admin/tenants/:id" component={TenantForm} />
       <Route path="/dashboard/login" component={ResearcherLogin} />
       <Route path="/dashboard" component={ResearcherDashboard} />
+      <Route path="/checkout" component={CheckoutPage} />
+      <Route path="/checkout/success" component={CheckoutSuccessPage} />
+      <Route path="/checkout/cancel" component={CheckoutCancelPage} />
       <Route component={NotFound} />
     </Switch>
   );

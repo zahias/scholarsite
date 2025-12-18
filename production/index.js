@@ -18,13 +18,16 @@ import { EventEmitter } from "events";
 var schema_exports = {};
 __export(schema_exports, {
   affiliations: () => affiliations,
+  checkoutSessionSchema: () => checkoutSessionSchema,
   domains: () => domains,
   insertDomainSchema: () => insertDomainSchema,
+  insertPaymentSchema: () => insertPaymentSchema,
   insertResearcherProfileSchema: () => insertResearcherProfileSchema,
   insertTenantSchema: () => insertTenantSchema,
   insertThemeSchema: () => insertThemeSchema,
   loginUserSchema: () => loginUserSchema,
   openalexData: () => openalexData,
+  payments: () => payments,
   publications: () => publications,
   registerUserSchema: () => registerUserSchema,
   researchTopics: () => researchTopics,
@@ -259,6 +262,35 @@ var insertDomainSchema = createInsertSchema(domains).omit({
 });
 var updateDomainSchema = insertDomainSchema.partial().extend({
   id: z.string()
+});
+var payments = pgTable("payments", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  tenantId: varchar("tenant_id").references(() => tenants.id),
+  orderNumber: varchar("order_number").unique().notNull(),
+  amount: varchar("amount").notNull(),
+  currency: varchar("currency").default("USD").notNull(),
+  status: varchar("status").$type().default("pending").notNull(),
+  plan: varchar("plan").$type().notNull(),
+  billingPeriod: varchar("billing_period").default("monthly").notNull(),
+  customerEmail: varchar("customer_email").notNull(),
+  customerName: varchar("customer_name").notNull(),
+  montyPaySessionId: varchar("montypay_session_id"),
+  montyPayTransactionId: varchar("montypay_transaction_id"),
+  metadata: jsonb("metadata"),
+  createdAt: timestamp("created_at").defaultNow(),
+  completedAt: timestamp("completed_at")
+});
+var insertPaymentSchema = createInsertSchema(payments).omit({
+  id: true,
+  createdAt: true,
+  completedAt: true
+});
+var checkoutSessionSchema = z.object({
+  plan: z.enum(["starter", "pro"]),
+  billingPeriod: z.enum(["monthly", "yearly"]),
+  customerName: z.string().min(1, "Name is required"),
+  customerEmail: z.string().email("Valid email is required"),
+  openalexId: z.string().optional()
 });
 
 // server/db.ts
@@ -644,6 +676,60 @@ var DatabaseStorage = class {
       currentThemeName: themes.name
     }).from(tenants).leftJoin(themes, eq(tenants.selectedThemeId, themes.id)).orderBy(tenants.name);
     return results;
+  }
+  // Payment operations
+  async createPayment(payment) {
+    const [result] = await db.insert(payments).values({
+      ...payment,
+      id: generateUUID()
+    }).returning();
+    return result;
+  }
+  async getPaymentByOrderNumber(orderNumber) {
+    const [payment] = await db.select().from(payments).where(eq(payments.orderNumber, orderNumber));
+    return payment;
+  }
+  async getPaymentsByEmail(email) {
+    return await db.select().from(payments).where(eq(payments.customerEmail, email)).orderBy(desc(payments.createdAt));
+  }
+  async updatePaymentStatus(orderNumber, status, transactionId) {
+    const updates = { status };
+    if (transactionId) {
+      updates.montyPayTransactionId = transactionId;
+    }
+    if (status === "completed") {
+      updates.completedAt = /* @__PURE__ */ new Date();
+    }
+    const [result] = await db.update(payments).set(updates).where(eq(payments.orderNumber, orderNumber)).returning();
+    return result;
+  }
+  async updatePaymentSessionId(orderNumber, sessionId) {
+    const [result] = await db.update(payments).set({ montyPaySessionId: sessionId }).where(eq(payments.orderNumber, orderNumber)).returning();
+    return result;
+  }
+  async provisionTenantFromPayment(paymentId) {
+    const [payment] = await db.select().from(payments).where(eq(payments.id, paymentId));
+    if (!payment || payment.status !== "completed") return void 0;
+    const tenantName = payment.customerName.split(" ")[0].toLowerCase() + "-portfolio";
+    const subdomain = tenantName.replace(/[^a-z0-9-]/g, "");
+    const tenant = await this.createTenant({
+      name: payment.customerName,
+      plan: payment.plan,
+      status: "active",
+      contactEmail: payment.customerEmail,
+      subscriptionStartDate: /* @__PURE__ */ new Date()
+    });
+    await db.update(payments).set({ tenantId: tenant.id }).where(eq(payments.id, paymentId));
+    await this.createDomain({
+      tenantId: tenant.id,
+      hostname: `${subdomain}.scholar.name`,
+      isPrimary: true,
+      isSubdomain: true
+    });
+    return tenant;
+  }
+  async getAllPayments() {
+    return await db.select().from(payments).orderBy(desc(payments.createdAt));
   }
 };
 var storage = new DatabaseStorage();
@@ -2207,6 +2293,245 @@ router4.post("/upload-photo", isAuthenticated2, uploadImage.single("photo"), asy
 });
 var researcherRoutes_default = router4;
 
+// server/checkoutRoutes.ts
+import { Router as Router5 } from "express";
+
+// server/services/montypay.ts
+import crypto2 from "crypto";
+var MontyPayService = class {
+  config;
+  constructor() {
+    this.config = {
+      merchantKey: process.env.MONTYPAY_MERCHANT_KEY || "",
+      secretKey: process.env.MONTYPAY_SECRET_KEY || "",
+      checkoutHost: process.env.MONTYPAY_CHECKOUT_HOST || "https://checkout.montypay.com"
+    };
+  }
+  generateHash(payload) {
+    const sortedKeys = Object.keys(payload).sort();
+    const dataString = sortedKeys.map((key) => {
+      const value = payload[key];
+      if (typeof value === "object" && value !== null) {
+        return JSON.stringify(value);
+      }
+      return String(value);
+    }).join("");
+    return crypto2.createHmac("sha256", this.config.secretKey).update(dataString + this.config.secretKey).digest("hex");
+  }
+  async createCheckoutSession(params) {
+    if (!this.config.merchantKey || !this.config.secretKey) {
+      console.warn("MontyPay credentials not configured");
+      return {
+        error: "CONFIGURATION_ERROR",
+        error_message: "Payment gateway not configured. Please contact support."
+      };
+    }
+    const payload = {
+      merchant_key: this.config.merchantKey,
+      operation: "purchase",
+      methods: ["card"],
+      order: {
+        number: params.order.number,
+        amount: params.order.amount,
+        currency: params.order.currency,
+        description: params.order.description
+      },
+      customer: {
+        name: params.customer.name,
+        email: params.customer.email
+      },
+      success_url: params.successUrl,
+      cancel_url: params.cancelUrl
+    };
+    if (params.notificationUrl) {
+      payload.notification_url = params.notificationUrl;
+    }
+    if (params.billingAddress) {
+      payload.billing_address = {
+        country: params.billingAddress.country,
+        city: params.billingAddress.city,
+        address: params.billingAddress.address,
+        zip: params.billingAddress.zip,
+        phone: params.billingAddress.phone || "",
+        state: params.billingAddress.state || ""
+      };
+    }
+    payload.hash = this.generateHash(payload);
+    try {
+      const response = await fetch(`${this.config.checkoutHost}/api/v1/session`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(payload)
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        console.error("MontyPay API error:", data);
+        return {
+          error: "API_ERROR",
+          error_message: data.message || "Payment session creation failed"
+        };
+      }
+      return data;
+    } catch (error) {
+      console.error("MontyPay request failed:", error);
+      return {
+        error: "NETWORK_ERROR",
+        error_message: "Unable to connect to payment gateway"
+      };
+    }
+  }
+  verifyWebhookSignature(payload, signature) {
+    const expectedHash = this.generateHash(payload);
+    return expectedHash === signature;
+  }
+  isConfigured() {
+    return !!(this.config.merchantKey && this.config.secretKey);
+  }
+};
+var montyPayService = new MontyPayService();
+
+// server/checkoutRoutes.ts
+import crypto3 from "crypto";
+var router5 = Router5();
+var PRICING = {
+  starter: { monthly: 9.99, yearly: 95.88 },
+  pro: { monthly: 19.99, yearly: 191.88 }
+};
+function generateOrderNumber() {
+  const timestamp2 = Date.now().toString(36);
+  const random = crypto3.randomBytes(4).toString("hex");
+  return `SN-${timestamp2}-${random}`.toUpperCase();
+}
+router5.post("/create-session", async (req, res) => {
+  try {
+    const validation = checkoutSessionSchema.safeParse(req.body);
+    if (!validation.success) {
+      return res.status(400).json({
+        error: "VALIDATION_ERROR",
+        message: validation.error.errors.map((e) => e.message).join(", ")
+      });
+    }
+    const { plan, billingPeriod, customerName, customerEmail, openalexId } = validation.data;
+    if (!montyPayService.isConfigured()) {
+      return res.status(503).json({
+        error: "PAYMENT_GATEWAY_NOT_CONFIGURED",
+        message: "Payment processing is currently unavailable. Please contact support.",
+        fallbackUrl: "/contact"
+      });
+    }
+    const amount = PRICING[plan][billingPeriod].toFixed(2);
+    const orderNumber = generateOrderNumber();
+    const baseUrl = process.env.BASE_URL || `${req.protocol}://${req.get("host")}`;
+    const successUrl = `${baseUrl}/checkout/success?order=${orderNumber}`;
+    const cancelUrl = `${baseUrl}/checkout/cancel?order=${orderNumber}`;
+    const notificationUrl = `${baseUrl}/api/checkout/webhook`;
+    const paymentRecord = await storage.createPayment({
+      orderNumber,
+      amount,
+      currency: "USD",
+      status: "pending",
+      plan: plan === "pro" ? "professional" : "starter",
+      billingPeriod,
+      customerEmail,
+      customerName,
+      metadata: { openalexId }
+    });
+    const sessionResponse = await montyPayService.createCheckoutSession({
+      order: {
+        number: orderNumber,
+        amount,
+        currency: "USD",
+        description: `ScholarName ${plan.charAt(0).toUpperCase() + plan.slice(1)} Plan - ${billingPeriod === "yearly" ? "Annual" : "Monthly"} Subscription`
+      },
+      customer: {
+        name: customerName,
+        email: customerEmail
+      },
+      successUrl,
+      cancelUrl,
+      notificationUrl
+    });
+    if (sessionResponse.error) {
+      await storage.updatePaymentStatus(orderNumber, "failed");
+      return res.status(400).json({
+        error: sessionResponse.error,
+        message: sessionResponse.error_message
+      });
+    }
+    if (sessionResponse.session_id) {
+      await storage.updatePaymentSessionId(orderNumber, sessionResponse.session_id);
+    }
+    res.json({
+      redirectUrl: sessionResponse.redirect_url,
+      orderNumber,
+      sessionId: sessionResponse.session_id
+    });
+  } catch (error) {
+    console.error("Checkout session creation failed:", error);
+    res.status(500).json({
+      error: "INTERNAL_ERROR",
+      message: "Failed to create checkout session"
+    });
+  }
+});
+router5.post("/webhook", async (req, res) => {
+  try {
+    const payload = req.body;
+    console.log("MontyPay webhook received:", JSON.stringify(payload, null, 2));
+    const orderNumber = payload.order?.number;
+    const status = payload.result || payload.status;
+    const transactionId = payload.transaction_id;
+    if (!orderNumber) {
+      console.warn("Webhook missing order number");
+      return res.send("OK");
+    }
+    const payment = await storage.getPaymentByOrderNumber(orderNumber);
+    if (!payment) {
+      console.warn(`Payment not found for order: ${orderNumber}`);
+      return res.send("OK");
+    }
+    if (status === "SUCCESS" || status === "SETTLED") {
+      await storage.updatePaymentStatus(orderNumber, "completed", transactionId);
+      const tenant = await storage.provisionTenantFromPayment(payment.id);
+      console.log(`Tenant provisioned for payment ${orderNumber}:`, tenant?.id);
+    } else if (status === "DECLINE" || status === "ERROR") {
+      await storage.updatePaymentStatus(orderNumber, "failed", transactionId);
+    }
+    res.send("OK");
+  } catch (error) {
+    console.error("Webhook processing error:", error);
+    res.send("ERROR");
+  }
+});
+router5.get("/status/:orderNumber", async (req, res) => {
+  try {
+    const { orderNumber } = req.params;
+    const payment = await storage.getPaymentByOrderNumber(orderNumber);
+    if (!payment) {
+      return res.status(404).json({ error: "Payment not found" });
+    }
+    res.json({
+      orderNumber: payment.orderNumber,
+      status: payment.status,
+      plan: payment.plan,
+      amount: payment.amount,
+      currency: payment.currency
+    });
+  } catch (error) {
+    console.error("Payment status check failed:", error);
+    res.status(500).json({ error: "Failed to check payment status" });
+  }
+});
+router5.get("/config", async (_req, res) => {
+  res.json({
+    isConfigured: montyPayService.isConfigured(),
+    pricing: PRICING
+  });
+});
+var checkoutRoutes_default = router5;
+
 // server/tenantMiddleware.ts
 var MARKETING_DOMAINS = [
   "localhost",
@@ -2616,6 +2941,7 @@ async function registerRoutes(app2) {
   app2.use("/api/admin", adminRouter);
   app2.use("/api/admin", tenantRoutes_default);
   app2.use("/api/researcher", researcherRoutes_default);
+  app2.use("/api/checkout", checkoutRoutes_default);
   app2.get("/api/events", (req, res) => {
     console.log("\u{1F4E1} New SSE connection request from:", req.ip);
     try {

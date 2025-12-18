@@ -9,6 +9,7 @@ import {
   tenants,
   domains,
   themes,
+  payments,
   type User,
   type UpsertUser,
   type SafeUser,
@@ -31,6 +32,9 @@ import {
   type InsertDomain,
   type Theme,
   type InsertTheme,
+  type Payment,
+  type InsertPayment,
+  type PaymentStatus,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, ne, inArray } from "drizzle-orm";
@@ -670,6 +674,80 @@ export class DatabaseStorage implements IStorage {
       .orderBy(tenants.name);
     
     return results;
+  }
+
+  // Payment operations
+  async createPayment(payment: Omit<InsertPayment, 'id'>): Promise<Payment> {
+    const [result] = await db.insert(payments).values({
+      ...payment,
+      id: generateUUID(),
+    }).returning();
+    return result;
+  }
+
+  async getPaymentByOrderNumber(orderNumber: string): Promise<Payment | undefined> {
+    const [payment] = await db.select().from(payments).where(eq(payments.orderNumber, orderNumber));
+    return payment;
+  }
+
+  async getPaymentsByEmail(email: string): Promise<Payment[]> {
+    return await db.select().from(payments).where(eq(payments.customerEmail, email)).orderBy(desc(payments.createdAt));
+  }
+
+  async updatePaymentStatus(orderNumber: string, status: PaymentStatus, transactionId?: string): Promise<Payment | undefined> {
+    const updates: Partial<Payment> = { status };
+    if (transactionId) {
+      updates.montyPayTransactionId = transactionId;
+    }
+    if (status === 'completed') {
+      updates.completedAt = new Date();
+    }
+    const [result] = await db
+      .update(payments)
+      .set(updates)
+      .where(eq(payments.orderNumber, orderNumber))
+      .returning();
+    return result;
+  }
+
+  async updatePaymentSessionId(orderNumber: string, sessionId: string): Promise<Payment | undefined> {
+    const [result] = await db
+      .update(payments)
+      .set({ montyPaySessionId: sessionId })
+      .where(eq(payments.orderNumber, orderNumber))
+      .returning();
+    return result;
+  }
+
+  async provisionTenantFromPayment(paymentId: string): Promise<Tenant | undefined> {
+    const [payment] = await db.select().from(payments).where(eq(payments.id, paymentId));
+    if (!payment || payment.status !== 'completed') return undefined;
+
+    const tenantName = payment.customerName.split(' ')[0].toLowerCase() + '-portfolio';
+    const subdomain = tenantName.replace(/[^a-z0-9-]/g, '');
+
+    const tenant = await this.createTenant({
+      name: payment.customerName,
+      plan: payment.plan as 'starter' | 'professional' | 'institution',
+      status: 'active',
+      contactEmail: payment.customerEmail,
+      subscriptionStartDate: new Date(),
+    });
+
+    await db.update(payments).set({ tenantId: tenant.id }).where(eq(payments.id, paymentId));
+
+    await this.createDomain({
+      tenantId: tenant.id,
+      hostname: `${subdomain}.scholar.name`,
+      isPrimary: true,
+      isSubdomain: true,
+    });
+
+    return tenant;
+  }
+
+  async getAllPayments(): Promise<Payment[]> {
+    return await db.select().from(payments).orderBy(desc(payments.createdAt));
   }
 }
 
