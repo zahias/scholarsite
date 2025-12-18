@@ -16,6 +16,7 @@ import researcherRouter from "./researcherRoutes";
 import checkoutRouter from "./checkoutRoutes";
 import { tenantResolver } from "./tenantMiddleware";
 import fetch from "node-fetch";
+import { contactRecipientEmail, sendContactEmail } from "./services/email";
 
 // Event emitter for real-time updates
 const updateEmitter = new EventEmitter();
@@ -1125,9 +1126,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         timestamp: new Date().toISOString()
       });
 
+      await sendContactEmail({
+        fullName,
+        email,
+        institution,
+        role,
+        planInterest,
+        researchField,
+        openalexId,
+        estimatedProfiles,
+        biography
+      });
+
       res.json({ 
         success: true, 
-        message: "Inquiry submitted successfully" 
+        message: "Inquiry submitted successfully",
+        deliveredTo: contactRecipientEmail
       });
     } catch (error) {
       console.error("Error processing contact form:", error);
