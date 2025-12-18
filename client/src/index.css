@@ -173,9 +173,9 @@
 .landing-hero {
   background: linear-gradient(
     135deg,
-    hsl(216, 60%, 18%) 0%,
-    hsl(216, 55%, 24%) 40%,
-    hsl(220, 50%, 30%) 100%
+    color-mix(in srgb, var(--theme-primary-dark) 90%, black) 0%,
+    var(--theme-primary-dark) 40%,
+    var(--theme-primary) 100%
   );
   position: relative;
   overflow: hidden;
@@ -186,8 +186,8 @@
   position: absolute;
   inset: 0;
   background: 
-    radial-gradient(ellipse at 70% 20%, rgba(242, 153, 74, 0.08) 0%, transparent 50%),
-    radial-gradient(ellipse at 30% 80%, rgba(122, 168, 116, 0.06) 0%, transparent 40%);
+    radial-gradient(ellipse at 70% 20%, color-mix(in srgb, var(--theme-accent) 8%, transparent) 0%, transparent 50%),
+    radial-gradient(ellipse at 30% 80%, color-mix(in srgb, var(--theme-primary) 6%, transparent) 0%, transparent 40%);
 }
 
 .landing-hero::after {
@@ -214,7 +214,7 @@
   height: 400px;
   top: -100px;
   right: -100px;
-  background: radial-gradient(circle, rgba(242, 153, 74, 0.15) 0%, transparent 70%);
+  background: radial-gradient(circle, color-mix(in srgb, var(--theme-accent) 15%, transparent) 0%, transparent 70%);
   animation-delay: 0s;
 }
 
@@ -223,7 +223,7 @@
   height: 300px;
   bottom: -50px;
   left: -50px;
-  background: radial-gradient(circle, rgba(122, 168, 116, 0.12) 0%, transparent 70%);
+  background: radial-gradient(circle, color-mix(in srgb, var(--theme-primary) 12%, transparent) 0%, transparent 70%);
   animation-delay: -10s;
 }
 
@@ -297,8 +297,8 @@
 }
 
 .profile-badge {
-  background: linear-gradient(135deg, var(--theme-accent, hsl(142, 50%, 45%)) 0%, color-mix(in srgb, var(--theme-accent, hsl(142, 50%, 35%)) 85%, black) 100%);
-  box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
+  background: linear-gradient(135deg, var(--theme-accent) 0%, color-mix(in srgb, var(--theme-accent) 85%, black) 100%);
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--theme-accent) 30%, transparent);
 }
 
 /* Stats Pills */
@@ -360,7 +360,7 @@
   padding: 0.875rem 2rem;
   border-radius: 0.5rem;
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 4px 14px rgba(234, 88, 12, 0.3);
+  box-shadow: 0 4px 14px color-mix(in srgb, var(--theme-accent) 30%, transparent);
   position: relative;
   overflow: hidden;
 }
@@ -376,7 +376,7 @@
 
 .btn-premium:hover {
   transform: translateY(-2px) scale(1.02);
-  box-shadow: 0 8px 25px rgba(234, 88, 12, 0.4);
+  box-shadow: 0 8px 25px color-mix(in srgb, var(--theme-accent) 40%, transparent);
 }
 
 .btn-premium:hover::before {
@@ -427,9 +427,9 @@
 .cta-premium {
   background: linear-gradient(
     135deg,
-    hsl(216, 60%, 20%) 0%,
-    hsl(220, 55%, 28%) 50%,
-    hsl(24, 70%, 35%) 100%
+    color-mix(in srgb, var(--theme-primary-dark) 90%, black) 0%,
+    var(--theme-primary) 50%,
+    color-mix(in srgb, var(--theme-accent) 70%, var(--theme-primary)) 100%
   );
   position: relative;
   overflow: hidden;
@@ -441,7 +441,7 @@
   inset: 0;
   background: radial-gradient(
     ellipse at 80% 50%,
-    rgba(242, 153, 74, 0.15) 0%,
+    color-mix(in srgb, var(--theme-accent) 15%, transparent) 0%,
     transparent 50%
   );
 }
