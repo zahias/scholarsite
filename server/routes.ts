@@ -1212,16 +1212,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Send email
       logMsg("Sending email...");
-      const info = await transporter.sendMail({
+      const adminEmail = await transporter.sendMail({
         from: `"ScholarName" <${smtpUser}>`,
         to: "info@scholar.name",
         replyTo: email,
         subject: `New Inquiry: ${planInterest} Plan - ${fullName}`,
         text: emailContent,
       });
+      logMsg(`Admin email sent: ${adminEmail.messageId}`);
+      logMsg(`Admin response: ${JSON.stringify(adminEmail)}`);
 
-      logMsg(`Email sent successfully: ${info.messageId}`);
-      logMsg(`Full response: ${JSON.stringify(info)}`);
+      const userMessage = [
+        `Hi ${fullName},`,
+        "",
+        "Thanks for contacting ScholarName! We got your request and are reviewing your plan details.",
+        "",
+        `Plan: ${planInterest}`,
+        institution ? `Institution: ${institution}` : "",
+        role ? `Role: ${role}` : "",
+        "",
+        "Our team typically responds within 1–2 business days. In the meantime, feel free to reply to this email with any supplementary files or questions.",
+        "",
+        "Best,",
+        "The ScholarName Team",
+      ]
+        .filter(Boolean)
+        .join("\n");
+
+      const userEmail = await transporter.sendMail({
+        from: `"ScholarName" <${smtpUser}>`,
+        to: email,
+        replyTo: "info@scholar.name",
+        subject: `Thanks for reaching out to ScholarName`,
+        text: userMessage,
+      });
+
+      logMsg(`Auto-reply sent to user: ${userEmail.messageId}`);
+      logMsg(`User response: ${JSON.stringify(userEmail)}`);
 
       res.json({ 
         success: true, 
