@@ -1134,6 +1134,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           user: "info@scholar.name",
           pass: process.env.SMTP_PASSWORD,
         },
+        tls: {
+          rejectUnauthorized: false
+        },
         debug: true,
         logger: true,
       });
