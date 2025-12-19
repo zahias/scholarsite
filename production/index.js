@@ -3480,29 +3480,52 @@ async function registerRoutes(app2) {
         logMsg(`SMTP connection verification failed: ${errorMsg}`);
         logMsg(`Error code: ${verifyError.code || "N/A"}`);
         logMsg(`Error command: ${verifyError.command || "N/A"}`);
-        let userMessage = "Email service connection failed";
+        let userMessage2 = "Email service connection failed";
         if (errorMsg.includes("Invalid login") || errorMsg.includes("authentication")) {
-          userMessage = "Email authentication failed. Please check SMTP_PASSWORD in environment variables.";
+          userMessage2 = "Email authentication failed. Please check SMTP_PASSWORD in environment variables.";
         } else if (errorMsg.includes("ECONNREFUSED") || errorMsg.includes("ENOTFOUND")) {
-          userMessage = "Cannot connect to email server. Please check SMTP_HOST setting (try 'localhost' for A2 Hosting).";
+          userMessage2 = "Cannot connect to email server. Please check SMTP_HOST setting (try 'localhost' for A2 Hosting).";
         } else if (errorMsg.includes("ETIMEDOUT")) {
-          userMessage = "Email server connection timed out. Please check SMTP settings.";
+          userMessage2 = "Email server connection timed out. Please check SMTP settings.";
         }
         return res.status(500).json({
-          message: userMessage,
+          message: userMessage2,
           error: process.env.NODE_ENV === "development" ? errorMsg : void 0
         });
       }
       logMsg("Sending email...");
-      const info = await transporter.sendMail({
+      const adminEmail = await transporter.sendMail({
         from: `"ScholarName" <${smtpUser}>`,
         to: "info@scholar.name",
         replyTo: email,
         subject: `New Inquiry: ${planInterest} Plan - ${fullName}`,
         text: emailContent
       });
-      logMsg(`Email sent successfully: ${info.messageId}`);
-      logMsg(`Full response: ${JSON.stringify(info)}`);
+      logMsg(`Admin email sent: ${adminEmail.messageId}`);
+      logMsg(`Admin response: ${JSON.stringify(adminEmail)}`);
+      const userMessage = [
+        `Hi ${fullName},`,
+        "",
+        "Thanks for contacting ScholarName! We got your request and are reviewing your plan details.",
+        "",
+        `Plan: ${planInterest}`,
+        institution ? `Institution: ${institution}` : "",
+        role ? `Role: ${role}` : "",
+        "",
+        "Our team typically responds within 1\u20132 business days. In the meantime, feel free to reply to this email with any supplementary files or questions.",
+        "",
+        "Best,",
+        "The ScholarName Team"
+      ].filter(Boolean).join("\n");
+      const userEmail = await transporter.sendMail({
+        from: `"ScholarName" <${smtpUser}>`,
+        to: email,
+        replyTo: "info@scholar.name",
+        subject: `Thanks for reaching out to ScholarName`,
+        text: userMessage
+      });
+      logMsg(`Auto-reply sent to user: ${userEmail.messageId}`);
+      logMsg(`User response: ${JSON.stringify(userEmail)}`);
       res.json({
         success: true,
         message: "Inquiry submitted successfully"
