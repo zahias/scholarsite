@@ -171,16 +171,6 @@ export default function LandingPage() {
           </div>
         </div>
       </nav>
-      {/* Mobile floating CTA */}
-      <div className="md:hidden fixed bottom-6 right-4 z-50">
-        <Button
-          className="shadow-lg"
-          size="lg"
-          onClick={() => { window.scrollTo(0, 0); navigate('/contact'); }}
-        >
-          Get Started
-        </Button>
-      </div>
 
       {/* Hero Section with Embedded Search */}
       <section className="landing-hero py-16 lg:py-24 relative">
@@ -189,7 +179,6 @@ export default function LandingPage() {
         
         <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto">
-            <p className="text-sm uppercase tracking-[0.2em] text-white/70 mb-3">Built for researchers</p>
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight mb-6 text-white">
               Your Research Deserves Better Than{" "}
               <span className="bg-gradient-to-r from-orange-300 via-orange-200 to-amber-200 bg-clip-text text-transparent">a Google Scholar Page</span>
@@ -435,9 +424,6 @@ export default function LandingPage() {
                       </li>
                     ))}
                   </ul>
-                  <p className="text-xs text-muted-foreground mb-3 text-center">
-                    We’ll reply within 1–2 business days with next steps.
-                  </p>
                   <Button 
                     className="w-full" 
                     variant={plan.highlighted ? "default" : "outline"}
