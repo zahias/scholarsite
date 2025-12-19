@@ -28,6 +28,28 @@ NODE_ENV = production
 DATABASE_URL = postgresql://admin:YOUR_PASSWORD@localhost:5432/scholarsite
 SESSION_SECRET = (generate a random 32+ character string)
 
+STEP 3a: Configure Contact Form Email (REQUIRED)
+-------------------------------------------------
+The contact form sends emails to info@scholar.name. You MUST configure SMTP settings:
+
+1. In cPanel, go to Email Accounts and ensure info@scholar.name exists
+2. In Node.js Selector, add these environment variables:
+
+SMTP_PASSWORD = (password for info@scholar.name email account)
+SMTP_HOST = localhost (default, or use your A2 mail server hostname)
+SMTP_PORT = 465 (default for SSL, or 587 for TLS)
+SMTP_USER = info@scholar.name (default)
+
+Note: For A2 Hosting, typically use:
+- SMTP_HOST = localhost
+- SMTP_PORT = 465
+- SMTP_USER = info@scholar.name
+- SMTP_PASSWORD = your email account password
+
+If localhost doesn't work, try:
+- SMTP_HOST = mail.scholar.name (or your A2 mail server)
+- SMTP_PORT = 587 (with secure: false)
+
 STEP 4: Install Dependencies
 ----------------------------
 1. In Node.js Selector, click on your app
@@ -57,3 +79,9 @@ TROUBLESHOOTING
 - If app doesn't start: Check environment variables are set correctly
 - If database errors: Verify DATABASE_URL and run migrations again
 - If 404 errors: Ensure Startup File is set to dist/index.js
+- If contact form doesn't send emails:
+  * Check SMTP_PASSWORD is set in environment variables
+  * Verify info@scholar.name email account exists in cPanel
+  * Check email_debug.log file in app directory for detailed error messages
+  * Try changing SMTP_HOST to "localhost" or your mail server hostname
+  * Verify SMTP_PORT matches your server configuration (465 for SSL, 587 for TLS)

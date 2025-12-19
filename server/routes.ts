@@ -1129,19 +1129,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
         logMsg("SMTP_PASSWORD environment variable not configured");
         logMsg(`Available env vars: ${Object.keys(process.env).filter(k => !k.includes('npm') && !k.includes('PATH')).join(', ')}`);
         return res.status(500).json({ 
-          message: "Email service not configured. Please add SMTP_PASSWORD to .env file.",
-          hint: "Create .env file in app root with: SMTP_PASSWORD=your_password"
+          message: "Email service not configured. Please add SMTP_PASSWORD to environment variables in A2 Hosting cPanel.",
+          hint: "In cPanel Node.js Selector, add environment variable: SMTP_PASSWORD=your_email_password"
         });
       }
       logMsg("SMTP password configured, creating transporter...");
 
       // Configure SMTP transporter for A2 Hosting
+      // A2 Hosting typically uses localhost for SMTP, but can also use mail server hostname
+      const smtpHost = process.env.SMTP_HOST || "localhost";
+      const smtpPort = parseInt(process.env.SMTP_PORT || "465", 10);
+      const smtpUser = process.env.SMTP_USER || "info@scholar.name";
+      
+      logMsg(`SMTP Config: host=${smtpHost}, port=${smtpPort}, user=${smtpUser}`);
+      
       const transporter = nodemailer.createTransport({
-        host: "az1-ts112.a2hosting.com",
-        port: 465,
-        secure: true,
+        host: smtpHost,
+        port: smtpPort,
+        secure: smtpPort === 465, // true for 465, false for other ports
         auth: {
-          user: "info@scholar.name",
+          user: smtpUser,
           pass: process.env.SMTP_PASSWORD,
         },
         tls: {
@@ -1182,14 +1189,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
         await transporter.verify();
         logMsg("SMTP connection verified successfully");
       } catch (verifyError: any) {
-        logMsg(`SMTP connection verification failed: ${verifyError.message || verifyError}`);
-        return res.status(500).json({ message: "Email service connection failed" });
+        const errorMsg = verifyError.message || String(verifyError);
+        logMsg(`SMTP connection verification failed: ${errorMsg}`);
+        logMsg(`Error code: ${verifyError.code || 'N/A'}`);
+        logMsg(`Error command: ${verifyError.command || 'N/A'}`);
+        
+        // Provide helpful error message based on common issues
+        let userMessage = "Email service connection failed";
+        if (errorMsg.includes("Invalid login") || errorMsg.includes("authentication")) {
+          userMessage = "Email authentication failed. Please check SMTP_PASSWORD in environment variables.";
+        } else if (errorMsg.includes("ECONNREFUSED") || errorMsg.includes("ENOTFOUND")) {
+          userMessage = "Cannot connect to email server. Please check SMTP_HOST setting (try 'localhost' for A2 Hosting).";
+        } else if (errorMsg.includes("ETIMEDOUT")) {
+          userMessage = "Email server connection timed out. Please check SMTP settings.";
+        }
+        
+        return res.status(500).json({ 
+          message: userMessage,
+          error: process.env.NODE_ENV === 'development' ? errorMsg : undefined
+        });
       }
 
       // Send email
       logMsg("Sending email...");
       const info = await transporter.sendMail({
-        from: '"ScholarName" <info@scholar.name>',
+        from: `"ScholarName" <${smtpUser}>`,
         to: "info@scholar.name",
         replyTo: email,
         subject: `New Inquiry: ${planInterest} Plan - ${fullName}`,
@@ -1204,9 +1228,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
         message: "Inquiry submitted successfully" 
       });
     } catch (error: any) {
-      logMsg(`Error processing contact form: ${error.message || error}`);
+      const errorMsg = error.message || String(error);
+      logMsg(`Error processing contact form: ${errorMsg}`);
+      logMsg(`Error code: ${error.code || 'N/A'}`);
       logMsg(`Full error: ${JSON.stringify(error, Object.getOwnPropertyNames(error))}`);
-      res.status(500).json({ message: "Failed to process inquiry" });
+      
+      // Provide more helpful error messages
+      let userMessage = "Failed to process inquiry";
+      if (errorMsg.includes("Invalid login") || errorMsg.includes("authentication")) {
+        userMessage = "Email authentication failed. Please check SMTP credentials.";
+      } else if (errorMsg.includes("ECONNREFUSED") || errorMsg.includes("ENOTFOUND")) {
+        userMessage = "Cannot connect to email server. Please check SMTP settings.";
+      }
+      
+      res.status(500).json({ 
+        message: userMessage,
+        error: process.env.NODE_ENV === 'development' ? errorMsg : undefined
+      });
     }
   });
 
