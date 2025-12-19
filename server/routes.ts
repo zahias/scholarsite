@@ -1105,12 +1105,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Contact form submission (public)
   app.post('/api/contact', async (req, res) => {
     const fs = await import('fs');
-    const logFile = '/home/bannwebs/scholarsite/email_debug.log';
+    const path = await import('path');
+    const logFile = path.join(process.cwd(), 'email_debug.log');
     const logMsg = (msg: string) => {
       const line = `${new Date().toISOString()} - ${msg}\n`;
       console.log("[Contact]", msg);
-      try { fs.appendFileSync(logFile, line); } catch(e) {}
+      try { fs.appendFileSync(logFile, line); } catch(e) { console.error("Log write failed:", e); }
     };
+    logMsg(`Working directory: ${process.cwd()}`);
     
     logMsg("Received contact form submission");
     try {
