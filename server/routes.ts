@@ -16,6 +16,7 @@ import researcherRouter from "./researcherRoutes";
 import checkoutRouter from "./checkoutRoutes";
 import { tenantResolver } from "./tenantMiddleware";
 import fetch from "node-fetch";
+import nodemailer from "nodemailer";
 
 // Event emitter for real-time updates
 const updateEmitter = new EventEmitter();
@@ -1104,26 +1105,58 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Contact form submission (public)
   app.post('/api/contact', async (req, res) => {
     try {
-      const { fullName, email, institution, role, planInterest, researchField, openalexId, estimatedProfiles, biography } = req.body;
+      const { fullName, email, institution, role, planInterest, researchField, openalexId, estimatedProfiles, biography, preferredTheme } = req.body;
       
       if (!fullName || !email || !planInterest || !biography) {
         return res.status(400).json({ message: "Missing required fields" });
       }
 
-      // Log the inquiry (in production, this would send an email or store in database)
-      console.log("New contact inquiry received:");
-      console.log({
-        fullName,
-        email,
-        institution,
-        role,
-        planInterest,
-        researchField,
-        openalexId,
-        estimatedProfiles,
-        biography,
-        timestamp: new Date().toISOString()
+      // Configure SMTP transporter for A2 Hosting
+      const transporter = nodemailer.createTransport({
+        host: "mail.scholar.name",
+        port: 465,
+        secure: true, // SSL
+        auth: {
+          user: "info@scholar.name",
+          pass: process.env.SMTP_PASSWORD,
+        },
       });
+
+      // Format email content
+      const emailContent = `
+New ScholarName Inquiry
+
+Contact Information:
+- Name: ${fullName}
+- Email: ${email}
+- Institution: ${institution || 'Not provided'}
+- Role: ${role || 'Not provided'}
+
+Plan Interest: ${planInterest}
+${estimatedProfiles ? `Estimated Profiles: ${estimatedProfiles}` : ''}
+
+Research Details:
+- Field: ${researchField || 'Not provided'}
+- OpenAlex ID: ${openalexId || 'Not provided'}
+${preferredTheme ? `- Preferred Theme: ${preferredTheme}` : ''}
+
+Biography:
+${biography}
+
+---
+Submitted: ${new Date().toISOString()}
+      `.trim();
+
+      // Send email
+      await transporter.sendMail({
+        from: '"ScholarName" <info@scholar.name>',
+        to: "info@scholar.name",
+        replyTo: email,
+        subject: `New Inquiry: ${planInterest} Plan - ${fullName}`,
+        text: emailContent,
+      });
+
+      console.log("Contact inquiry sent via email:", { fullName, email, planInterest });
 
       res.json({ 
         success: true, 
