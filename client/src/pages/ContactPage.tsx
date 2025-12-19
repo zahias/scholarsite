@@ -177,9 +177,15 @@ export default function ContactPage() {
                     name="fullName"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Full Name *</FormLabel>
+                        <FormLabel htmlFor="fullName">Full Name *</FormLabel>
                         <FormControl>
-                          <Input placeholder="Dr. Jane Smith" {...field} data-testid="input-name" />
+                          <Input
+                            id="fullName"
+                            autoComplete="name"
+                            placeholder="Dr. Jane Smith"
+                            {...field}
+                            data-testid="input-name"
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -190,9 +196,16 @@ export default function ContactPage() {
                     name="email"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Email Address *</FormLabel>
+                        <FormLabel htmlFor="email">Email Address *</FormLabel>
                         <FormControl>
-                          <Input placeholder="jane.smith@university.edu" type="email" {...field} data-testid="input-email" />
+                          <Input
+                            id="email"
+                            autoComplete="email"
+                            placeholder="jane.smith@university.edu"
+                            type="email"
+                            {...field}
+                            data-testid="input-email"
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -206,9 +219,15 @@ export default function ContactPage() {
                     name="institution"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Institution / Organization</FormLabel>
+                        <FormLabel htmlFor="institution">Institution / Organization</FormLabel>
                         <FormControl>
-                          <Input placeholder="Stanford University" {...field} data-testid="input-institution" />
+                          <Input
+                            id="institution"
+                            autoComplete="organization"
+                            placeholder="Stanford University"
+                            {...field}
+                            data-testid="input-institution"
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -219,9 +238,15 @@ export default function ContactPage() {
                     name="role"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Your Role</FormLabel>
+                        <FormLabel htmlFor="role">Your Role</FormLabel>
                         <FormControl>
-                          <Input placeholder="e.g., Professor, Researcher, PhD Student" {...field} data-testid="input-role" />
+                          <Input
+                            id="role"
+                            autoComplete="organization-title"
+                            placeholder="e.g., Professor, Researcher, PhD Student"
+                            {...field}
+                            data-testid="input-role"
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -286,9 +311,15 @@ export default function ContactPage() {
                     name="researchField"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Primary Research Field</FormLabel>
+                        <FormLabel htmlFor="researchField">Primary Research Field</FormLabel>
                         <FormControl>
-                          <Input placeholder="e.g., Machine Learning, Molecular Biology" {...field} data-testid="input-research-field" />
+                          <Input
+                            id="researchField"
+                            autoComplete="off"
+                            placeholder="e.g., Machine Learning, Molecular Biology"
+                            {...field}
+                            data-testid="input-research-field"
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -299,9 +330,15 @@ export default function ContactPage() {
                     name="openalexId"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>OpenAlex ID (if known)</FormLabel>
+                        <FormLabel htmlFor="openalexId">OpenAlex ID (if known)</FormLabel>
                         <FormControl>
-                          <Input placeholder="e.g., A5037710835" {...field} data-testid="input-openalex-id" />
+                          <Input
+                            id="openalexId"
+                            autoComplete="off"
+                            placeholder="e.g., A5037710835"
+                            {...field}
+                            data-testid="input-openalex-id"
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -309,41 +346,43 @@ export default function ContactPage() {
                   />
                 </div>
 
-                {selectedPlan === "institution" && (
-                  <FormField
-                    control={form.control}
-                    name="estimatedProfiles"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Estimated Number of Researcher Profiles</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <FormControl>
-                            <SelectTrigger data-testid="select-profiles">
-                              <SelectValue placeholder="Select range" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="1-5">1-5 profiles</SelectItem>
-                            <SelectItem value="6-10">6-10 profiles</SelectItem>
-                            <SelectItem value="11-25">11-25 profiles</SelectItem>
-                            <SelectItem value="26-50">26-50 profiles</SelectItem>
-                            <SelectItem value="50+">50+ profiles</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                )}
+                  {selectedPlan === "institution" && (
+                    <FormField
+                      control={form.control}
+                      name="estimatedProfiles"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel htmlFor="estimatedProfiles">Estimated Number of Researcher Profiles</FormLabel>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                              <SelectTrigger id="estimatedProfiles" data-testid="select-profiles">
+                                <SelectValue placeholder="Select range" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="1-5">1-5 profiles</SelectItem>
+                              <SelectItem value="6-10">6-10 profiles</SelectItem>
+                              <SelectItem value="11-25">11-25 profiles</SelectItem>
+                              <SelectItem value="26-50">26-50 profiles</SelectItem>
+                              <SelectItem value="50+">50+ profiles</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  )}
 
                 <FormField
                   control={form.control}
                   name="biography"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Short Biography *</FormLabel>
+                      <FormLabel htmlFor="biography">Short Biography *</FormLabel>
                       <FormControl>
-                        <Textarea 
+                        <Textarea
+                          id="biography"
+                          autoComplete="off"
                           placeholder="Tell us about yourself, your research interests, and academic background. This will help us understand your portfolio needs."
                           className="min-h-[120px]"
                           maxLength={500}
@@ -367,13 +406,13 @@ export default function ContactPage() {
                     name="preferredTheme"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="flex items-center gap-2">
-                          <Palette className="w-4 h-4" />
-                          Preferred Theme
-                        </FormLabel>
+                      <FormLabel htmlFor="preferredTheme" className="flex items-center gap-2">
+                        <Palette className="w-4 h-4" />
+                        Preferred Theme
+                      </FormLabel>
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
-                            <SelectTrigger data-testid="select-theme">
+                            <SelectTrigger id="preferredTheme" data-testid="select-theme">
                               <SelectValue placeholder="Choose your portfolio theme" />
                             </SelectTrigger>
                           </FormControl>
