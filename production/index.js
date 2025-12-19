@@ -3503,26 +3503,96 @@ async function registerRoutes(app2) {
       });
       logMsg(`Admin email sent: ${adminEmail.messageId}`);
       logMsg(`Admin response: ${JSON.stringify(adminEmail)}`);
+      const escapeHtml2 = (value) => value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+      const safeFullName = escapeHtml2(fullName);
+      const safePlan = escapeHtml2(planInterest);
+      const safeEmail = escapeHtml2(email);
+      const safeInstitution = institution ? escapeHtml2(institution) : "Not provided";
+      const safeRole = role ? escapeHtml2(role) : "Not provided";
       const userMessage = [
         `Hi ${fullName},`,
         "",
-        "Thanks for contacting ScholarName! We got your request and are reviewing your plan details.",
+        "Thanks for contacting ScholarName. We've received your request and our team will review it shortly.",
         "",
-        `Plan: ${planInterest}`,
-        institution ? `Institution: ${institution}` : "",
-        role ? `Role: ${role}` : "",
+        "Summary:",
+        `- Name: ${fullName}`,
+        `- Email: ${email}`,
+        `- Plan: ${planInterest}`,
+        institution ? `- Institution: ${institution}` : "- Institution: Not provided",
+        role ? `- Role: ${role}` : "- Role: Not provided",
         "",
-        "Our team typically responds within 1\u20132 business days. In the meantime, feel free to reply to this email with any supplementary files or questions.",
+        "What happens next:",
+        "- We will respond within 1-2 business days.",
+        "- Reply to this email if you want to add more details or attachments.",
         "",
         "Best,",
         "The ScholarName Team"
-      ].filter(Boolean).join("\n");
+      ].join("\n");
+      const userHtml = `
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>ScholarName Inquiry</title>
+  </head>
+  <body style="margin:0;padding:0;background-color:#f5f7fb;font-family:Arial,Helvetica,sans-serif;color:#1a2332;">
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color:#f5f7fb;padding:24px 0;">
+      <tr>
+        <td align="center">
+          <table role="presentation" width="600" cellspacing="0" cellpadding="0" style="background-color:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 8px 24px rgba(11,31,58,0.08);">
+            <tr>
+              <td style="background-color:#0b1f3a;color:#ffffff;padding:24px 32px;">
+                <div style="font-size:20px;font-weight:700;letter-spacing:0.5px;">ScholarName</div>
+                <div style="font-size:14px;opacity:0.9;">Inquiry received</div>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:28px 32px;">
+                <div style="font-size:18px;font-weight:700;margin-bottom:8px;">Hi ${safeFullName},</div>
+                <div style="font-size:14px;line-height:1.6;margin-bottom:20px;">
+                  Thanks for contacting ScholarName. We have received your request and our team will review it shortly.
+                </div>
+                <div style="background-color:#f7f9fc;border:1px solid #e3e8f0;border-radius:10px;padding:16px 18px;margin-bottom:20px;">
+                  <div style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#4a5b72;margin-bottom:10px;">
+                    Your summary
+                  </div>
+                  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="font-size:14px;line-height:1.6;">
+                    <tr><td style="width:140px;color:#4a5b72;">Name</td><td style="font-weight:600;">${safeFullName}</td></tr>
+                    <tr><td style="color:#4a5b72;">Email</td><td style="font-weight:600;">${safeEmail}</td></tr>
+                    <tr><td style="color:#4a5b72;">Plan</td><td style="font-weight:600;">${safePlan}</td></tr>
+                    <tr><td style="color:#4a5b72;">Institution</td><td>${safeInstitution}</td></tr>
+                    <tr><td style="color:#4a5b72;">Role</td><td>${safeRole}</td></tr>
+                  </table>
+                </div>
+                <div style="font-size:14px;line-height:1.6;margin-bottom:18px;">
+                  <strong>What happens next:</strong><br />
+                  We will respond within 1-2 business days. If you want to add more details, simply reply to this email.
+                </div>
+                <div style="font-size:13px;color:#4a5b72;line-height:1.6;">
+                  Need to reach us sooner? Email <a href="mailto:info@scholar.name" style="color:#0b1f3a;text-decoration:none;">info@scholar.name</a>.
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:18px 32px;background-color:#f7f9fc;font-size:12px;color:#6b778a;text-align:center;">
+                ScholarName \xB7 Research portfolio websites for academics
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>
+      `.trim();
       const userEmail = await transporter.sendMail({
         from: `"ScholarName" <${smtpUser}>`,
         to: email,
         replyTo: "info@scholar.name",
         subject: `Thanks for reaching out to ScholarName`,
-        text: userMessage
+        text: userMessage,
+        html: userHtml
       });
       logMsg(`Auto-reply sent to user: ${userEmail.messageId}`);
       logMsg(`User response: ${JSON.stringify(userEmail)}`);
