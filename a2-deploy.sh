@@ -41,9 +41,11 @@ cp dist/index.js production/
 cp dist/a2-starter.cjs production/
 cp package.json package-lock.json production/
 
-echo "📋 Copying production build to $DEPLOY_DIR/dist/..."
-mkdir -p "$DEPLOY_DIR/dist"
-cp -r production/* "$DEPLOY_DIR/dist/"
+echo "📋 Copying production build to $DEPLOY_DIR (root runtime files)..."
+cp -r production/public "$DEPLOY_DIR/public"
+cp production/index.js "$DEPLOY_DIR/index.js"
+cp production/a2-starter.cjs "$DEPLOY_DIR/a2-starter.cjs"
+cp production/package.json production/package-lock.json "$DEPLOY_DIR/"
 
 echo "📦 Installing runtime dependencies in $DEPLOY_DIR..."
 cd "$DEPLOY_DIR"
