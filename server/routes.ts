@@ -1104,18 +1104,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Contact form submission (public)
   app.post('/api/contact', async (req, res) => {
+    console.log("[Contact] Received contact form submission");
     try {
       const { fullName, email, institution, role, planInterest, researchField, openalexId, estimatedProfiles, biography, preferredTheme } = req.body;
+      console.log("[Contact] Form data:", { fullName, email, planInterest });
       
       if (!fullName || !email || !planInterest || !biography) {
+        console.log("[Contact] Missing required fields");
         return res.status(400).json({ message: "Missing required fields" });
       }
 
       // Validate SMTP configuration
       if (!process.env.SMTP_PASSWORD) {
-        console.error("SMTP_PASSWORD environment variable not configured");
+        console.error("[Contact] SMTP_PASSWORD environment variable not configured");
         return res.status(500).json({ message: "Email service not configured" });
       }
+      console.log("[Contact] SMTP password configured, creating transporter...");
 
       // Configure SMTP transporter for A2 Hosting
       const transporter = nodemailer.createTransport({
@@ -1126,7 +1130,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           user: "info@scholar.name",
           pass: process.env.SMTP_PASSWORD,
         },
+        debug: true,
+        logger: true,
       });
+      console.log("[Contact] Transporter created, verifying connection...");
 
       // Format email content
       const emailContent = [
@@ -1153,8 +1160,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         `Submitted: ${new Date().toISOString()}`,
       ].filter(line => line !== null).join("\n");
 
+      // Verify SMTP connection first
+      try {
+        await transporter.verify();
+        console.log("[Contact] SMTP connection verified successfully");
+      } catch (verifyError) {
+        console.error("[Contact] SMTP connection verification failed:", verifyError);
+        return res.status(500).json({ message: "Email service connection failed" });
+      }
+
       // Send email
-      await transporter.sendMail({
+      console.log("[Contact] Sending email...");
+      const info = await transporter.sendMail({
         from: '"ScholarName" <info@scholar.name>',
         to: "info@scholar.name",
         replyTo: email,
@@ -1162,14 +1179,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         text: emailContent,
       });
 
-      console.log("Contact inquiry sent via email:", { fullName, email, planInterest });
+      console.log("[Contact] Email sent successfully:", info.messageId);
 
       res.json({ 
         success: true, 
         message: "Inquiry submitted successfully" 
       });
-    } catch (error) {
-      console.error("Error processing contact form:", error);
+    } catch (error: any) {
+      console.error("[Contact] Error processing contact form:", error.message || error);
+      console.error("[Contact] Full error:", error);
       res.status(500).json({ message: "Failed to process inquiry" });
     }
   });
