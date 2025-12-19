@@ -8,15 +8,10 @@
 
 set -e
 
-echo "🚀 Building ScholarSite for production..."
+echo "🚀 Building ScholarSite for production (light mode)..."
 
-# Step 1: Build frontend
-echo "📦 Building frontend..."
-npx vite build
-
-# Step 2: Build backend for production
-echo "📦 Building backend..."
-npx esbuild server/index-production.ts --platform=node --packages=external --bundle --format=esm --outfile=dist/index.js
+# Run a single-threaded build so it succeeds in constrained environments
+npm run build:light
 
 # Step 3: Prepare production folder
 echo "📋 Preparing production folder..."
