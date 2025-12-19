@@ -378,19 +378,21 @@ export default function ContactPage() {
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            {themes.map((theme) => {
-                              const config = theme.config as ThemeConfig;
+                            {themes.filter(theme => theme.config).map((theme) => {
+                              const config = theme.config as any;
+                              const primaryColor = config?.primary || config?.colors?.primary || '#0B1F3A';
+                              const accentColor = config?.accent || config?.colors?.accent || '#F2994A';
                               return (
                                 <SelectItem key={theme.id} value={theme.id}>
                                   <div className="flex items-center gap-3">
                                     <div className="flex gap-1">
                                       <div
                                         className="w-4 h-4 rounded-full border border-border"
-                                        style={{ backgroundColor: config.colors.primary }}
+                                        style={{ backgroundColor: primaryColor }}
                                       />
                                       <div
                                         className="w-4 h-4 rounded-full border border-border -ml-1"
-                                        style={{ backgroundColor: config.colors.accent }}
+                                        style={{ backgroundColor: accentColor }}
                                       />
                                     </div>
                                     <span>{theme.name}</span>

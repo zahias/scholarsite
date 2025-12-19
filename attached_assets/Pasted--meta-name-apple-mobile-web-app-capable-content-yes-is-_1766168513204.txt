@@ -1,0 +1,85 @@
+<meta name="apple-mobile-web-app-capable" content="yes"> is deprecated. Please include <meta name="mobile-web-app-capable" content="yes">Understand this warning
+contact:1 Error while trying to use the following icon from the Manifest: https://scholar.name/icon-192.png (Download error or resource isn't a valid image)Understand this warning
+index-B_YH-fTe.js:40 TypeError: Cannot read properties of undefined (reading 'primary')
+    at index-B_YH-fTe.js:358:39895
+    at Array.map (<anonymous>)
+    at Object.render (index-B_YH-fTe.js:358:39627)
+    at A9 (index-B_YH-fTe.js:318:81950)
+    at Fw (index-B_YH-fTe.js:38:16998)
+    at JE (index-B_YH-fTe.js:40:44030)
+    at XE (index-B_YH-fTe.js:40:39766)
+    at $6 (index-B_YH-fTe.js:40:39694)
+    at bp (index-B_YH-fTe.js:40:39547)
+    at Hx (index-B_YH-fTe.js:40:35914)
+$x @ index-B_YH-fTe.js:40
+r.callback @ index-B_YH-fTe.js:40
+ZS @ index-B_YH-fTe.js:38
+hN @ index-B_YH-fTe.js:40
+qE @ index-B_YH-fTe.js:40
+E6 @ index-B_YH-fTe.js:40
+I6 @ index-B_YH-fTe.js:40
+Eo @ index-B_YH-fTe.js:40
+vN @ index-B_YH-fTe.js:40
+go @ index-B_YH-fTe.js:38
+(anonymous) @ index-B_YH-fTe.js:40
+setTimeout
+i @ index-B_YH-fTe.js:48
+o @ index-B_YH-fTe.js:48
+batch @ index-B_YH-fTe.js:48
+Mi @ index-B_YH-fTe.js:48
+setData @ index-B_YH-fTe.js:48
+onSuccess @ index-B_YH-fTe.js:48
+f @ index-B_YH-fTe.js:48
+Promise.then
+g @ index-B_YH-fTe.js:48
+start @ index-B_YH-fTe.js:48
+fetch @ index-B_YH-fTe.js:48
+_u @ index-B_YH-fTe.js:48
+onSubscribe @ index-B_YH-fTe.js:48
+subscribe @ index-B_YH-fTe.js:48
+(anonymous) @ index-B_YH-fTe.js:48
+mE @ index-B_YH-fTe.js:38
+av @ index-B_YH-fTe.js:40
+pl @ index-B_YH-fTe.js:40
+I6 @ index-B_YH-fTe.js:40
+Eo @ index-B_YH-fTe.js:40
+vN @ index-B_YH-fTe.js:40
+go @ index-B_YH-fTe.js:38
+(anonymous) @ index-B_YH-fTe.js:40
+setTimeout
+i @ index-B_YH-fTe.js:48
+o @ index-B_YH-fTe.js:48
+batch @ index-B_YH-fTe.js:48
+Mi @ index-B_YH-fTe.js:48
+setData @ index-B_YH-fTe.js:48
+onSuccess @ index-B_YH-fTe.js:48
+f @ index-B_YH-fTe.js:48
+Promise.then
+g @ index-B_YH-fTe.js:48
+start @ index-B_YH-fTe.js:48
+fetch @ index-B_YH-fTe.js:48
+_u @ index-B_YH-fTe.js:48
+onSubscribe @ index-B_YH-fTe.js:48
+subscribe @ index-B_YH-fTe.js:48
+(anonymous) @ index-B_YH-fTe.js:48
+mE @ index-B_YH-fTe.js:38
+av @ index-B_YH-fTe.js:40
+pl @ index-B_YH-fTe.js:40
+vN @ index-B_YH-fTe.js:40
+go @ index-B_YH-fTe.js:38
+I6 @ index-B_YH-fTe.js:40
+Eo @ index-B_YH-fTe.js:40
+KE @ index-B_YH-fTe.js:40
+w @ index-B_YH-fTe.js:25
+E @ index-B_YH-fTe.js:25Understand this error
+index-B_YH-fTe.js:358 Uncaught TypeError: Cannot read properties of undefined (reading 'primary')
+    at index-B_YH-fTe.js:358:39895
+    at Array.map (<anonymous>)
+    at Object.render (index-B_YH-fTe.js:358:39627)
+    at A9 (index-B_YH-fTe.js:318:81950)
+    at Fw (index-B_YH-fTe.js:38:16998)
+    at JE (index-B_YH-fTe.js:40:44030)
+    at XE (index-B_YH-fTe.js:40:39766)
+    at $6 (index-B_YH-fTe.js:40:39694)
+    at bp (index-B_YH-fTe.js:40:39547)
+    at Hx (index-B_YH-fTe.js:40:35914)
