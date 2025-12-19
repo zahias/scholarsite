@@ -1104,26 +1104,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Contact form submission (public)
   app.post('/api/contact', async (req, res) => {
-    console.log("[Contact] Received contact form submission");
+    const fs = await import('fs');
+    const logFile = '/home/bannwebs/scholarsite/email_debug.log';
+    const logMsg = (msg: string) => {
+      const line = `${new Date().toISOString()} - ${msg}\n`;
+      console.log("[Contact]", msg);
+      try { fs.appendFileSync(logFile, line); } catch(e) {}
+    };
+    
+    logMsg("Received contact form submission");
     try {
       const { fullName, email, institution, role, planInterest, researchField, openalexId, estimatedProfiles, biography, preferredTheme } = req.body;
-      console.log("[Contact] Form data:", { fullName, email, planInterest });
+      logMsg(`Form data: ${JSON.stringify({ fullName, email, planInterest })}`);
       
       if (!fullName || !email || !planInterest || !biography) {
-        console.log("[Contact] Missing required fields");
+        logMsg("Missing required fields");
         return res.status(400).json({ message: "Missing required fields" });
       }
 
       // Validate SMTP configuration
       if (!process.env.SMTP_PASSWORD) {
-        console.error("[Contact] SMTP_PASSWORD environment variable not configured");
-        console.error("[Contact] Available env vars:", Object.keys(process.env).filter(k => !k.includes('npm') && !k.includes('PATH')).join(', '));
+        logMsg("SMTP_PASSWORD environment variable not configured");
+        logMsg(`Available env vars: ${Object.keys(process.env).filter(k => !k.includes('npm') && !k.includes('PATH')).join(', ')}`);
         return res.status(500).json({ 
           message: "Email service not configured. Please add SMTP_PASSWORD to .env file.",
           hint: "Create .env file in app root with: SMTP_PASSWORD=your_password"
         });
       }
-      console.log("[Contact] SMTP password configured, creating transporter...");
+      logMsg("SMTP password configured, creating transporter...");
 
       // Configure SMTP transporter for A2 Hosting
       const transporter = nodemailer.createTransport({
@@ -1140,7 +1148,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         debug: true,
         logger: true,
       });
-      console.log("[Contact] Transporter created, verifying connection...");
+      logMsg("Transporter created, verifying connection...");
 
       // Format email content
       const emailContent = [
@@ -1170,14 +1178,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Verify SMTP connection first
       try {
         await transporter.verify();
-        console.log("[Contact] SMTP connection verified successfully");
-      } catch (verifyError) {
-        console.error("[Contact] SMTP connection verification failed:", verifyError);
+        logMsg("SMTP connection verified successfully");
+      } catch (verifyError: any) {
+        logMsg(`SMTP connection verification failed: ${verifyError.message || verifyError}`);
         return res.status(500).json({ message: "Email service connection failed" });
       }
 
       // Send email
-      console.log("[Contact] Sending email...");
+      logMsg("Sending email...");
       const info = await transporter.sendMail({
         from: '"ScholarName" <info@scholar.name>',
         to: "info@scholar.name",
@@ -1186,15 +1194,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         text: emailContent,
       });
 
-      console.log("[Contact] Email sent successfully:", info.messageId);
+      logMsg(`Email sent successfully: ${info.messageId}`);
+      logMsg(`Full response: ${JSON.stringify(info)}`);
 
       res.json({ 
         success: true, 
         message: "Inquiry submitted successfully" 
       });
     } catch (error: any) {
-      console.error("[Contact] Error processing contact form:", error.message || error);
-      console.error("[Contact] Full error:", error);
+      logMsg(`Error processing contact form: ${error.message || error}`);
+      logMsg(`Full error: ${JSON.stringify(error, Object.getOwnPropertyNames(error))}`);
       res.status(500).json({ message: "Failed to process inquiry" });
     }
   });
