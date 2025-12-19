@@ -1111,11 +1111,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Missing required fields" });
       }
 
+      // Validate SMTP configuration
+      if (!process.env.SMTP_PASSWORD) {
+        console.error("SMTP_PASSWORD environment variable not configured");
+        return res.status(500).json({ message: "Email service not configured" });
+      }
+
       // Configure SMTP transporter for A2 Hosting
       const transporter = nodemailer.createTransport({
         host: "mail.scholar.name",
         port: 465,
-        secure: true, // SSL
+        secure: true,
         auth: {
           user: "info@scholar.name",
           pass: process.env.SMTP_PASSWORD,
@@ -1123,29 +1129,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       // Format email content
-      const emailContent = `
-New ScholarName Inquiry
-
-Contact Information:
-- Name: ${fullName}
-- Email: ${email}
-- Institution: ${institution || 'Not provided'}
-- Role: ${role || 'Not provided'}
-
-Plan Interest: ${planInterest}
-${estimatedProfiles ? `Estimated Profiles: ${estimatedProfiles}` : ''}
-
-Research Details:
-- Field: ${researchField || 'Not provided'}
-- OpenAlex ID: ${openalexId || 'Not provided'}
-${preferredTheme ? `- Preferred Theme: ${preferredTheme}` : ''}
-
-Biography:
-${biography}
-
----
-Submitted: ${new Date().toISOString()}
-      `.trim();
+      const emailContent = [
+        "New ScholarName Inquiry",
+        "",
+        "Contact Information:",
+        `- Name: ${fullName}`,
+        `- Email: ${email}`,
+        `- Institution: ${institution || 'Not provided'}`,
+        `- Role: ${role || 'Not provided'}`,
+        "",
+        `Plan Interest: ${planInterest}`,
+        estimatedProfiles ? `Estimated Profiles: ${estimatedProfiles}` : null,
+        "",
+        "Research Details:",
+        `- Field: ${researchField || 'Not provided'}`,
+        `- OpenAlex ID: ${openalexId || 'Not provided'}`,
+        preferredTheme ? `- Preferred Theme: ${preferredTheme}` : null,
+        "",
+        "Biography:",
+        biography,
+        "",
+        "---",
+        `Submitted: ${new Date().toISOString()}`,
+      ].filter(line => line !== null).join("\n");
 
       // Send email
       await transporter.sendMail({
