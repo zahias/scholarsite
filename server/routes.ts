@@ -1127,7 +1127,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Configure SMTP transporter for A2 Hosting
       const transporter = nodemailer.createTransport({
-        host: "mail.scholar.name",
+        host: "az1-ts112.a2hosting.com",
         port: 465,
         secure: true,
         auth: {
