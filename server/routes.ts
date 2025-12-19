@@ -1117,7 +1117,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Validate SMTP configuration
       if (!process.env.SMTP_PASSWORD) {
         console.error("[Contact] SMTP_PASSWORD environment variable not configured");
-        return res.status(500).json({ message: "Email service not configured" });
+        console.error("[Contact] Available env vars:", Object.keys(process.env).filter(k => !k.includes('npm') && !k.includes('PATH')).join(', '));
+        return res.status(500).json({ 
+          message: "Email service not configured. Please add SMTP_PASSWORD to .env file.",
+          hint: "Create .env file in app root with: SMTP_PASSWORD=your_password"
+        });
       }
       console.log("[Contact] SMTP password configured, creating transporter...");
 

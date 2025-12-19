@@ -6,6 +6,11 @@ import { registerRoutes } from "./routes";
 import { serveStatic, log } from "./static";
 import { startSyncScheduler } from "./services/syncScheduler";
 
+// Log environment configuration status at startup
+console.log("[Config] Environment check:");
+console.log("[Config] - SMTP_PASSWORD:", process.env.SMTP_PASSWORD ? "configured" : "NOT SET");
+console.log("[Config] - DATABASE_URL:", process.env.DATABASE_URL ? "configured" : "NOT SET");
+
 const app = express();
 
 // Trust proxy for proper HTTPS detection behind reverse proxy
