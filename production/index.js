@@ -4,7 +4,7 @@ var __export = (target, all) => {
     __defProp(target, name, { get: all[name], enumerable: true });
 };
 
-// server/index.production.ts
+// server/index-production.ts
 import "dotenv/config";
 import express2 from "express";
 import session from "express-session";
@@ -2572,6 +2572,7 @@ async function tenantResolver(req, res, next) {
 
 // server/routes.ts
 import fetch3 from "node-fetch";
+import nodemailer from "nodemailer";
 var updateEmitter = new EventEmitter();
 var sseConnections = /* @__PURE__ */ new Set();
 function adminSessionAuthMiddleware(req, res, next) {
@@ -3397,31 +3398,130 @@ async function registerRoutes(app2) {
     }
   });
   app2.post("/api/contact", async (req, res) => {
+    const fs2 = await import("fs");
+    const path2 = await import("path");
+    const logFile = path2.join(process.cwd(), "email_debug.log");
+    const logMsg = (msg) => {
+      const line = `${(/* @__PURE__ */ new Date()).toISOString()} - ${msg}
+`;
+      console.log("[Contact]", msg);
+      try {
+        fs2.appendFileSync(logFile, line);
+      } catch (e) {
+        console.error("Log write failed:", e);
+      }
+    };
+    logMsg(`Working directory: ${process.cwd()}`);
+    logMsg("Received contact form submission");
     try {
-      const { fullName, email, institution, role, planInterest, researchField, openalexId, estimatedProfiles, biography } = req.body;
+      const { fullName, email, institution, role, planInterest, researchField, openalexId, estimatedProfiles, biography, preferredTheme } = req.body;
+      logMsg(`Form data: ${JSON.stringify({ fullName, email, planInterest })}`);
       if (!fullName || !email || !planInterest || !biography) {
+        logMsg("Missing required fields");
         return res.status(400).json({ message: "Missing required fields" });
       }
-      console.log("New contact inquiry received:");
-      console.log({
-        fullName,
-        email,
-        institution,
-        role,
-        planInterest,
-        researchField,
-        openalexId,
-        estimatedProfiles,
-        biography,
-        timestamp: (/* @__PURE__ */ new Date()).toISOString()
+      if (!process.env.SMTP_PASSWORD) {
+        logMsg("SMTP_PASSWORD environment variable not configured");
+        logMsg(`Available env vars: ${Object.keys(process.env).filter((k) => !k.includes("npm") && !k.includes("PATH")).join(", ")}`);
+        return res.status(500).json({
+          message: "Email service not configured. Please add SMTP_PASSWORD to environment variables in A2 Hosting cPanel.",
+          hint: "In cPanel Node.js Selector, add environment variable: SMTP_PASSWORD=your_email_password"
+        });
+      }
+      logMsg("SMTP password configured, creating transporter...");
+      const smtpHost = process.env.SMTP_HOST || "localhost";
+      const smtpPort = parseInt(process.env.SMTP_PORT || "465", 10);
+      const smtpUser = process.env.SMTP_USER || "info@scholar.name";
+      logMsg(`SMTP Config: host=${smtpHost}, port=${smtpPort}, user=${smtpUser}`);
+      const transporter = nodemailer.createTransport({
+        host: smtpHost,
+        port: smtpPort,
+        secure: smtpPort === 465,
+        // true for 465, false for other ports
+        auth: {
+          user: smtpUser,
+          pass: process.env.SMTP_PASSWORD
+        },
+        tls: {
+          rejectUnauthorized: false
+        },
+        debug: true,
+        logger: true
       });
+      logMsg("Transporter created, verifying connection...");
+      const emailContent = [
+        "New ScholarName Inquiry",
+        "",
+        "Contact Information:",
+        `- Name: ${fullName}`,
+        `- Email: ${email}`,
+        `- Institution: ${institution || "Not provided"}`,
+        `- Role: ${role || "Not provided"}`,
+        "",
+        `Plan Interest: ${planInterest}`,
+        estimatedProfiles ? `Estimated Profiles: ${estimatedProfiles}` : null,
+        "",
+        "Research Details:",
+        `- Field: ${researchField || "Not provided"}`,
+        `- OpenAlex ID: ${openalexId || "Not provided"}`,
+        preferredTheme ? `- Preferred Theme: ${preferredTheme}` : null,
+        "",
+        "Biography:",
+        biography,
+        "",
+        "---",
+        `Submitted: ${(/* @__PURE__ */ new Date()).toISOString()}`
+      ].filter((line) => line !== null).join("\n");
+      try {
+        await transporter.verify();
+        logMsg("SMTP connection verified successfully");
+      } catch (verifyError) {
+        const errorMsg = verifyError.message || String(verifyError);
+        logMsg(`SMTP connection verification failed: ${errorMsg}`);
+        logMsg(`Error code: ${verifyError.code || "N/A"}`);
+        logMsg(`Error command: ${verifyError.command || "N/A"}`);
+        let userMessage = "Email service connection failed";
+        if (errorMsg.includes("Invalid login") || errorMsg.includes("authentication")) {
+          userMessage = "Email authentication failed. Please check SMTP_PASSWORD in environment variables.";
+        } else if (errorMsg.includes("ECONNREFUSED") || errorMsg.includes("ENOTFOUND")) {
+          userMessage = "Cannot connect to email server. Please check SMTP_HOST setting (try 'localhost' for A2 Hosting).";
+        } else if (errorMsg.includes("ETIMEDOUT")) {
+          userMessage = "Email server connection timed out. Please check SMTP settings.";
+        }
+        return res.status(500).json({
+          message: userMessage,
+          error: process.env.NODE_ENV === "development" ? errorMsg : void 0
+        });
+      }
+      logMsg("Sending email...");
+      const info = await transporter.sendMail({
+        from: `"ScholarName" <${smtpUser}>`,
+        to: "info@scholar.name",
+        replyTo: email,
+        subject: `New Inquiry: ${planInterest} Plan - ${fullName}`,
+        text: emailContent
+      });
+      logMsg(`Email sent successfully: ${info.messageId}`);
+      logMsg(`Full response: ${JSON.stringify(info)}`);
       res.json({
         success: true,
         message: "Inquiry submitted successfully"
       });
     } catch (error) {
-      console.error("Error processing contact form:", error);
-      res.status(500).json({ message: "Failed to process inquiry" });
+      const errorMsg = error.message || String(error);
+      logMsg(`Error processing contact form: ${errorMsg}`);
+      logMsg(`Error code: ${error.code || "N/A"}`);
+      logMsg(`Full error: ${JSON.stringify(error, Object.getOwnPropertyNames(error))}`);
+      let userMessage = "Failed to process inquiry";
+      if (errorMsg.includes("Invalid login") || errorMsg.includes("authentication")) {
+        userMessage = "Email authentication failed. Please check SMTP credentials.";
+      } else if (errorMsg.includes("ECONNREFUSED") || errorMsg.includes("ENOTFOUND")) {
+        userMessage = "Cannot connect to email server. Please check SMTP settings.";
+      }
+      res.status(500).json({
+        message: userMessage,
+        error: process.env.NODE_ENV === "development" ? errorMsg : void 0
+      });
     }
   });
   app2.get("/api/researcher/:openalexId/export-bibliography", async (req, res) => {
@@ -3789,7 +3889,7 @@ function serveStatic(app2) {
   });
 }
 
-// server/index.production.ts
+// server/index-production.ts
 var app = express2();
 app.set("trust proxy", 1);
 app.use(express2.json());
@@ -3797,19 +3897,19 @@ app.use(express2.urlencoded({ extended: true }));
 var PgSession = connectPgSimple(session);
 app.use(session({
   store: new PgSession({
-    conString: process.env.DATABASE_URL,
+    pool,
     tableName: "sessions",
-    createTableIfMissing: true
+    createTableIfMissing: false
   }),
   secret: process.env.SESSION_SECRET || "research-profile-admin-secret-key",
   resave: false,
   saveUninitialized: false,
   proxy: true,
   cookie: {
-    secure: "auto",
+    secure: true,
     httpOnly: true,
-    maxAge: 24 * 60 * 60 * 1e3,
-    sameSite: "lax"
+    sameSite: "lax",
+    maxAge: 24 * 60 * 60 * 1e3
   }
 }));
 app.use((req, res, next) => {
