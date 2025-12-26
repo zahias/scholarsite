@@ -1104,36 +1104,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Contact form submission (public)
   app.post('/api/contact', async (req, res) => {
-    const fs = await import('fs');
-    const path = await import('path');
-    const logFile = path.join(process.cwd(), 'email_debug.log');
-    const logMsg = (msg: string) => {
-      const line = `${new Date().toISOString()} - ${msg}\n`;
-      console.log("[Contact]", msg);
-      try { fs.appendFileSync(logFile, line); } catch(e) { console.error("Log write failed:", e); }
-    };
-    logMsg(`Working directory: ${process.cwd()}`);
-    
-    logMsg("Received contact form submission");
+    console.log("[Contact] Received contact form submission");
     try {
       const { fullName, email, institution, role, planInterest, researchField, openalexId, estimatedProfiles, biography, preferredTheme } = req.body;
-      logMsg(`Form data: ${JSON.stringify({ fullName, email, planInterest })}`);
+      console.log("[Contact] Form data:", { fullName, email, planInterest });
       
       if (!fullName || !email || !planInterest || !biography) {
-        logMsg("Missing required fields");
+        console.log("[Contact] Missing required fields");
         return res.status(400).json({ message: "Missing required fields" });
       }
 
       // Validate SMTP configuration
       if (!process.env.SMTP_PASSWORD) {
-        logMsg("SMTP_PASSWORD environment variable not configured");
-        logMsg(`Available env vars: ${Object.keys(process.env).filter(k => !k.includes('npm') && !k.includes('PATH')).join(', ')}`);
+        console.log("[Contact] SMTP_PASSWORD environment variable not configured");
+        console.log("[Contact] Available env vars:", Object.keys(process.env).filter(k => !k.includes('npm') && !k.includes('PATH')).join(', '));
         return res.status(500).json({ 
           message: "Email service not configured. Please add SMTP_PASSWORD to environment variables in A2 Hosting cPanel.",
           hint: "In cPanel Node.js Selector, add environment variable: SMTP_PASSWORD=your_email_password"
         });
       }
-      logMsg("SMTP password configured, creating transporter...");
+      console.log("[Contact] SMTP password configured, creating transporter...");
 
       // Configure SMTP transporter for A2 Hosting
       // A2 Hosting typically uses localhost for SMTP, but can also use mail server hostname
@@ -1141,7 +1131,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const smtpPort = parseInt(process.env.SMTP_PORT || "465", 10);
       const smtpUser = process.env.SMTP_USER || "info@scholar.name";
       
-      logMsg(`SMTP Config: host=${smtpHost}, port=${smtpPort}, user=${smtpUser}`);
+      console.log(`[Contact] SMTP Config: host=${smtpHost}, port=${smtpPort}, user=${smtpUser}`);
       
       const transporter = nodemailer.createTransport({
         host: smtpHost,
@@ -1157,7 +1147,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         debug: true,
         logger: true,
       });
-      logMsg("Transporter created, verifying connection...");
+      console.log("[Contact] Transporter created, verifying connection...");
 
       // Format email content
       const emailContent = [
@@ -1187,12 +1177,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Verify SMTP connection first
       try {
         await transporter.verify();
-        logMsg("SMTP connection verified successfully");
+        console.log("[Contact] SMTP connection verified successfully");
       } catch (verifyError: any) {
         const errorMsg = verifyError.message || String(verifyError);
-        logMsg(`SMTP connection verification failed: ${errorMsg}`);
-        logMsg(`Error code: ${verifyError.code || 'N/A'}`);
-        logMsg(`Error command: ${verifyError.command || 'N/A'}`);
+        console.log(`[Contact] SMTP connection verification failed: ${errorMsg}`);
+        console.log(`[Contact] Error code: ${verifyError.code || 'N/A'}`);
+        console.log(`[Contact] Error command: ${verifyError.command || 'N/A'}`);
         
         // Provide helpful error message based on common issues
         let userMessage = "Email service connection failed";
@@ -1211,7 +1201,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Send email
-      logMsg("Sending email...");
+      console.log("[Contact] Sending email...");
       const adminEmail = await transporter.sendMail({
         from: `"ScholarName" <${smtpUser}>`,
         to: "info@scholar.name",
@@ -1219,8 +1209,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         subject: `New Inquiry: ${planInterest} Plan - ${fullName}`,
         text: emailContent,
       });
-      logMsg(`Admin email sent: ${adminEmail.messageId}`);
-      logMsg(`Admin response: ${JSON.stringify(adminEmail)}`);
+      console.log(`[Contact] Admin email sent: ${adminEmail.messageId}`);
+      console.log(`[Contact] Admin response: ${JSON.stringify(adminEmail)}`);
 
       const escapeHtml = (value: string) =>
         value
@@ -1324,8 +1314,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         html: userHtml,
       });
 
-      logMsg(`Auto-reply sent to user: ${userEmail.messageId}`);
-      logMsg(`User response: ${JSON.stringify(userEmail)}`);
+      console.log(`[Contact] Auto-reply sent to user: ${userEmail.messageId}`);
+      console.log(`[Contact] User response: ${JSON.stringify(userEmail)}`);
 
       res.json({ 
         success: true, 
@@ -1333,9 +1323,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error: any) {
       const errorMsg = error.message || String(error);
-      logMsg(`Error processing contact form: ${errorMsg}`);
-      logMsg(`Error code: ${error.code || 'N/A'}`);
-      logMsg(`Full error: ${JSON.stringify(error, Object.getOwnPropertyNames(error))}`);
+      console.log(`[Contact] Error processing contact form: ${errorMsg}`);
+      console.log(`[Contact] Error code: ${error.code || 'N/A'}`);
+      console.log(`[Contact] Full error: ${JSON.stringify(error, Object.getOwnPropertyNames(error))}`);
       
       // Provide more helpful error messages
       let userMessage = "Failed to process inquiry";

@@ -18,8 +18,7 @@ import { Badge } from "@/components/ui/badge";
 import { useRealtimeUpdates } from "@/hooks/useRealtimeUpdates";
 import type { ResearcherProfile as ResearcherProfileType } from "@shared/schema";
 import { useMemo, useState, useEffect } from "react";
-import { ArrowLeft, MapPin, Building2, Mail, Globe, Linkedin, Clock } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { ArrowLeft, MapPin, Building2, Mail, Globe, Linkedin } from "lucide-react";
 import { SiOrcid, SiGooglescholar, SiResearchgate } from "react-icons/si";
 import { FaXTwitter } from "react-icons/fa6";
 
@@ -68,45 +67,6 @@ function ResearcherProfileContent() {
     retry: false,
   });
 
-  // Preview expiration tracking (24 hours)
-  const [showExpirationModal, setShowExpirationModal] = useState(false);
-  const PREVIEW_EXPIRATION_HOURS = 24;
-  
-  useEffect(() => {
-    // Guard for SSR - localStorage is only available in browser
-    if (typeof window === 'undefined') return;
-    if (!researcherData?.isPreview || !id) return;
-    
-    try {
-      const storageKey = `preview_session_${id}`;
-      const storedSession = localStorage.getItem(storageKey);
-      
-      if (storedSession) {
-        const sessionData = JSON.parse(storedSession);
-        const firstViewTime = new Date(sessionData.firstView).getTime();
-        const now = Date.now();
-        const hoursPassed = (now - firstViewTime) / (1000 * 60 * 60);
-        
-        if (hoursPassed >= PREVIEW_EXPIRATION_HOURS) {
-          // Preview has expired
-          setShowExpirationModal(true);
-        } else {
-          // Update view count
-          sessionData.viewCount = (sessionData.viewCount || 0) + 1;
-          localStorage.setItem(storageKey, JSON.stringify(sessionData));
-        }
-      } else {
-        // First time viewing this preview
-        localStorage.setItem(storageKey, JSON.stringify({
-          firstView: new Date().toISOString(),
-          viewCount: 1
-        }));
-      }
-    } catch (e) {
-      // Silently handle localStorage errors (e.g., private browsing)
-      console.warn('Unable to access localStorage for preview tracking');
-    }
-  }, [researcherData?.isPreview, id]);
 
   // SEO data - must be before conditional returns to satisfy Rules of Hooks
   const profile = researcherData?.profile;
@@ -259,57 +219,6 @@ function ResearcherProfileContent() {
 
   return (
     <div className="min-h-screen bg-background pb-20 md:pb-0" data-testid="page-researcher-profile" style={getThemeStyles(themeConfig)}>
-      {/* Preview Expiration Modal */}
-      <Dialog open={showExpirationModal} onOpenChange={setShowExpirationModal}>
-        <DialogContent className="sm:max-w-md" data-testid="modal-preview-expired">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Clock className="w-5 h-5 text-primary" />
-              Preview Session Expired
-            </DialogTitle>
-            <DialogDescription className="pt-2">
-              Your 24-hour preview session has ended. Ready to claim your professional research portfolio?
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 pt-4">
-            <p className="text-sm text-muted-foreground">
-              Create your own ScholarName portfolio to:
-            </p>
-            <ul className="text-sm space-y-2 text-muted-foreground">
-              <li className="flex items-center gap-2">
-                <span className="w-1.5 h-1.5 bg-primary rounded-full"></span>
-                Get your own professional domain
-              </li>
-              <li className="flex items-center gap-2">
-                <span className="w-1.5 h-1.5 bg-primary rounded-full"></span>
-                Customize your profile with your own bio and photo
-              </li>
-              <li className="flex items-center gap-2">
-                <span className="w-1.5 h-1.5 bg-primary rounded-full"></span>
-                Auto-sync your latest publications
-              </li>
-            </ul>
-            <div className="flex flex-col gap-2 pt-4">
-              <Button
-                onClick={() => navigate('/contact')}
-                className="w-full"
-                data-testid="button-claim-expired"
-              >
-                Create My Portfolio
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() => setShowExpirationModal(false)}
-                className="w-full"
-                data-testid="button-continue-preview"
-              >
-                Continue Browsing
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
-
       <SEO 
         title={seoTitle}
         description={seoDescription}
