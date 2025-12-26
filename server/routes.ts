@@ -571,8 +571,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log(`📊 Remaining SSE connections: ${sseConnections.size}`);
       });
 
-      req.on('error', (error) => {
-        console.error('❌ SSE request error:', error);
+      req.on('error', (error: NodeJS.ErrnoException) => {
+        if (error.code === 'ECONNRESET' || error.code === 'EPIPE') {
+          console.log('🔌 SSE connection closed by client/proxy');
+        } else {
+          console.error('❌ SSE request error:', error);
+        }
         clearInterval(heartbeat);
         sseConnections.delete(connection);
       });
