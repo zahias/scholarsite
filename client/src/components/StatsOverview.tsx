@@ -54,6 +54,9 @@ export default function StatsOverview({ openalexId }: StatsOverviewProps) {
   }
 
   const stats = researcherData?.researcher;
+  const summaryStats = stats?.summary_stats ?? { h_index: 0, i10_index: 0 };
+  const worksCount = stats?.works_count ?? 0;
+  const citationCount = stats?.cited_by_count ?? 0;
 
   return (
     <section className="py-8 md:py-16 -mt-6 md:-mt-10" data-testid="section-stats">
@@ -62,7 +65,7 @@ export default function StatsOverview({ openalexId }: StatsOverviewProps) {
           <Card className="stat-card bg-card rounded-xl shadow-lg border border-border hover:shadow-xl transition-shadow">
             <CardContent className="p-4 md:p-6 text-center">
               <div className="text-2xl md:text-3xl font-bold text-primary mb-1 md:mb-2" data-testid="stat-publications">
-                <AnimatedCounter end={stats.works_count} />
+                <AnimatedCounter end={worksCount} />
               </div>
               <div className="text-xs md:text-sm text-muted-foreground">Publications</div>
             </CardContent>
@@ -71,7 +74,7 @@ export default function StatsOverview({ openalexId }: StatsOverviewProps) {
           <Card className="stat-card bg-card rounded-xl shadow-lg border border-border hover:shadow-xl transition-shadow">
             <CardContent className="p-4 md:p-6 text-center">
               <div className="text-2xl md:text-3xl font-bold text-accent mb-1 md:mb-2" data-testid="stat-citations">
-                <AnimatedCounter end={stats.cited_by_count} />
+                <AnimatedCounter end={citationCount} />
               </div>
               <div className="text-xs md:text-sm text-muted-foreground">Citations</div>
             </CardContent>
@@ -80,7 +83,7 @@ export default function StatsOverview({ openalexId }: StatsOverviewProps) {
           <Card className="stat-card bg-card rounded-xl shadow-lg border border-border hover:shadow-xl transition-shadow">
             <CardContent className="p-4 md:p-6 text-center">
               <div className="text-2xl md:text-3xl font-bold text-primary mb-1 md:mb-2" data-testid="stat-h-index">
-                <AnimatedCounter end={stats.summary_stats.h_index} />
+                <AnimatedCounter end={summaryStats.h_index ?? 0} />
               </div>
               <div className="text-xs md:text-sm text-muted-foreground">h-index</div>
             </CardContent>
@@ -89,7 +92,7 @@ export default function StatsOverview({ openalexId }: StatsOverviewProps) {
           <Card className="stat-card bg-card rounded-xl shadow-lg border border-border hover:shadow-xl transition-shadow">
             <CardContent className="p-4 md:p-6 text-center">
               <div className="text-2xl md:text-3xl font-bold text-accent mb-1 md:mb-2" data-testid="stat-i10-index">
-                <AnimatedCounter end={stats.summary_stats.i10_index} />
+                <AnimatedCounter end={summaryStats.i10_index ?? 0} />
               </div>
               <div className="text-xs md:text-sm text-muted-foreground">i10-index</div>
             </CardContent>
