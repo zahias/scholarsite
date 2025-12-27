@@ -15,6 +15,7 @@ echo "🚀 Deploying ScholarSite to A2 Hosting (Node $NODE_ENV_VERSION)..."
 
 if [ -f "$NODE_ENV_PATH" ]; then
   echo "🔧 Activating Node environment at $NODE_ENV_PATH"
+  export CL_VIRTUAL_ENV=""
   # shellcheck source=/dev/null
   source "$NODE_ENV_PATH"
 else
