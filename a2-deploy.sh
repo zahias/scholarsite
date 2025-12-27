@@ -15,8 +15,10 @@ echo "🚀 Deploying ScholarSite to A2 Hosting (Node $NODE_ENV_VERSION)..."
 
 if [ -f "$NODE_ENV_PATH" ]; then
   echo "🔧 Activating Node environment at $NODE_ENV_PATH"
+  set +u
   # shellcheck source=/dev/null
   source "$NODE_ENV_PATH"
+  set -u
 else
   echo "⚠️ Node environment not found at $NODE_ENV_PATH. Please adjust NODE_ENV_PATH."
 fi
