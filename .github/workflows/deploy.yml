@@ -18,7 +18,6 @@ jobs:
           script: |
             cd ${{ secrets.A2_PATH }}
             git pull origin main
-            ./deploy.sh
             cp -rf production/* /home/bannwebs/scholarsite/
             mkdir -p /home/bannwebs/scholarsite/tmp
             touch /home/bannwebs/scholarsite/tmp/restart.txt
