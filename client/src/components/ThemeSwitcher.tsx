@@ -5,7 +5,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
-import { useProfileTheme } from '@/context/ThemeContext';
+import { useProfileTheme, normalizeThemeConfig } from '@/context/ThemeContext';
 import type { Theme, ThemeConfig } from '@shared/schema';
 
 interface ThemeSwitcherProps {
@@ -27,7 +27,7 @@ export function ThemeSwitcher({ isPreview = false }: ThemeSwitcherProps) {
             size="lg"
             className="rounded-full shadow-lg hover:shadow-xl transition-all duration-300 h-14 w-14"
             style={{
-              backgroundColor: currentTheme?.config ? (currentTheme.config as ThemeConfig).colors.primary : '#0B1F3A',
+              backgroundColor: normalizeThemeConfig(currentTheme?.config as ThemeConfig | null).colors.primary,
             }}
             data-testid="button-theme-switcher"
           >
@@ -74,7 +74,7 @@ interface ThemeOptionProps {
 }
 
 function ThemeOption({ theme, isSelected, onSelect }: ThemeOptionProps) {
-  const config = theme.config as ThemeConfig;
+  const config = normalizeThemeConfig(theme.config as ThemeConfig | null);
   
   return (
     <button

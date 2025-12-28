@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, useMemo, type ReactNode } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import type { Theme, ThemeConfig } from '@shared/schema';
 
@@ -10,7 +10,7 @@ interface ThemeContextValue {
   isLoading: boolean;
 }
 
-const defaultThemeConfig: ThemeConfig = {
+export const defaultThemeConfig: ThemeConfig = {
   colors: {
     primary: '#1e3a5f',
     primaryDark: '#0d1f35',
@@ -21,6 +21,24 @@ const defaultThemeConfig: ThemeConfig = {
     textMuted: '#5a6a7a',
   },
 };
+
+export function normalizeThemeConfig(config?: ThemeConfig | null): ThemeConfig {
+  const safeConfig = config && typeof config === 'object' ? config : null;
+  const safeColors = safeConfig?.colors && typeof safeConfig.colors === 'object'
+    ? safeConfig.colors
+    : {};
+  const safeTypography = safeConfig?.typography && typeof safeConfig.typography === 'object'
+    ? safeConfig.typography
+    : undefined;
+
+  return {
+    colors: {
+      ...defaultThemeConfig.colors,
+      ...safeColors,
+    },
+    ...(safeTypography ? { typography: safeTypography } : {}),
+  };
+}
 
 const ThemeContext = createContext<ThemeContextValue>({
   themes: [],
@@ -101,10 +119,11 @@ export function ProfileThemeProvider({ children, initialThemeId }: ThemeProvider
   }, [themes, defaultTheme, initialThemeId, currentTheme]);
 
   const themeConfig = currentTheme?.config as ThemeConfig | null;
+  const normalizedThemeConfig = useMemo(() => normalizeThemeConfig(themeConfig), [themeConfig]);
   
   useEffect(() => {
-    applyThemeToDocument(themeConfig || defaultThemeConfig);
-  }, [themeConfig]);
+    applyThemeToDocument(normalizedThemeConfig);
+  }, [normalizedThemeConfig]);
 
   return (
     <ThemeContext.Provider
@@ -112,7 +131,7 @@ export function ProfileThemeProvider({ children, initialThemeId }: ThemeProvider
         themes,
         currentTheme,
         setCurrentTheme,
-        themeConfig: themeConfig || defaultThemeConfig,
+        themeConfig: normalizedThemeConfig,
         isLoading: themesLoading || defaultLoading,
       }}
     >
@@ -122,15 +141,15 @@ export function ProfileThemeProvider({ children, initialThemeId }: ThemeProvider
 }
 
 export function getThemeStyles(config: ThemeConfig | null) {
-  if (!config) return {};
+  const normalized = normalizeThemeConfig(config);
   
   return {
-    '--theme-primary': config.colors.primary,
-    '--theme-primary-dark': config.colors.primaryDark,
-    '--theme-accent': config.colors.accent,
-    '--theme-background': config.colors.background,
-    '--theme-surface': config.colors.surface,
-    '--theme-text': config.colors.text,
-    '--theme-text-muted': config.colors.textMuted,
+    '--theme-primary': normalized.colors.primary,
+    '--theme-primary-dark': normalized.colors.primaryDark,
+    '--theme-accent': normalized.colors.accent,
+    '--theme-background': normalized.colors.background,
+    '--theme-surface': normalized.colors.surface,
+    '--theme-text': normalized.colors.text,
+    '--theme-text-muted': normalized.colors.textMuted,
   } as React.CSSProperties;
 }
