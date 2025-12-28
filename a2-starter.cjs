@@ -1,7 +1,15 @@
 (async function start() {
   try {
-    // Prefer built server in dist (output of `npm run build`).
-    // If you're running source directly on A2, change to './server/index.js'
+    // Prefer production build copied to root (production/index.js).
+    // Fall back to dist output for local/dev builds.
+    try {
+      await import('./index.js');
+      return;
+    } catch (innerError) {
+      if (innerError?.code !== 'ERR_MODULE_NOT_FOUND') {
+        throw innerError;
+      }
+    }
     await import('./dist/index.js');
   } catch (error) {
     console.error('Failed to start server via a2-starter.cjs:', error);
