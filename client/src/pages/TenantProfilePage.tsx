@@ -152,6 +152,9 @@ export default function TenantProfilePage() {
       
       <section id="overview" className="hero-banner min-h-[70vh] md:min-h-[85vh] flex items-center relative pt-16 md:pt-0">
         <div className="hero-pattern"></div>
+        <div className="hero-grid"></div>
+        <div className="hero-slice hero-slice-one"></div>
+        <div className="hero-slice hero-slice-two"></div>
         
         <div className="relative max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-8 md:py-20 z-10 w-full">
           <div className="lg:grid lg:grid-cols-12 lg:gap-12 items-center">
@@ -188,20 +191,22 @@ export default function TenantProfilePage() {
             <div className="lg:col-span-8 text-center lg:text-left text-white space-y-4 md:space-y-8">
               <div className="space-y-3 md:space-y-6">
                 <div>
-                  <h1 className="text-2xl sm:text-3xl md:text-5xl lg:text-6xl xl:text-7xl font-bold mb-2 md:mb-4 leading-tight bg-gradient-to-r from-white via-white to-white/80 bg-clip-text text-transparent" data-testid="text-display-name">
+                  <div className="hero-kicker mb-3">Research Portfolio</div>
+                  <h1 className="hero-title text-2xl sm:text-3xl md:text-5xl lg:text-6xl xl:text-7xl font-bold mb-2 md:mb-4 leading-tight bg-gradient-to-r from-white via-white to-white/80 bg-clip-text text-transparent" data-testid="text-display-name">
                     {profile?.displayName || researcher?.display_name || 'Researcher Profile'}
                   </h1>
                   <p className="text-lg sm:text-xl md:text-2xl lg:text-3xl mb-2 md:mb-4 text-white/90 font-light tracking-wide" data-testid="text-title">
                     {profile?.title || 'Research Professional'}
                   </p>
+                  <div className="hero-accent-line mb-4 md:mb-6 mx-auto lg:mx-0"></div>
                   <div className="flex flex-wrap items-center justify-center lg:justify-start gap-2 md:gap-4 text-sm md:text-base text-white/80">
-                    <span className="flex items-center gap-1 md:gap-2">
+                    <span className="hero-meta-pill">
                       <Building2 className="w-4 h-4 md:w-5 md:h-5 flex-shrink-0" />
                       <span data-testid="text-affiliation" className="text-sm md:text-base">
                         {profile?.currentAffiliation || researcher?.last_known_institutions?.[0]?.display_name || 'Institution'}
                       </span>
                     </span>
-                    <span className="flex items-center gap-1 md:gap-2">
+                    <span className="hero-meta-pill">
                       <MapPin className="w-4 h-4 md:w-5 md:h-5 flex-shrink-0" />
                       <span className="text-sm md:text-base">{profile?.countryCode || researcher?.last_known_institutions?.[0]?.country_code || ''}</span>
                     </span>
@@ -209,7 +214,7 @@ export default function TenantProfilePage() {
                 </div>
               </div>
               
-              <div className="bg-white/5 backdrop-blur-sm rounded-xl md:rounded-2xl p-4 md:p-6 border border-white/10">
+              <div className="hero-bio-card backdrop-blur-sm rounded-xl md:rounded-2xl p-4 md:p-6">
                 <p className="text-sm sm:text-base md:text-lg lg:text-xl text-white/90 leading-relaxed font-light" data-testid="text-bio">
                   {profile?.bio || `Researcher with ${researcher?.works_count || 0} publications and ${researcher?.cited_by_count || 0} citations.`}
                 </p>
@@ -217,17 +222,18 @@ export default function TenantProfilePage() {
               
               {/* Social/Academic Profile Links */}
               {(profile?.orcidUrl || profile?.googleScholarUrl || profile?.researchGateUrl || profile?.linkedinUrl || profile?.websiteUrl || profile?.twitterUrl) && (
-                <div className="flex flex-wrap items-center justify-center lg:justify-start gap-3 md:gap-4" data-testid="social-links-container">
+                <div className="flex flex-wrap items-center justify-center lg:justify-start gap-2 md:gap-3" data-testid="social-links-container">
                   {profile?.orcidUrl && (
                     <a
                       href={profile.orcidUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 flex items-center justify-center text-white hover:bg-white/20 hover:scale-110 transition-all duration-300"
+                      className="hero-social-pill inline-flex items-center gap-2 px-4 py-2 rounded-full text-white text-sm hover:bg-white/20 transition-all duration-300"
                       title="ORCID"
                       data-testid="link-orcid"
                     >
-                      <SiOrcid className="w-5 h-5 md:w-6 md:h-6" />
+                      <SiOrcid className="w-4 h-4" />
+                      <span>ORCID</span>
                     </a>
                   )}
                   {profile?.googleScholarUrl && (
@@ -235,11 +241,12 @@ export default function TenantProfilePage() {
                       href={profile.googleScholarUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 flex items-center justify-center text-white hover:bg-white/20 hover:scale-110 transition-all duration-300"
+                      className="hero-social-pill inline-flex items-center gap-2 px-4 py-2 rounded-full text-white text-sm hover:bg-white/20 transition-all duration-300"
                       title="Google Scholar"
                       data-testid="link-google-scholar"
                     >
-                      <SiGooglescholar className="w-5 h-5 md:w-6 md:h-6" />
+                      <SiGooglescholar className="w-4 h-4" />
+                      <span>Scholar</span>
                     </a>
                   )}
                   {profile?.researchGateUrl && (
@@ -247,11 +254,12 @@ export default function TenantProfilePage() {
                       href={profile.researchGateUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 flex items-center justify-center text-white hover:bg-white/20 hover:scale-110 transition-all duration-300"
+                      className="hero-social-pill inline-flex items-center gap-2 px-4 py-2 rounded-full text-white text-sm hover:bg-white/20 transition-all duration-300"
                       title="ResearchGate"
                       data-testid="link-researchgate"
                     >
-                      <SiResearchgate className="w-5 h-5 md:w-6 md:h-6" />
+                      <SiResearchgate className="w-4 h-4" />
+                      <span>ResearchGate</span>
                     </a>
                   )}
                   {profile?.linkedinUrl && (
@@ -259,11 +267,12 @@ export default function TenantProfilePage() {
                       href={profile.linkedinUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 flex items-center justify-center text-white hover:bg-white/20 hover:scale-110 transition-all duration-300"
+                      className="hero-social-pill inline-flex items-center gap-2 px-4 py-2 rounded-full text-white text-sm hover:bg-white/20 transition-all duration-300"
                       title="LinkedIn"
                       data-testid="link-linkedin"
                     >
-                      <Linkedin className="w-5 h-5 md:w-6 md:h-6" />
+                      <Linkedin className="w-4 h-4" />
+                      <span>LinkedIn</span>
                     </a>
                   )}
                   {profile?.websiteUrl && (
@@ -271,11 +280,12 @@ export default function TenantProfilePage() {
                       href={profile.websiteUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 flex items-center justify-center text-white hover:bg-white/20 hover:scale-110 transition-all duration-300"
+                      className="hero-social-pill inline-flex items-center gap-2 px-4 py-2 rounded-full text-white text-sm hover:bg-white/20 transition-all duration-300"
                       title="Website"
                       data-testid="link-website"
                     >
-                      <Globe className="w-5 h-5 md:w-6 md:h-6" />
+                      <Globe className="w-4 h-4" />
+                      <span>Website</span>
                     </a>
                   )}
                   {profile?.twitterUrl && (
@@ -283,11 +293,12 @@ export default function TenantProfilePage() {
                       href={profile.twitterUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 flex items-center justify-center text-white hover:bg-white/20 hover:scale-110 transition-all duration-300"
+                      className="hero-social-pill inline-flex items-center gap-2 px-4 py-2 rounded-full text-white text-sm hover:bg-white/20 transition-all duration-300"
                       title="X (Twitter)"
                       data-testid="link-twitter"
                     >
-                      <FaXTwitter className="w-5 h-5 md:w-6 md:h-6" />
+                      <FaXTwitter className="w-4 h-4" />
+                      <span>X</span>
                     </a>
                   )}
                 </div>
@@ -298,7 +309,7 @@ export default function TenantProfilePage() {
                   href={`https://openalex.org/authors/${openalexId}`} 
                   target="_blank" 
                   rel="noopener noreferrer"
-                  className="action-button group bg-white/15 backdrop-blur-sm text-white px-4 sm:px-6 md:px-8 py-3 md:py-4 rounded-xl hover:bg-white/25 transition-all duration-300 border border-white/20 hover:border-white/40 hover:scale-105 font-medium text-sm md:text-base min-h-[44px] flex items-center justify-center w-full sm:w-auto"
+                  className="action-button hero-cta-secondary group backdrop-blur-sm text-white px-4 sm:px-6 md:px-8 py-3 md:py-4 rounded-xl hover:bg-white/25 transition-all duration-300 hover:border-white/40 hover:scale-105 font-medium text-sm md:text-base min-h-[44px] flex items-center justify-center w-full sm:w-auto"
                   data-testid="link-openalex"
                 >
                   <svg className="w-4 h-4 md:w-5 md:h-5 mr-2 md:mr-3 inline-block group-hover:rotate-12 transition-transform duration-300 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
@@ -312,7 +323,7 @@ export default function TenantProfilePage() {
                     href={profile.cvUrl} 
                     target="_blank" 
                     rel="noopener noreferrer"
-                    className="action-button group bg-white text-primary px-4 sm:px-6 md:px-8 py-3 md:py-4 rounded-xl hover:bg-white/90 transition-all duration-300 font-medium shadow-lg hover:shadow-xl hover:scale-105 text-sm md:text-base min-h-[44px] flex items-center justify-center w-full sm:w-auto"
+                    className="action-button hero-cta-primary group px-4 sm:px-6 md:px-8 py-3 md:py-4 rounded-xl hover:bg-white/90 transition-all duration-300 font-medium shadow-lg hover:shadow-xl hover:scale-105 text-sm md:text-base min-h-[44px] flex items-center justify-center w-full sm:w-auto"
                     data-testid="link-cv"
                   >
                     <svg className="w-4 h-4 md:w-5 md:h-5 mr-2 md:mr-3 inline-block text-red-600 group-hover:scale-110 transition-transform duration-300 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
@@ -324,7 +335,7 @@ export default function TenantProfilePage() {
                 {(profile?.contactEmail || profile?.email) && (
                   <a 
                     href={`mailto:${profile.contactEmail || profile.email}`}
-                    className="action-button group bg-gradient-to-r from-accent/20 to-accent/10 backdrop-blur-sm text-white px-4 sm:px-6 md:px-8 py-3 md:py-4 rounded-xl hover:from-accent/30 hover:to-accent/20 transition-all duration-300 border border-accent/20 hover:border-accent/40 font-medium text-sm md:text-base min-h-[44px] flex items-center justify-center w-full sm:w-auto"
+                    className="action-button hero-cta-secondary group backdrop-blur-sm text-white px-4 sm:px-6 md:px-8 py-3 md:py-4 rounded-xl hover:bg-white/20 transition-all duration-300 hover:border-white/40 font-medium text-sm md:text-base min-h-[44px] flex items-center justify-center w-full sm:w-auto"
                     data-testid="link-contact"
                   >
                     <svg className="w-4 h-4 md:w-5 md:h-5 mr-2 md:mr-3 inline-block group-hover:scale-110 transition-transform duration-300 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">

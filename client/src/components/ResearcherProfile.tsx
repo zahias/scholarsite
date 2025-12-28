@@ -234,6 +234,9 @@ function ResearcherProfileContent() {
       <section id="overview" className="hero-banner min-h-[70vh] md:min-h-[85vh] flex items-center relative pt-16 md:pt-0">
         {/* Enhanced Background pattern overlay */}
         <div className="hero-pattern"></div>
+        <div className="hero-grid"></div>
+        <div className="hero-slice hero-slice-one"></div>
+        <div className="hero-slice hero-slice-two"></div>
         
         {/* Back Button - Always show for navigation */}
         <div className="absolute top-4 left-4 md:top-6 md:left-6 z-20">
@@ -286,7 +289,8 @@ function ResearcherProfileContent() {
             <div className="lg:col-span-8 text-center lg:text-left text-white space-y-4 md:space-y-8">
               <div className="space-y-3 md:space-y-6">
                 <div>
-                  <h1 className="text-2xl sm:text-3xl md:text-5xl lg:text-6xl xl:text-7xl font-bold mb-2 md:mb-4 leading-tight bg-gradient-to-r from-white via-white to-white/80 bg-clip-text text-transparent" data-testid="text-display-name">
+                  <div className="hero-kicker mb-3">Research Portfolio</div>
+                  <h1 className="hero-title text-2xl sm:text-3xl md:text-5xl lg:text-6xl xl:text-7xl font-bold mb-2 md:mb-4 leading-tight bg-gradient-to-r from-white via-white to-white/80 bg-clip-text text-transparent" data-testid="text-display-name">
                     {profile?.displayName || researcher?.display_name || 'Researcher Profile'}
                   </h1>
                   <p className="text-lg sm:text-xl md:text-2xl lg:text-3xl mb-2 md:mb-4 text-white/90 font-light tracking-wide" data-testid="text-title">
@@ -294,9 +298,10 @@ function ResearcherProfileContent() {
                       ? <span className="italic opacity-70">Position</span>
                       : (profile?.title || 'Research Professional')}
                   </p>
+                  <div className="hero-accent-line mb-4 md:mb-6 mx-auto lg:mx-0"></div>
                   {/* Always show affiliation section - use placeholders for preview */}
                   <div className="flex flex-wrap items-center justify-center lg:justify-start gap-2 md:gap-4 text-sm md:text-base text-white/80">
-                    <span className="flex items-center gap-1 md:gap-2">
+                    <span className="hero-meta-pill">
                       <Building2 className="w-4 h-4 md:w-5 md:h-5 flex-shrink-0" />
                       <span data-testid="text-affiliation" className="text-sm md:text-base">
                         {researcherData?.isPreview && !profile?.currentAffiliation
@@ -305,7 +310,7 @@ function ResearcherProfileContent() {
                       </span>
                     </span>
                     {(profile?.countryCode || researcher?.last_known_institutions?.[0]?.country_code) && (
-                      <span className="flex items-center gap-1 md:gap-2">
+                      <span className="hero-meta-pill">
                         <MapPin className="w-4 h-4 md:w-5 md:h-5 flex-shrink-0" />
                         <span className="text-sm md:text-base">{profile?.countryCode || researcher?.last_known_institutions?.[0]?.country_code}</span>
                       </span>
@@ -315,7 +320,7 @@ function ResearcherProfileContent() {
               </div>
               
               {/* Always show bio section - use placeholder for preview */}
-              <div className="bg-white/5 backdrop-blur-sm rounded-xl md:rounded-2xl p-4 md:p-6 border border-white/10">
+              <div className="hero-bio-card backdrop-blur-sm rounded-xl md:rounded-2xl p-4 md:p-6">
                 <p className="text-sm sm:text-base md:text-lg lg:text-xl text-white/90 leading-relaxed font-light" data-testid="text-bio">
                   {researcherData?.isPreview && !profile?.bio 
                     ? <span className="italic opacity-70">Your research bio and description will appear here once you customize your profile.</span>
@@ -331,7 +336,7 @@ function ResearcherProfileContent() {
                       href={profile.orcidUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 text-white text-sm hover:bg-white/20 transition-all duration-300"
+                      className="hero-social-pill inline-flex items-center gap-2 px-4 py-2 rounded-full text-white text-sm hover:bg-white/20 transition-all duration-300"
                       data-testid="link-orcid"
                     >
                       <SiOrcid className="w-4 h-4" />
@@ -343,7 +348,7 @@ function ResearcherProfileContent() {
                       href={profile.googleScholarUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 text-white text-sm hover:bg-white/20 transition-all duration-300"
+                      className="hero-social-pill inline-flex items-center gap-2 px-4 py-2 rounded-full text-white text-sm hover:bg-white/20 transition-all duration-300"
                       data-testid="link-google-scholar"
                     >
                       <SiGooglescholar className="w-4 h-4" />
@@ -355,7 +360,7 @@ function ResearcherProfileContent() {
                       href={profile.researchGateUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 text-white text-sm hover:bg-white/20 transition-all duration-300"
+                      className="hero-social-pill inline-flex items-center gap-2 px-4 py-2 rounded-full text-white text-sm hover:bg-white/20 transition-all duration-300"
                       data-testid="link-researchgate"
                     >
                       <SiResearchgate className="w-4 h-4" />
@@ -367,7 +372,7 @@ function ResearcherProfileContent() {
                       href={profile.linkedinUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 text-white text-sm hover:bg-white/20 transition-all duration-300"
+                      className="hero-social-pill inline-flex items-center gap-2 px-4 py-2 rounded-full text-white text-sm hover:bg-white/20 transition-all duration-300"
                       data-testid="link-linkedin"
                     >
                       <Linkedin className="w-4 h-4" />
@@ -379,7 +384,7 @@ function ResearcherProfileContent() {
                       href={profile.websiteUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 text-white text-sm hover:bg-white/20 transition-all duration-300"
+                      className="hero-social-pill inline-flex items-center gap-2 px-4 py-2 rounded-full text-white text-sm hover:bg-white/20 transition-all duration-300"
                       data-testid="link-website"
                     >
                       <Globe className="w-4 h-4" />
@@ -391,7 +396,7 @@ function ResearcherProfileContent() {
                       href={profile.twitterUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 text-white text-sm hover:bg-white/20 transition-all duration-300"
+                      className="hero-social-pill inline-flex items-center gap-2 px-4 py-2 rounded-full text-white text-sm hover:bg-white/20 transition-all duration-300"
                       data-testid="link-twitter"
                     >
                       <FaXTwitter className="w-4 h-4" />
@@ -406,7 +411,7 @@ function ResearcherProfileContent() {
                 {(profile?.contactEmail || profile?.email) && (
                   <a 
                     href={`mailto:${profile.contactEmail || profile.email}`}
-                    className="action-button group bg-white text-primary px-6 md:px-8 py-3 md:py-4 rounded-xl hover:bg-white/90 transition-all duration-300 font-medium shadow-lg hover:shadow-xl hover:scale-105 text-sm md:text-base min-h-[44px] flex items-center justify-center w-full sm:w-auto"
+                    className="action-button hero-cta-primary group px-6 md:px-8 py-3 md:py-4 rounded-xl hover:bg-white/90 transition-all duration-300 font-medium shadow-lg hover:shadow-xl hover:scale-105 text-sm md:text-base min-h-[44px] flex items-center justify-center w-full sm:w-auto"
                     data-testid="link-contact"
                   >
                     <Mail className="w-4 h-4 md:w-5 md:h-5 mr-2 md:mr-3 group-hover:scale-110 transition-transform duration-300 flex-shrink-0" />
@@ -418,7 +423,7 @@ function ResearcherProfileContent() {
                     href={profile.cvUrl} 
                     target="_blank" 
                     rel="noopener noreferrer"
-                    className="action-button group bg-white/15 backdrop-blur-sm text-white px-6 md:px-8 py-3 md:py-4 rounded-xl hover:bg-white/25 transition-all duration-300 border border-white/20 hover:border-white/40 hover:scale-105 font-medium text-sm md:text-base min-h-[44px] flex items-center justify-center w-full sm:w-auto"
+                    className="action-button hero-cta-secondary group backdrop-blur-sm text-white px-6 md:px-8 py-3 md:py-4 rounded-xl hover:bg-white/25 transition-all duration-300 hover:border-white/40 hover:scale-105 font-medium text-sm md:text-base min-h-[44px] flex items-center justify-center w-full sm:w-auto"
                     data-testid="link-cv"
                   >
                     <svg className="w-4 h-4 md:w-5 md:h-5 mr-2 md:mr-3 inline-block group-hover:scale-110 transition-transform duration-300 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
@@ -431,7 +436,7 @@ function ResearcherProfileContent() {
                   href={`https://openalex.org/authors/${openalexId}`} 
                   target="_blank" 
                   rel="noopener noreferrer"
-                  className="action-button group bg-white/10 backdrop-blur-sm text-white px-6 md:px-8 py-3 md:py-4 rounded-xl hover:bg-white/20 transition-all duration-300 border border-white/15 hover:border-white/30 font-medium text-sm md:text-base min-h-[44px] flex items-center justify-center w-full sm:w-auto"
+                  className="action-button hero-cta-secondary group backdrop-blur-sm text-white px-6 md:px-8 py-3 md:py-4 rounded-xl hover:bg-white/20 transition-all duration-300 hover:border-white/30 font-medium text-sm md:text-base min-h-[44px] flex items-center justify-center w-full sm:w-auto"
                   data-testid="link-openalex"
                 >
                   <svg className="w-4 h-4 md:w-5 md:h-5 mr-2 md:mr-3 inline-block group-hover:rotate-12 transition-transform duration-300 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
