@@ -1,4 +1,4 @@
-name: Deploy to A2 Hosting
+name: Deploy to A2
 
 on:
   push:
@@ -6,31 +6,15 @@ on:
       - main
 
 jobs:
-  build-and-deploy:
+  deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
         with:
-          node-version: 18
-
-      - name: Install dependencies
-        run: npm install
-
-      - name: Build project
-        run: npm run build
-
-      - name: Upload dist and server files via SFTP
-        uses: wlixcc/SFTP-Deploy-Action@v1.2.4
-        with:
-          username: ${{ secrets.A2_SFTP_USER }}
-          server: ${{ secrets.A2_SFTP_HOST }}
-          port: ${{ secrets.A2_SFTP_PORT }}
-          password: ${{ secrets.A2_SFTP_PASS }}
-          local_path: './dist/*,./package.json,./a2-starter.cjs,./server/*'
-          remote_path: '/home/bannwebs/scholarsite/'
-          sftp_only: true
-          args: '-o ConnectTimeout=30'
+          host: ${{ secrets.A2_HOST }}
+          username: ${{ secrets.A2_USER }}
+          key: ${{ secrets.A2_KEY }}
+          script: |
+            cd ${{ secrets.A2_PATH }}
+            git pull
