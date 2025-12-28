@@ -1,0 +1,56 @@
+name: Deploy to A2
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Remote deploy via SSH
+        uses: appleboy/ssh-action@v0.1.8
+        with:
+          host: ${{ secrets.A2_HOST }}
+          username: ${{ secrets.A2_USER }}
+          key: ${{ secrets.A2_SSH_KEY }}
+          port: ${{ secrets.A2_SSH_PORT || '22' }}
+          timeout: 600
+          script: |
+            set -euo pipefail
+            REPO_DIR="${{ secrets.A2_REPO_DIR }}"
+            DEPLOY_DIR="${{ secrets.A2_DEPLOY_DIR }}"
+            BRANCH="${{ secrets.A2_DEPLOY_BRANCH || 'main' }}"
+
+            echo "→ Ensuring repo directory exists: $REPO_DIR"
+            mkdir -p "$REPO_DIR"
+
+            echo "→ Updating code in $REPO_DIR (branch: $BRANCH)"
+            cd "$REPO_DIR"
+            git fetch origin
+            git reset --hard "origin/$BRANCH"
+
+            # If the repo provides a server-side deploy script, run it.
+            if [ -f "$REPO_DIR/a2_deployment/github-deploy.sh" ]; then
+              echo "→ Found a2_deployment/github-deploy.sh — running it"
+              chmod +x "$REPO_DIR/a2_deployment/github-deploy.sh"
+              bash "$REPO_DIR/a2_deployment/github-deploy.sh"
+              exit 0
+            fi
+
+            echo "→ No repo deploy script found — falling back to inline deploy steps"
+            mkdir -p "$DEPLOY_DIR"
+            cp -rf "$REPO_DIR/production/"* "$DEPLOY_DIR/" || true
+
+            cd "$DEPLOY_DIR"
+            echo "→ Installing production dependencies"
+            npm ci --production --legacy-peer-deps || npm install --production --legacy-peer-deps || true
+
+            echo "→ Restarting application by touching tmp/restart.txt"
+            mkdir -p tmp
+            touch tmp/restart.txt
+
+            echo "✅ Deploy finished on $(hostname)"

@@ -125,7 +125,7 @@ export default function ResearcherPage() {
               <div className="flex-1">
                 <div className="flex items-center gap-3 mb-4">
                   <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent" data-testid="text-researcher-name">
-                    {profile.displayName || researcher.display_name}
+                    {profile.displayName || researcher?.display_name}
                   </h1>
                   <div className="flex items-center gap-2">
                     <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
@@ -188,13 +188,13 @@ export default function ResearcherPage() {
               </div>
               <div className="text-center p-4 bg-background/50 rounded-lg border">
                 <div className="text-2xl font-bold text-accent" data-testid="stat-citation-count">
-                  {researcher.cited_by_count?.toLocaleString() || 0}
+                    {researcher?.cited_by_count?.toLocaleString() || 0}
                 </div>
                 <div className="text-sm text-muted-foreground">Citations</div>
               </div>
               <div className="text-center p-4 bg-background/50 rounded-lg border">
                 <div className="text-2xl font-bold text-primary" data-testid="stat-h-index">
-                  {researcher.summary_stats?.h_index || 0}
+                  {researcher?.summary_stats?.h_index || 0}
                 </div>
                 <div className="text-sm text-muted-foreground">H-Index</div>
               </div>

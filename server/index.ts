@@ -106,14 +106,34 @@ app.use((req, res, next) => {
       log('Sync scheduler started - checking tenants hourly');
     });
   } else {
+    // Attach a one-time error handler to fall back to localhost binding
+    const onError = (err: any) => {
+      const code = err && err.code;
+      if (code === 'ENOTSUP' || code === 'EADDRNOTSUPPORT' || code === 'EACCES') {
+        log(`Failed to bind to 0.0.0.0:${port} (${err.message}), falling back to localhost.`);
+        // Try fallback to simple listen on port (localhost)
+        server.listen(port, () => {
+          log(`serving on port ${port} (localhost)`);
+          startSyncScheduler(1);
+          log('Sync scheduler started - checking tenants hourly');
+        });
+      } else {
+        // Unknown error - rethrow after logging
+        console.error('Server error during listen:', err);
+        process.exit(1);
+      }
+    };
+
+    server.once('error', onError);
+
     server.listen({
       port,
       host: "0.0.0.0",
       reusePort: true,
     }, () => {
+      // Remove the error handler if listen succeeded
+      server.removeListener('error', onError);
       log(`serving on port ${port}`);
-      
-      // Start the automated sync scheduler (checks every hour)
       startSyncScheduler(1);
       log('Sync scheduler started - checking tenants hourly');
     });

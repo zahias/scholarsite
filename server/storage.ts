@@ -751,4 +751,62 @@ export class DatabaseStorage implements IStorage {
   }
 }
 
-export const storage = new DatabaseStorage();
+// In-memory fallback storage for development when DATABASE_URL is not configured.
+// This allows running the dev server for UI previews without a database.
+class MemoryStorage {
+  // Minimal methods used by the public routes. Other methods return safe defaults.
+  async getResearcherProfileByOpenalexId(_openalexId: string) {
+    return undefined;
+  }
+
+  async getOpenalexData(_openalexId: string, _dataType: string) {
+    return undefined;
+  }
+
+  async getResearchTopics(_openalexId: string) {
+    return [];
+  }
+
+  async getPublications(_openalexId: string, _limit?: number) {
+    return [];
+  }
+
+  async getAffiliations(_openalexId: string) {
+    return [];
+  }
+
+  // Tenant and user helper stubs
+  async getTenantWithDetails(_id: string) { return undefined; }
+  async getTenant(_id: string) { return undefined; }
+  async getUser(_id: string) { return undefined; }
+  async getUserByEmail(_email: string) { return undefined; }
+
+  // No-op mutations
+  async updateTenantProfile(_tenantId: string, updates: any) {
+    return {
+      id: 'dev-tenant',
+      displayName: updates.displayName || null,
+      title: updates.title || null,
+      bio: updates.bio || null,
+      profileImageUrl: updates.profileImageUrl || null,
+      openalexId: updates.openalexId || null,
+      isPublic: false,
+      lastSyncedAt: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+  }
+
+  // Generic safe defaults for other calls
+  async getAllTenants() { return []; }
+  async createTenant(_t: any) { return {} as any; }
+  async updateTenant(_id: string, _u: any) { return undefined; }
+  async deleteTenant(_id: string) { return; }
+  async getAllSettings() { return []; }
+  async getSetting(_key: string) { return undefined; }
+  async upsertSetting(_k: string, _v: string) { return undefined; }
+  async getAllThemes() { return []; }
+  async getDefaultTheme() { return undefined; }
+}
+
+export const storage: any = process.env.DATABASE_URL ? new DatabaseStorage() : new MemoryStorage();
