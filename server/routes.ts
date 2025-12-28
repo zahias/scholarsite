@@ -3,7 +3,7 @@ import { createServer, type Server } from "http";
 import { EventEmitter } from "events";
 import { storage } from "./storage";
 import { OpenAlexService } from "./services/openalexApi";
-import { insertResearcherProfileSchema, updateResearcherProfileSchema, type ResearchTopic, type Publication, type Affiliation } from "@shared/schema";
+import { insertResearcherProfileSchema, updateResearcherProfileSchema, insertThemeSchema, updateThemeSchema, type ResearchTopic, type Publication, type Affiliation } from "@shared/schema";
 import { z } from "zod";
 import multer from "multer";
 import { Client as ObjectStorageClient } from "@replit/object-storage";
@@ -1680,11 +1680,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Create new theme (ADMIN ONLY)
   app.post('/api/admin/themes', adminRateLimit, adminSessionAuthMiddleware, async (req, res) => {
     try {
-      const themeData = req.body;
+      const themeData = insertThemeSchema.parse({
+        ...req.body,
+        name: typeof req.body?.name === 'string' ? req.body.name.trim() : req.body?.name,
+      });
       const newTheme = await storage.createTheme(themeData);
       res.status(201).json(newTheme);
     } catch (error) {
       console.error('Error creating theme:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: 'Invalid theme data', errors: error.errors });
+      }
+      if ((error as { code?: string })?.code === '23505') {
+        return res.status(409).json({ message: 'Theme name already exists' });
+      }
       res.status(500).json({ message: 'Failed to create theme' });
     }
   });
@@ -1693,7 +1702,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.patch('/api/admin/themes/:id', adminRateLimit, adminSessionAuthMiddleware, async (req, res) => {
     try {
       const { id } = req.params;
-      const updates = req.body;
+      const updates = updateThemeSchema.parse({
+        ...req.body,
+        id,
+        name: typeof req.body?.name === 'string' ? req.body.name.trim() : req.body?.name,
+      });
       const updatedTheme = await storage.updateTheme(id, updates);
       if (!updatedTheme) {
         return res.status(404).json({ message: 'Theme not found' });
@@ -1701,6 +1714,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(updatedTheme);
     } catch (error) {
       console.error('Error updating theme:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: 'Invalid theme data', errors: error.errors });
+      }
+      if ((error as { code?: string })?.code === '23505') {
+        return res.status(409).json({ message: 'Theme name already exists' });
+      }
       res.status(500).json({ message: 'Failed to update theme' });
     }
   });

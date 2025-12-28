@@ -234,6 +234,22 @@ export type ThemeConfig = {
   };
 };
 
+export const themeConfigSchema = z.object({
+  colors: z.object({
+    primary: z.string().min(1),
+    primaryDark: z.string().min(1),
+    accent: z.string().min(1),
+    background: z.string().min(1),
+    surface: z.string().min(1),
+    text: z.string().min(1),
+    textMuted: z.string().min(1),
+  }),
+  typography: z.object({
+    headingFont: z.string().min(1).optional(),
+    bodyFont: z.string().min(1).optional(),
+  }).optional(),
+});
+
 // Themes table - predefined color themes for researcher profiles
 export const themes = pgTable("themes", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -255,6 +271,9 @@ export const insertThemeSchema = createInsertSchema(themes).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
+}).extend({
+  name: z.string().min(1),
+  config: themeConfigSchema,
 });
 
 export const updateThemeSchema = insertThemeSchema.partial().extend({

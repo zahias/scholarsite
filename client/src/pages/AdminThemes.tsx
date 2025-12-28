@@ -53,6 +53,24 @@ interface CurrentUser {
   role: string;
 }
 
+function getErrorMessage(error: unknown, fallback: string) {
+  if (error instanceof Error) {
+    const message = error.message;
+    const splitIndex = message.indexOf(": ");
+    if (splitIndex !== -1) {
+      const maybeJson = message.slice(splitIndex + 2);
+      try {
+        const parsed = JSON.parse(maybeJson);
+        if (parsed?.message) return parsed.message;
+      } catch {
+        return maybeJson;
+      }
+    }
+    return message;
+  }
+  return fallback;
+}
+
 const defaultNewTheme: Partial<Theme> & { config: ThemeConfig } = {
   name: "",
   description: "",
@@ -100,7 +118,11 @@ export default function AdminThemes() {
 
   const createMutation = useMutation({
     mutationFn: async (theme: typeof newTheme) => {
-      return apiRequest("POST", "/api/admin/themes", theme);
+      const payload = {
+        ...theme,
+        name: theme.name?.trim() || "",
+      };
+      return apiRequest("POST", "/api/admin/themes", payload);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/themes"] });
@@ -109,14 +131,18 @@ export default function AdminThemes() {
       setNewTheme(defaultNewTheme);
       toast({ title: "Theme created", description: "The new theme has been created successfully." });
     },
-    onError: () => {
-      toast({ title: "Error", description: "Failed to create theme.", variant: "destructive" });
+    onError: (error) => {
+      toast({ title: "Error", description: getErrorMessage(error, "Failed to create theme."), variant: "destructive" });
     },
   });
 
   const updateMutation = useMutation({
     mutationFn: async (theme: Theme) => {
-      return apiRequest("PATCH", `/api/admin/themes/${theme.id}`, theme);
+      const payload = {
+        ...theme,
+        name: theme.name?.trim() || "",
+      };
+      return apiRequest("PATCH", `/api/admin/themes/${theme.id}`, payload);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/themes"] });
@@ -125,8 +151,8 @@ export default function AdminThemes() {
       setEditingTheme(null);
       toast({ title: "Theme updated", description: "The theme has been updated successfully." });
     },
-    onError: () => {
-      toast({ title: "Error", description: "Failed to update theme.", variant: "destructive" });
+    onError: (error) => {
+      toast({ title: "Error", description: getErrorMessage(error, "Failed to update theme."), variant: "destructive" });
     },
   });
 
@@ -139,8 +165,8 @@ export default function AdminThemes() {
       queryClient.invalidateQueries({ queryKey: ["/api/themes"] });
       toast({ title: "Theme deleted", description: "The theme has been deleted." });
     },
-    onError: () => {
-      toast({ title: "Error", description: "Failed to delete theme. Make sure no profiles are using it.", variant: "destructive" });
+    onError: (error) => {
+      toast({ title: "Error", description: getErrorMessage(error, "Failed to delete theme. Make sure no profiles are using it."), variant: "destructive" });
     },
   });
 
@@ -153,8 +179,8 @@ export default function AdminThemes() {
       queryClient.invalidateQueries({ queryKey: ["/api/themes"] });
       toast({ title: "Default theme set", description: "The theme is now the default for new profiles." });
     },
-    onError: () => {
-      toast({ title: "Error", description: "Failed to set default theme.", variant: "destructive" });
+    onError: (error) => {
+      toast({ title: "Error", description: getErrorMessage(error, "Failed to set default theme."), variant: "destructive" });
     },
   });
 
@@ -177,8 +203,8 @@ export default function AdminThemes() {
         description: data.message || "Theme has been applied to selected tenants." 
       });
     },
-    onError: () => {
-      toast({ title: "Error", description: "Failed to apply theme to tenants.", variant: "destructive" });
+    onError: (error) => {
+      toast({ title: "Error", description: getErrorMessage(error, "Failed to apply theme to tenants."), variant: "destructive" });
     },
   });
 
