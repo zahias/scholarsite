@@ -296,19 +296,20 @@ var checkoutSessionSchema = z.object({
 // server/db.ts
 import { Pool } from "pg";
 import { drizzle } from "drizzle-orm/node-postgres";
+var pool = void 0;
+var db = void 0;
 if (!process.env.DATABASE_URL) {
-  throw new Error(
-    "DATABASE_URL must be set. Did you forget to provision a database?"
-  );
+  console.warn("DATABASE_URL not set - running in development fallback mode (no DB).");
+} else {
+  const connectionString = process.env.DATABASE_URL || "";
+  const isNeonDatabase = connectionString.includes("neon.tech") || connectionString.includes("neon.com");
+  console.log(`Database connection initialized (SSL ${isNeonDatabase ? "enabled" : "disabled"})`);
+  pool = new Pool({
+    connectionString,
+    ssl: isNeonDatabase ? { rejectUnauthorized: false } : false
+  });
+  db = drizzle(pool, { schema: schema_exports });
 }
-var connectionString = process.env.DATABASE_URL || "";
-var isNeonDatabase = connectionString.includes("neon.tech") || connectionString.includes("neon.com");
-console.log(`Database connection initialized (SSL ${isNeonDatabase ? "enabled" : "disabled"})`);
-var pool = new Pool({
-  connectionString,
-  ssl: isNeonDatabase ? { rejectUnauthorized: false } : false
-});
-var db = drizzle(pool, { schema: schema_exports });
 
 // server/storage.ts
 import { eq, desc, and, inArray } from "drizzle-orm";
@@ -732,7 +733,81 @@ var DatabaseStorage = class {
     return await db.select().from(payments).orderBy(desc(payments.createdAt));
   }
 };
-var storage = new DatabaseStorage();
+var MemoryStorage = class {
+  // Minimal methods used by the public routes. Other methods return safe defaults.
+  async getResearcherProfileByOpenalexId(_openalexId) {
+    return void 0;
+  }
+  async getOpenalexData(_openalexId, _dataType) {
+    return void 0;
+  }
+  async getResearchTopics(_openalexId) {
+    return [];
+  }
+  async getPublications(_openalexId, _limit) {
+    return [];
+  }
+  async getAffiliations(_openalexId) {
+    return [];
+  }
+  // Tenant and user helper stubs
+  async getTenantWithDetails(_id) {
+    return void 0;
+  }
+  async getTenant(_id) {
+    return void 0;
+  }
+  async getUser(_id) {
+    return void 0;
+  }
+  async getUserByEmail(_email) {
+    return void 0;
+  }
+  // No-op mutations
+  async updateTenantProfile(_tenantId, updates) {
+    return {
+      id: "dev-tenant",
+      displayName: updates.displayName || null,
+      title: updates.title || null,
+      bio: updates.bio || null,
+      profileImageUrl: updates.profileImageUrl || null,
+      openalexId: updates.openalexId || null,
+      isPublic: false,
+      lastSyncedAt: null,
+      createdAt: /* @__PURE__ */ new Date(),
+      updatedAt: /* @__PURE__ */ new Date()
+    };
+  }
+  // Generic safe defaults for other calls
+  async getAllTenants() {
+    return [];
+  }
+  async createTenant(_t) {
+    return {};
+  }
+  async updateTenant(_id, _u) {
+    return void 0;
+  }
+  async deleteTenant(_id) {
+    return;
+  }
+  async getAllSettings() {
+    return [];
+  }
+  async getSetting(_key) {
+    return void 0;
+  }
+  async upsertSetting(_k, _v) {
+    return void 0;
+  }
+  async getAllThemes() {
+    return [];
+  }
+  async getDefaultTheme() {
+    return void 0;
+  }
+};
+var storage = process.env.DATABASE_URL ? new DatabaseStorage() : new MemoryStorage();
 
 // server/services/openalexApi.ts
 import fetch2 from "node-fetch";
@@ -3398,41 +3473,27 @@ async function registerRoutes(app2) {
     }
   });
   app2.post("/api/contact", async (req, res) => {
-    const fs2 = await import("fs");
-    const path2 = await import("path");
-    const logFile = path2.join(process.cwd(), "email_debug.log");
-    const logMsg = (msg) => {
-      const line = `${(/* @__PURE__ */ new Date()).toISOString()} - ${msg}
-`;
-      console.log("[Contact]", msg);
-      try {
-        fs2.appendFileSync(logFile, line);
-      } catch (e) {
-        console.error("Log write failed:", e);
-      }
-    };
-    logMsg(`Working directory: ${process.cwd()}`);
-    logMsg("Received contact form submission");
+    console.log("[Contact] Received contact form submission");
     try {
       const { fullName, email, institution, role, planInterest, researchField, openalexId, estimatedProfiles, biography, preferredTheme } = req.body;
-      logMsg(`Form data: ${JSON.stringify({ fullName, email, planInterest })}`);
+      console.log("[Contact] Form data:", { fullName, email, planInterest });
       if (!fullName || !email || !planInterest || !biography) {
-        logMsg("Missing required fields");
+        console.log("[Contact] Missing required fields");
         return res.status(400).json({ message: "Missing required fields" });
       }
       if (!process.env.SMTP_PASSWORD) {
-        logMsg("SMTP_PASSWORD environment variable not configured");
-        logMsg(`Available env vars: ${Object.keys(process.env).filter((k) => !k.includes("npm") && !k.includes("PATH")).join(", ")}`);
+        console.log("[Contact] SMTP_PASSWORD environment variable not configured");
+        console.log("[Contact] Available env vars:", Object.keys(process.env).filter((k) => !k.includes("npm") && !k.includes("PATH")).join(", "));
         return res.status(500).json({
           message: "Email service not configured. Please add SMTP_PASSWORD to environment variables in A2 Hosting cPanel.",
           hint: "In cPanel Node.js Selector, add environment variable: SMTP_PASSWORD=your_email_password"
         });
       }
-      logMsg("SMTP password configured, creating transporter...");
+      console.log("[Contact] SMTP password configured, creating transporter...");
       const smtpHost = process.env.SMTP_HOST || "localhost";
       const smtpPort = parseInt(process.env.SMTP_PORT || "465", 10);
       const smtpUser = process.env.SMTP_USER || "info@scholar.name";
-      logMsg(`SMTP Config: host=${smtpHost}, port=${smtpPort}, user=${smtpUser}`);
+      console.log(`[Contact] SMTP Config: host=${smtpHost}, port=${smtpPort}, user=${smtpUser}`);
       const transporter = nodemailer.createTransport({
         host: smtpHost,
         port: smtpPort,
@@ -3448,7 +3509,7 @@ async function registerRoutes(app2) {
         debug: true,
         logger: true
       });
-      logMsg("Transporter created, verifying connection...");
+      console.log("[Contact] Transporter created, verifying connection...");
       const emailContent = [
         "New ScholarName Inquiry",
         "",
@@ -3474,12 +3535,12 @@ async function registerRoutes(app2) {
       ].filter((line) => line !== null).join("\n");
       try {
         await transporter.verify();
-        logMsg("SMTP connection verified successfully");
+        console.log("[Contact] SMTP connection verified successfully");
       } catch (verifyError) {
         const errorMsg = verifyError.message || String(verifyError);
-        logMsg(`SMTP connection verification failed: ${errorMsg}`);
-        logMsg(`Error code: ${verifyError.code || "N/A"}`);
-        logMsg(`Error command: ${verifyError.command || "N/A"}`);
+        console.log(`[Contact] SMTP connection verification failed: ${errorMsg}`);
+        console.log(`[Contact] Error code: ${verifyError.code || "N/A"}`);
+        console.log(`[Contact] Error command: ${verifyError.command || "N/A"}`);
         let userMessage2 = "Email service connection failed";
         if (errorMsg.includes("Invalid login") || errorMsg.includes("authentication")) {
           userMessage2 = "Email authentication failed. Please check SMTP_PASSWORD in environment variables.";
@@ -3493,7 +3554,7 @@ async function registerRoutes(app2) {
           error: process.env.NODE_ENV === "development" ? errorMsg : void 0
         });
       }
-      logMsg("Sending email...");
+      console.log("[Contact] Sending email...");
       const adminEmail = await transporter.sendMail({
         from: `"ScholarName" <${smtpUser}>`,
         to: "info@scholar.name",
@@ -3501,8 +3562,8 @@ async function registerRoutes(app2) {
         subject: `New Inquiry: ${planInterest} Plan - ${fullName}`,
         text: emailContent
       });
-      logMsg(`Admin email sent: ${adminEmail.messageId}`);
-      logMsg(`Admin response: ${JSON.stringify(adminEmail)}`);
+      console.log(`[Contact] Admin email sent: ${adminEmail.messageId}`);
+      console.log(`[Contact] Admin response: ${JSON.stringify(adminEmail)}`);
       const escapeHtml2 = (value) => value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
       const safeFullName = escapeHtml2(fullName);
       const safePlan = escapeHtml2(planInterest);
@@ -3594,17 +3655,17 @@ async function registerRoutes(app2) {
         text: userMessage,
         html: userHtml
       });
-      logMsg(`Auto-reply sent to user: ${userEmail.messageId}`);
-      logMsg(`User response: ${JSON.stringify(userEmail)}`);
+      console.log(`[Contact] Auto-reply sent to user: ${userEmail.messageId}`);
+      console.log(`[Contact] User response: ${JSON.stringify(userEmail)}`);
       res.json({
         success: true,
         message: "Inquiry submitted successfully"
       });
     } catch (error) {
       const errorMsg = error.message || String(error);
-      logMsg(`Error processing contact form: ${errorMsg}`);
-      logMsg(`Error code: ${error.code || "N/A"}`);
-      logMsg(`Full error: ${JSON.stringify(error, Object.getOwnPropertyNames(error))}`);
+      console.log(`[Contact] Error processing contact form: ${errorMsg}`);
+      console.log(`[Contact] Error code: ${error.code || "N/A"}`);
+      console.log(`[Contact] Full error: ${JSON.stringify(error, Object.getOwnPropertyNames(error))}`);
       let userMessage = "Failed to process inquiry";
       if (errorMsg.includes("Invalid login") || errorMsg.includes("authentication")) {
         userMessage = "Email authentication failed. Please check SMTP credentials.";
