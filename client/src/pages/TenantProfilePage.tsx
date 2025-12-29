@@ -305,6 +305,33 @@ export default function TenantProfilePage() {
               )}
               
               <div className="flex flex-col sm:flex-row flex-wrap justify-center lg:justify-start gap-2 sm:gap-3 md:gap-4 pt-2 md:pt-4">
+                {(profile?.contactEmail || profile?.email) && (
+                  <a 
+                    href={`mailto:${profile.contactEmail || profile.email}`}
+                    className="action-button hero-cta-primary group px-4 sm:px-6 md:px-8 py-3 md:py-4 rounded-xl hover:bg-white/90 transition-all duration-300 font-medium shadow-lg hover:shadow-xl hover:scale-105 text-sm md:text-base min-h-[44px] flex items-center justify-center w-full sm:w-auto"
+                    data-testid="link-contact"
+                  >
+                    <svg className="w-4 h-4 md:w-5 md:h-5 mr-2 md:mr-3 inline-block group-hover:scale-110 transition-transform duration-300 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
+                      <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
+                    </svg>
+                    Get In Touch
+                  </a>
+                )}
+                {profile?.cvUrl && profile.cvUrl !== '#cv-placeholder' && (
+                  <a 
+                    href={profile.cvUrl} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="action-button hero-cta-secondary group backdrop-blur-sm text-white px-4 sm:px-6 md:px-8 py-3 md:py-4 rounded-xl hover:bg-white/25 transition-all duration-300 hover:border-white/40 hover:scale-105 font-medium text-sm md:text-base min-h-[44px] flex items-center justify-center w-full sm:w-auto"
+                    data-testid="link-cv"
+                  >
+                    <svg className="w-4 h-4 md:w-5 md:h-5 mr-2 md:mr-3 inline-block group-hover:scale-110 transition-transform duration-300 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A1 1 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clipRule="evenodd" />
+                    </svg>
+                    Download CV
+                  </a>
+                )}
                 <a 
                   href={`https://openalex.org/authors/${openalexId}`} 
                   target="_blank" 
@@ -318,33 +345,6 @@ export default function TenantProfilePage() {
                   </svg>
                   View on OpenAlex
                 </a>
-                {profile?.cvUrl && profile.cvUrl !== '#cv-placeholder' && (
-                  <a 
-                    href={profile.cvUrl} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="action-button hero-cta-primary group px-4 sm:px-6 md:px-8 py-3 md:py-4 rounded-xl hover:bg-white/90 transition-all duration-300 font-medium shadow-lg hover:shadow-xl hover:scale-105 text-sm md:text-base min-h-[44px] flex items-center justify-center w-full sm:w-auto"
-                    data-testid="link-cv"
-                  >
-                    <svg className="w-4 h-4 md:w-5 md:h-5 mr-2 md:mr-3 inline-block text-red-600 group-hover:scale-110 transition-transform duration-300 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clipRule="evenodd" />
-                    </svg>
-                    Download CV
-                  </a>
-                )}
-                {(profile?.contactEmail || profile?.email) && (
-                  <a 
-                    href={`mailto:${profile.contactEmail || profile.email}`}
-                    className="action-button hero-cta-secondary group backdrop-blur-sm text-white px-4 sm:px-6 md:px-8 py-3 md:py-4 rounded-xl hover:bg-white/20 transition-all duration-300 hover:border-white/40 font-medium text-sm md:text-base min-h-[44px] flex items-center justify-center w-full sm:w-auto"
-                    data-testid="link-contact"
-                  >
-                    <svg className="w-4 h-4 md:w-5 md:h-5 mr-2 md:mr-3 inline-block group-hover:scale-110 transition-transform duration-300 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                      <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
-                      <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
-                    </svg>
-                    Get In Touch
-                  </a>
-                )}
               </div>
             </div>
           </div>
