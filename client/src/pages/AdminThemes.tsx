@@ -293,7 +293,7 @@ export default function AdminThemes() {
                   Apply Theme to Sites
                 </Button>
               </DialogTrigger>
-              <DialogContent className="sm:max-w-xl">
+              <DialogContent className="sm:max-w-xl max-h-[85vh] overflow-y-auto">
                 <DialogHeader>
                   <DialogTitle>Apply Theme to Sites</DialogTitle>
                   <DialogDescription>
@@ -419,7 +419,7 @@ export default function AdminThemes() {
                   Create Theme
                 </Button>
               </DialogTrigger>
-            <DialogContent className="sm:max-w-lg">
+            <DialogContent className="sm:max-w-lg max-h-[85vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Create New Theme</DialogTitle>
                 <DialogDescription>
@@ -525,7 +525,7 @@ export default function AdminThemes() {
                               <Pencil className="w-4 h-4" />
                             </Button>
                           </DialogTrigger>
-                          <DialogContent className="sm:max-w-lg">
+                          <DialogContent className="sm:max-w-lg max-h-[85vh] overflow-y-auto">
                             <DialogHeader>
                               <DialogTitle>Edit Theme</DialogTitle>
                               <DialogDescription>

@@ -68,13 +68,6 @@ function adminAuthMiddleware(req: Request, res: Response, next: NextFunction) {
 
 // Session-based admin authentication middleware (for web interface)
 function adminSessionAuthMiddleware(req: Request, res: Response, next: NextFunction) {
-  // Check for admin API token
-  const adminToken = process.env.ADMIN_API_TOKEN;
-  if (!adminToken) {
-    console.error('ADMIN_API_TOKEN environment variable not set');
-    return res.status(500).json({ message: 'Admin authentication not configured' });
-  }
-
   // Check session first
   if ((req.session as any)?.isAdmin) {
     // Log admin operation for audit trail
@@ -85,6 +78,11 @@ function adminSessionAuthMiddleware(req: Request, res: Response, next: NextFunct
   // Check Authorization header as fallback
   const authHeader = req.headers.authorization;
   if (authHeader && authHeader.startsWith('Bearer ')) {
+    const adminToken = process.env.ADMIN_API_TOKEN;
+    if (!adminToken) {
+      console.error('ADMIN_API_TOKEN environment variable not set');
+      return res.status(500).json({ message: 'Admin authentication not configured' });
+    }
     const token = authHeader.substring(7); // Remove 'Bearer ' prefix
     if (token === adminToken) {
       // Set session for future requests
