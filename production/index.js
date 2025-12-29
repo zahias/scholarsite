@@ -34,6 +34,7 @@ __export(schema_exports, {
   researcherProfiles: () => researcherProfiles,
   siteSettings: () => siteSettings,
   tenants: () => tenants,
+  themeConfigSchema: () => themeConfigSchema,
   themes: () => themes,
   updateDomainSchema: () => updateDomainSchema,
   updateResearcherProfileSchema: () => updateResearcherProfileSchema,
@@ -207,6 +208,21 @@ var siteSettings = pgTable("site_settings", {
   settingValue: text("setting_value").notNull(),
   updatedAt: timestamp("updated_at").defaultNow()
 });
+var themeConfigSchema = z.object({
+  colors: z.object({
+    primary: z.string().min(1),
+    primaryDark: z.string().min(1),
+    accent: z.string().min(1),
+    background: z.string().min(1),
+    surface: z.string().min(1),
+    text: z.string().min(1),
+    textMuted: z.string().min(1)
+  }),
+  typography: z.object({
+    headingFont: z.string().min(1).optional(),
+    bodyFont: z.string().min(1).optional()
+  }).optional()
+});
 var themes = pgTable("themes", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   name: varchar("name").notNull().unique(),
@@ -223,6 +239,9 @@ var insertThemeSchema = createInsertSchema(themes).omit({
   id: true,
   createdAt: true,
   updatedAt: true
+}).extend({
+  name: z.string().min(1),
+  config: themeConfigSchema
 });
 var updateThemeSchema = insertThemeSchema.partial().extend({
   id: z.string()
@@ -2651,17 +2670,17 @@ import nodemailer from "nodemailer";
 var updateEmitter = new EventEmitter();
 var sseConnections = /* @__PURE__ */ new Set();
 function adminSessionAuthMiddleware(req, res, next) {
-  const adminToken = process.env.ADMIN_API_TOKEN;
-  if (!adminToken) {
-    console.error("ADMIN_API_TOKEN environment variable not set");
-    return res.status(500).json({ message: "Admin authentication not configured" });
-  }
   if (req.session?.isAdmin) {
     console.log(`Admin web access: ${req.method} ${req.path} from ${req.ip}`);
     return next();
   }
   const authHeader = req.headers.authorization;
   if (authHeader && authHeader.startsWith("Bearer ")) {
+    const adminToken = process.env.ADMIN_API_TOKEN;
+    if (!adminToken) {
+      console.error("ADMIN_API_TOKEN environment variable not set");
+      return res.status(500).json({ message: "Admin authentication not configured" });
+    }
     const token = authHeader.substring(7);
     if (token === adminToken) {
       req.session.isAdmin = true;
@@ -3931,18 +3950,31 @@ async function registerRoutes(app2) {
   });
   app2.post("/api/admin/themes", adminRateLimit, adminSessionAuthMiddleware, async (req, res) => {
     try {
-      const themeData = req.body;
+      const themeData = insertThemeSchema.parse({
+        ...req.body,
+        name: typeof req.body?.name === "string" ? req.body.name.trim() : req.body?.name
+      });
       const newTheme = await storage.createTheme(themeData);
       res.status(201).json(newTheme);
     } catch (error) {
       console.error("Error creating theme:", error);
+      if (error instanceof z6.ZodError) {
+        return res.status(400).json({ message: "Invalid theme data", errors: error.errors });
+      }
+      if (error?.code === "23505") {
+        return res.status(409).json({ message: "Theme name already exists" });
+      }
       res.status(500).json({ message: "Failed to create theme" });
     }
   });
   app2.patch("/api/admin/themes/:id", adminRateLimit, adminSessionAuthMiddleware, async (req, res) => {
     try {
       const { id } = req.params;
-      const updates = req.body;
+      const updates = updateThemeSchema.parse({
+        ...req.body,
+        id,
+        name: typeof req.body?.name === "string" ? req.body.name.trim() : req.body?.name
+      });
       const updatedTheme = await storage.updateTheme(id, updates);
       if (!updatedTheme) {
         return res.status(404).json({ message: "Theme not found" });
@@ -3950,6 +3982,12 @@ async function registerRoutes(app2) {
       res.json(updatedTheme);
     } catch (error) {
       console.error("Error updating theme:", error);
+      if (error instanceof z6.ZodError) {
+        return res.status(400).json({ message: "Invalid theme data", errors: error.errors });
+      }
+      if (error?.code === "23505") {
+        return res.status(409).json({ message: "Theme name already exists" });
+      }
       res.status(500).json({ message: "Failed to update theme" });
     }
   });
