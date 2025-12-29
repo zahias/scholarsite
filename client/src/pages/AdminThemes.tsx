@@ -44,6 +44,7 @@ import {
 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import type { Theme, ThemeConfig } from "@shared/schema";
+import { normalizeThemeConfig } from "@/context/ThemeContext";
 
 interface CurrentUser {
   id: string;
@@ -306,7 +307,7 @@ export default function AdminThemes() {
                     <Label className="text-sm font-medium mb-2 block">Select Theme to Apply</Label>
                     <div className="grid gap-2 max-h-48 overflow-y-auto">
                       {themes.map((theme) => {
-                        const config = theme.config as ThemeConfig;
+                        const config = normalizeThemeConfig(theme.config as ThemeConfig | null);
                         return (
                           <button
                             key={theme.id}
@@ -464,7 +465,7 @@ export default function AdminThemes() {
         ) : (
           <div className="grid gap-4">
             {themes.map((theme) => {
-              const config = theme.config as ThemeConfig;
+              const config = normalizeThemeConfig(theme.config as ThemeConfig | null);
               return (
                 <Card key={theme.id} className="bg-white/5 border-white/10" data-testid={`card-theme-${theme.id}`}>
                   <CardContent className="py-4">
@@ -518,7 +519,7 @@ export default function AdminThemes() {
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => setEditingTheme(theme)}
+                              onClick={() => setEditingTheme({ ...theme, config: normalizeThemeConfig(theme.config as ThemeConfig | null) } as Theme)}
                               className="text-slate-400 hover:text-white hover:bg-white/10"
                               data-testid={`button-edit-${theme.id}`}
                             >
