@@ -65,6 +65,7 @@ const CHART_COLORS = [
 
 export default function PublicationAnalytics({ openalexId, researcherData: propResearcherData }: PublicationAnalyticsProps) {
   const [activeTab, setActiveTab] = useState("growth");
+  const [range, setRange] = useState<"5y" | "10y" | "all">("all");
 
   const { data: fetchedData, isLoading } = useQuery<ResearcherData | null>({
     queryKey: [`/api/researcher/${openalexId}/data`],
@@ -212,6 +213,23 @@ export default function PublicationAnalytics({ openalexId, researcherData: propR
     };
   }, [researcherData]);
 
+  const rangeStart = useMemo(() => {
+    if (range === "all") return chartData.yearRange.start;
+    const span = range === "5y" ? 4 : 9;
+    return Math.max(chartData.yearRange.end - span, chartData.yearRange.start);
+  }, [chartData.yearRange.end, chartData.yearRange.start, range]);
+
+  const filteredData = useMemo(() => {
+    const byYear = (d: { year: number }) => d.year >= rangeStart;
+    return {
+      cumulativeData: chartData.cumulativeData.filter(byYear),
+      cumulativeCitationsData: chartData.cumulativeCitationsData.filter(byYear),
+      yearlyData: chartData.yearlyData.filter(byYear),
+      citationData: chartData.citationData.filter(byYear),
+      yearRange: { start: rangeStart, end: chartData.yearRange.end },
+    };
+  }, [chartData, rangeStart]);
+
   if (isLoading) {
     return (
       <section className="py-16" data-testid="section-analytics-loading">
@@ -287,6 +305,26 @@ export default function PublicationAnalytics({ openalexId, researcherData: propR
           <p className="text-sm md:text-base text-muted-foreground max-w-2xl mx-auto mb-4 md:mb-8 px-4">
             Comprehensive insights into research output and impact patterns over time.
           </p>
+          <div className="inline-flex items-center gap-2 rounded-full border border-border bg-muted/40 p-1">
+            {[
+              { label: "5y", value: "5y" as const },
+              { label: "10y", value: "10y" as const },
+              { label: "All", value: "all" as const },
+            ].map((option) => (
+              <button
+                key={option.value}
+                onClick={() => setRange(option.value)}
+                className={`px-3 py-1 text-xs sm:text-sm rounded-full transition-colors ${
+                  range === option.value
+                    ? "bg-primary text-primary-foreground"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+                data-testid={`button-range-${option.value}`}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* Chart Tabs */}
@@ -315,13 +353,13 @@ export default function PublicationAnalytics({ openalexId, researcherData: propR
                     <TrendingUp className="w-5 h-5 text-primary" />
                     Cumulative Publications
                     <Badge variant="secondary" className="ml-auto">
-                      {chartData.yearRange.start} - {chartData.yearRange.end}
+                      {filteredData.yearRange.start} - {filteredData.yearRange.end}
                     </Badge>
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <ResponsiveContainer width="100%" height={300}>
-                    <AreaChart data={chartData.cumulativeData}>
+                    <AreaChart data={filteredData.cumulativeData}>
                       <defs>
                         <linearGradient id="colorCumulative" x1="0" y1="0" x2="0" y2="1">
                           <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3}/>
@@ -357,7 +395,7 @@ export default function PublicationAnalytics({ openalexId, researcherData: propR
                 </CardHeader>
                 <CardContent>
                   <ResponsiveContainer width="100%" height={300}>
-                    <AreaChart data={chartData.cumulativeCitationsData}>
+                    <AreaChart data={filteredData.cumulativeCitationsData}>
                       <defs>
                         <linearGradient id="colorCumulativeCitations" x1="0" y1="0" x2="0" y2="1">
                           <stop offset="5%" stopColor="hsl(var(--accent))" stopOpacity={0.3}/>
@@ -443,7 +481,7 @@ export default function PublicationAnalytics({ openalexId, researcherData: propR
               </CardHeader>
               <CardContent>
                 <ResponsiveContainer width="100%" height={400}>
-                  <ComposedChart data={chartData.citationData}>
+                  <ComposedChart data={filteredData.citationData}>
                     <defs>
                       <linearGradient id="colorCitations" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="5%" stopColor="hsl(var(--accent))" stopOpacity={0.3}/>
