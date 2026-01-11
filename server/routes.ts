@@ -699,6 +699,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const researchTopics = await storage.getResearchTopics(profile.openalexId);
       const publications = await storage.getPublications(profile.openalexId);
       const affiliations = await storage.getAffiliations(profile.openalexId);
+      // Phase 3: Get custom profile sections
+      const profileSections = await storage.getProfileSections(profile.id);
+
+      // Sort publications: featured first, then by year/citations
+      const sortedPublications = [...publications].sort((a, b) => {
+        if (a.isFeatured && !b.isFeatured) return -1;
+        if (!a.isFeatured && b.isFeatured) return 1;
+        if ((b.publicationYear || 0) !== (a.publicationYear || 0)) {
+          return (b.publicationYear || 0) - (a.publicationYear || 0);
+        }
+        return (b.citationCount || 0) - (a.citationCount || 0);
+      });
 
       return res.json({
         profile: {
@@ -706,8 +718,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         },
         researcher: researcherData?.data || null,
         topics: researchTopics,
-        publications,
+        publications: sortedPublications,
         affiliations,
+        profileSections: profileSections.filter(s => s.isVisible),
         lastSynced: profile.lastSyncedAt,
         tenant: {
           name: tenant.name,
@@ -738,13 +751,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const researchTopics = await storage.getResearchTopics(openalexId);
         const publications = await storage.getPublications(openalexId);
         const affiliations = await storage.getAffiliations(openalexId);
+        // Phase 3: Get custom profile sections
+        const profileSections = await storage.getProfileSections(profile.id);
+
+        // Sort publications: featured first, then by year/citations
+        const sortedPublications = [...publications].sort((a, b) => {
+          // Featured publications first
+          if (a.isFeatured && !b.isFeatured) return -1;
+          if (!a.isFeatured && b.isFeatured) return 1;
+          // Then by year (descending)
+          if ((b.publicationYear || 0) !== (a.publicationYear || 0)) {
+            return (b.publicationYear || 0) - (a.publicationYear || 0);
+          }
+          // Then by citation count (descending)
+          return (b.citationCount || 0) - (a.citationCount || 0);
+        });
 
         return res.json({
           profile,
           researcher: researcherData?.data || null,
           topics: researchTopics,
-          publications,
+          publications: sortedPublications,
           affiliations,
+          profileSections: profileSections.filter(s => s.isVisible),
           lastSynced: profile.lastSyncedAt,
           isPreview: false
         });

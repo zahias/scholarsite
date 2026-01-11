@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Download, FileText, Database, Table, FileJson } from "lucide-react";
+import { Download, FileText, Database, Table, FileJson, Star } from "lucide-react";
 import { useState, useMemo } from "react";
 
 interface PublicationsProps {
@@ -324,17 +324,31 @@ export default function Publications({ openalexId }: PublicationsProps) {
         ) : (
           <div className="space-y-6">
             {displayedPublications.map((publication: any, index: number) => (
-              <Card key={publication.id} className="hover:shadow-xl transition-shadow" data-testid={`card-publication-${index}`}>
+              <Card 
+                key={publication.id} 
+                className={`hover:shadow-xl transition-shadow ${publication.isFeatured ? 'ring-2 ring-yellow-400 bg-yellow-50/50 dark:bg-yellow-900/10' : ''}`} 
+                data-testid={`card-publication-${index}`}
+              >
                 <CardContent className="p-6">
                   <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between">
                     <div className="flex-1">
-                      <h3 className="font-semibold text-lg mb-2 text-card-foreground hover:text-primary cursor-pointer" data-testid={`text-publication-title-${index}`}>
-                        {publication.title}
-                      </h3>
+                      <div className="flex items-start gap-2 mb-2">
+                        {publication.isFeatured && (
+                          <Star className="w-5 h-5 text-yellow-500 fill-yellow-500 flex-shrink-0 mt-1" />
+                        )}
+                        <h3 className="font-semibold text-lg text-card-foreground hover:text-primary cursor-pointer" data-testid={`text-publication-title-${index}`}>
+                          {publication.title}
+                        </h3>
+                      </div>
                       <p className="text-muted-foreground text-sm mb-3" data-testid={`text-publication-authors-${index}`}>
                         {publication.authorNames}
                       </p>
                       <div className="flex flex-wrap items-center gap-4 mb-3">
+                        {publication.isFeatured && (
+                          <Badge className="bg-yellow-100 text-yellow-800 border-yellow-300">
+                            Featured
+                          </Badge>
+                        )}
                         {publication.journal && (
                           <span className="text-sm text-muted-foreground" data-testid={`text-publication-journal-${index}`}>
                             {publication.journal}
@@ -363,6 +377,18 @@ export default function Publications({ openalexId }: PublicationsProps) {
                       )}
                     </div>
                     <div className="mt-4 lg:mt-0 lg:ml-6 flex flex-col items-end space-y-2">
+                      {publication.pdfUrl && (
+                        <a 
+                          href={publication.pdfUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 text-red-600 hover:text-red-700 text-sm font-medium"
+                          data-testid={`link-publication-pdf-${index}`}
+                        >
+                          <FileText className="w-4 h-4" />
+                          Download PDF
+                        </a>
+                      )}
                       {publication.doi && (
                         <a 
                           href={`https://doi.org/${publication.doi}`}

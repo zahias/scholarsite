@@ -6,6 +6,7 @@ import PublicationAnalytics from "./PublicationAnalytics";
 import ResearchNetwork from "./ResearchNetwork";
 import ResearchTopics from "./ResearchTopics";
 import Publications from "./Publications";
+import ProfileSections from "./ProfileSections";
 import SEO from "./SEO";
 import MobileBottomNav from "./MobileBottomNav";
 import { ThemeSwitcher } from "./ThemeSwitcher";
@@ -60,6 +61,7 @@ function ResearcherProfileContent() {
     topics: any[];
     publications: any[];
     affiliations: any[];
+    profileSections?: any[];
     lastSynced: string;
     isPreview?: boolean;
   } | null>({
@@ -477,6 +479,12 @@ function ResearcherProfileContent() {
       </section>
 
       <StatsOverview openalexId={openalexId} />
+      
+      {/* Custom Profile Sections */}
+      {researcherData?.profileSections && researcherData.profileSections.length > 0 && (
+        <ProfileSections sections={researcherData.profileSections} />
+      )}
+      
       <PublicationAnalytics openalexId={openalexId} researcherData={researcherData} />
       <ResearchNetwork 
         publications={researcherData?.publications || []}

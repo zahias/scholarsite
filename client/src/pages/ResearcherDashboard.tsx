@@ -28,6 +28,7 @@ import {
   RefreshCw,
   Search,
   CheckCircle,
+  CheckCircle2,
   AlertCircle,
   Camera,
   Upload,
@@ -42,6 +43,9 @@ import {
   GripVertical,
   Plus,
   Edit2,
+  History,
+  Clock,
+  XCircle,
 } from "lucide-react";
 
 interface CurrentUser {
@@ -119,6 +123,19 @@ interface ProfileSection {
   isVisible: boolean;
 }
 
+interface SyncLog {
+  id: string;
+  tenantId: string | null;
+  profileId: string | null;
+  syncType: string;
+  status: string;
+  itemsProcessed: number;
+  itemsTotal: number | null;
+  errorMessage: string | null;
+  startedAt: string;
+  completedAt: string | null;
+}
+
 interface OpenAlexAuthor {
   id: string;
   display_name: string;
@@ -185,6 +202,11 @@ export default function ResearcherDashboard() {
 
   const { data: sectionsData } = useQuery<{ sections: ProfileSection[] }>({
     queryKey: ["/api/researcher/sections"],
+    enabled: !!tenantData?.tenant?.profile,
+  });
+
+  const { data: syncLogsData, refetch: refetchSyncLogs } = useQuery<{ logs: SyncLog[] }>({
+    queryKey: ["/api/researcher/sync-logs"],
     enabled: !!tenantData?.tenant?.profile,
   });
 
@@ -679,7 +701,7 @@ export default function ResearcherDashboard() {
         )}
 
         <Tabs defaultValue="profile" className="w-full">
-          <TabsList className="grid w-full grid-cols-5 lg:w-[600px]">
+          <TabsList className="grid w-full grid-cols-6 lg:w-[720px]">
             <TabsTrigger value="profile" data-testid="tab-profile">
               <User className="w-4 h-4 mr-2" />
               Profile
@@ -691,6 +713,10 @@ export default function ResearcherDashboard() {
             <TabsTrigger value="sections" data-testid="tab-sections">
               <FileText className="w-4 h-4 mr-2" />
               Sections
+            </TabsTrigger>
+            <TabsTrigger value="sync" data-testid="tab-sync">
+              <History className="w-4 h-4 mr-2" />
+              Sync
             </TabsTrigger>
             <TabsTrigger value="social" data-testid="tab-social">
               <Globe className="w-4 h-4 mr-2" />
@@ -876,7 +902,7 @@ export default function ResearcherDashboard() {
                               {pub.publicationYear && <span> • {pub.publicationYear}</span>}
                               {pub.citationCount > 0 && <span> • {pub.citationCount} citations</span>}
                             </p>
-                            <div className="flex items-center gap-2 mt-2">
+                            <div className="flex items-center gap-2 mt-2 flex-wrap">
                               {pub.isOpenAccess && (
                                 <Badge variant="outline" className="text-green-600 border-green-300 text-xs">
                                   Open Access
@@ -892,6 +918,70 @@ export default function ResearcherDashboard() {
                                   <ExternalLink className="w-3 h-3" />
                                   DOI
                                 </a>
+                              )}
+                              {/* PDF Upload/Download */}
+                              {pub.pdfUrl ? (
+                                <div className="flex items-center gap-1">
+                                  <a
+                                    href={pub.pdfUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-xs text-green-600 hover:underline flex items-center gap-1"
+                                  >
+                                    <FileText className="w-3 h-3" />
+                                    PDF
+                                  </a>
+                                  <button
+                                    onClick={async () => {
+                                      if (confirm('Remove the uploaded PDF?')) {
+                                        try {
+                                          await apiRequest('DELETE', `/api/researcher/publications/${pub.id}/pdf`);
+                                          toast({ title: "PDF removed", description: "Publication PDF has been deleted." });
+                                          queryClient.invalidateQueries({ queryKey: ["/api/researcher/publications"] });
+                                        } catch (error) {
+                                          toast({ title: "Error", description: "Failed to remove PDF", variant: "destructive" });
+                                        }
+                                      }
+                                    }}
+                                    className="text-xs text-red-500 hover:text-red-700"
+                                    title="Remove PDF"
+                                  >
+                                    <Trash2 className="w-3 h-3" />
+                                  </button>
+                                </div>
+                              ) : (
+                                <label className="text-xs text-slate-500 hover:text-blue-600 cursor-pointer flex items-center gap-1">
+                                  <Upload className="w-3 h-3" />
+                                  Upload PDF
+                                  <input
+                                    type="file"
+                                    accept=".pdf"
+                                    className="hidden"
+                                    onChange={async (e) => {
+                                      const file = e.target.files?.[0];
+                                      if (!file) return;
+                                      if (file.size > 20 * 1024 * 1024) {
+                                        toast({ title: "File too large", description: "PDF must be under 20MB", variant: "destructive" });
+                                        return;
+                                      }
+                                      try {
+                                        const formData = new FormData();
+                                        formData.append('pdf', file);
+                                        const response = await fetch(`/api/researcher/publications/${pub.id}/pdf`, {
+                                          method: 'POST',
+                                          body: formData,
+                                          credentials: 'include',
+                                        });
+                                        if (!response.ok) throw new Error('Upload failed');
+                                        toast({ title: "PDF uploaded", description: "Publication PDF has been saved." });
+                                        queryClient.invalidateQueries({ queryKey: ["/api/researcher/publications"] });
+                                      } catch (error) {
+                                        toast({ title: "Error", description: "Failed to upload PDF", variant: "destructive" });
+                                      }
+                                      e.target.value = '';
+                                    }}
+                                  />
+                                </label>
                               )}
                             </div>
                           </div>
@@ -1077,6 +1167,144 @@ export default function ResearcherDashboard() {
                               <Trash2 className="w-4 h-4" />
                             </Button>
                           </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Sync Management Tab */}
+          <TabsContent value="sync" className="mt-6 space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <History className="w-5 h-5" />
+                  OpenAlex Sync Management
+                </CardTitle>
+                <CardDescription>
+                  View sync history and manually trigger data synchronization from OpenAlex
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {/* Manual Sync Trigger */}
+                <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg border">
+                  <div>
+                    <h4 className="font-medium text-slate-900">Sync Publications</h4>
+                    <p className="text-sm text-slate-500">
+                      Fetch latest publications and citations from OpenAlex
+                    </p>
+                  </div>
+                  <Button
+                    onClick={async () => {
+                      try {
+                        const response = await fetch('/api/researcher/sync', {
+                          method: 'POST',
+                          credentials: 'include',
+                        });
+                        if (response.ok) {
+                          toast({
+                            title: "Sync started",
+                            description: "Your publications are being synced from OpenAlex",
+                          });
+                          refetchSyncLogs();
+                        } else {
+                          throw new Error('Failed to start sync');
+                        }
+                      } catch (error) {
+                        toast({
+                          title: "Sync failed",
+                          description: "Could not start sync. Please try again.",
+                          variant: "destructive",
+                        });
+                      }
+                    }}
+                  >
+                    <RefreshCw className="w-4 h-4 mr-2" />
+                    Sync Now
+                  </Button>
+                </div>
+
+                {/* Sync History */}
+                <div>
+                  <h4 className="font-medium text-slate-900 mb-4">Sync History</h4>
+                  {!syncLogsData?.logs || syncLogsData.logs.length === 0 ? (
+                    <div className="text-center py-8 text-slate-500 bg-slate-50 rounded-lg border border-dashed">
+                      <History className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                      <p>No sync history yet</p>
+                      <p className="text-sm">Click "Sync Now" to fetch your latest publications</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {syncLogsData.logs.map((log) => (
+                        <div
+                          key={log.id}
+                          className={`p-4 rounded-lg border ${
+                            log.status === 'completed'
+                              ? 'bg-green-50 border-green-200'
+                              : log.status === 'failed'
+                              ? 'bg-red-50 border-red-200'
+                              : log.status === 'in_progress'
+                              ? 'bg-blue-50 border-blue-200'
+                              : 'bg-slate-50 border-slate-200'
+                          }`}
+                        >
+                          <div className="flex items-start justify-between">
+                            <div className="flex items-center gap-2">
+                              {log.status === 'completed' && (
+                                <CheckCircle2 className="w-5 h-5 text-green-600" />
+                              )}
+                              {log.status === 'failed' && (
+                                <XCircle className="w-5 h-5 text-red-600" />
+                              )}
+                              {log.status === 'in_progress' && (
+                                <Clock className="w-5 h-5 text-blue-600 animate-pulse" />
+                              )}
+                              {log.status === 'pending' && (
+                                <Clock className="w-5 h-5 text-slate-400" />
+                              )}
+                              <div>
+                                <p className="font-medium text-slate-900 capitalize">
+                                  {log.syncType.replace('_', ' ')} Sync
+                                </p>
+                                <p className="text-sm text-slate-500">
+                                  Started: {new Date(log.startedAt).toLocaleString()}
+                                </p>
+                              </div>
+                            </div>
+                            <Badge
+                              variant="outline"
+                              className={`${
+                                log.status === 'completed'
+                                  ? 'text-green-700 border-green-300'
+                                  : log.status === 'failed'
+                                  ? 'text-red-700 border-red-300'
+                                  : log.status === 'in_progress'
+                                  ? 'text-blue-700 border-blue-300'
+                                  : 'text-slate-700 border-slate-300'
+                              }`}
+                            >
+                              {log.status}
+                            </Badge>
+                          </div>
+                          {log.itemsProcessed !== null && (
+                            <p className="text-sm text-slate-600 mt-2">
+                              Processed: {log.itemsProcessed}
+                              {log.itemsTotal ? ` / ${log.itemsTotal}` : ''} items
+                            </p>
+                          )}
+                          {log.errorMessage && (
+                            <p className="text-sm text-red-600 mt-2">
+                              Error: {log.errorMessage}
+                            </p>
+                          )}
+                          {log.completedAt && (
+                            <p className="text-xs text-slate-400 mt-2">
+                              Completed: {new Date(log.completedAt).toLocaleString()}
+                            </p>
+                          )}
                         </div>
                       ))}
                     </div>
