@@ -10,7 +10,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
+import type { Theme } from "@shared/schema";
 import {
   User,
   Globe,
@@ -30,6 +33,11 @@ import {
   Upload,
   QrCode,
   Download,
+  FileText,
+  Eye,
+  EyeOff,
+  Lock,
+  Trash2,
 } from "lucide-react";
 
 interface CurrentUser {
@@ -58,6 +66,10 @@ interface TenantProfile {
   linkedinUrl: string | null;
   websiteUrl: string | null;
   twitterUrl: string | null;
+  // Phase 1 additions
+  isPublic: boolean;
+  cvUrl: string | null;
+  selectedThemeId: string | null;
 }
 
 interface Domain {
@@ -101,6 +113,15 @@ export default function ResearcherDashboard() {
   const [researchGateUrl, setResearchGateUrl] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  // Phase 1: New state variables
+  const cvInputRef = useRef<HTMLInputElement>(null);
+  const [isPublic, setIsPublic] = useState(true);
+  const [selectedThemeId, setSelectedThemeId] = useState<string | null>(null);
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
 
   const { data: userData, isLoading: userLoading } = useQuery<{ user: CurrentUser }>({
     queryKey: ["/api/auth/me"],
@@ -116,6 +137,11 @@ export default function ResearcherDashboard() {
     enabled: !!tenantData?.tenant?.profile?.openalexId,
   });
 
+  // Phase 1: Fetch available themes
+  const { data: themesData } = useQuery<Theme[]>({
+    queryKey: ["/api/themes"],
+  });
+
   useEffect(() => {
     if (tenantData?.tenant?.profile) {
       const profile = tenantData.tenant.profile;
@@ -129,6 +155,9 @@ export default function ResearcherDashboard() {
       setGoogleScholarUrl(profile.googleScholarUrl || "");
       setOrcidUrl(profile.orcidUrl || "");
       setResearchGateUrl(profile.researchGateUrl || "");
+      // Phase 1: Set new fields
+      setIsPublic(profile.isPublic !== false); // Default to true
+      setSelectedThemeId(profile.selectedThemeId || null);
     }
   }, [tenantData]);
 
@@ -211,6 +240,63 @@ export default function ResearcherDashboard() {
     },
   });
 
+  // Phase 1: CV Upload Mutation
+  const uploadCvMutation = useMutation({
+    mutationFn: async (file: File) => {
+      const formData = new FormData();
+      formData.append('cv', file);
+      const response = await fetch('/api/researcher/upload-cv', {
+        method: 'POST',
+        body: formData,
+        credentials: 'include',
+      });
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to upload CV');
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({ title: "CV Uploaded!", description: "Your CV has been uploaded successfully." });
+      queryClient.invalidateQueries({ queryKey: ["/api/researcher/my-tenant"] });
+    },
+    onError: (error: any) => {
+      toast({ title: "Upload Failed", description: error.message, variant: "destructive" });
+    },
+  });
+
+  // Phase 1: Delete CV Mutation
+  const deleteCvMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest("DELETE", "/api/researcher/cv");
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({ title: "CV Removed", description: "Your CV has been removed from your profile." });
+      queryClient.invalidateQueries({ queryKey: ["/api/researcher/my-tenant"] });
+    },
+    onError: (error: any) => {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    },
+  });
+
+  // Phase 1: Password Change Mutation
+  const changePasswordMutation = useMutation({
+    mutationFn: async (data: { currentPassword: string; newPassword: string }) => {
+      const response = await apiRequest("PATCH", "/api/auth/password", data);
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({ title: "Password Changed!", description: "Your password has been updated successfully." });
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+    },
+    onError: (error: any) => {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    },
+  });
+
   const handlePhotoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
@@ -219,6 +305,52 @@ export default function ResearcherDashboard() {
         return;
       }
       uploadPhotoMutation.mutate(file);
+    }
+  };
+
+  // Phase 1: Handle CV Upload
+  const handleCvUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      if (file.size > 10 * 1024 * 1024) {
+        toast({ title: "File too large", description: "Please choose a document under 10MB", variant: "destructive" });
+        return;
+      }
+      uploadCvMutation.mutate(file);
+    }
+  };
+
+  // Phase 1: Handle Password Change
+  const handlePasswordChange = () => {
+    if (newPassword !== confirmPassword) {
+      toast({ title: "Passwords don't match", description: "New password and confirmation must match", variant: "destructive" });
+      return;
+    }
+    if (newPassword.length < 8) {
+      toast({ title: "Password too short", description: "Password must be at least 8 characters", variant: "destructive" });
+      return;
+    }
+    changePasswordMutation.mutate({ currentPassword, newPassword });
+  };
+
+  // Phase 1: Handle Privacy Toggle
+  const handlePrivacyToggle = async (newValue: boolean) => {
+    setIsPublic(newValue);
+    try {
+      await updateProfileMutation.mutateAsync({ isPublic: newValue });
+    } catch {
+      setIsPublic(!newValue); // Revert on error
+    }
+  };
+
+  // Phase 1: Handle Theme Change
+  const handleThemeChange = async (themeId: string) => {
+    setSelectedThemeId(themeId);
+    try {
+      await updateProfileMutation.mutateAsync({ selectedThemeId: themeId });
+    } catch {
+      // Revert on error
+      setSelectedThemeId(tenantData?.tenant?.profile?.selectedThemeId || null);
     }
   };
 
@@ -654,6 +786,157 @@ export default function ResearcherDashboard() {
           </TabsContent>
 
           <TabsContent value="settings" className="mt-6 space-y-6">
+            {/* Profile Visibility Card */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  {isPublic ? <Eye className="w-5 h-5 text-green-600" /> : <EyeOff className="w-5 h-5 text-slate-400" />}
+                  Profile Visibility
+                </CardTitle>
+                <CardDescription>
+                  Control who can see your research portfolio
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg border">
+                  <div className="space-y-1">
+                    <Label htmlFor="profile-visibility" className="text-base font-medium">
+                      Public Profile
+                    </Label>
+                    <p className="text-sm text-slate-500">
+                      {isPublic 
+                        ? "Your portfolio is visible to everyone on the internet" 
+                        : "Your portfolio is hidden from public view"}
+                    </p>
+                  </div>
+                  <Switch
+                    id="profile-visibility"
+                    checked={isPublic}
+                    onCheckedChange={handlePrivacyToggle}
+                    disabled={updateProfileMutation.isPending}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* CV/Resume Upload Card */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <FileText className="w-5 h-5" />
+                  CV / Resume
+                </CardTitle>
+                <CardDescription>
+                  Upload your CV to allow visitors to download it from your portfolio
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {profile?.cvUrl ? (
+                  <div className="flex items-center gap-3 p-4 bg-green-50 rounded-lg border border-green-200">
+                    <FileText className="w-8 h-8 text-green-600" />
+                    <div className="flex-1">
+                      <p className="font-medium text-green-800">CV Uploaded</p>
+                      <p className="text-sm text-green-600">Your CV is available for download on your portfolio</p>
+                    </div>
+                    <div className="flex gap-2">
+                      <a
+                        href={profile.cvUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 px-3 py-1.5 bg-green-600 text-white rounded-md text-sm font-medium hover:bg-green-700"
+                      >
+                        <ExternalLink className="w-3 h-3" />
+                        View
+                      </a>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => deleteCvMutation.mutate()}
+                        disabled={deleteCvMutation.isPending}
+                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="border-2 border-dashed border-slate-200 rounded-lg p-6 text-center">
+                    <FileText className="w-10 h-10 text-slate-400 mx-auto mb-3" />
+                    <p className="text-slate-600 mb-3">No CV uploaded yet</p>
+                    <input
+                      ref={cvInputRef}
+                      type="file"
+                      accept=".pdf,.doc,.docx"
+                      onChange={handleCvUpload}
+                      className="hidden"
+                    />
+                    <Button
+                      variant="outline"
+                      onClick={() => cvInputRef.current?.click()}
+                      disabled={uploadCvMutation.isPending}
+                    >
+                      <Upload className="w-4 h-4 mr-2" />
+                      {uploadCvMutation.isPending ? "Uploading..." : "Upload CV"}
+                    </Button>
+                    <p className="text-xs text-slate-500 mt-2">PDF, DOC, or DOCX. Max 10MB.</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Theme Selection Card */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Palette className="w-5 h-5" />
+                  Portfolio Theme
+                </CardTitle>
+                <CardDescription>
+                  Choose a color theme for your research portfolio
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                  {themesData?.filter(t => t.isActive).map((theme) => {
+                    const colors = theme.config as { colors: { primary: string; accent: string } };
+                    const isSelected = selectedThemeId === theme.id;
+                    return (
+                      <button
+                        key={theme.id}
+                        onClick={() => handleThemeChange(theme.id)}
+                        className={`relative p-4 rounded-lg border-2 transition-all ${
+                          isSelected 
+                            ? 'border-blue-500 bg-blue-50 ring-2 ring-blue-200' 
+                            : 'border-slate-200 hover:border-slate-300'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2 mb-2">
+                          <div 
+                            className="w-6 h-6 rounded-full border border-slate-200" 
+                            style={{ backgroundColor: colors.colors.primary }}
+                          />
+                          <div 
+                            className="w-4 h-4 rounded-full border border-slate-200" 
+                            style={{ backgroundColor: colors.colors.accent }}
+                          />
+                        </div>
+                        <p className="text-sm font-medium text-left">{theme.name}</p>
+                        {isSelected && (
+                          <CheckCircle className="absolute top-2 right-2 w-5 h-5 text-blue-500" />
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+                {(!themesData || themesData.length === 0) && (
+                  <p className="text-sm text-slate-500 text-center py-4">
+                    No themes available. Contact your administrator.
+                  </p>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Account Settings Card */}
             <Card>
               <CardHeader>
                 <CardTitle>Account Settings</CardTitle>
@@ -770,6 +1053,80 @@ export default function ResearcherDashboard() {
                     </Button>
                   </div>
                 </div>
+              </CardContent>
+            </Card>
+
+            {/* Change Password Card */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Lock className="w-5 h-5" />
+                  Change Password
+                </CardTitle>
+                <CardDescription>
+                  Update your account password
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="current-password">Current Password</Label>
+                  <div className="relative">
+                    <Input
+                      id="current-password"
+                      type={showCurrentPassword ? "text" : "password"}
+                      value={currentPassword}
+                      onChange={(e) => setCurrentPassword(e.target.value)}
+                      placeholder="Enter current password"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                    >
+                      {showCurrentPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="new-password">New Password</Label>
+                  <div className="relative">
+                    <Input
+                      id="new-password"
+                      type={showNewPassword ? "text" : "password"}
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      placeholder="Enter new password (min. 8 characters)"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowNewPassword(!showNewPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                    >
+                      {showNewPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="confirm-password">Confirm New Password</Label>
+                  <Input
+                    id="confirm-password"
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder="Confirm new password"
+                  />
+                </div>
+
+                <Button
+                  onClick={handlePasswordChange}
+                  disabled={!currentPassword || !newPassword || !confirmPassword || changePasswordMutation.isPending}
+                  className="bg-[#0B1F3A] hover:bg-[#1a3a5c]"
+                >
+                  <Lock className="w-4 h-4 mr-2" />
+                  {changePasswordMutation.isPending ? "Updating..." : "Update Password"}
+                </Button>
               </CardContent>
             </Card>
           </TabsContent>
