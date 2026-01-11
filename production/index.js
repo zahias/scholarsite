@@ -4597,13 +4597,17 @@ function serveStatic(app2) {
       `Could not find the build directory: ${distPath}, make sure to build the client first`
     );
   }
-  const uploadsPath = path2.resolve(process.cwd(), "public", "uploads");
-  if (fs2.existsSync(uploadsPath)) {
-    app2.use("/uploads", express.static(uploadsPath));
-  } else {
-    fs2.mkdirSync(uploadsPath, { recursive: true });
-    app2.use("/uploads", express.static(uploadsPath));
+  const uploadsPath = path2.resolve(process.cwd(), "uploads");
+  console.log(`[Static] Serving uploads from: ${uploadsPath}`);
+  if (!fs2.existsSync(uploadsPath)) {
+    try {
+      fs2.mkdirSync(uploadsPath, { recursive: true });
+      console.log(`[Static] Created uploads directory: ${uploadsPath}`);
+    } catch (err) {
+      console.error(`[Static] Failed to create uploads directory:`, err);
+    }
   }
+  app2.use("/uploads", express.static(uploadsPath));
   app2.use(express.static(distPath));
   app2.use("*", (_req, res) => {
     res.sendFile(path2.resolve(distPath, "index.html"));

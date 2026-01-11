@@ -27,14 +27,19 @@ export function serveStatic(app: Express) {
   }
 
   // Serve uploaded files (profile photos, CVs, PDFs)
-  const uploadsPath = path.resolve(process.cwd(), "public", "uploads");
-  if (fs.existsSync(uploadsPath)) {
-    app.use("/uploads", express.static(uploadsPath));
-  } else {
+  // Use process.cwd() which is the scholarsite directory on A2 Hosting
+  const uploadsPath = path.resolve(process.cwd(), "uploads");
+  console.log(`[Static] Serving uploads from: ${uploadsPath}`);
+  if (!fs.existsSync(uploadsPath)) {
     // Create uploads directory if it doesn't exist
-    fs.mkdirSync(uploadsPath, { recursive: true });
-    app.use("/uploads", express.static(uploadsPath));
+    try {
+      fs.mkdirSync(uploadsPath, { recursive: true });
+      console.log(`[Static] Created uploads directory: ${uploadsPath}`);
+    } catch (err) {
+      console.error(`[Static] Failed to create uploads directory:`, err);
+    }
   }
+  app.use("/uploads", express.static(uploadsPath));
 
   app.use(express.static(distPath));
 
