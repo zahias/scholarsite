@@ -1,12 +1,141 @@
 var __defProp = Object.defineProperty;
+var __getOwnPropNames = Object.getOwnPropertyNames;
+var __esm = (fn, res) => function __init() {
+  return fn && (res = (0, fn[__getOwnPropNames(fn)[0]])(fn = 0)), res;
+};
 var __export = (target, all) => {
   for (var name in all)
     __defProp(target, name, { get: all[name], enumerable: true });
 };
 
-// server/index-production.ts
-import "dotenv/config";
+// vite.config.ts
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
+import path2 from "path";
+import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
+var vite_config_default;
+var init_vite_config = __esm({
+  async "vite.config.ts"() {
+    "use strict";
+    vite_config_default = defineConfig({
+      plugins: [
+        react(),
+        runtimeErrorOverlay(),
+        ...process.env.NODE_ENV !== "production" && process.env.REPL_ID !== void 0 ? [
+          await import("@replit/vite-plugin-cartographer").then(
+            (m) => m.cartographer()
+          )
+        ] : []
+      ],
+      resolve: {
+        alias: {
+          "@": path2.resolve(import.meta.dirname, "client", "src"),
+          "@shared": path2.resolve(import.meta.dirname, "shared"),
+          "@assets": path2.resolve(import.meta.dirname, "attached_assets")
+        }
+      },
+      root: path2.resolve(import.meta.dirname, "client"),
+      build: {
+        outDir: path2.resolve(import.meta.dirname, "dist/public"),
+        emptyOutDir: true
+      },
+      server: {
+        fs: {
+          strict: true,
+          deny: ["**/.*"]
+        }
+      }
+    });
+  }
+});
+
+// server/vite.ts
+var vite_exports = {};
+__export(vite_exports, {
+  log: () => log2,
+  serveStatic: () => serveStatic2,
+  setupVite: () => setupVite
+});
 import express2 from "express";
+import fs2 from "fs";
+import path3 from "path";
+import { createServer as createViteServer, createLogger } from "vite";
+import { nanoid } from "nanoid";
+function log2(message, source = "express") {
+  const formattedTime = (/* @__PURE__ */ new Date()).toLocaleTimeString("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: true
+  });
+  console.log(`${formattedTime} [${source}] ${message}`);
+}
+async function setupVite(app2, server) {
+  const serverOptions = {
+    middlewareMode: true,
+    hmr: { server },
+    allowedHosts: true
+  };
+  const vite = await createViteServer({
+    ...vite_config_default,
+    configFile: false,
+    customLogger: {
+      ...viteLogger,
+      error: (msg, options) => {
+        viteLogger.error(msg, options);
+        process.exit(1);
+      }
+    },
+    server: serverOptions,
+    appType: "custom"
+  });
+  app2.use(vite.middlewares);
+  app2.use("*", async (req, res, next) => {
+    const url = req.originalUrl;
+    try {
+      const clientTemplate = path3.resolve(
+        import.meta.dirname,
+        "..",
+        "client",
+        "index.html"
+      );
+      let template = await fs2.promises.readFile(clientTemplate, "utf-8");
+      template = template.replace(
+        `src="/src/main.tsx"`,
+        `src="/src/main.tsx?v=${nanoid()}"`
+      );
+      const page = await vite.transformIndexHtml(url, template);
+      res.status(200).set({ "Content-Type": "text/html" }).end(page);
+    } catch (e) {
+      vite.ssrFixStacktrace(e);
+      next(e);
+    }
+  });
+}
+function serveStatic2(app2) {
+  const distPath = path3.resolve(import.meta.dirname, "public");
+  if (!fs2.existsSync(distPath)) {
+    throw new Error(
+      `Could not find the build directory: ${distPath}, make sure to build the client first`
+    );
+  }
+  app2.use(express2.static(distPath));
+  app2.use("*", (_req, res) => {
+    res.sendFile(path3.resolve(distPath, "index.html"));
+  });
+}
+var viteLogger;
+var init_vite = __esm({
+  async "server/vite.ts"() {
+    "use strict";
+    await init_vite_config();
+    viteLogger = createLogger();
+  }
+});
+
+// server/index.ts
+import "dotenv/config";
+import express3 from "express";
 import session from "express-session";
 import connectPgSimple from "connect-pg-simple";
 
@@ -22,21 +151,25 @@ __export(schema_exports, {
   domains: () => domains,
   insertDomainSchema: () => insertDomainSchema,
   insertPaymentSchema: () => insertPaymentSchema,
+  insertProfileSectionSchema: () => insertProfileSectionSchema,
   insertResearcherProfileSchema: () => insertResearcherProfileSchema,
   insertTenantSchema: () => insertTenantSchema,
   insertThemeSchema: () => insertThemeSchema,
   loginUserSchema: () => loginUserSchema,
   openalexData: () => openalexData,
   payments: () => payments,
+  profileSections: () => profileSections,
   publications: () => publications,
   registerUserSchema: () => registerUserSchema,
   researchTopics: () => researchTopics,
   researcherProfiles: () => researcherProfiles,
   siteSettings: () => siteSettings,
+  syncLogs: () => syncLogs,
   tenants: () => tenants,
   themeConfigSchema: () => themeConfigSchema,
   themes: () => themes,
   updateDomainSchema: () => updateDomainSchema,
+  updateProfileSectionSchema: () => updateProfileSectionSchema,
   updateResearcherProfileSchema: () => updateResearcherProfileSchema,
   updateTenantSchema: () => updateTenantSchema,
   updateThemeSchema: () => updateThemeSchema,
@@ -177,7 +310,11 @@ var publications = pgTable("publications", {
   isOpenAccess: boolean("is_open_access").default(false),
   publicationType: varchar("publication_type"),
   // article, book-chapter, etc.
-  isReviewArticle: boolean("is_review_article").default(false)
+  isReviewArticle: boolean("is_review_article").default(false),
+  isFeatured: boolean("is_featured").default(false),
+  // Highlighted publications shown prominently
+  pdfUrl: varchar("pdf_url")
+  // URL to uploaded PDF file
 });
 var affiliations = pgTable("affiliations", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -190,6 +327,42 @@ var affiliations = pgTable("affiliations", {
   // array of years
   startYear: integer("start_year"),
   endYear: integer("end_year")
+});
+var profileSections = pgTable("profile_sections", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  profileId: varchar("profile_id").references(() => researcherProfiles.id).notNull(),
+  title: varchar("title").notNull(),
+  // Section heading
+  content: text("content").notNull(),
+  // Rich text / markdown content
+  sectionType: varchar("section_type").default("custom").notNull(),
+  // 'bio', 'research_interests', 'awards', 'custom'
+  sortOrder: integer("sort_order").default(0).notNull(),
+  isVisible: boolean("is_visible").default(true).notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow()
+});
+var insertProfileSectionSchema = createInsertSchema(profileSections).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true
+});
+var updateProfileSectionSchema = insertProfileSectionSchema.partial().extend({
+  id: z.string()
+});
+var syncLogs = pgTable("sync_logs", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  tenantId: varchar("tenant_id").references(() => tenants.id),
+  profileId: varchar("profile_id").references(() => researcherProfiles.id),
+  syncType: varchar("sync_type").notNull(),
+  // 'full', 'publications', 'topics', 'affiliations'
+  status: varchar("status").notNull(),
+  // 'pending', 'in_progress', 'completed', 'failed'
+  itemsProcessed: integer("items_processed").default(0),
+  itemsTotal: integer("items_total"),
+  errorMessage: text("error_message"),
+  startedAt: timestamp("started_at").defaultNow(),
+  completedAt: timestamp("completed_at")
 });
 var registerUserSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -331,7 +504,7 @@ if (!process.env.DATABASE_URL) {
 }
 
 // server/storage.ts
-import { eq, desc, and, inArray } from "drizzle-orm";
+import { eq, desc, and, inArray, asc } from "drizzle-orm";
 import crypto from "crypto";
 function generateUUID() {
   return crypto.randomUUID();
@@ -602,6 +775,9 @@ var DatabaseStorage = class {
     }
     return await query;
   }
+  async getPublicationsByOpenalexId(openalexId) {
+    return await db.select().from(publications).where(eq(publications.openalexId, openalexId)).orderBy(desc(publications.publicationYear), desc(publications.citationCount));
+  }
   async upsertPublications(pubs) {
     if (pubs.length === 0) return;
     await db.delete(publications).where(eq(publications.openalexId, pubs[0].openalexId));
@@ -610,6 +786,14 @@ var DatabaseStorage = class {
       id: generateUUID()
     }));
     await db.insert(publications).values(pubsWithIds);
+  }
+  async updatePublicationFeatured(publicationId, isFeatured) {
+    const [result] = await db.update(publications).set({ isFeatured }).where(eq(publications.id, publicationId)).returning();
+    return result;
+  }
+  async updatePublicationPdf(publicationId, pdfUrl) {
+    const [result] = await db.update(publications).set({ pdfUrl }).where(eq(publications.id, publicationId)).returning();
+    return result;
   }
   // Affiliations operations
   async getAffiliations(openalexId) {
@@ -623,6 +807,46 @@ var DatabaseStorage = class {
       id: generateUUID()
     }));
     await db.insert(affiliations).values(affsWithIds);
+  }
+  // Profile sections operations
+  async getProfileSections(profileId) {
+    return await db.select().from(profileSections).where(eq(profileSections.profileId, profileId)).orderBy(asc(profileSections.sortOrder));
+  }
+  async createProfileSection(section) {
+    const [result] = await db.insert(profileSections).values({
+      ...section,
+      id: generateUUID()
+    }).returning();
+    return result;
+  }
+  async updateProfileSection(id, updates) {
+    const [result] = await db.update(profileSections).set({ ...updates, updatedAt: /* @__PURE__ */ new Date() }).where(eq(profileSections.id, id)).returning();
+    return result;
+  }
+  async deleteProfileSection(id) {
+    await db.delete(profileSections).where(eq(profileSections.id, id));
+  }
+  async reorderProfileSections(sectionIds) {
+    await db.transaction(async (tx) => {
+      for (let i = 0; i < sectionIds.length; i++) {
+        await tx.update(profileSections).set({ sortOrder: i, updatedAt: /* @__PURE__ */ new Date() }).where(eq(profileSections.id, sectionIds[i]));
+      }
+    });
+  }
+  // Sync logs operations
+  async getSyncLogs(profileId) {
+    return await db.select().from(syncLogs).where(eq(syncLogs.profileId, profileId)).orderBy(desc(syncLogs.startedAt)).limit(50);
+  }
+  async createSyncLog(log3) {
+    const [result] = await db.insert(syncLogs).values({
+      ...log3,
+      id: generateUUID()
+    }).returning();
+    return result;
+  }
+  async updateSyncLog(id, updates) {
+    const [result] = await db.update(syncLogs).set(updates).where(eq(syncLogs.id, id)).returning();
+    return result;
   }
   // Site settings operations
   async getSetting(key) {
@@ -1074,7 +1298,7 @@ var ObjectStorageService = class {
     const pathsStr = process.env.PUBLIC_OBJECT_SEARCH_PATHS || "";
     const paths = Array.from(
       new Set(
-        pathsStr.split(",").map((path2) => path2.trim()).filter((path2) => path2.length > 0)
+        pathsStr.split(",").map((path4) => path4.trim()).filter((path4) => path4.length > 0)
       )
     );
     if (paths.length === 0) {
@@ -1234,11 +1458,11 @@ var ObjectStorageService = class {
     });
   }
 };
-function parseObjectPath(path2) {
-  if (!path2.startsWith("/")) {
-    path2 = `/${path2}`;
+function parseObjectPath(path4) {
+  if (!path4.startsWith("/")) {
+    path4 = `/${path4}`;
   }
-  const pathParts = path2.split("/");
+  const pathParts = path4.split("/");
   if (pathParts.length < 3) {
     throw new Error("Invalid path: must contain at least a bucket name");
   }
@@ -1643,6 +1867,68 @@ router2.get("/stats", isAuthenticated, isAdmin, async (req, res) => {
     return res.status(500).json({ message: "Failed to get stats" });
   }
 });
+router2.get("/analytics", isAuthenticated, isAdmin, async (req, res) => {
+  try {
+    const [allUsers, allTenants] = await Promise.all([
+      storage.getAllUsers(),
+      storage.getAllTenants()
+    ]);
+    const usersByRole = {
+      admin: allUsers.filter((u) => u.role === "admin").length,
+      researcher: allUsers.filter((u) => u.role === "researcher").length
+    };
+    const activeUsers = allUsers.filter((u) => u.isActive).length;
+    const inactiveUsers = allUsers.length - activeUsers;
+    const tenantsByStatus = {
+      active: allTenants.filter((t) => t.status === "active").length,
+      pending: allTenants.filter((t) => t.status === "pending").length,
+      suspended: allTenants.filter((t) => t.status === "suspended").length,
+      cancelled: allTenants.filter((t) => t.status === "cancelled").length
+    };
+    const tenantsByPlan = {
+      starter: allTenants.filter((t) => t.plan === "starter").length,
+      professional: allTenants.filter((t) => t.plan === "professional").length,
+      institution: allTenants.filter((t) => t.plan === "institution").length
+    };
+    const thirtyDaysAgo = /* @__PURE__ */ new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    const newUsersThisMonth = allUsers.filter(
+      (u) => u.createdAt && new Date(u.createdAt) >= thirtyDaysAgo
+    ).length;
+    const newTenantsThisMonth = allTenants.filter(
+      (t) => t.createdAt && new Date(t.createdAt) >= thirtyDaysAgo
+    ).length;
+    const tenantsWithOpenAlex = allTenants.filter((t) => {
+      return true;
+    }).length;
+    return res.json({
+      analytics: {
+        users: {
+          total: allUsers.length,
+          byRole: usersByRole,
+          active: activeUsers,
+          inactive: inactiveUsers,
+          newThisMonth: newUsersThisMonth
+        },
+        tenants: {
+          total: allTenants.length,
+          byStatus: tenantsByStatus,
+          byPlan: tenantsByPlan,
+          newThisMonth: newTenantsThisMonth
+        },
+        overview: {
+          totalUsers: allUsers.length,
+          totalTenants: allTenants.length,
+          activeTenants: tenantsByStatus.active,
+          activeUsers
+        }
+      }
+    });
+  } catch (error) {
+    console.error("Get analytics error:", error);
+    return res.status(500).json({ message: "Failed to get analytics" });
+  }
+});
 var adminRouter = router2;
 
 // server/tenantRoutes.ts
@@ -1652,16 +1938,16 @@ import bcrypt3 from "bcryptjs";
 
 // server/services/syncScheduler.ts
 var openalexService = new OpenAlexService();
-var syncLogs = [];
+var syncLogs2 = [];
 var MAX_LOGS = 100;
-function addSyncLog(log2) {
-  syncLogs.unshift(log2);
-  if (syncLogs.length > MAX_LOGS) {
-    syncLogs.pop();
+function addSyncLog(log3) {
+  syncLogs2.unshift(log3);
+  if (syncLogs2.length > MAX_LOGS) {
+    syncLogs2.pop();
   }
 }
 function getSyncLogs() {
-  return [...syncLogs];
+  return [...syncLogs2];
 }
 function getSyncIntervalMs(frequency) {
   switch (frequency) {
@@ -1684,7 +1970,7 @@ function isDueForSync(lastSyncedAt, frequency) {
   return now - lastSync >= intervalMs;
 }
 async function syncTenant(tenantId, tenantName, openalexId, syncFrequency) {
-  const log2 = {
+  const log3 = {
     tenantId,
     tenantName,
     openalexId,
@@ -1706,16 +1992,16 @@ async function syncTenant(tenantId, tenantName, openalexId, syncFrequency) {
     await storage.updateTenant(tenantId, {
       lastSyncAt: /* @__PURE__ */ new Date()
     });
-    log2.status = "success";
-    log2.message = "Data synced successfully from OpenAlex";
-    log2.lastSyncedAt = /* @__PURE__ */ new Date();
+    log3.status = "success";
+    log3.message = "Data synced successfully from OpenAlex";
+    log3.lastSyncedAt = /* @__PURE__ */ new Date();
     console.log(`[SyncScheduler] Completed sync for tenant: ${tenantName}`);
   } catch (error) {
-    log2.status = "error";
-    log2.message = error instanceof Error ? error.message : "Unknown error";
+    log3.status = "error";
+    log3.message = error instanceof Error ? error.message : "Unknown error";
     console.error(`[SyncScheduler] Error syncing tenant ${tenantName}:`, error);
   }
-  return log2;
+  return log3;
 }
 async function runScheduledSync() {
   console.log("[SyncScheduler] Starting scheduled sync check...");
@@ -1758,9 +2044,9 @@ async function runScheduledSync() {
         stats.skipped++;
         continue;
       }
-      const log2 = await syncTenant(tenant.id, tenant.name, profile.openalexId, syncFrequency);
-      addSyncLog(log2);
-      if (log2.status === "success") {
+      const log3 = await syncTenant(tenant.id, tenant.name, profile.openalexId, syncFrequency);
+      addSyncLog(log3);
+      if (log3.status === "success") {
         stats.synced++;
       } else {
         stats.errors++;
@@ -1807,9 +2093,9 @@ async function forceSyncTenant(tenantId) {
       timestamp: /* @__PURE__ */ new Date()
     };
   }
-  const log2 = await syncTenant(tenantId, tenant.name, profile.openalexId, tenant.syncFrequency || "monthly");
-  addSyncLog(log2);
-  return log2;
+  const log3 = await syncTenant(tenantId, tenant.name, profile.openalexId, tenant.syncFrequency || "monthly");
+  addSyncLog(log3);
+  return log3;
 }
 
 // server/tenantRoutes.ts
@@ -2217,13 +2503,13 @@ router3.post("/sync/run", isAuthenticated, isAdmin, async (req, res) => {
 });
 router3.post("/tenants/:id/sync", isAuthenticated, isAdmin, async (req, res) => {
   try {
-    const log2 = await forceSyncTenant(req.params.id);
-    if (!log2) {
+    const log3 = await forceSyncTenant(req.params.id);
+    if (!log3) {
       return res.status(404).json({ message: "Tenant not found" });
     }
     return res.json({
-      message: log2.status === "success" ? "Sync completed successfully" : log2.message,
-      log: log2
+      message: log3.status === "success" ? "Sync completed successfully" : log3.message,
+      log: log3
     });
   } catch (error) {
     console.error("Force sync error:", error);
@@ -2292,7 +2578,11 @@ var updateProfileSchema = z5.object({
   researchGateUrl: z5.string().nullable().optional(),
   linkedinUrl: z5.string().nullable().optional(),
   websiteUrl: z5.string().nullable().optional(),
-  twitterUrl: z5.string().nullable().optional()
+  twitterUrl: z5.string().nullable().optional(),
+  // Phase 1 additions
+  isPublic: z5.boolean().optional(),
+  cvUrl: z5.string().nullable().optional(),
+  selectedThemeId: z5.string().nullable().optional()
 });
 router4.patch("/profile", isAuthenticated2, async (req, res) => {
   try {
@@ -2383,6 +2673,327 @@ router4.post("/upload-photo", isAuthenticated2, uploadImage.single("photo"), asy
   } catch (error) {
     console.error("Error uploading profile photo:", error);
     res.status(500).json({ message: "Failed to upload profile photo" });
+  }
+});
+var uploadDocument = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 10 * 1024 * 1024
+    // 10MB limit for documents
+  },
+  fileFilter: (_req, file, cb) => {
+    const allowedTypes = ["application/pdf", "application/msword", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"];
+    if (allowedTypes.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error("Only PDF and Word documents are allowed"));
+    }
+  }
+});
+router4.post("/upload-cv", isAuthenticated2, uploadDocument.single("cv"), async (req, res) => {
+  try {
+    const userId = req.session?.userId;
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+    if (!req.file) {
+      return res.status(400).json({ message: "No file uploaded" });
+    }
+    const user = await storage.getUser(userId);
+    if (!user || !user.tenantId) {
+      return res.status(404).json({ message: "No tenant associated with this user" });
+    }
+    const profile = await storage.getResearcherProfileByTenant(user.tenantId);
+    if (!profile) {
+      return res.status(404).json({ message: "Profile not found" });
+    }
+    const storageBucketId = process.env.DEFAULT_OBJECT_STORAGE_BUCKET_ID;
+    if (!storageBucketId) {
+      return res.status(500).json({ message: "Object storage not configured" });
+    }
+    const objectStorage = new ObjectStorageClient({ bucketId: storageBucketId });
+    let fileExtension = "pdf";
+    if (req.file.mimetype === "application/msword") {
+      fileExtension = "doc";
+    } else if (req.file.mimetype === "application/vnd.openxmlformats-officedocument.wordprocessingml.document") {
+      fileExtension = "docx";
+    }
+    const filename = `public/cv-documents/${user.tenantId}-cv-${Date.now()}.${fileExtension}`;
+    const uploadResult = await objectStorage.uploadFromBytes(filename, req.file.buffer);
+    if (!uploadResult.ok) {
+      console.error("Object storage upload error:", uploadResult.error);
+      return res.status(500).json({ message: "Failed to upload file to storage" });
+    }
+    const publicPath = filename.replace("public/", "");
+    const cvUrl = `/public-objects/${publicPath}`;
+    await storage.updateTenantProfile(user.tenantId, {
+      cvUrl
+    });
+    res.json({
+      message: "CV uploaded successfully",
+      cvUrl
+    });
+  } catch (error) {
+    console.error("Error uploading CV:", error);
+    res.status(500).json({ message: "Failed to upload CV" });
+  }
+});
+router4.delete("/cv", isAuthenticated2, async (req, res) => {
+  try {
+    const userId = req.session?.userId;
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+    const user = await storage.getUser(userId);
+    if (!user || !user.tenantId) {
+      return res.status(404).json({ message: "No tenant associated with this user" });
+    }
+    await storage.updateTenantProfile(user.tenantId, {
+      cvUrl: null
+    });
+    res.json({ message: "CV removed successfully" });
+  } catch (error) {
+    console.error("Error removing CV:", error);
+    res.status(500).json({ message: "Failed to remove CV" });
+  }
+});
+router4.get("/publications", isAuthenticated2, async (req, res) => {
+  try {
+    const userId = req.session?.userId;
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+    const user = await storage.getUser(userId);
+    if (!user || !user.tenantId) {
+      return res.status(404).json({ message: "No tenant associated with this user" });
+    }
+    const tenant = await storage.getTenantWithDetails(user.tenantId);
+    if (!tenant?.profile?.openalexId) {
+      return res.status(400).json({ message: "No OpenAlex ID configured", publications: [] });
+    }
+    const publications2 = await storage.getPublicationsByOpenalexId(tenant.profile.openalexId);
+    res.json({ publications: publications2 });
+  } catch (error) {
+    console.error("Error getting publications:", error);
+    res.status(500).json({ message: "Failed to get publications" });
+  }
+});
+router4.patch("/publications/:publicationId/feature", isAuthenticated2, async (req, res) => {
+  try {
+    const userId = req.session?.userId;
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+    const user = await storage.getUser(userId);
+    if (!user || !user.tenantId) {
+      return res.status(404).json({ message: "No tenant associated with this user" });
+    }
+    const { publicationId } = req.params;
+    const { isFeatured } = req.body;
+    if (typeof isFeatured !== "boolean") {
+      return res.status(400).json({ message: "isFeatured must be a boolean" });
+    }
+    const publication = await storage.updatePublicationFeatured(publicationId, isFeatured);
+    res.json({ publication });
+  } catch (error) {
+    console.error("Error updating publication featured status:", error);
+    res.status(500).json({ message: "Failed to update publication" });
+  }
+});
+router4.post("/publications/:publicationId/upload-pdf", isAuthenticated2, uploadDocument.single("pdf"), async (req, res) => {
+  try {
+    const userId = req.session?.userId;
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+    if (!req.file) {
+      return res.status(400).json({ message: "No file uploaded" });
+    }
+    if (req.file.mimetype !== "application/pdf") {
+      return res.status(400).json({ message: "Only PDF files are allowed" });
+    }
+    const user = await storage.getUser(userId);
+    if (!user || !user.tenantId) {
+      return res.status(404).json({ message: "No tenant associated with this user" });
+    }
+    const { publicationId } = req.params;
+    const storageBucketId = process.env.DEFAULT_OBJECT_STORAGE_BUCKET_ID;
+    if (!storageBucketId) {
+      return res.status(500).json({ message: "Object storage not configured" });
+    }
+    const objectStorage = new ObjectStorageClient({ bucketId: storageBucketId });
+    const filename = `public/publication-pdfs/${user.tenantId}-${publicationId}-${Date.now()}.pdf`;
+    const uploadResult = await objectStorage.uploadFromBytes(filename, req.file.buffer);
+    if (!uploadResult.ok) {
+      console.error("Object storage upload error:", uploadResult.error);
+      return res.status(500).json({ message: "Failed to upload file to storage" });
+    }
+    const publicPath = filename.replace("public/", "");
+    const pdfUrl = `/public-objects/${publicPath}`;
+    const publication = await storage.updatePublicationPdf(publicationId, pdfUrl);
+    res.json({
+      message: "PDF uploaded successfully",
+      publication
+    });
+  } catch (error) {
+    console.error("Error uploading publication PDF:", error);
+    res.status(500).json({ message: "Failed to upload PDF" });
+  }
+});
+router4.delete("/publications/:publicationId/pdf", isAuthenticated2, async (req, res) => {
+  try {
+    const userId = req.session?.userId;
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+    const user = await storage.getUser(userId);
+    if (!user || !user.tenantId) {
+      return res.status(404).json({ message: "No tenant associated with this user" });
+    }
+    const { publicationId } = req.params;
+    const publication = await storage.updatePublicationPdf(publicationId, null);
+    res.json({ message: "PDF removed successfully", publication });
+  } catch (error) {
+    console.error("Error removing publication PDF:", error);
+    res.status(500).json({ message: "Failed to remove PDF" });
+  }
+});
+router4.get("/sections", isAuthenticated2, async (req, res) => {
+  try {
+    const userId = req.session?.userId;
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+    const user = await storage.getUser(userId);
+    if (!user || !user.tenantId) {
+      return res.status(404).json({ message: "No tenant associated with this user" });
+    }
+    const profile = await storage.getResearcherProfileByTenant(user.tenantId);
+    if (!profile) {
+      return res.status(404).json({ message: "Profile not found" });
+    }
+    const sections = await storage.getProfileSections(profile.id);
+    res.json({ sections });
+  } catch (error) {
+    console.error("Error getting profile sections:", error);
+    res.status(500).json({ message: "Failed to get profile sections" });
+  }
+});
+router4.post("/sections", isAuthenticated2, async (req, res) => {
+  try {
+    const userId = req.session?.userId;
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+    const user = await storage.getUser(userId);
+    if (!user || !user.tenantId) {
+      return res.status(404).json({ message: "No tenant associated with this user" });
+    }
+    const profile = await storage.getResearcherProfileByTenant(user.tenantId);
+    if (!profile) {
+      return res.status(404).json({ message: "Profile not found" });
+    }
+    const { title, content, sectionType, sortOrder, isVisible } = req.body;
+    if (!title || !content) {
+      return res.status(400).json({ message: "Title and content are required" });
+    }
+    const section = await storage.createProfileSection({
+      profileId: profile.id,
+      title,
+      content,
+      sectionType: sectionType || "custom",
+      sortOrder: sortOrder || 0,
+      isVisible: isVisible !== false
+    });
+    res.json({ section });
+  } catch (error) {
+    console.error("Error creating profile section:", error);
+    res.status(500).json({ message: "Failed to create profile section" });
+  }
+});
+router4.patch("/sections/:sectionId", isAuthenticated2, async (req, res) => {
+  try {
+    const userId = req.session?.userId;
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+    const user = await storage.getUser(userId);
+    if (!user || !user.tenantId) {
+      return res.status(404).json({ message: "No tenant associated with this user" });
+    }
+    const { sectionId } = req.params;
+    const { title, content, sectionType, sortOrder, isVisible } = req.body;
+    const section = await storage.updateProfileSection(sectionId, {
+      title,
+      content,
+      sectionType,
+      sortOrder,
+      isVisible
+    });
+    res.json({ section });
+  } catch (error) {
+    console.error("Error updating profile section:", error);
+    res.status(500).json({ message: "Failed to update profile section" });
+  }
+});
+router4.delete("/sections/:sectionId", isAuthenticated2, async (req, res) => {
+  try {
+    const userId = req.session?.userId;
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+    const user = await storage.getUser(userId);
+    if (!user || !user.tenantId) {
+      return res.status(404).json({ message: "No tenant associated with this user" });
+    }
+    const { sectionId } = req.params;
+    await storage.deleteProfileSection(sectionId);
+    res.json({ message: "Section deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting profile section:", error);
+    res.status(500).json({ message: "Failed to delete profile section" });
+  }
+});
+router4.post("/sections/reorder", isAuthenticated2, async (req, res) => {
+  try {
+    const userId = req.session?.userId;
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+    const user = await storage.getUser(userId);
+    if (!user || !user.tenantId) {
+      return res.status(404).json({ message: "No tenant associated with this user" });
+    }
+    const { sectionIds } = req.body;
+    if (!Array.isArray(sectionIds)) {
+      return res.status(400).json({ message: "sectionIds must be an array" });
+    }
+    await storage.reorderProfileSections(sectionIds);
+    res.json({ message: "Sections reordered successfully" });
+  } catch (error) {
+    console.error("Error reordering sections:", error);
+    res.status(500).json({ message: "Failed to reorder sections" });
+  }
+});
+router4.get("/sync-logs", isAuthenticated2, async (req, res) => {
+  try {
+    const userId = req.session?.userId;
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+    const user = await storage.getUser(userId);
+    if (!user || !user.tenantId) {
+      return res.status(404).json({ message: "No tenant associated with this user" });
+    }
+    const profile = await storage.getResearcherProfileByTenant(user.tenantId);
+    if (!profile) {
+      return res.status(404).json({ message: "Profile not found" });
+    }
+    const logs = await storage.getSyncLogs(profile.id);
+    res.json({ logs });
+  } catch (error) {
+    console.error("Error getting sync logs:", error);
+    res.status(500).json({ message: "Failed to get sync logs" });
   }
 });
 var researcherRoutes_default = router4;
@@ -3179,14 +3790,24 @@ async function registerRoutes(app2) {
       const researchTopics2 = await storage.getResearchTopics(profile.openalexId);
       const publications2 = await storage.getPublications(profile.openalexId);
       const affiliations2 = await storage.getAffiliations(profile.openalexId);
+      const profileSections2 = await storage.getProfileSections(profile.id);
+      const sortedPublications = [...publications2].sort((a, b) => {
+        if (a.isFeatured && !b.isFeatured) return -1;
+        if (!a.isFeatured && b.isFeatured) return 1;
+        if ((b.publicationYear || 0) !== (a.publicationYear || 0)) {
+          return (b.publicationYear || 0) - (a.publicationYear || 0);
+        }
+        return (b.citationCount || 0) - (a.citationCount || 0);
+      });
       return res.json({
         profile: {
           ...profile
         },
         researcher: researcherData?.data || null,
         topics: researchTopics2,
-        publications: publications2,
+        publications: sortedPublications,
         affiliations: affiliations2,
+        profileSections: profileSections2.filter((s) => s.isVisible),
         lastSynced: profile.lastSyncedAt,
         tenant: {
           name: tenant.name,
@@ -3211,12 +3832,22 @@ async function registerRoutes(app2) {
         const researchTopics2 = await storage.getResearchTopics(openalexId);
         const publications2 = await storage.getPublications(openalexId);
         const affiliations2 = await storage.getAffiliations(openalexId);
+        const profileSections2 = await storage.getProfileSections(profile.id);
+        const sortedPublications = [...publications2].sort((a, b) => {
+          if (a.isFeatured && !b.isFeatured) return -1;
+          if (!a.isFeatured && b.isFeatured) return 1;
+          if ((b.publicationYear || 0) !== (a.publicationYear || 0)) {
+            return (b.publicationYear || 0) - (a.publicationYear || 0);
+          }
+          return (b.citationCount || 0) - (a.citationCount || 0);
+        });
         return res.json({
           profile,
           researcher: researcherData?.data || null,
           topics: researchTopics2,
-          publications: publications2,
+          publications: sortedPublications,
           affiliations: affiliations2,
+          profileSections: profileSections2.filter((s) => s.isVisible),
           lastSynced: profile.lastSyncedAt,
           isPreview: false
         });
@@ -4081,32 +4712,38 @@ function serveStatic(app2) {
   });
 }
 
-// server/index-production.ts
-var app = express2();
+// server/index.ts
+console.log("[Config] Environment check:");
+console.log("[Config] - SMTP_PASSWORD:", process.env.SMTP_PASSWORD ? "configured" : "NOT SET");
+console.log("[Config] - DATABASE_URL:", process.env.DATABASE_URL ? "configured" : "NOT SET");
+var app = express3();
 app.set("trust proxy", 1);
-app.use(express2.json());
-app.use(express2.urlencoded({ extended: true }));
+app.use(express3.json());
+app.use(express3.urlencoded({ extended: true }));
 var PgSession = connectPgSimple(session);
 app.use(session({
   store: new PgSession({
-    pool,
+    conString: process.env.DATABASE_URL,
     tableName: "sessions",
-    createTableIfMissing: false
+    // Managed by connect-pg-simple
+    createTableIfMissing: true
+    // Allow connect-pg-simple to manage the sessions table
   }),
   secret: process.env.SESSION_SECRET || "research-profile-admin-secret-key",
   resave: false,
   saveUninitialized: false,
   proxy: true,
   cookie: {
-    secure: true,
+    secure: "auto",
     httpOnly: true,
-    sameSite: "lax",
-    maxAge: 24 * 60 * 60 * 1e3
+    maxAge: 24 * 60 * 60 * 1e3,
+    // 24 hours
+    sameSite: "lax"
   }
 }));
 app.use((req, res, next) => {
   const start = Date.now();
-  const path2 = req.path;
+  const path4 = req.path;
   let capturedJsonResponse = void 0;
   const originalResJson = res.json;
   res.json = function(bodyJson, ...args) {
@@ -4115,8 +4752,8 @@ app.use((req, res, next) => {
   };
   res.on("finish", () => {
     const duration = Date.now() - start;
-    if (path2.startsWith("/api")) {
-      let logLine = `${req.method} ${path2} ${res.statusCode} in ${duration}ms`;
+    if (path4.startsWith("/api")) {
+      let logLine = `${req.method} ${path4} ${res.statusCode} in ${duration}ms`;
       if (capturedJsonResponse) {
         logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
       }
@@ -4136,11 +4773,44 @@ app.use((req, res, next) => {
     res.status(status).json({ message });
     throw err;
   });
-  serveStatic(app);
+  if (app.get("env") === "development") {
+    const { setupVite: setupVite2 } = await init_vite().then(() => vite_exports);
+    await setupVite2(app, server);
+  } else {
+    serveStatic(app);
+  }
   const port = parseInt(process.env.PORT || "5000", 10);
-  server.listen(port, () => {
-    log(`serving on port ${port}`);
-    startSyncScheduler(1);
-    log("Sync scheduler started - checking tenants hourly");
-  });
+  if (process.env.NODE_ENV === "production") {
+    server.listen(port, () => {
+      log(`serving on port ${port}`);
+      startSyncScheduler(1);
+      log("Sync scheduler started - checking tenants hourly");
+    });
+  } else {
+    const onError = (err) => {
+      const code = err && err.code;
+      if (code === "ENOTSUP" || code === "EADDRNOTSUPPORT" || code === "EACCES") {
+        log(`Failed to bind to 0.0.0.0:${port} (${err.message}), falling back to localhost.`);
+        server.listen(port, () => {
+          log(`serving on port ${port} (localhost)`);
+          startSyncScheduler(1);
+          log("Sync scheduler started - checking tenants hourly");
+        });
+      } else {
+        console.error("Server error during listen:", err);
+        process.exit(1);
+      }
+    };
+    server.once("error", onError);
+    server.listen({
+      port,
+      host: "0.0.0.0",
+      reusePort: true
+    }, () => {
+      server.removeListener("error", onError);
+      log(`serving on port ${port}`);
+      startSyncScheduler(1);
+      log("Sync scheduler started - checking tenants hourly");
+    });
+  }
 })();
