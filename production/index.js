@@ -2797,8 +2797,9 @@ router4.post("/sections", isAuthenticated2, async (req, res) => {
     });
     res.json({ section });
   } catch (error) {
-    console.error("Error creating profile section:", error);
-    res.status(500).json({ message: "Failed to create profile section" });
+    console.error("Error creating profile section:", error?.message || error);
+    console.error("Error stack:", error?.stack);
+    res.status(500).json({ message: "Failed to create profile section", error: error?.message });
   }
 });
 router4.patch("/sections/:sectionId", isAuthenticated2, async (req, res) => {

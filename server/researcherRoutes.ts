@@ -527,8 +527,9 @@ router.post("/sections", isAuthenticated, async (req: Request, res: Response) =>
 
     res.json({ section });
   } catch (error: any) {
-    console.error("Error creating profile section:", error);
-    res.status(500).json({ message: "Failed to create profile section" });
+    console.error("Error creating profile section:", error?.message || error);
+    console.error("Error stack:", error?.stack);
+    res.status(500).json({ message: "Failed to create profile section", error: error?.message });
   }
 });
 
