@@ -5,9 +5,33 @@ import { Client as ObjectStorageClient } from "@replit/object-storage";
 import { storage } from "./storage";
 import { OpenAlexService } from "./services/openalexApi";
 import type { Request, Response } from "express";
+import path from "path";
+import fs from "fs/promises";
 
 const router = Router();
 const openalexService = new OpenAlexService();
+
+// Local file storage helper for when object storage is not configured
+async function saveFileLocally(filename: string, buffer: Buffer): Promise<string> {
+  const publicDir = path.join(process.cwd(), 'public');
+  const fullPath = path.join(publicDir, filename);
+  const dir = path.dirname(fullPath);
+  
+  await fs.mkdir(dir, { recursive: true });
+  await fs.writeFile(fullPath, buffer);
+  
+  return `/${filename}`;
+}
+
+async function deleteFileLocally(filename: string): Promise<void> {
+  const publicDir = path.join(process.cwd(), 'public');
+  const fullPath = path.join(publicDir, filename);
+  try {
+    await fs.unlink(fullPath);
+  } catch (e) {
+    // File may not exist, ignore
+  }
+}
 
 const uploadImage = multer({
   storage: multer.memoryStorage(),
@@ -155,25 +179,29 @@ router.post("/upload-photo", isAuthenticated, uploadImage.single('photo'), async
       return res.status(404).json({ message: "Profile not found" });
     }
 
-    const storageBucketId = process.env.DEFAULT_OBJECT_STORAGE_BUCKET_ID;
-    if (!storageBucketId) {
-      return res.status(500).json({ message: "Object storage not configured" });
-    }
-
-    const objectStorage = new ObjectStorageClient({ bucketId: storageBucketId });
-    
     const fileExtension = req.file.mimetype.split('/')[1];
-    const filename = `public/profile-images/${user.tenantId}-profile-${Date.now()}.${fileExtension}`;
+    const filename = `uploads/profile-images/${user.tenantId}-profile-${Date.now()}.${fileExtension}`;
+    let profileImageUrl: string;
 
-    const uploadResult = await objectStorage.uploadFromBytes(filename, req.file.buffer);
-    
-    if (!uploadResult.ok) {
-      console.error('Object storage upload error:', uploadResult.error);
-      return res.status(500).json({ message: "Failed to upload file to storage" });
+    const storageBucketId = process.env.DEFAULT_OBJECT_STORAGE_BUCKET_ID;
+    if (storageBucketId) {
+      // Use object storage (Replit)
+      const objectStorage = new ObjectStorageClient({ bucketId: storageBucketId });
+      const objectFilename = `public/profile-images/${user.tenantId}-profile-${Date.now()}.${fileExtension}`;
+
+      const uploadResult = await objectStorage.uploadFromBytes(objectFilename, req.file.buffer);
+      
+      if (!uploadResult.ok) {
+        console.error('Object storage upload error:', uploadResult.error);
+        return res.status(500).json({ message: "Failed to upload file to storage" });
+      }
+
+      const publicPath = objectFilename.replace('public/', '');
+      profileImageUrl = `/public-objects/${publicPath}`;
+    } else {
+      // Use local filesystem (A2 Hosting)
+      profileImageUrl = await saveFileLocally(filename, req.file.buffer);
     }
-
-    const publicPath = filename.replace('public/', '');
-    const profileImageUrl = `/public-objects/${publicPath}`;
 
     await storage.updateTenantProfile(user.tenantId, {
       profileImageUrl: profileImageUrl,
@@ -226,13 +254,6 @@ router.post("/upload-cv", isAuthenticated, uploadDocument.single('cv'), async (r
       return res.status(404).json({ message: "Profile not found" });
     }
 
-    const storageBucketId = process.env.DEFAULT_OBJECT_STORAGE_BUCKET_ID;
-    if (!storageBucketId) {
-      return res.status(500).json({ message: "Object storage not configured" });
-    }
-
-    const objectStorage = new ObjectStorageClient({ bucketId: storageBucketId });
-    
     // Determine file extension from mimetype
     let fileExtension = 'pdf';
     if (req.file.mimetype === 'application/msword') {
@@ -240,18 +261,29 @@ router.post("/upload-cv", isAuthenticated, uploadDocument.single('cv'), async (r
     } else if (req.file.mimetype === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
       fileExtension = 'docx';
     }
-    
-    const filename = `public/cv-documents/${user.tenantId}-cv-${Date.now()}.${fileExtension}`;
 
-    const uploadResult = await objectStorage.uploadFromBytes(filename, req.file.buffer);
-    
-    if (!uploadResult.ok) {
-      console.error('Object storage upload error:', uploadResult.error);
-      return res.status(500).json({ message: "Failed to upload file to storage" });
+    const filename = `uploads/cv-documents/${user.tenantId}-cv-${Date.now()}.${fileExtension}`;
+    let cvUrl: string;
+
+    const storageBucketId = process.env.DEFAULT_OBJECT_STORAGE_BUCKET_ID;
+    if (storageBucketId) {
+      // Use object storage (Replit)
+      const objectStorage = new ObjectStorageClient({ bucketId: storageBucketId });
+      const objectFilename = `public/cv-documents/${user.tenantId}-cv-${Date.now()}.${fileExtension}`;
+
+      const uploadResult = await objectStorage.uploadFromBytes(objectFilename, req.file.buffer);
+      
+      if (!uploadResult.ok) {
+        console.error('Object storage upload error:', uploadResult.error);
+        return res.status(500).json({ message: "Failed to upload file to storage" });
+      }
+
+      const publicPath = objectFilename.replace('public/', '');
+      cvUrl = `/public-objects/${publicPath}`;
+    } else {
+      // Use local filesystem (A2 Hosting)
+      cvUrl = await saveFileLocally(filename, req.file.buffer);
     }
-
-    const publicPath = filename.replace('public/', '');
-    const cvUrl = `/public-objects/${publicPath}`;
 
     await storage.updateTenantProfile(user.tenantId, {
       cvUrl: cvUrl,
@@ -372,23 +404,28 @@ router.post("/publications/:publicationId/upload-pdf", isAuthenticated, uploadDo
 
     const { publicationId } = req.params;
 
+    const filename = `uploads/publication-pdfs/${user.tenantId}-${publicationId}-${Date.now()}.pdf`;
+    let pdfUrl: string;
+
     const storageBucketId = process.env.DEFAULT_OBJECT_STORAGE_BUCKET_ID;
-    if (!storageBucketId) {
-      return res.status(500).json({ message: "Object storage not configured" });
+    if (storageBucketId) {
+      // Use object storage (Replit)
+      const objectStorage = new ObjectStorageClient({ bucketId: storageBucketId });
+      const objectFilename = `public/publication-pdfs/${user.tenantId}-${publicationId}-${Date.now()}.pdf`;
+
+      const uploadResult = await objectStorage.uploadFromBytes(objectFilename, req.file.buffer);
+      
+      if (!uploadResult.ok) {
+        console.error('Object storage upload error:', uploadResult.error);
+        return res.status(500).json({ message: "Failed to upload file to storage" });
+      }
+
+      const publicPath = objectFilename.replace('public/', '');
+      pdfUrl = `/public-objects/${publicPath}`;
+    } else {
+      // Use local filesystem (A2 Hosting)
+      pdfUrl = await saveFileLocally(filename, req.file.buffer);
     }
-
-    const objectStorage = new ObjectStorageClient({ bucketId: storageBucketId });
-    const filename = `public/publication-pdfs/${user.tenantId}-${publicationId}-${Date.now()}.pdf`;
-
-    const uploadResult = await objectStorage.uploadFromBytes(filename, req.file.buffer);
-    
-    if (!uploadResult.ok) {
-      console.error('Object storage upload error:', uploadResult.error);
-      return res.status(500).json({ message: "Failed to upload file to storage" });
-    }
-
-    const publicPath = filename.replace('public/', '');
-    const pdfUrl = `/public-objects/${publicPath}`;
 
     const publication = await storage.updatePublicationPdf(publicationId, pdfUrl);
 

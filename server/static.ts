@@ -26,6 +26,16 @@ export function serveStatic(app: Express) {
     );
   }
 
+  // Serve uploaded files (profile photos, CVs, PDFs)
+  const uploadsPath = path.resolve(process.cwd(), "public", "uploads");
+  if (fs.existsSync(uploadsPath)) {
+    app.use("/uploads", express.static(uploadsPath));
+  } else {
+    // Create uploads directory if it doesn't exist
+    fs.mkdirSync(uploadsPath, { recursive: true });
+    app.use("/uploads", express.static(uploadsPath));
+  }
+
   app.use(express.static(distPath));
 
   app.use("*", (_req, res) => {

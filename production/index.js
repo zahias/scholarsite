@@ -1169,7 +1169,7 @@ var ObjectStorageService = class {
     const pathsStr = process.env.PUBLIC_OBJECT_SEARCH_PATHS || "";
     const paths = Array.from(
       new Set(
-        pathsStr.split(",").map((path2) => path2.trim()).filter((path2) => path2.length > 0)
+        pathsStr.split(",").map((path3) => path3.trim()).filter((path3) => path3.length > 0)
       )
     );
     if (paths.length === 0) {
@@ -1329,11 +1329,11 @@ var ObjectStorageService = class {
     });
   }
 };
-function parseObjectPath(path2) {
-  if (!path2.startsWith("/")) {
-    path2 = `/${path2}`;
+function parseObjectPath(path3) {
+  if (!path3.startsWith("/")) {
+    path3 = `/${path3}`;
   }
-  const pathParts = path2.split("/");
+  const pathParts = path3.split("/");
   if (pathParts.length < 3) {
     throw new Error("Invalid path: must contain at least a bucket name");
   }
@@ -2394,8 +2394,18 @@ import { Router as Router4 } from "express";
 import { z as z5 } from "zod";
 import multer from "multer";
 import { Client as ObjectStorageClient } from "@replit/object-storage";
+import path from "path";
+import fs from "fs/promises";
 var router4 = Router4();
 var openalexService2 = new OpenAlexService();
+async function saveFileLocally(filename, buffer) {
+  const publicDir = path.join(process.cwd(), "public");
+  const fullPath = path.join(publicDir, filename);
+  const dir = path.dirname(fullPath);
+  await fs.mkdir(dir, { recursive: true });
+  await fs.writeFile(fullPath, buffer);
+  return `/${filename}`;
+}
 var uploadImage = multer({
   storage: multer.memoryStorage(),
   limits: {
@@ -2520,20 +2530,23 @@ router4.post("/upload-photo", isAuthenticated2, uploadImage.single("photo"), asy
     if (!profile) {
       return res.status(404).json({ message: "Profile not found" });
     }
-    const storageBucketId = process.env.DEFAULT_OBJECT_STORAGE_BUCKET_ID;
-    if (!storageBucketId) {
-      return res.status(500).json({ message: "Object storage not configured" });
-    }
-    const objectStorage = new ObjectStorageClient({ bucketId: storageBucketId });
     const fileExtension = req.file.mimetype.split("/")[1];
-    const filename = `public/profile-images/${user.tenantId}-profile-${Date.now()}.${fileExtension}`;
-    const uploadResult = await objectStorage.uploadFromBytes(filename, req.file.buffer);
-    if (!uploadResult.ok) {
-      console.error("Object storage upload error:", uploadResult.error);
-      return res.status(500).json({ message: "Failed to upload file to storage" });
+    const filename = `uploads/profile-images/${user.tenantId}-profile-${Date.now()}.${fileExtension}`;
+    let profileImageUrl;
+    const storageBucketId = process.env.DEFAULT_OBJECT_STORAGE_BUCKET_ID;
+    if (storageBucketId) {
+      const objectStorage = new ObjectStorageClient({ bucketId: storageBucketId });
+      const objectFilename = `public/profile-images/${user.tenantId}-profile-${Date.now()}.${fileExtension}`;
+      const uploadResult = await objectStorage.uploadFromBytes(objectFilename, req.file.buffer);
+      if (!uploadResult.ok) {
+        console.error("Object storage upload error:", uploadResult.error);
+        return res.status(500).json({ message: "Failed to upload file to storage" });
+      }
+      const publicPath = objectFilename.replace("public/", "");
+      profileImageUrl = `/public-objects/${publicPath}`;
+    } else {
+      profileImageUrl = await saveFileLocally(filename, req.file.buffer);
     }
-    const publicPath = filename.replace("public/", "");
-    const profileImageUrl = `/public-objects/${publicPath}`;
     await storage.updateTenantProfile(user.tenantId, {
       profileImageUrl
     });
@@ -2578,25 +2591,28 @@ router4.post("/upload-cv", isAuthenticated2, uploadDocument.single("cv"), async 
     if (!profile) {
       return res.status(404).json({ message: "Profile not found" });
     }
-    const storageBucketId = process.env.DEFAULT_OBJECT_STORAGE_BUCKET_ID;
-    if (!storageBucketId) {
-      return res.status(500).json({ message: "Object storage not configured" });
-    }
-    const objectStorage = new ObjectStorageClient({ bucketId: storageBucketId });
     let fileExtension = "pdf";
     if (req.file.mimetype === "application/msword") {
       fileExtension = "doc";
     } else if (req.file.mimetype === "application/vnd.openxmlformats-officedocument.wordprocessingml.document") {
       fileExtension = "docx";
     }
-    const filename = `public/cv-documents/${user.tenantId}-cv-${Date.now()}.${fileExtension}`;
-    const uploadResult = await objectStorage.uploadFromBytes(filename, req.file.buffer);
-    if (!uploadResult.ok) {
-      console.error("Object storage upload error:", uploadResult.error);
-      return res.status(500).json({ message: "Failed to upload file to storage" });
+    const filename = `uploads/cv-documents/${user.tenantId}-cv-${Date.now()}.${fileExtension}`;
+    let cvUrl;
+    const storageBucketId = process.env.DEFAULT_OBJECT_STORAGE_BUCKET_ID;
+    if (storageBucketId) {
+      const objectStorage = new ObjectStorageClient({ bucketId: storageBucketId });
+      const objectFilename = `public/cv-documents/${user.tenantId}-cv-${Date.now()}.${fileExtension}`;
+      const uploadResult = await objectStorage.uploadFromBytes(objectFilename, req.file.buffer);
+      if (!uploadResult.ok) {
+        console.error("Object storage upload error:", uploadResult.error);
+        return res.status(500).json({ message: "Failed to upload file to storage" });
+      }
+      const publicPath = objectFilename.replace("public/", "");
+      cvUrl = `/public-objects/${publicPath}`;
+    } else {
+      cvUrl = await saveFileLocally(filename, req.file.buffer);
     }
-    const publicPath = filename.replace("public/", "");
-    const cvUrl = `/public-objects/${publicPath}`;
     await storage.updateTenantProfile(user.tenantId, {
       cvUrl
     });
@@ -2688,19 +2704,22 @@ router4.post("/publications/:publicationId/upload-pdf", isAuthenticated2, upload
       return res.status(404).json({ message: "No tenant associated with this user" });
     }
     const { publicationId } = req.params;
+    const filename = `uploads/publication-pdfs/${user.tenantId}-${publicationId}-${Date.now()}.pdf`;
+    let pdfUrl;
     const storageBucketId = process.env.DEFAULT_OBJECT_STORAGE_BUCKET_ID;
-    if (!storageBucketId) {
-      return res.status(500).json({ message: "Object storage not configured" });
+    if (storageBucketId) {
+      const objectStorage = new ObjectStorageClient({ bucketId: storageBucketId });
+      const objectFilename = `public/publication-pdfs/${user.tenantId}-${publicationId}-${Date.now()}.pdf`;
+      const uploadResult = await objectStorage.uploadFromBytes(objectFilename, req.file.buffer);
+      if (!uploadResult.ok) {
+        console.error("Object storage upload error:", uploadResult.error);
+        return res.status(500).json({ message: "Failed to upload file to storage" });
+      }
+      const publicPath = objectFilename.replace("public/", "");
+      pdfUrl = `/public-objects/${publicPath}`;
+    } else {
+      pdfUrl = await saveFileLocally(filename, req.file.buffer);
     }
-    const objectStorage = new ObjectStorageClient({ bucketId: storageBucketId });
-    const filename = `public/publication-pdfs/${user.tenantId}-${publicationId}-${Date.now()}.pdf`;
-    const uploadResult = await objectStorage.uploadFromBytes(filename, req.file.buffer);
-    if (!uploadResult.ok) {
-      console.error("Object storage upload error:", uploadResult.error);
-      return res.status(500).json({ message: "Failed to upload file to storage" });
-    }
-    const publicPath = filename.replace("public/", "");
-    const pdfUrl = `/public-objects/${publicPath}`;
     const publication = await storage.updatePublicationPdf(publicationId, pdfUrl);
     res.json({
       message: "PDF uploaded successfully",
@@ -4556,11 +4575,11 @@ async function registerRoutes(app2) {
 
 // server/static.ts
 import express from "express";
-import fs from "fs";
-import path from "path";
+import fs2 from "fs";
+import path2 from "path";
 import { fileURLToPath } from "url";
 var __filename = fileURLToPath(import.meta.url);
-var __dirname = path.dirname(__filename);
+var __dirname = path2.dirname(__filename);
 function log(message, source = "express") {
   const formattedTime = (/* @__PURE__ */ new Date()).toLocaleTimeString("en-US", {
     hour: "numeric",
@@ -4571,15 +4590,22 @@ function log(message, source = "express") {
   console.log(`${formattedTime} [${source}] ${message}`);
 }
 function serveStatic(app2) {
-  const distPath = path.resolve(__dirname, "public");
-  if (!fs.existsSync(distPath)) {
+  const distPath = path2.resolve(__dirname, "public");
+  if (!fs2.existsSync(distPath)) {
     throw new Error(
       `Could not find the build directory: ${distPath}, make sure to build the client first`
     );
   }
+  const uploadsPath = path2.resolve(process.cwd(), "public", "uploads");
+  if (fs2.existsSync(uploadsPath)) {
+    app2.use("/uploads", express.static(uploadsPath));
+  } else {
+    fs2.mkdirSync(uploadsPath, { recursive: true });
+    app2.use("/uploads", express.static(uploadsPath));
+  }
   app2.use(express.static(distPath));
   app2.use("*", (_req, res) => {
-    res.sendFile(path.resolve(distPath, "index.html"));
+    res.sendFile(path2.resolve(distPath, "index.html"));
   });
 }
 
@@ -4608,7 +4634,7 @@ app.use(session({
 }));
 app.use((req, res, next) => {
   const start = Date.now();
-  const path2 = req.path;
+  const path3 = req.path;
   let capturedJsonResponse = void 0;
   const originalResJson = res.json;
   res.json = function(bodyJson, ...args) {
@@ -4617,8 +4643,8 @@ app.use((req, res, next) => {
   };
   res.on("finish", () => {
     const duration = Date.now() - start;
-    if (path2.startsWith("/api")) {
-      let logLine = `${req.method} ${path2} ${res.statusCode} in ${duration}ms`;
+    if (path3.startsWith("/api")) {
+      let logLine = `${req.method} ${path3} ${res.statusCode} in ${duration}ms`;
       if (capturedJsonResponse) {
         logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
       }
