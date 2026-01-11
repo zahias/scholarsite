@@ -22,4 +22,6 @@ jobs:
             git pull origin main
             cp -rf production/* /home/bannwebs/scholarsite/
             mkdir -p /home/bannwebs/scholarsite/tmp
+            mkdir -p /home/bannwebs/scholarsite/uploads
+            chmod 755 /home/bannwebs/scholarsite/uploads
             touch /home/bannwebs/scholarsite/tmp/restart.txt
