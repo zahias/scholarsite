@@ -10,6 +10,8 @@ import {
   domains,
   themes,
   payments,
+  profileSections,
+  syncLogs,
   type User,
   type UpsertUser,
   type SafeUser,
@@ -35,9 +37,13 @@ import {
   type Payment,
   type InsertPayment,
   type PaymentStatus,
+  type ProfileSection,
+  type InsertProfileSection,
+  type SyncLog,
+  type InsertSyncLog,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, and, ne, inArray } from "drizzle-orm";
+import { eq, desc, and, ne, inArray, asc } from "drizzle-orm";
 import crypto from "crypto";
 
 function generateUUID(): string {
@@ -97,11 +103,26 @@ export interface IStorage {
   
   // Publications operations
   getPublications(openalexId: string, limit?: number): Promise<Publication[]>;
+  getPublicationsByOpenalexId(openalexId: string): Promise<Publication[]>;
   upsertPublications(publications: InsertPublication[]): Promise<void>;
+  updatePublicationFeatured(publicationId: string, isFeatured: boolean): Promise<Publication | undefined>;
+  updatePublicationPdf(publicationId: string, pdfUrl: string | null): Promise<Publication | undefined>;
   
   // Affiliations operations
   getAffiliations(openalexId: string): Promise<Affiliation[]>;
   upsertAffiliations(affiliations: InsertAffiliation[]): Promise<void>;
+  
+  // Profile sections operations
+  getProfileSections(profileId: string): Promise<ProfileSection[]>;
+  createProfileSection(section: InsertProfileSection): Promise<ProfileSection>;
+  updateProfileSection(id: string, updates: Partial<ProfileSection>): Promise<ProfileSection | undefined>;
+  deleteProfileSection(id: string): Promise<void>;
+  reorderProfileSections(sectionIds: string[]): Promise<void>;
+  
+  // Sync logs operations
+  getSyncLogs(profileId: string): Promise<SyncLog[]>;
+  createSyncLog(log: InsertSyncLog): Promise<SyncLog>;
+  updateSyncLog(id: string, updates: Partial<SyncLog>): Promise<SyncLog | undefined>;
   
   // Site settings operations
   getSetting(key: string): Promise<SiteSetting | undefined>;
@@ -512,6 +533,14 @@ export class DatabaseStorage implements IStorage {
     return await query;
   }
 
+  async getPublicationsByOpenalexId(openalexId: string): Promise<Publication[]> {
+    return await db
+      .select()
+      .from(publications)
+      .where(eq(publications.openalexId, openalexId))
+      .orderBy(desc(publications.publicationYear), desc(publications.citationCount));
+  }
+
   async upsertPublications(pubs: InsertPublication[]): Promise<void> {
     if (pubs.length === 0) return;
     
@@ -526,6 +555,24 @@ export class DatabaseStorage implements IStorage {
       id: generateUUID(),
     }));
     await db.insert(publications).values(pubsWithIds);
+  }
+
+  async updatePublicationFeatured(publicationId: string, isFeatured: boolean): Promise<Publication | undefined> {
+    const [result] = await db
+      .update(publications)
+      .set({ isFeatured })
+      .where(eq(publications.id, publicationId))
+      .returning();
+    return result;
+  }
+
+  async updatePublicationPdf(publicationId: string, pdfUrl: string | null): Promise<Publication | undefined> {
+    const [result] = await db
+      .update(publications)
+      .set({ pdfUrl })
+      .where(eq(publications.id, publicationId))
+      .returning();
+    return result;
   }
 
   // Affiliations operations
@@ -551,6 +598,80 @@ export class DatabaseStorage implements IStorage {
       id: generateUUID(),
     }));
     await db.insert(affiliations).values(affsWithIds);
+  }
+
+  // Profile sections operations
+  async getProfileSections(profileId: string): Promise<ProfileSection[]> {
+    return await db
+      .select()
+      .from(profileSections)
+      .where(eq(profileSections.profileId, profileId))
+      .orderBy(asc(profileSections.sortOrder));
+  }
+
+  async createProfileSection(section: InsertProfileSection): Promise<ProfileSection> {
+    const [result] = await db
+      .insert(profileSections)
+      .values({
+        ...section,
+        id: generateUUID(),
+      })
+      .returning();
+    return result;
+  }
+
+  async updateProfileSection(id: string, updates: Partial<ProfileSection>): Promise<ProfileSection | undefined> {
+    const [result] = await db
+      .update(profileSections)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(profileSections.id, id))
+      .returning();
+    return result;
+  }
+
+  async deleteProfileSection(id: string): Promise<void> {
+    await db.delete(profileSections).where(eq(profileSections.id, id));
+  }
+
+  async reorderProfileSections(sectionIds: string[]): Promise<void> {
+    await db.transaction(async (tx) => {
+      for (let i = 0; i < sectionIds.length; i++) {
+        await tx
+          .update(profileSections)
+          .set({ sortOrder: i, updatedAt: new Date() })
+          .where(eq(profileSections.id, sectionIds[i]));
+      }
+    });
+  }
+
+  // Sync logs operations
+  async getSyncLogs(profileId: string): Promise<SyncLog[]> {
+    return await db
+      .select()
+      .from(syncLogs)
+      .where(eq(syncLogs.profileId, profileId))
+      .orderBy(desc(syncLogs.startedAt))
+      .limit(50);
+  }
+
+  async createSyncLog(log: InsertSyncLog): Promise<SyncLog> {
+    const [result] = await db
+      .insert(syncLogs)
+      .values({
+        ...log,
+        id: generateUUID(),
+      })
+      .returning();
+    return result;
+  }
+
+  async updateSyncLog(id: string, updates: Partial<SyncLog>): Promise<SyncLog | undefined> {
+    const [result] = await db
+      .update(syncLogs)
+      .set(updates)
+      .where(eq(syncLogs.id, id))
+      .returning();
+    return result;
   }
 
   // Site settings operations

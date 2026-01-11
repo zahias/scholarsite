@@ -12,6 +12,7 @@ import ResearcherProfile from "@/components/ResearcherProfile";
 import AdminLogin from "@/pages/AdminLogin";
 import AdminDashboard from "@/pages/AdminDashboard";
 import AdminThemes from "@/pages/AdminThemes";
+import AdminUsers from "@/pages/AdminUsers";
 import TenantForm from "@/pages/TenantForm";
 import ResearcherLogin from "@/pages/ResearcherLogin";
 import ResearcherDashboard from "@/pages/ResearcherDashboard";
@@ -71,6 +72,7 @@ function Router() {
       <Route path="/admin/login" component={AdminLogin} />
       <Route path="/admin" component={AdminDashboard} />
       <Route path="/admin/themes" component={AdminThemes} />
+      <Route path="/admin/users" component={AdminUsers} />
       <Route path="/admin/tenants/:id" component={TenantForm} />
       <Route path="/dashboard/login" component={ResearcherLogin} />
       <Route path="/dashboard" component={ResearcherDashboard} />

@@ -291,4 +291,320 @@ router.delete("/cv", isAuthenticated, async (req: Request, res: Response) => {
   }
 });
 
+// ==========================================
+// PUBLICATION FEATURING
+// ==========================================
+
+// Get all publications for the researcher
+router.get("/publications", isAuthenticated, async (req: Request, res: Response) => {
+  try {
+    const userId = req.session?.userId;
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+    
+    const user = await storage.getUser(userId);
+    if (!user || !user.tenantId) {
+      return res.status(404).json({ message: "No tenant associated with this user" });
+    }
+
+    const tenant = await storage.getTenantWithDetails(user.tenantId);
+    if (!tenant?.profile?.openalexId) {
+      return res.status(400).json({ message: "No OpenAlex ID configured", publications: [] });
+    }
+
+    const publications = await storage.getPublicationsByOpenalexId(tenant.profile.openalexId);
+    res.json({ publications });
+  } catch (error: any) {
+    console.error("Error getting publications:", error);
+    res.status(500).json({ message: "Failed to get publications" });
+  }
+});
+
+// Toggle publication featured status
+router.patch("/publications/:publicationId/feature", isAuthenticated, async (req: Request, res: Response) => {
+  try {
+    const userId = req.session?.userId;
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+    
+    const user = await storage.getUser(userId);
+    if (!user || !user.tenantId) {
+      return res.status(404).json({ message: "No tenant associated with this user" });
+    }
+
+    const { publicationId } = req.params;
+    const { isFeatured } = req.body;
+
+    if (typeof isFeatured !== 'boolean') {
+      return res.status(400).json({ message: "isFeatured must be a boolean" });
+    }
+
+    const publication = await storage.updatePublicationFeatured(publicationId, isFeatured);
+    res.json({ publication });
+  } catch (error: any) {
+    console.error("Error updating publication featured status:", error);
+    res.status(500).json({ message: "Failed to update publication" });
+  }
+});
+
+// Upload PDF for a publication
+router.post("/publications/:publicationId/upload-pdf", isAuthenticated, uploadDocument.single('pdf'), async (req: Request, res: Response) => {
+  try {
+    const userId = req.session?.userId;
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    if (!req.file) {
+      return res.status(400).json({ message: "No file uploaded" });
+    }
+
+    if (req.file.mimetype !== 'application/pdf') {
+      return res.status(400).json({ message: "Only PDF files are allowed" });
+    }
+    
+    const user = await storage.getUser(userId);
+    if (!user || !user.tenantId) {
+      return res.status(404).json({ message: "No tenant associated with this user" });
+    }
+
+    const { publicationId } = req.params;
+
+    const storageBucketId = process.env.DEFAULT_OBJECT_STORAGE_BUCKET_ID;
+    if (!storageBucketId) {
+      return res.status(500).json({ message: "Object storage not configured" });
+    }
+
+    const objectStorage = new ObjectStorageClient({ bucketId: storageBucketId });
+    const filename = `public/publication-pdfs/${user.tenantId}-${publicationId}-${Date.now()}.pdf`;
+
+    const uploadResult = await objectStorage.uploadFromBytes(filename, req.file.buffer);
+    
+    if (!uploadResult.ok) {
+      console.error('Object storage upload error:', uploadResult.error);
+      return res.status(500).json({ message: "Failed to upload file to storage" });
+    }
+
+    const publicPath = filename.replace('public/', '');
+    const pdfUrl = `/public-objects/${publicPath}`;
+
+    const publication = await storage.updatePublicationPdf(publicationId, pdfUrl);
+
+    res.json({ 
+      message: "PDF uploaded successfully",
+      publication,
+    });
+  } catch (error: any) {
+    console.error("Error uploading publication PDF:", error);
+    res.status(500).json({ message: "Failed to upload PDF" });
+  }
+});
+
+// Delete publication PDF
+router.delete("/publications/:publicationId/pdf", isAuthenticated, async (req: Request, res: Response) => {
+  try {
+    const userId = req.session?.userId;
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+    
+    const user = await storage.getUser(userId);
+    if (!user || !user.tenantId) {
+      return res.status(404).json({ message: "No tenant associated with this user" });
+    }
+
+    const { publicationId } = req.params;
+    const publication = await storage.updatePublicationPdf(publicationId, null);
+
+    res.json({ message: "PDF removed successfully", publication });
+  } catch (error: any) {
+    console.error("Error removing publication PDF:", error);
+    res.status(500).json({ message: "Failed to remove PDF" });
+  }
+});
+
+// ==========================================
+// PROFILE SECTIONS CRUD
+// ==========================================
+
+// Get all profile sections
+router.get("/sections", isAuthenticated, async (req: Request, res: Response) => {
+  try {
+    const userId = req.session?.userId;
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+    
+    const user = await storage.getUser(userId);
+    if (!user || !user.tenantId) {
+      return res.status(404).json({ message: "No tenant associated with this user" });
+    }
+
+    const profile = await storage.getResearcherProfileByTenant(user.tenantId);
+    if (!profile) {
+      return res.status(404).json({ message: "Profile not found" });
+    }
+
+    const sections = await storage.getProfileSections(profile.id);
+    res.json({ sections });
+  } catch (error: any) {
+    console.error("Error getting profile sections:", error);
+    res.status(500).json({ message: "Failed to get profile sections" });
+  }
+});
+
+// Create profile section
+router.post("/sections", isAuthenticated, async (req: Request, res: Response) => {
+  try {
+    const userId = req.session?.userId;
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+    
+    const user = await storage.getUser(userId);
+    if (!user || !user.tenantId) {
+      return res.status(404).json({ message: "No tenant associated with this user" });
+    }
+
+    const profile = await storage.getResearcherProfileByTenant(user.tenantId);
+    if (!profile) {
+      return res.status(404).json({ message: "Profile not found" });
+    }
+
+    const { title, content, sectionType, sortOrder, isVisible } = req.body;
+
+    if (!title || !content) {
+      return res.status(400).json({ message: "Title and content are required" });
+    }
+
+    const section = await storage.createProfileSection({
+      profileId: profile.id,
+      title,
+      content,
+      sectionType: sectionType || 'custom',
+      sortOrder: sortOrder || 0,
+      isVisible: isVisible !== false,
+    });
+
+    res.json({ section });
+  } catch (error: any) {
+    console.error("Error creating profile section:", error);
+    res.status(500).json({ message: "Failed to create profile section" });
+  }
+});
+
+// Update profile section
+router.patch("/sections/:sectionId", isAuthenticated, async (req: Request, res: Response) => {
+  try {
+    const userId = req.session?.userId;
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+    
+    const user = await storage.getUser(userId);
+    if (!user || !user.tenantId) {
+      return res.status(404).json({ message: "No tenant associated with this user" });
+    }
+
+    const { sectionId } = req.params;
+    const { title, content, sectionType, sortOrder, isVisible } = req.body;
+
+    const section = await storage.updateProfileSection(sectionId, {
+      title,
+      content,
+      sectionType,
+      sortOrder,
+      isVisible,
+    });
+
+    res.json({ section });
+  } catch (error: any) {
+    console.error("Error updating profile section:", error);
+    res.status(500).json({ message: "Failed to update profile section" });
+  }
+});
+
+// Delete profile section
+router.delete("/sections/:sectionId", isAuthenticated, async (req: Request, res: Response) => {
+  try {
+    const userId = req.session?.userId;
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+    
+    const user = await storage.getUser(userId);
+    if (!user || !user.tenantId) {
+      return res.status(404).json({ message: "No tenant associated with this user" });
+    }
+
+    const { sectionId } = req.params;
+    await storage.deleteProfileSection(sectionId);
+
+    res.json({ message: "Section deleted successfully" });
+  } catch (error: any) {
+    console.error("Error deleting profile section:", error);
+    res.status(500).json({ message: "Failed to delete profile section" });
+  }
+});
+
+// Reorder profile sections
+router.post("/sections/reorder", isAuthenticated, async (req: Request, res: Response) => {
+  try {
+    const userId = req.session?.userId;
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+    
+    const user = await storage.getUser(userId);
+    if (!user || !user.tenantId) {
+      return res.status(404).json({ message: "No tenant associated with this user" });
+    }
+
+    const { sectionIds } = req.body;
+
+    if (!Array.isArray(sectionIds)) {
+      return res.status(400).json({ message: "sectionIds must be an array" });
+    }
+
+    await storage.reorderProfileSections(sectionIds);
+
+    res.json({ message: "Sections reordered successfully" });
+  } catch (error: any) {
+    console.error("Error reordering sections:", error);
+    res.status(500).json({ message: "Failed to reorder sections" });
+  }
+});
+
+// ==========================================
+// SYNC LOGS
+// ==========================================
+
+// Get sync logs for the researcher
+router.get("/sync-logs", isAuthenticated, async (req: Request, res: Response) => {
+  try {
+    const userId = req.session?.userId;
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+    
+    const user = await storage.getUser(userId);
+    if (!user || !user.tenantId) {
+      return res.status(404).json({ message: "No tenant associated with this user" });
+    }
+
+    const profile = await storage.getResearcherProfileByTenant(user.tenantId);
+    if (!profile) {
+      return res.status(404).json({ message: "Profile not found" });
+    }
+
+    const logs = await storage.getSyncLogs(profile.id);
+    res.json({ logs });
+  } catch (error: any) {
+    console.error("Error getting sync logs:", error);
+    res.status(500).json({ message: "Failed to get sync logs" });
+  }
+});
+
 export default router;

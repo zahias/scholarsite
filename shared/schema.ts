@@ -146,6 +146,8 @@ export const publications = pgTable("publications", {
   isOpenAccess: boolean("is_open_access").default(false),
   publicationType: varchar("publication_type"), // article, book-chapter, etc.
   isReviewArticle: boolean("is_review_article").default(false),
+  isFeatured: boolean("is_featured").default(false), // Highlighted publications shown prominently
+  pdfUrl: varchar("pdf_url"), // URL to uploaded PDF file
 });
 
 // Affiliations cache
@@ -160,6 +162,49 @@ export const affiliations = pgTable("affiliations", {
   startYear: integer("start_year"),
   endYear: integer("end_year"),
 });
+
+// Profile sections - custom content sections for researcher profiles
+export const profileSections = pgTable("profile_sections", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  profileId: varchar("profile_id").references(() => researcherProfiles.id).notNull(),
+  title: varchar("title").notNull(), // Section heading
+  content: text("content").notNull(), // Rich text / markdown content
+  sectionType: varchar("section_type").default('custom').notNull(), // 'bio', 'research_interests', 'awards', 'custom'
+  sortOrder: integer("sort_order").default(0).notNull(),
+  isVisible: boolean("is_visible").default(true).notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export type InsertProfileSection = typeof profileSections.$inferInsert;
+export type ProfileSection = typeof profileSections.$inferSelect;
+
+export const insertProfileSectionSchema = createInsertSchema(profileSections).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const updateProfileSectionSchema = insertProfileSectionSchema.partial().extend({
+  id: z.string(),
+});
+
+// Sync logs - track OpenAlex sync history
+export const syncLogs = pgTable("sync_logs", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  tenantId: varchar("tenant_id").references(() => tenants.id),
+  profileId: varchar("profile_id").references(() => researcherProfiles.id),
+  syncType: varchar("sync_type").notNull(), // 'full', 'publications', 'topics', 'affiliations'
+  status: varchar("status").notNull(), // 'pending', 'in_progress', 'completed', 'failed'
+  itemsProcessed: integer("items_processed").default(0),
+  itemsTotal: integer("items_total"),
+  errorMessage: text("error_message"),
+  startedAt: timestamp("started_at").defaultNow(),
+  completedAt: timestamp("completed_at"),
+});
+
+export type InsertSyncLog = typeof syncLogs.$inferInsert;
+export type SyncLog = typeof syncLogs.$inferSelect;
 
 // Tenant types
 export type InsertTenant = typeof tenants.$inferInsert;

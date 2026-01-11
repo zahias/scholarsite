@@ -185,4 +185,82 @@ router.get("/stats", isAuthenticated, isAdmin, async (req: Request, res: Respons
   }
 });
 
+// Comprehensive analytics endpoint
+router.get("/analytics", isAuthenticated, isAdmin, async (req: Request, res: Response) => {
+  try {
+    const [allUsers, allTenants] = await Promise.all([
+      storage.getAllUsers(),
+      storage.getAllTenants(),
+    ]);
+
+    // User breakdown
+    const usersByRole = {
+      admin: allUsers.filter(u => u.role === "admin").length,
+      researcher: allUsers.filter(u => u.role === "researcher").length,
+    };
+
+    const activeUsers = allUsers.filter(u => u.isActive).length;
+    const inactiveUsers = allUsers.length - activeUsers;
+
+    // Tenant breakdown
+    const tenantsByStatus = {
+      active: allTenants.filter(t => t.status === "active").length,
+      pending: allTenants.filter(t => t.status === "pending").length,
+      suspended: allTenants.filter(t => t.status === "suspended").length,
+      cancelled: allTenants.filter(t => t.status === "cancelled").length,
+    };
+
+    const tenantsByPlan = {
+      starter: allTenants.filter(t => t.plan === "starter").length,
+      professional: allTenants.filter(t => t.plan === "professional").length,
+      institution: allTenants.filter(t => t.plan === "institution").length,
+    };
+
+    // Calculate growth - users/tenants created in last 30 days
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    
+    const newUsersThisMonth = allUsers.filter(u => 
+      u.createdAt && new Date(u.createdAt) >= thirtyDaysAgo
+    ).length;
+
+    const newTenantsThisMonth = allTenants.filter(t => 
+      t.createdAt && new Date(t.createdAt) >= thirtyDaysAgo
+    ).length;
+
+    // Tenants with OpenAlex connected
+    const tenantsWithOpenAlex = allTenants.filter(t => {
+      // This would need to check the profile, but we don't have that data here
+      return true; // Placeholder
+    }).length;
+
+    return res.json({
+      analytics: {
+        users: {
+          total: allUsers.length,
+          byRole: usersByRole,
+          active: activeUsers,
+          inactive: inactiveUsers,
+          newThisMonth: newUsersThisMonth,
+        },
+        tenants: {
+          total: allTenants.length,
+          byStatus: tenantsByStatus,
+          byPlan: tenantsByPlan,
+          newThisMonth: newTenantsThisMonth,
+        },
+        overview: {
+          totalUsers: allUsers.length,
+          totalTenants: allTenants.length,
+          activeTenants: tenantsByStatus.active,
+          activeUsers: activeUsers,
+        },
+      },
+    });
+  } catch (error) {
+    console.error("Get analytics error:", error);
+    return res.status(500).json({ message: "Failed to get analytics" });
+  }
+});
+
 export const adminRouter = router;

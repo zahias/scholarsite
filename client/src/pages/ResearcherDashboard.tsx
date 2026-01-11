@@ -38,6 +38,10 @@ import {
   EyeOff,
   Lock,
   Trash2,
+  Star,
+  GripVertical,
+  Plus,
+  Edit2,
 } from "lucide-react";
 
 interface CurrentUser {
@@ -89,6 +93,32 @@ interface TenantData {
   profile: TenantProfile | null;
 }
 
+interface Publication {
+  id: string;
+  openalexId: string;
+  workId: string;
+  title: string;
+  authorNames: string | null;
+  journal: string | null;
+  publicationYear: number | null;
+  citationCount: number;
+  doi: string | null;
+  isOpenAccess: boolean;
+  publicationType: string | null;
+  isFeatured: boolean;
+  pdfUrl: string | null;
+}
+
+interface ProfileSection {
+  id: string;
+  profileId: string;
+  title: string;
+  content: string;
+  sectionType: string;
+  sortOrder: number;
+  isVisible: boolean;
+}
+
 interface OpenAlexAuthor {
   id: string;
   display_name: string;
@@ -122,6 +152,11 @@ export default function ResearcherDashboard() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
+  // Phase 2: Section editing
+  const [editingSectionId, setEditingSectionId] = useState<string | null>(null);
+  const [sectionTitle, setSectionTitle] = useState("");
+  const [sectionContent, setSectionContent] = useState("");
+  const [sectionType, setSectionType] = useState("custom");
 
   const { data: userData, isLoading: userLoading } = useQuery<{ user: CurrentUser }>({
     queryKey: ["/api/auth/me"],
@@ -140,6 +175,17 @@ export default function ResearcherDashboard() {
   // Phase 1: Fetch available themes
   const { data: themesData } = useQuery<Theme[]>({
     queryKey: ["/api/themes"],
+  });
+
+  // Phase 2: Fetch publications and sections
+  const { data: publicationsData } = useQuery<{ publications: Publication[] }>({
+    queryKey: ["/api/researcher/publications"],
+    enabled: !!tenantData?.tenant?.profile?.openalexId,
+  });
+
+  const { data: sectionsData } = useQuery<{ sections: ProfileSection[] }>({
+    queryKey: ["/api/researcher/sections"],
+    enabled: !!tenantData?.tenant?.profile,
   });
 
   useEffect(() => {
@@ -353,6 +399,69 @@ export default function ResearcherDashboard() {
       setSelectedThemeId(tenantData?.tenant?.profile?.selectedThemeId || null);
     }
   };
+
+  // Phase 2: Publication Feature Toggle
+  const toggleFeaturedMutation = useMutation({
+    mutationFn: async ({ publicationId, isFeatured }: { publicationId: string; isFeatured: boolean }) => {
+      const response = await apiRequest("PATCH", `/api/researcher/publications/${publicationId}/feature`, { isFeatured });
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/researcher/publications"] });
+    },
+    onError: (error: any) => {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    },
+  });
+
+  // Phase 2: Section CRUD Mutations
+  const createSectionMutation = useMutation({
+    mutationFn: async (data: { title: string; content: string; sectionType: string }) => {
+      const response = await apiRequest("POST", "/api/researcher/sections", data);
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({ title: "Section Created!", description: "Your new section has been added." });
+      queryClient.invalidateQueries({ queryKey: ["/api/researcher/sections"] });
+      setSectionTitle("");
+      setSectionContent("");
+      setSectionType("custom");
+    },
+    onError: (error: any) => {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    },
+  });
+
+  const updateSectionMutation = useMutation({
+    mutationFn: async ({ id, ...data }: { id: string; title?: string; content?: string; isVisible?: boolean }) => {
+      const response = await apiRequest("PATCH", `/api/researcher/sections/${id}`, data);
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({ title: "Section Updated!", description: "Your changes have been saved." });
+      queryClient.invalidateQueries({ queryKey: ["/api/researcher/sections"] });
+      setEditingSectionId(null);
+      setSectionTitle("");
+      setSectionContent("");
+    },
+    onError: (error: any) => {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    },
+  });
+
+  const deleteSectionMutation = useMutation({
+    mutationFn: async (sectionId: string) => {
+      const response = await apiRequest("DELETE", `/api/researcher/sections/${sectionId}`);
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({ title: "Section Deleted", description: "The section has been removed." });
+      queryClient.invalidateQueries({ queryKey: ["/api/researcher/sections"] });
+    },
+    onError: (error: any) => {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    },
+  });
 
   const handleSaveProfile = async () => {
     setIsSaving(true);
@@ -570,10 +679,18 @@ export default function ResearcherDashboard() {
         )}
 
         <Tabs defaultValue="profile" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 lg:w-[400px]">
+          <TabsList className="grid w-full grid-cols-5 lg:w-[600px]">
             <TabsTrigger value="profile" data-testid="tab-profile">
               <User className="w-4 h-4 mr-2" />
               Profile
+            </TabsTrigger>
+            <TabsTrigger value="publications" data-testid="tab-publications">
+              <BookOpen className="w-4 h-4 mr-2" />
+              Publications
+            </TabsTrigger>
+            <TabsTrigger value="sections" data-testid="tab-sections">
+              <FileText className="w-4 h-4 mr-2" />
+              Sections
             </TabsTrigger>
             <TabsTrigger value="social" data-testid="tab-social">
               <Globe className="w-4 h-4 mr-2" />
@@ -693,6 +810,278 @@ export default function ResearcherDashboard() {
                   <Save className="w-4 h-4 mr-2" />
                   {isSaving ? "Saving..." : "Save Changes"}
                 </Button>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Phase 2: Publications Tab */}
+          <TabsContent value="publications" className="mt-6 space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Star className="w-5 h-5 text-yellow-500" />
+                  Featured Publications
+                </CardTitle>
+                <CardDescription>
+                  Mark publications as featured to highlight them on your portfolio. Featured publications appear prominently at the top of your publications list.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {!tenantData?.tenant?.profile?.openalexId ? (
+                  <div className="text-center py-8 text-slate-500">
+                    <BookOpen className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                    <p>Connect your OpenAlex ID to manage publications</p>
+                  </div>
+                ) : !publicationsData?.publications?.length ? (
+                  <div className="text-center py-8 text-slate-500">
+                    <BookOpen className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                    <p>No publications found. Try syncing your profile.</p>
+                    <Button
+                      onClick={() => syncMutation.mutate()}
+                      variant="outline"
+                      className="mt-4"
+                      disabled={syncMutation.isPending}
+                    >
+                      <RefreshCw className={`w-4 h-4 mr-2 ${syncMutation.isPending ? 'animate-spin' : ''}`} />
+                      Sync Now
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between text-sm text-slate-500 pb-2 border-b">
+                      <span>{publicationsData.publications.filter(p => p.isFeatured).length} featured</span>
+                      <span>{publicationsData.publications.length} total publications</span>
+                    </div>
+                    <div className="max-h-[500px] overflow-y-auto space-y-2">
+                      {publicationsData.publications.map((pub) => (
+                        <div
+                          key={pub.id}
+                          className={`flex items-start gap-3 p-3 rounded-lg border transition-colors ${
+                            pub.isFeatured ? 'bg-yellow-50 border-yellow-200' : 'bg-white border-slate-200 hover:border-slate-300'
+                          }`}
+                        >
+                          <button
+                            onClick={() => toggleFeaturedMutation.mutate({ publicationId: pub.id, isFeatured: !pub.isFeatured })}
+                            className={`mt-1 transition-colors ${pub.isFeatured ? 'text-yellow-500' : 'text-slate-300 hover:text-yellow-400'}`}
+                            disabled={toggleFeaturedMutation.isPending}
+                          >
+                            <Star className={`w-5 h-5 ${pub.isFeatured ? 'fill-current' : ''}`} />
+                          </button>
+                          <div className="flex-1 min-w-0">
+                            <h4 className="font-medium text-sm text-slate-900 line-clamp-2">
+                              {pub.title}
+                            </h4>
+                            <p className="text-xs text-slate-500 mt-1">
+                              {pub.journal && <span>{pub.journal}</span>}
+                              {pub.publicationYear && <span> • {pub.publicationYear}</span>}
+                              {pub.citationCount > 0 && <span> • {pub.citationCount} citations</span>}
+                            </p>
+                            <div className="flex items-center gap-2 mt-2">
+                              {pub.isOpenAccess && (
+                                <Badge variant="outline" className="text-green-600 border-green-300 text-xs">
+                                  Open Access
+                                </Badge>
+                              )}
+                              {pub.doi && (
+                                <a
+                                  href={`https://doi.org/${pub.doi}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-xs text-blue-600 hover:underline flex items-center gap-1"
+                                >
+                                  <ExternalLink className="w-3 h-3" />
+                                  DOI
+                                </a>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Phase 2: Sections Tab */}
+          <TabsContent value="sections" className="mt-6 space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <FileText className="w-5 h-5 text-blue-500" />
+                  Content Sections
+                </CardTitle>
+                <CardDescription>
+                  Add custom sections to your portfolio such as Research Interests, Awards, Teaching, or any other content you want to showcase.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {/* Add New Section Form */}
+                <div className="space-y-4 pb-6 border-b">
+                  <h4 className="font-medium text-sm text-slate-900">
+                    {editingSectionId ? 'Edit Section' : 'Add New Section'}
+                  </h4>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-slate-700">Section Title</label>
+                      <Input
+                        value={sectionTitle}
+                        onChange={(e) => setSectionTitle(e.target.value)}
+                        placeholder="e.g., Research Interests, Awards, Teaching"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-slate-700">Section Type</label>
+                      <select
+                        value={sectionType}
+                        onChange={(e) => setSectionType(e.target.value)}
+                        className="w-full h-10 px-3 rounded-md border border-slate-200 bg-white text-sm"
+                      >
+                        <option value="custom">Custom</option>
+                        <option value="research_interests">Research Interests</option>
+                        <option value="awards">Awards & Honors</option>
+                        <option value="teaching">Teaching</option>
+                        <option value="grants">Grants & Funding</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-slate-700">Content</label>
+                    <Textarea
+                      value={sectionContent}
+                      onChange={(e) => setSectionContent(e.target.value)}
+                      placeholder="Enter your content here. You can use markdown for formatting..."
+                      className="min-h-[120px]"
+                    />
+                  </div>
+                  <div className="flex gap-2">
+                    {editingSectionId ? (
+                      <>
+                        <Button
+                          onClick={() => {
+                            updateSectionMutation.mutate({
+                              id: editingSectionId,
+                              title: sectionTitle,
+                              content: sectionContent,
+                            });
+                          }}
+                          disabled={!sectionTitle || !sectionContent || updateSectionMutation.isPending}
+                          className="bg-[#0B1F3A] hover:bg-[#1a3a5c]"
+                        >
+                          <Save className="w-4 h-4 mr-2" />
+                          Save Changes
+                        </Button>
+                        <Button
+                          variant="outline"
+                          onClick={() => {
+                            setEditingSectionId(null);
+                            setSectionTitle("");
+                            setSectionContent("");
+                            setSectionType("custom");
+                          }}
+                        >
+                          Cancel
+                        </Button>
+                      </>
+                    ) : (
+                      <Button
+                        onClick={() => {
+                          createSectionMutation.mutate({
+                            title: sectionTitle,
+                            content: sectionContent,
+                            sectionType,
+                          });
+                        }}
+                        disabled={!sectionTitle || !sectionContent || createSectionMutation.isPending}
+                        className="bg-[#0B1F3A] hover:bg-[#1a3a5c]"
+                      >
+                        <Plus className="w-4 h-4 mr-2" />
+                        Add Section
+                      </Button>
+                    )}
+                  </div>
+                </div>
+
+                {/* Existing Sections List */}
+                <div className="pt-6 space-y-3">
+                  <h4 className="font-medium text-sm text-slate-900">Your Sections</h4>
+                  {!sectionsData?.sections?.length ? (
+                    <div className="text-center py-8 text-slate-500">
+                      <FileText className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                      <p>No custom sections yet. Add one above!</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      {sectionsData.sections.map((section) => (
+                        <div
+                          key={section.id}
+                          className="flex items-start gap-3 p-4 rounded-lg border bg-white border-slate-200"
+                        >
+                          <GripVertical className="w-4 h-4 mt-1 text-slate-400 cursor-move" />
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2">
+                              <h5 className="font-medium text-slate-900">{section.title}</h5>
+                              <Badge variant="outline" className="text-xs">
+                                {section.sectionType}
+                              </Badge>
+                              {!section.isVisible && (
+                                <Badge variant="outline" className="text-xs text-orange-600 border-orange-300">
+                                  Hidden
+                                </Badge>
+                              )}
+                            </div>
+                            <p className="text-sm text-slate-500 mt-1 line-clamp-2">
+                              {section.content}
+                            </p>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => {
+                                setEditingSectionId(section.id);
+                                setSectionTitle(section.title);
+                                setSectionContent(section.content);
+                                setSectionType(section.sectionType);
+                              }}
+                            >
+                              <Edit2 className="w-4 h-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => {
+                                updateSectionMutation.mutate({
+                                  id: section.id,
+                                  isVisible: !section.isVisible,
+                                });
+                              }}
+                            >
+                              {section.isVisible ? (
+                                <Eye className="w-4 h-4" />
+                              ) : (
+                                <EyeOff className="w-4 h-4" />
+                              )}
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                              onClick={() => {
+                                if (confirm('Are you sure you want to delete this section?')) {
+                                  deleteSectionMutation.mutate(section.id);
+                                }
+                              }}
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </CardContent>
             </Card>
           </TabsContent>

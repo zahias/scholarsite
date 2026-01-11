@@ -19,6 +19,9 @@ import {
   XCircle,
   AlertCircle,
   Palette,
+  UserCog,
+  TrendingUp,
+  BarChart3,
 } from "lucide-react";
 
 interface Tenant {
@@ -39,6 +42,28 @@ interface CurrentUser {
   firstName: string;
   lastName: string;
   role: string;
+}
+
+interface Analytics {
+  users: {
+    total: number;
+    byRole: { admin: number; researcher: number };
+    active: number;
+    inactive: number;
+    newThisMonth: number;
+  };
+  tenants: {
+    total: number;
+    byStatus: { active: number; pending: number; suspended: number; cancelled: number };
+    byPlan: { starter: number; professional: number; institution: number };
+    newThisMonth: number;
+  };
+  overview: {
+    totalUsers: number;
+    totalTenants: number;
+    activeTenants: number;
+    activeUsers: number;
+  };
 }
 
 const statusConfig: Record<string, { icon: any; color: string; bg: string }> = {
@@ -64,6 +89,11 @@ export default function AdminDashboard() {
 
   const { data: tenantsData, isLoading: tenantsLoading } = useQuery<{ tenants: Tenant[] }>({
     queryKey: ["/api/admin/tenants"],
+    enabled: !!userData?.user,
+  });
+
+  const { data: analyticsData } = useQuery<{ analytics: Analytics }>({
+    queryKey: ["/api/admin/analytics"],
     enabled: !!userData?.user,
   });
 
@@ -103,8 +133,9 @@ export default function AdminDashboard() {
   }
 
   const tenants = tenantsData?.tenants || [];
-  const activeTenants = tenants.filter((t) => t.status === "active").length;
-  const pendingTenants = tenants.filter((t) => t.status === "pending").length;
+  const analytics = analyticsData?.analytics;
+  const activeTenants = analytics?.tenants.byStatus.active || tenants.filter((t) => t.status === "active").length;
+  const pendingTenants = analytics?.tenants.byStatus.pending || tenants.filter((t) => t.status === "pending").length;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
@@ -133,13 +164,20 @@ export default function AdminDashboard() {
       </header>
 
       <main className="max-w-6xl mx-auto px-4 py-8 space-y-8">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {/* Summary Stats */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <Card className="bg-white/5 border-white/10">
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-slate-400">Total Customers</p>
                   <p className="text-3xl font-bold text-white">{tenants.length}</p>
+                  {analytics?.tenants.newThisMonth ? (
+                    <p className="text-xs text-green-400 mt-1 flex items-center gap-1">
+                      <TrendingUp className="w-3 h-3" />
+                      +{analytics.tenants.newThisMonth} this month
+                    </p>
+                  ) : null}
                 </div>
                 <div className="w-12 h-12 bg-blue-500/20 rounded-xl flex items-center justify-center">
                   <Users className="w-6 h-6 text-blue-400" />
@@ -175,12 +213,94 @@ export default function AdminDashboard() {
               </div>
             </CardContent>
           </Card>
+
+          <Card className="bg-white/5 border-white/10">
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-slate-400">Total Users</p>
+                  <p className="text-3xl font-bold text-white">{analytics?.users.total || 0}</p>
+                  {analytics?.users.newThisMonth ? (
+                    <p className="text-xs text-green-400 mt-1 flex items-center gap-1">
+                      <TrendingUp className="w-3 h-3" />
+                      +{analytics.users.newThisMonth} this month
+                    </p>
+                  ) : null}
+                </div>
+                <div className="w-12 h-12 bg-purple-500/20 rounded-xl flex items-center justify-center">
+                  <UserCog className="w-6 h-6 text-purple-400" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </div>
+
+        {/* Plan Distribution */}
+        {analytics && (
+          <Card className="bg-white/5 border-white/10">
+            <CardHeader>
+              <CardTitle className="text-white flex items-center gap-2">
+                <BarChart3 className="w-5 h-5 text-slate-400" />
+                Subscription Distribution
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="bg-blue-500/10 rounded-lg p-4">
+                  <p className="text-sm text-blue-300 mb-1">Starter</p>
+                  <p className="text-2xl font-bold text-white">{analytics.tenants.byPlan.starter}</p>
+                  <div className="w-full bg-blue-900/50 rounded-full h-2 mt-2">
+                    <div 
+                      className="bg-blue-500 h-2 rounded-full"
+                      style={{ width: `${tenants.length ? (analytics.tenants.byPlan.starter / tenants.length) * 100 : 0}%` }}
+                    />
+                  </div>
+                </div>
+                <div className="bg-purple-500/10 rounded-lg p-4">
+                  <p className="text-sm text-purple-300 mb-1">Professional</p>
+                  <p className="text-2xl font-bold text-white">{analytics.tenants.byPlan.professional}</p>
+                  <div className="w-full bg-purple-900/50 rounded-full h-2 mt-2">
+                    <div 
+                      className="bg-purple-500 h-2 rounded-full"
+                      style={{ width: `${tenants.length ? (analytics.tenants.byPlan.professional / tenants.length) * 100 : 0}%` }}
+                    />
+                  </div>
+                </div>
+                <div className="bg-amber-500/10 rounded-lg p-4">
+                  <p className="text-sm text-amber-300 mb-1">Institution</p>
+                  <p className="text-2xl font-bold text-white">{analytics.tenants.byPlan.institution}</p>
+                  <div className="w-full bg-amber-900/50 rounded-full h-2 mt-2">
+                    <div 
+                      className="bg-amber-500 h-2 rounded-full"
+                      style={{ width: `${tenants.length ? (analytics.tenants.byPlan.institution / tenants.length) * 100 : 0}%` }}
+                    />
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-semibold text-white">Quick Actions</h2>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <Link href="/admin/users">
+            <Card className="bg-white/5 border-white/10 hover:bg-white/10 transition-colors cursor-pointer" data-testid="link-users">
+              <CardContent className="py-4">
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 bg-blue-500/20 rounded-xl flex items-center justify-center">
+                    <UserCog className="w-5 h-5 text-blue-400" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-medium text-white">User Management</h3>
+                    <p className="text-sm text-slate-400">Manage platform users</p>
+                  </div>
+                  <ChevronRight className="w-5 h-5 text-slate-500" />
+                </div>
+              </CardContent>
+            </Card>
+          </Link>
           <Link href="/admin/themes">
             <Card className="bg-white/5 border-white/10 hover:bg-white/10 transition-colors cursor-pointer" data-testid="link-themes">
               <CardContent className="py-4">
