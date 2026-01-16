@@ -234,7 +234,7 @@ function ResearcherProfileContent() {
       <Navigation researcherName={profile?.displayName || researcher?.display_name || 'Researcher'} />
       
       {/* Compact Hero Section */}
-      <section id="overview" className="hero-banner-compact py-6 md:py-10 relative">
+      <section id="overview" className="hero-banner-compact py-8 md:py-12 relative">
         <div className="hero-pattern"></div>
         
         {/* Back Button */}
@@ -250,62 +250,50 @@ function ResearcherProfileContent() {
           </Button>
         </div>
         
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 z-10 pt-10 md:pt-0">
-          <div className="flex flex-col md:flex-row items-center gap-4 md:gap-6 text-white">
-            {/* Profile Image - Compact */}
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 z-10 pt-12 md:pt-0">
+          <div className="flex flex-col md:flex-row items-center gap-6 md:gap-8 text-white">
+            {/* Profile Image */}
             <div className="flex-shrink-0">
               {profile?.profileImageUrl ? (
                 <img 
                   src={profile.profileImageUrl} 
                   alt="Professional portrait" 
-                  className="w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 rounded-full object-cover border-3 border-white/30 shadow-xl"
+                  className="w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 rounded-full object-cover border-4 border-white/30 shadow-2xl"
                   data-testid="img-profile-photo"
                 />
               ) : (
                 <div 
-                  className={`w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 rounded-full border-3 border-white/30 shadow-xl flex items-center justify-center bg-gradient-to-br ${getAvatarColor(profile?.displayName || researcher?.display_name || '')}`}
+                  className={`w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 rounded-full border-4 border-white/30 shadow-2xl flex items-center justify-center bg-gradient-to-br ${getAvatarColor(profile?.displayName || researcher?.display_name || '')}`}
                   data-testid="img-profile-photo"
                 >
-                  <span className="text-2xl sm:text-3xl md:text-4xl font-bold text-white">
+                  <span className="text-3xl sm:text-4xl md:text-5xl font-bold text-white">
                     {getInitials(profile?.displayName || researcher?.display_name || '')}
                   </span>
                 </div>
               )}
             </div>
             
-            {/* Name & Info */}
-            <div className="flex-1 text-center md:text-left space-y-2">
-              <div>
-                <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold mb-1" data-testid="text-display-name">
-                  {profile?.displayName || researcher?.display_name || 'Researcher Profile'}
-                </h1>
-                <p className="text-sm sm:text-base md:text-lg text-white/90" data-testid="text-title">
-                  {researcherData?.isPreview && !profile?.title 
-                    ? <span className="italic opacity-70">Professor of [Your Field]</span>
-                    : (profile?.title || 'Research Professional')}
-                </p>
-              </div>
-              
-              {/* Affiliation */}
-              <div className="flex flex-wrap items-center justify-center md:justify-start gap-2 text-xs sm:text-sm text-white/80">
-                <span className="inline-flex items-center gap-1.5 bg-white/10 px-2.5 py-1 rounded-full">
-                  <Building2 className="w-3.5 h-3.5" />
-                  <span className="truncate max-w-[200px] md:max-w-none" data-testid="text-affiliation">
-                    {researcherData?.isPreview && !profile?.currentAffiliation
-                      ? <span className="italic opacity-70">Your University or Institution</span>
-                      : (profile?.currentAffiliation || researcher?.last_known_institutions?.[0]?.display_name || 'Institution')}
-                  </span>
+            {/* Name, Title & Actions */}
+            <div className="flex-1 text-center md:text-left">
+              {/* Name & Title */}
+              <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-1" data-testid="text-display-name">
+                {profile?.displayName || researcher?.display_name || 'Researcher Profile'}
+              </h1>
+              <p className="text-base sm:text-lg md:text-xl text-white/90 mb-3" data-testid="text-title">
+                {researcherData?.isPreview && !profile?.title 
+                  ? <span className="italic opacity-70">Professor of [Your Field]</span>
+                  : (profile?.title || 'Research Professional')}
+                {' · '}
+                <span className="text-white/70" data-testid="text-affiliation">
+                  {researcherData?.isPreview && !profile?.currentAffiliation
+                    ? <span className="italic">Your Institution</span>
+                    : (profile?.currentAffiliation || researcher?.last_known_institutions?.[0]?.display_name || '')}
                 </span>
-                {(profile?.countryCode || researcher?.last_known_institutions?.[0]?.country_code) && (
-                  <span className="inline-flex items-center gap-1.5 bg-white/10 px-2.5 py-1 rounded-full">
-                    <MapPin className="w-3.5 h-3.5" />
-                    <span>{profile?.countryCode || researcher?.last_known_institutions?.[0]?.country_code}</span>
-                  </span>
-                )}
-              </div>
+              </p>
               
-              {/* Social Links - Icon buttons */}
-              <div className="flex flex-wrap items-center justify-center md:justify-start gap-1.5">
+              {/* Combined action row: Social + CV + Passport */}
+              <div className="flex flex-wrap items-center justify-center md:justify-start gap-2">
+                {/* Social Links */}
                 {profile?.orcidUrl && (
                   <a href={profile.orcidUrl} target="_blank" rel="noopener noreferrer" 
                      className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors" title="ORCID">
@@ -342,27 +330,29 @@ function ResearcherProfileContent() {
                     <Mail className="w-4 h-4" />
                   </a>
                 )}
-                {/* OpenAlex Link - Always show */}
                 <a href={`https://openalex.org/authors/${openalexId}`} target="_blank" rel="noopener noreferrer" 
-                   className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors" title="OpenAlex Profile">
+                   className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors" title="OpenAlex">
                   <ExternalLink className="w-4 h-4" />
                 </a>
-              </div>
-              
-              {/* Action Buttons Row - CV & Research Passport */}
-              <div className="flex flex-wrap items-center justify-center md:justify-start gap-2 pt-2">
+                
+                {/* Separator */}
+                <span className="hidden md:block w-px h-6 bg-white/20 mx-1"></span>
+                
+                {/* CV Download */}
                 {profile?.cvUrl && profile.cvUrl !== '#cv-placeholder' && (
                   <a 
                     href={profile.cvUrl} 
                     target="_blank" 
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 hover:bg-white/20 transition-colors text-sm font-medium"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/15 hover:bg-white/25 transition-colors text-sm font-medium"
                     data-testid="link-cv"
                   >
-                    <Download className="w-4 h-4" />
-                    Download CV
+                    <Download className="w-3.5 h-3.5" />
+                    CV
                   </a>
                 )}
+                
+                {/* Research Passport */}
                 <ResearchPassport
                   openalexId={openalexId}
                   name={profile?.displayName || researcher?.display_name || 'Researcher'}
@@ -373,24 +363,6 @@ function ResearcherProfileContent() {
                   profileUrl={typeof window !== 'undefined' ? window.location.href : ''}
                 />
               </div>
-              
-              {/* Inline Research Topics Tags */}
-              {researcherData?.topics && researcherData.topics.length > 0 && (
-                <div className="flex flex-wrap items-center justify-center md:justify-start gap-1.5 pt-2">
-                  <span className="text-xs text-white/60 mr-1">Topics:</span>
-                  {researcherData.topics.slice(0, 5).map((topic: any, index: number) => (
-                    <span 
-                      key={topic.id || index}
-                      className="inline-flex items-center px-2 py-0.5 rounded-full bg-white/15 text-xs text-white/90 hover:bg-white/25 transition-colors"
-                    >
-                      {topic.displayName}
-                    </span>
-                  ))}
-                  {researcherData.topics.length > 5 && (
-                    <span className="text-xs text-white/60">+{researcherData.topics.length - 5} more</span>
-                  )}
-                </div>
-              )}
             </div>
           </div>
         </div>
