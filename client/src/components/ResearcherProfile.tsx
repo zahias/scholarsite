@@ -338,8 +338,8 @@ function ResearcherProfileContent() {
                 {/* Separator */}
                 <span className="hidden md:block w-px h-6 bg-white/20 mx-1"></span>
                 
-                {/* CV Download */}
-                {profile?.cvUrl && profile.cvUrl !== '#cv-placeholder' && (
+                {/* CV Download - show real link or preview placeholder */}
+                {profile?.cvUrl && profile.cvUrl !== '#cv-placeholder' ? (
                   <a 
                     href={profile.cvUrl} 
                     target="_blank" 
@@ -350,6 +350,14 @@ function ResearcherProfileContent() {
                     <Download className="w-3.5 h-3.5" />
                     CV
                   </a>
+                ) : (
+                  <span 
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/10 text-sm font-medium opacity-50 cursor-not-allowed"
+                    title="CV available after claiming profile"
+                  >
+                    <Download className="w-3.5 h-3.5" />
+                    CV
+                  </span>
                 )}
                 
                 {/* Research Passport */}
