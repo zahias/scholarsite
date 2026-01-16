@@ -152,11 +152,11 @@ export default function ResearchPassport({
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
         <button 
-          className="action-button group bg-white/10 backdrop-blur-sm text-white px-6 md:px-8 py-3 md:py-4 rounded-xl hover:bg-white/20 transition-all duration-300 border border-white/15 hover:border-white/30 font-medium text-sm md:text-base min-h-[44px] flex items-center justify-center w-full"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/15 hover:bg-white/25 transition-colors text-sm font-medium text-white"
           data-testid="button-research-passport"
         >
-          <QrCode className="w-4 h-4 md:w-5 md:h-5 mr-2 md:mr-3 group-hover:scale-110 transition-transform duration-300 flex-shrink-0" />
-          Research Passport
+          <QrCode className="w-3.5 h-3.5" />
+          Passport
         </button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
