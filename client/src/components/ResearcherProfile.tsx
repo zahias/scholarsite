@@ -281,7 +281,7 @@ function ResearcherProfileContent() {
                 </h1>
                 <p className="text-sm sm:text-base md:text-lg text-white/90" data-testid="text-title">
                   {researcherData?.isPreview && !profile?.title 
-                    ? <span className="italic opacity-70">Position</span>
+                    ? <span className="italic opacity-70">Professor of [Your Field]</span>
                     : (profile?.title || 'Research Professional')}
                 </p>
               </div>
@@ -292,7 +292,7 @@ function ResearcherProfileContent() {
                   <Building2 className="w-3.5 h-3.5" />
                   <span className="truncate max-w-[200px] md:max-w-none" data-testid="text-affiliation">
                     {researcherData?.isPreview && !profile?.currentAffiliation
-                      ? <span className="italic opacity-70">Institution</span>
+                      ? <span className="italic opacity-70">Your University or Institution</span>
                       : (profile?.currentAffiliation || researcher?.last_known_institutions?.[0]?.display_name || 'Institution')}
                   </span>
                 </span>
@@ -373,6 +373,24 @@ function ResearcherProfileContent() {
                   profileUrl={typeof window !== 'undefined' ? window.location.href : ''}
                 />
               </div>
+              
+              {/* Inline Research Topics Tags */}
+              {researcherData?.topics && researcherData.topics.length > 0 && (
+                <div className="flex flex-wrap items-center justify-center md:justify-start gap-1.5 pt-2">
+                  <span className="text-xs text-white/60 mr-1">Topics:</span>
+                  {researcherData.topics.slice(0, 5).map((topic: any, index: number) => (
+                    <span 
+                      key={topic.id || index}
+                      className="inline-flex items-center px-2 py-0.5 rounded-full bg-white/15 text-xs text-white/90 hover:bg-white/25 transition-colors"
+                    >
+                      {topic.displayName}
+                    </span>
+                  ))}
+                  {researcherData.topics.length > 5 && (
+                    <span className="text-xs text-white/60">+{researcherData.topics.length - 5} more</span>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         </div>
