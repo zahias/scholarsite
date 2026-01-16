@@ -11,6 +11,7 @@ import SEO from "./SEO";
 import MobileBottomNav from "./MobileBottomNav";
 import { ThemeSwitcher } from "./ThemeSwitcher";
 import ResearchPassport from "./ResearchPassport";
+import CollapsibleSection from "./CollapsibleSection";
 import { ProfileThemeProvider, useProfileTheme, getThemeStyles } from "@/context/ThemeContext";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -19,7 +20,7 @@ import { Badge } from "@/components/ui/badge";
 import { useRealtimeUpdates } from "@/hooks/useRealtimeUpdates";
 import type { ResearcherProfile as ResearcherProfileType } from "@shared/schema";
 import { useMemo, useState, useEffect } from "react";
-import { ArrowLeft, MapPin, Building2, Mail, Globe, Linkedin } from "lucide-react";
+import { ArrowLeft, MapPin, Building2, Mail, Globe, Linkedin, BarChart3, Lightbulb, FileText, User, ExternalLink, Download } from "lucide-react";
 import { SiOrcid, SiGooglescholar, SiResearchgate } from "react-icons/si";
 import { FaXTwitter } from "react-icons/fa6";
 
@@ -232,267 +233,234 @@ function ResearcherProfileContent() {
       />
       <Navigation researcherName={profile?.displayName || researcher?.display_name || 'Researcher'} />
       
-      {/* Enhanced Hero Section - Mobile Optimized */}
-      <section id="overview" className="hero-banner min-h-[70vh] md:min-h-[85vh] flex items-center relative pt-16 md:pt-0">
-        {/* Enhanced Background pattern overlay */}
+      {/* Compact Hero Section */}
+      <section id="overview" className="hero-banner-compact py-6 md:py-10 relative">
         <div className="hero-pattern"></div>
-        <div className="hero-grid"></div>
-        <div className="hero-slice hero-slice-one"></div>
-        <div className="hero-slice hero-slice-two"></div>
         
-        {/* Back Button - Always show for navigation */}
+        {/* Back Button */}
         <div className="absolute top-4 left-4 md:top-6 md:left-6 z-20">
           <Button
             variant="outline"
             onClick={() => navigate('/')}
-            className="bg-white/10 backdrop-blur-sm border-white/20 text-white hover:bg-white/20 hover:text-white text-sm md:text-base px-3 py-2 md:px-4 md:py-2 min-h-[44px]"
+            className="bg-white/10 backdrop-blur-sm border-white/20 text-white hover:bg-white/20 hover:text-white text-sm px-3 py-2 min-h-[44px]"
             data-testid="button-back-to-home"
           >
-            <ArrowLeft className="w-4 h-4 mr-1 md:mr-2" />
-            <span className="hidden sm:inline">Back to Home</span>
-            <span className="sm:hidden">Back</span>
+            <ArrowLeft className="w-4 h-4 mr-1" />
+            <span className="hidden sm:inline">Back</span>
           </Button>
         </div>
         
-        <div className="relative max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-8 md:py-20 z-10 w-full">
-          <div className="lg:grid lg:grid-cols-12 lg:gap-12 items-center">
-            {/* Profile Image Section - Smaller on mobile */}
-            <div className="lg:col-span-4 flex justify-center lg:justify-start mb-6 md:mb-12 lg:mb-0">
-              <div className="profile-image-container">
-                <div className="profile-image-glow"></div>
-                <div className="relative bg-white/10 backdrop-blur-sm rounded-full p-2 md:p-3 shadow-2xl">
-                  {profile?.profileImageUrl ? (
-                    <img 
-                      src={profile.profileImageUrl} 
-                      alt="Professional portrait" 
-                      className="w-28 h-28 sm:w-36 sm:h-36 md:w-44 md:h-44 lg:w-56 lg:h-56 rounded-full object-cover border-3 md:border-4 border-white/30 shadow-2xl"
-                      data-testid="img-profile-photo"
-                    />
-                  ) : (
-                    <div 
-                      className={`w-28 h-28 sm:w-36 sm:h-36 md:w-44 md:h-44 lg:w-56 lg:h-56 rounded-full border-3 md:border-4 border-white/30 shadow-2xl flex items-center justify-center bg-gradient-to-br ${getAvatarColor(profile?.displayName || researcher?.display_name || '')}`}
-                      data-testid="img-profile-photo"
-                    >
-                      <span className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-white">
-                        {getInitials(profile?.displayName || researcher?.display_name || '')}
-                      </span>
-                    </div>
-                  )}
-                  <div className="profile-badge absolute -bottom-2 -right-2 md:-bottom-3 md:-right-3 w-8 h-8 md:w-10 md:h-10 rounded-full border-3 md:border-4 border-white flex items-center justify-center">
-                    <svg className="w-3 h-3 md:w-4 md:h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                    </svg>
-                  </div>
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 z-10 pt-10 md:pt-0">
+          <div className="flex flex-col md:flex-row items-center gap-4 md:gap-6 text-white">
+            {/* Profile Image - Compact */}
+            <div className="flex-shrink-0">
+              {profile?.profileImageUrl ? (
+                <img 
+                  src={profile.profileImageUrl} 
+                  alt="Professional portrait" 
+                  className="w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 rounded-full object-cover border-3 border-white/30 shadow-xl"
+                  data-testid="img-profile-photo"
+                />
+              ) : (
+                <div 
+                  className={`w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 rounded-full border-3 border-white/30 shadow-xl flex items-center justify-center bg-gradient-to-br ${getAvatarColor(profile?.displayName || researcher?.display_name || '')}`}
+                  data-testid="img-profile-photo"
+                >
+                  <span className="text-2xl sm:text-3xl md:text-4xl font-bold text-white">
+                    {getInitials(profile?.displayName || researcher?.display_name || '')}
+                  </span>
                 </div>
-              </div>
+              )}
             </div>
             
-            {/* Content Section - Mobile optimized spacing */}
-            <div className="lg:col-span-8 text-center lg:text-left text-white space-y-4 md:space-y-8">
-              <div className="space-y-3 md:space-y-6">
-                <div>
-                  <div className="hero-kicker mb-3">Research Portfolio</div>
-                  <h1 className="hero-title text-2xl sm:text-3xl md:text-5xl lg:text-6xl xl:text-7xl font-bold mb-2 md:mb-4 leading-tight bg-gradient-to-r from-white via-white to-white/80 bg-clip-text text-transparent" data-testid="text-display-name">
-                    {profile?.displayName || researcher?.display_name || 'Researcher Profile'}
-                  </h1>
-                  <p className="text-lg sm:text-xl md:text-2xl lg:text-3xl mb-2 md:mb-4 text-white/90 font-light tracking-wide" data-testid="text-title">
-                    {researcherData?.isPreview && !profile?.title 
-                      ? <span className="italic opacity-70">Position</span>
-                      : (profile?.title || 'Research Professional')}
-                  </p>
-                  <div className="hero-accent-line mb-4 md:mb-6 mx-auto lg:mx-0"></div>
-                  {/* Always show affiliation section - use placeholders for preview */}
-                  <div className="flex flex-wrap items-center justify-center lg:justify-start gap-2 md:gap-4 text-sm md:text-base text-white/80">
-                    <span className="hero-meta-pill">
-                      <Building2 className="w-4 h-4 md:w-5 md:h-5 flex-shrink-0" />
-                      <span data-testid="text-affiliation" className="text-sm md:text-base">
-                        {researcherData?.isPreview && !profile?.currentAffiliation
-                          ? <span className="italic opacity-70">Institution</span>
-                          : (profile?.currentAffiliation || researcher?.last_known_institutions?.[0]?.display_name || 'Institution')}
-                      </span>
-                    </span>
-                    {(profile?.countryCode || researcher?.last_known_institutions?.[0]?.country_code) && (
-                      <span className="hero-meta-pill">
-                        <MapPin className="w-4 h-4 md:w-5 md:h-5 flex-shrink-0" />
-                        <span className="text-sm md:text-base">{profile?.countryCode || researcher?.last_known_institutions?.[0]?.country_code}</span>
-                      </span>
-                    )}
-                  </div>
-                </div>
-              </div>
-              
-              {/* Always show bio section - use placeholder for preview */}
-              <div className="hero-bio-card backdrop-blur-sm rounded-xl md:rounded-2xl p-4 md:p-6">
-                <p className="text-sm sm:text-base md:text-lg lg:text-xl text-white/90 leading-relaxed font-light" data-testid="text-bio">
-                  {researcherData?.isPreview && !profile?.bio 
-                    ? <span className="italic opacity-70">Your research bio and description will appear here once you customize your profile.</span>
-                    : (profile?.bio || `Researcher with ${researcher?.works_count || 0} publications and ${researcher?.cited_by_count || 0} citations.`)}
+            {/* Name & Info */}
+            <div className="flex-1 text-center md:text-left space-y-2">
+              <div>
+                <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold mb-1" data-testid="text-display-name">
+                  {profile?.displayName || researcher?.display_name || 'Researcher Profile'}
+                </h1>
+                <p className="text-sm sm:text-base md:text-lg text-white/90" data-testid="text-title">
+                  {researcherData?.isPreview && !profile?.title 
+                    ? <span className="italic opacity-70">Position</span>
+                    : (profile?.title || 'Research Professional')}
                 </p>
               </div>
               
-              {/* Social/Academic Profile Links - Redesigned as pills */}
-              {(profile?.orcidUrl || profile?.googleScholarUrl || profile?.researchGateUrl || profile?.linkedinUrl || profile?.websiteUrl || profile?.twitterUrl) && (
-                <div className="flex flex-wrap items-center justify-center lg:justify-start gap-2 md:gap-3" data-testid="social-links-container">
-                  {profile?.orcidUrl && (
-                    <a
-                      href={profile.orcidUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="hero-social-pill inline-flex items-center gap-2 px-4 py-2 rounded-full text-white text-sm hover:bg-white/20 transition-all duration-300"
-                      data-testid="link-orcid"
-                    >
-                      <SiOrcid className="w-4 h-4" />
-                      <span>ORCID</span>
-                    </a>
-                  )}
-                  {profile?.googleScholarUrl && (
-                    <a
-                      href={profile.googleScholarUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="hero-social-pill inline-flex items-center gap-2 px-4 py-2 rounded-full text-white text-sm hover:bg-white/20 transition-all duration-300"
-                      data-testid="link-google-scholar"
-                    >
-                      <SiGooglescholar className="w-4 h-4" />
-                      <span>Scholar</span>
-                    </a>
-                  )}
-                  {profile?.researchGateUrl && (
-                    <a
-                      href={profile.researchGateUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="hero-social-pill inline-flex items-center gap-2 px-4 py-2 rounded-full text-white text-sm hover:bg-white/20 transition-all duration-300"
-                      data-testid="link-researchgate"
-                    >
-                      <SiResearchgate className="w-4 h-4" />
-                      <span>ResearchGate</span>
-                    </a>
-                  )}
-                  {profile?.linkedinUrl && (
-                    <a
-                      href={profile.linkedinUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="hero-social-pill inline-flex items-center gap-2 px-4 py-2 rounded-full text-white text-sm hover:bg-white/20 transition-all duration-300"
-                      data-testid="link-linkedin"
-                    >
-                      <Linkedin className="w-4 h-4" />
-                      <span>LinkedIn</span>
-                    </a>
-                  )}
-                  {profile?.websiteUrl && (
-                    <a
-                      href={profile.websiteUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="hero-social-pill inline-flex items-center gap-2 px-4 py-2 rounded-full text-white text-sm hover:bg-white/20 transition-all duration-300"
-                      data-testid="link-website"
-                    >
-                      <Globe className="w-4 h-4" />
-                      <span>Website</span>
-                    </a>
-                  )}
-                  {profile?.twitterUrl && (
-                    <a
-                      href={profile.twitterUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="hero-social-pill inline-flex items-center gap-2 px-4 py-2 rounded-full text-white text-sm hover:bg-white/20 transition-all duration-300"
-                      data-testid="link-twitter"
-                    >
-                      <FaXTwitter className="w-4 h-4" />
-                      <span>X</span>
-                    </a>
-                  )}
-                </div>
-              )}
-              
-              {/* Streamlined Action Buttons - Primary actions only */}
-              <div className="flex flex-col sm:flex-row flex-wrap justify-center lg:justify-start gap-3 pt-2 md:pt-4">
-                {(profile?.contactEmail || profile?.email) && (
-                  <a 
-                    href={`mailto:${profile.contactEmail || profile.email}`}
-                    className="action-button hero-cta-primary group px-6 md:px-8 py-3 md:py-4 rounded-xl hover:bg-white/90 transition-all duration-300 font-medium shadow-lg hover:shadow-xl hover:scale-105 text-sm md:text-base min-h-[44px] flex items-center justify-center w-full sm:w-auto"
-                    data-testid="link-contact"
-                  >
-                    <Mail className="w-4 h-4 md:w-5 md:h-5 mr-2 md:mr-3 group-hover:scale-110 transition-transform duration-300 flex-shrink-0" />
-                    Get In Touch
-                  </a>
+              {/* Affiliation */}
+              <div className="flex flex-wrap items-center justify-center md:justify-start gap-2 text-xs sm:text-sm text-white/80">
+                <span className="inline-flex items-center gap-1.5 bg-white/10 px-2.5 py-1 rounded-full">
+                  <Building2 className="w-3.5 h-3.5" />
+                  <span className="truncate max-w-[200px] md:max-w-none" data-testid="text-affiliation">
+                    {researcherData?.isPreview && !profile?.currentAffiliation
+                      ? <span className="italic opacity-70">Institution</span>
+                      : (profile?.currentAffiliation || researcher?.last_known_institutions?.[0]?.display_name || 'Institution')}
+                  </span>
+                </span>
+                {(profile?.countryCode || researcher?.last_known_institutions?.[0]?.country_code) && (
+                  <span className="inline-flex items-center gap-1.5 bg-white/10 px-2.5 py-1 rounded-full">
+                    <MapPin className="w-3.5 h-3.5" />
+                    <span>{profile?.countryCode || researcher?.last_known_institutions?.[0]?.country_code}</span>
+                  </span>
                 )}
-                {profile?.cvUrl && profile.cvUrl !== '#cv-placeholder' && (
-                  <a 
-                    href={profile.cvUrl} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="action-button hero-cta-secondary group backdrop-blur-sm text-white px-6 md:px-8 py-3 md:py-4 rounded-xl hover:bg-white/25 transition-all duration-300 hover:border-white/40 hover:scale-105 font-medium text-sm md:text-base min-h-[44px] flex items-center justify-center w-full sm:w-auto"
-                    data-testid="link-cv"
-                  >
-                    <svg className="w-4 h-4 md:w-5 md:h-5 mr-2 md:mr-3 inline-block group-hover:scale-110 transition-transform duration-300 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clipRule="evenodd" />
-                    </svg>
-                    Download CV
-                  </a>
-                )}
-                <a 
-                  href={`https://openalex.org/authors/${openalexId}`} 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="action-button hero-cta-secondary group backdrop-blur-sm text-white px-6 md:px-8 py-3 md:py-4 rounded-xl hover:bg-white/20 transition-all duration-300 hover:border-white/30 font-medium text-sm md:text-base min-h-[44px] flex items-center justify-center w-full sm:w-auto"
-                  data-testid="link-openalex"
-                >
-                  <svg className="w-4 h-4 md:w-5 md:h-5 mr-2 md:mr-3 inline-block group-hover:rotate-12 transition-transform duration-300 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z" />
-                    <path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z" />
-                  </svg>
-                  OpenAlex Profile
-                </a>
-                <div className="w-full sm:w-auto">
-                  <ResearchPassport
-                    openalexId={openalexId}
-                    name={profile?.displayName || researcher?.display_name || 'Researcher'}
-                    title={profile?.title}
-                    institution={profile?.currentAffiliation || researcher?.last_known_institutions?.[0]?.display_name}
-                    publicationCount={researcher?.works_count || 0}
-                    citationCount={researcher?.cited_by_count || 0}
-                    profileUrl={window.location.href}
-                  />
-                </div>
               </div>
               
-              {/* Preview Mode Indicator */}
-              {profile?.isPreview && (
-                <div className="mt-6">
-                  <Badge variant="secondary" className="bg-amber-500/20 text-amber-200 border-amber-500/30 px-4 py-2">
-                    Preview Mode - This is how your portfolio would look
-                  </Badge>
-                </div>
-              )}
+              {/* Social Links - Icon buttons */}
+              <div className="flex flex-wrap items-center justify-center md:justify-start gap-1.5">
+                {profile?.orcidUrl && (
+                  <a href={profile.orcidUrl} target="_blank" rel="noopener noreferrer" 
+                     className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors" title="ORCID">
+                    <SiOrcid className="w-4 h-4" />
+                  </a>
+                )}
+                {profile?.googleScholarUrl && (
+                  <a href={profile.googleScholarUrl} target="_blank" rel="noopener noreferrer" 
+                     className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors" title="Google Scholar">
+                    <SiGooglescholar className="w-4 h-4" />
+                  </a>
+                )}
+                {profile?.linkedinUrl && (
+                  <a href={profile.linkedinUrl} target="_blank" rel="noopener noreferrer" 
+                     className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors" title="LinkedIn">
+                    <Linkedin className="w-4 h-4" />
+                  </a>
+                )}
+                {profile?.twitterUrl && (
+                  <a href={profile.twitterUrl} target="_blank" rel="noopener noreferrer" 
+                     className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors" title="Twitter/X">
+                    <FaXTwitter className="w-4 h-4" />
+                  </a>
+                )}
+                {profile?.websiteUrl && (
+                  <a href={profile.websiteUrl} target="_blank" rel="noopener noreferrer" 
+                     className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors" title="Website">
+                    <Globe className="w-4 h-4" />
+                  </a>
+                )}
+                {profile?.contactEmail && (
+                  <a href={`mailto:${profile.contactEmail}`} 
+                     className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors" title="Email">
+                    <Mail className="w-4 h-4" />
+                  </a>
+                )}
+              </div>
             </div>
           </div>
         </div>
-        
-        {/* Enhanced Decorative Elements */}
-        <div className="hero-decorative top-20 right-20 w-80 h-80 bg-gradient-to-r from-white/8 to-accent/5"></div>
-        <div className="hero-decorative bottom-20 left-20 w-64 h-64 bg-gradient-to-r from-accent/8 to-primary/5"></div>
-        <div className="hero-decorative top-1/2 right-1/3 w-48 h-48 bg-gradient-to-r from-primary/6 to-white/4"></div>
       </section>
 
+      {/* Stats Overview - Always visible */}
       <StatsOverview openalexId={openalexId} />
+      
+      {/* About Section - Collapsible */}
+      {(profile?.bio || profile?.cvUrl || openalexId) && (
+        <section className="py-6 md:py-10 bg-muted">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <CollapsibleSection
+              id="about"
+              title="About"
+              icon={<User className="w-5 h-5 md:w-6 md:h-6" />}
+              defaultOpen={true}
+              mobileDefaultOpen={true}
+            >
+              <div className="space-y-4">
+                {profile?.bio && (
+                  <p className="text-sm md:text-base text-muted-foreground leading-relaxed" data-testid="text-bio">
+                    {profile.bio}
+                  </p>
+                )}
+                <div className="flex flex-wrap gap-3">
+                  {profile?.cvUrl && (
+                    <a 
+                      href={profile.cvUrl} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 text-sm text-primary hover:text-primary/80 transition-colors"
+                      data-testid="link-cv"
+                    >
+                      <Download className="w-4 h-4" />
+                      Download CV
+                    </a>
+                  )}
+                  {openalexId && (
+                    <a 
+                      href={`https://openalex.org/authors/${openalexId}`}
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 text-sm text-primary hover:text-primary/80 transition-colors"
+                      data-testid="link-openalex"
+                    >
+                      <ExternalLink className="w-4 h-4" />
+                      View on OpenAlex
+                    </a>
+                  )}
+                </div>
+              </div>
+            </CollapsibleSection>
+          </div>
+        </section>
+      )}
       
       {/* Custom Profile Sections */}
       {researcherData?.profileSections && researcherData.profileSections.length > 0 && (
         <ProfileSections sections={researcherData.profileSections} />
       )}
-      
-      <PublicationAnalytics openalexId={openalexId} researcherData={researcherData} />
+
+      {/* Analytics - Collapsible */}
+      <CollapsibleSection
+        id="analytics"
+        title="Publication Analytics"
+        icon={<BarChart3 className="w-5 h-5 md:w-6 md:h-6" />}
+        defaultOpen={true}
+        mobileDefaultOpen={false}
+        className="bg-background"
+      >
+        <PublicationAnalytics openalexId={openalexId} researcherData={researcherData} inline />
+      </CollapsibleSection>
+
+      {/* Research Network */}
       <ResearchNetwork 
         publications={researcherData?.publications || []}
         researcherName={profile?.displayName || researcher?.display_name || ''} 
         isLoading={isLoading}
       />
-      <ResearchTopics openalexId={openalexId} />
-      <Publications openalexId={openalexId} />
+
+      {/* Research Topics - Collapsible */}
+      <CollapsibleSection
+        id="research"
+        title="Research Areas"
+        icon={<Lightbulb className="w-5 h-5 md:w-6 md:h-6" />}
+        defaultOpen={true}
+        mobileDefaultOpen={false}
+        className="bg-muted"
+        badge={
+          researcherData?.topics?.length ? (
+            <Badge variant="secondary" className="ml-2">
+              {researcherData.topics.length}
+            </Badge>
+          ) : null
+        }
+      >
+        <ResearchTopics openalexId={openalexId} inline />
+      </CollapsibleSection>
+
+      {/* Publications - Collapsible */}
+      <CollapsibleSection
+        id="publications"
+        title="Publications"
+        icon={<FileText className="w-5 h-5 md:w-6 md:h-6" />}
+        defaultOpen={true}
+        mobileDefaultOpen={false}
+        className="bg-background"
+        badge={
+          researcher?.works_count ? (
+            <Badge variant="secondary" className="ml-2">
+              {researcher.works_count}
+            </Badge>
+          ) : null
+        }
+      >
+        <Publications openalexId={openalexId} inline />
+      </CollapsibleSection>
 
       {/* Footer */}
       <footer className="bg-gradient-to-br from-card to-muted/20 border-t border-border py-8">
