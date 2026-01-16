@@ -701,30 +701,30 @@ export default function ResearcherDashboard() {
         )}
 
         <Tabs defaultValue="profile" className="w-full">
-          <TabsList className="grid w-full grid-cols-6 lg:w-[720px]">
-            <TabsTrigger value="profile" data-testid="tab-profile">
-              <User className="w-4 h-4 mr-2" />
-              Profile
+          <TabsList className="flex flex-wrap justify-start gap-1 w-full lg:grid lg:grid-cols-6 lg:w-[720px] h-auto p-1">
+            <TabsTrigger value="profile" data-testid="tab-profile" className="flex-1 min-w-[80px] text-xs sm:text-sm">
+              <User className="w-4 h-4 sm:mr-2" />
+              <span className="hidden sm:inline">Profile</span>
             </TabsTrigger>
-            <TabsTrigger value="publications" data-testid="tab-publications">
-              <BookOpen className="w-4 h-4 mr-2" />
-              Publications
+            <TabsTrigger value="publications" data-testid="tab-publications" className="flex-1 min-w-[80px] text-xs sm:text-sm">
+              <BookOpen className="w-4 h-4 sm:mr-2" />
+              <span className="hidden sm:inline">Publications</span>
             </TabsTrigger>
-            <TabsTrigger value="sections" data-testid="tab-sections">
-              <FileText className="w-4 h-4 mr-2" />
-              Sections
+            <TabsTrigger value="sections" data-testid="tab-sections" className="flex-1 min-w-[80px] text-xs sm:text-sm">
+              <FileText className="w-4 h-4 sm:mr-2" />
+              <span className="hidden sm:inline">Sections</span>
             </TabsTrigger>
-            <TabsTrigger value="sync" data-testid="tab-sync">
-              <History className="w-4 h-4 mr-2" />
-              Sync
+            <TabsTrigger value="sync" data-testid="tab-sync" className="flex-1 min-w-[80px] text-xs sm:text-sm">
+              <History className="w-4 h-4 sm:mr-2" />
+              <span className="hidden sm:inline">Sync</span>
             </TabsTrigger>
-            <TabsTrigger value="social" data-testid="tab-social">
-              <Globe className="w-4 h-4 mr-2" />
-              Social
+            <TabsTrigger value="social" data-testid="tab-social" className="flex-1 min-w-[80px] text-xs sm:text-sm">
+              <Globe className="w-4 h-4 sm:mr-2" />
+              <span className="hidden sm:inline">Social</span>
             </TabsTrigger>
-            <TabsTrigger value="settings" data-testid="tab-settings">
-              <Settings className="w-4 h-4 mr-2" />
-              Settings
+            <TabsTrigger value="settings" data-testid="tab-settings" className="flex-1 min-w-[80px] text-xs sm:text-sm">
+              <Settings className="w-4 h-4 sm:mr-2" />
+              <span className="hidden sm:inline">Settings</span>
             </TabsTrigger>
           </TabsList>
 

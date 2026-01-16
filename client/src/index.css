@@ -635,14 +635,97 @@
   }
 }
 
-/* ===== MOBILE ===== */
+/* ===== MOBILE OPTIMIZATIONS ===== */
 @media (max-width: 640px) {
   .landing-hero,
   .hero-banner {
     min-height: auto;
+    padding-top: 1rem;
+    padding-bottom: 2rem;
   }
   
-  .hero-decorative {
+  .hero-decorative,
+  .hero-orb,
+  .hero-slice {
     display: none;
+  }
+  
+  /* Tighter spacing on mobile */
+  .hero-bio-card {
+    padding: 1rem;
+    margin-top: 1rem;
+  }
+  
+  /* Smaller social pills on mobile */
+  .hero-social-pill {
+    padding: 0.4rem 0.75rem;
+    font-size: 0.75rem;
+  }
+  
+  .hero-meta-pill {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+  }
+  
+  /* Navigation adjustments */
+  .nav-premium {
+    padding: 0 0.5rem;
+  }
+  
+  /* Better touch targets */
+  button, a, .btn-premium {
+    min-height: 44px;
+  }
+  
+  /* Card padding on mobile */
+  .stat-card {
+    padding: 0.5rem;
+  }
+  
+  /* Typography scaling */
+  .hero-title {
+    font-size: 1.5rem;
+    line-height: 1.2;
+  }
+  
+  .hero-kicker {
+    font-size: 0.6rem;
+    letter-spacing: 0.2em;
+  }
+}
+
+/* Medium mobile (landscape phones) */
+@media (min-width: 640px) and (max-width: 768px) {
+  .landing-hero,
+  .hero-banner {
+    min-height: 70vh;
+  }
+}
+
+/* Tablet */
+@media (min-width: 768px) and (max-width: 1024px) {
+  .hero-banner {
+    min-height: 75vh;
+  }
+}
+
+/* Safe area insets for notched phones */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  .pb-safe {
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  }
+}
+
+/* Better scrolling on touch devices */
+@media (hover: none) and (pointer: coarse) {
+  .overflow-y-auto {
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  /* Larger tap targets */
+  button:not(.icon-only),
+  [role="button"]:not(.icon-only) {
+    min-height: 44px;
+    min-width: 44px;
   }
 }

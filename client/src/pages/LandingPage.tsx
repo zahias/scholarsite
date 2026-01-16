@@ -163,10 +163,10 @@ export default function LandingPage() {
               <BookOpen className="h-7 w-7 text-white mr-2" />
               <span className="text-lg font-semibold text-white">ScholarName</span>
             </Link>
-            <div className="hidden md:flex items-center gap-8">
-              <a href="#features" className="nav-link text-sm" data-testid="link-features">Features</a>
-              <a href="#pricing" className="nav-link text-sm" data-testid="link-pricing">Pricing</a>
-              <Button size="sm" className="btn-premium text-sm px-5 py-2" data-testid="button-get-started-nav" onClick={() => { window.scrollTo(0, 0); navigate('/contact'); }}>Get Started</Button>
+            <div className="flex items-center gap-4 md:gap-8">
+              <a href="#features" className="nav-link text-xs md:text-sm hidden sm:block" data-testid="link-features">Features</a>
+              <a href="#pricing" className="nav-link text-xs md:text-sm hidden sm:block" data-testid="link-pricing">Pricing</a>
+              <Button size="sm" className="btn-premium text-xs md:text-sm px-3 md:px-5 py-2" data-testid="button-get-started-nav" onClick={() => { window.scrollTo(0, 0); navigate('/contact'); }}>Get Started</Button>
             </div>
           </div>
         </div>
@@ -179,11 +179,11 @@ export default function LandingPage() {
         
         <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto">
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight mb-6 text-white">
+            <h1 className="text-2xl sm:text-4xl lg:text-6xl font-bold tracking-tight mb-4 sm:mb-6 text-white leading-tight">
               Your Research Deserves Better Than{" "}
               <span className="bg-gradient-to-r from-orange-300 via-orange-200 to-amber-200 bg-clip-text text-transparent">a Google Scholar Page</span>
             </h1>
-            <p className="text-lg lg:text-xl text-white/80 mb-8 leading-relaxed">
+            <p className="text-base sm:text-lg lg:text-xl text-white/80 mb-6 sm:mb-8 leading-relaxed px-2">
               See it in action
             </p>
 
@@ -271,9 +271,9 @@ export default function LandingPage() {
             </div>
 
             {/* Example Profiles */}
-            <div className="mt-10">
-              <p className="text-white/60 text-sm mb-4">Or try these examples:</p>
-              <div className="flex flex-wrap justify-center gap-3">
+            <div className="mt-8 sm:mt-10">
+              <p className="text-white/60 text-xs sm:text-sm mb-3 sm:mb-4">Or try these examples:</p>
+              <div className="flex flex-col sm:flex-row flex-wrap justify-center gap-2 sm:gap-3 px-4 sm:px-0">
                 {[
                   { name: "Albert Einstein", id: "A5109805546" },
                   { name: "Richard Feynman", id: "A5037710835" },
@@ -297,9 +297,9 @@ export default function LandingPage() {
       </section>
 
       {/* Credibility Badges */}
-      <section className="py-8 bg-white border-b">
+      <section className="py-6 sm:py-8 bg-white border-b">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
             <div className="flex items-center justify-center gap-3" data-testid="badge-auto-sync">
               <div className="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center flex-shrink-0">
                 <RefreshCw className="w-5 h-5 text-green-600" />
@@ -332,10 +332,10 @@ export default function LandingPage() {
       </section>
 
       {/* Features Section */}
-      <section id="features" className="py-16 lg:py-24 bg-muted/30">
+      <section id="features" className="py-12 sm:py-16 lg:py-24 bg-muted/30">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl sm:text-4xl font-bold mb-4">
+          <div className="text-center mb-8 sm:mb-12">
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-3 sm:mb-4">
               Built for Researchers
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
@@ -361,14 +361,14 @@ export default function LandingPage() {
       </section>
 
       {/* Pricing Section */}
-      <section id="pricing" className="py-16 lg:py-24 bg-white">
+      <section id="pricing" className="py-12 sm:py-16 lg:py-24 bg-white">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <Badge className="mb-4 bg-amber-100 text-amber-800 hover:bg-amber-100">
+          <div className="text-center mb-8 sm:mb-12">
+            <Badge className="mb-3 sm:mb-4 bg-amber-100 text-amber-800 hover:bg-amber-100">
               <Award className="w-3 h-3 mr-1" />
               Early Adopter Pricing
             </Badge>
-            <h2 className="text-3xl sm:text-4xl font-bold mb-4">
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-3 sm:mb-4">
               Simple Pricing
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
