@@ -150,37 +150,38 @@ export default function TenantProfilePage() {
       />
       <Navigation researcherName={profile?.displayName || researcher?.display_name || 'Researcher'} />
       
-      <section id="overview" className="hero-banner min-h-[70vh] md:min-h-[85vh] flex items-center relative pt-16 md:pt-0">
+      <section id="overview" className="hero-banner min-h-[50vh] sm:min-h-[60vh] md:min-h-[85vh] flex items-center relative pt-8 sm:pt-16 md:pt-0">
         <div className="hero-pattern"></div>
-        <div className="hero-grid"></div>
-        <div className="hero-slice hero-slice-one"></div>
-        <div className="hero-slice hero-slice-two"></div>
+        <div className="hidden md:block hero-grid"></div>
+        <div className="hidden md:block hero-slice hero-slice-one"></div>
+        <div className="hidden md:block hero-slice hero-slice-two"></div>
         
-        <div className="relative max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-8 md:py-20 z-10 w-full">
-          <div className="lg:grid lg:grid-cols-12 lg:gap-12 items-center">
-            <div className="lg:col-span-4 flex justify-center lg:justify-start mb-6 md:mb-12 lg:mb-0">
+        <div className="relative max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-6 sm:py-8 md:py-20 z-10 w-full">
+          <div className="flex flex-col items-center lg:grid lg:grid-cols-12 lg:gap-12 lg:items-center">
+            {/* Profile Image - Smaller on mobile */}
+            <div className="lg:col-span-4 flex justify-center lg:justify-start mb-4 sm:mb-6 md:mb-12 lg:mb-0">
               <div className="profile-image-container">
-                <div className="profile-image-glow"></div>
-                <div className="relative bg-white/10 backdrop-blur-sm rounded-full p-2 md:p-3 shadow-2xl">
+                <div className="hidden sm:block profile-image-glow"></div>
+                <div className="relative bg-white/10 backdrop-blur-sm rounded-full p-1 sm:p-2 md:p-3 shadow-xl sm:shadow-2xl">
                   {profile?.profileImageUrl ? (
                     <img 
                       src={profile.profileImageUrl} 
                       alt="Professional portrait" 
-                      className="w-28 h-28 sm:w-36 sm:h-36 md:w-44 md:h-44 lg:w-56 lg:h-56 rounded-full object-cover border-3 md:border-4 border-white/30 shadow-2xl"
+                      className="w-20 h-20 sm:w-28 sm:h-28 md:w-44 md:h-44 lg:w-56 lg:h-56 rounded-full object-cover border-2 sm:border-3 md:border-4 border-white/30 shadow-lg sm:shadow-2xl"
                       data-testid="img-profile-photo"
                     />
                   ) : (
                     <div 
-                      className={`w-28 h-28 sm:w-36 sm:h-36 md:w-44 md:h-44 lg:w-56 lg:h-56 rounded-full border-3 md:border-4 border-white/30 shadow-2xl flex items-center justify-center bg-gradient-to-br ${getAvatarColor(profile?.displayName || researcher?.display_name || '')}`}
+                      className={`w-20 h-20 sm:w-28 sm:h-28 md:w-44 md:h-44 lg:w-56 lg:h-56 rounded-full border-2 sm:border-3 md:border-4 border-white/30 shadow-lg sm:shadow-2xl flex items-center justify-center bg-gradient-to-br ${getAvatarColor(profile?.displayName || researcher?.display_name || '')}`}
                       data-testid="img-profile-photo"
                     >
-                      <span className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-white">
+                      <span className="text-2xl sm:text-3xl md:text-5xl lg:text-6xl font-bold text-white">
                         {getInitials(profile?.displayName || researcher?.display_name || '')}
                       </span>
                     </div>
                   )}
-                  <div className="profile-badge absolute -bottom-2 -right-2 md:-bottom-3 md:-right-3 w-8 h-8 md:w-10 md:h-10 rounded-full border-3 md:border-4 border-white flex items-center justify-center">
-                    <svg className="w-3 h-3 md:w-4 md:h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                  <div className="hidden sm:flex profile-badge absolute -bottom-2 -right-2 md:-bottom-3 md:-right-3 w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10 rounded-full border-2 sm:border-3 md:border-4 border-white items-center justify-center">
+                    <svg className="w-2.5 h-2.5 sm:w-3 sm:h-3 md:w-4 md:h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                     </svg>
                   </div>
@@ -188,52 +189,51 @@ export default function TenantProfilePage() {
               </div>
             </div>
             
-            <div className="lg:col-span-8 text-center lg:text-left text-white space-y-4 md:space-y-8">
-              <div className="space-y-3 md:space-y-6">
+            {/* Content - Simplified on mobile */}
+            <div className="lg:col-span-8 text-center lg:text-left text-white space-y-3 sm:space-y-4 md:space-y-8">
+              <div className="space-y-2 sm:space-y-3 md:space-y-6">
                 <div>
-                  <div className="hero-kicker mb-3">Research Portfolio</div>
-                  <h1 className="hero-title text-2xl sm:text-3xl md:text-5xl lg:text-6xl xl:text-7xl font-bold mb-2 md:mb-4 leading-tight bg-gradient-to-r from-white via-white to-white/80 bg-clip-text text-transparent" data-testid="text-display-name">
+                  <div className="hidden sm:block hero-kicker mb-2 sm:mb-3">Research Portfolio</div>
+                  <h1 className="hero-title text-xl sm:text-2xl md:text-5xl lg:text-6xl xl:text-7xl font-bold mb-1 sm:mb-2 md:mb-4 leading-tight bg-gradient-to-r from-white via-white to-white/80 bg-clip-text text-transparent" data-testid="text-display-name">
                     {profile?.displayName || researcher?.display_name || 'Researcher Profile'}
                   </h1>
-                  <p className="text-lg sm:text-xl md:text-2xl lg:text-3xl mb-2 md:mb-4 text-white/90 font-light tracking-wide" data-testid="text-title">
+                  <p className="text-sm sm:text-lg md:text-2xl lg:text-3xl mb-1 sm:mb-2 md:mb-4 text-white/90 font-light tracking-wide" data-testid="text-title">
                     {profile?.title || 'Research Professional'}
                   </p>
-                  <div className="hero-accent-line mb-4 md:mb-6 mx-auto lg:mx-0"></div>
-                  <div className="flex flex-wrap items-center justify-center lg:justify-start gap-2 md:gap-4 text-sm md:text-base text-white/80">
-                    <span className="hero-meta-pill">
-                      <Building2 className="w-4 h-4 md:w-5 md:h-5 flex-shrink-0" />
-                      <span data-testid="text-affiliation" className="text-sm md:text-base">
+                  <div className="hidden sm:block hero-accent-line mb-3 sm:mb-4 md:mb-6 mx-auto lg:mx-0"></div>
+                  {/* Affiliation - simplified on mobile */}
+                  <div className="flex flex-wrap items-center justify-center lg:justify-start gap-1 sm:gap-2 md:gap-4 text-xs sm:text-sm md:text-base text-white/80">
+                    <span className="hero-meta-pill text-xs sm:text-sm">
+                      <Building2 className="w-3 h-3 sm:w-4 sm:h-4 md:w-5 md:h-5 flex-shrink-0" />
+                      <span data-testid="text-affiliation" className="truncate max-w-[150px] sm:max-w-none">
                         {profile?.currentAffiliation || researcher?.last_known_institutions?.[0]?.display_name || 'Institution'}
                       </span>
-                    </span>
-                    <span className="hero-meta-pill">
-                      <MapPin className="w-4 h-4 md:w-5 md:h-5 flex-shrink-0" />
-                      <span className="text-sm md:text-base">{profile?.countryCode || researcher?.last_known_institutions?.[0]?.country_code || ''}</span>
                     </span>
                   </div>
                 </div>
               </div>
               
-              <div className="hero-bio-card backdrop-blur-sm rounded-xl md:rounded-2xl p-4 md:p-6">
-                <p className="text-sm sm:text-base md:text-lg lg:text-xl text-white/90 leading-relaxed font-light" data-testid="text-bio">
+              {/* Bio card - hidden on mobile */}
+              <div className="hidden sm:block hero-bio-card backdrop-blur-sm rounded-xl md:rounded-2xl p-3 sm:p-4 md:p-6">
+                <p className="text-xs sm:text-sm md:text-lg lg:text-xl text-white/90 leading-relaxed font-light line-clamp-3 sm:line-clamp-none" data-testid="text-bio">
                   {profile?.bio || `Researcher with ${researcher?.works_count || 0} publications and ${researcher?.cited_by_count || 0} citations.`}
                 </p>
               </div>
               
-              {/* Social/Academic Profile Links */}
+              {/* Social/Academic Profile Links - icons only on mobile */}
               {(profile?.orcidUrl || profile?.googleScholarUrl || profile?.researchGateUrl || profile?.linkedinUrl || profile?.websiteUrl || profile?.twitterUrl) && (
-                <div className="flex flex-wrap items-center justify-center lg:justify-start gap-2 md:gap-3" data-testid="social-links-container">
+                <div className="flex flex-wrap items-center justify-center lg:justify-start gap-1.5 sm:gap-2 md:gap-3" data-testid="social-links-container">
                   {profile?.orcidUrl && (
                     <a
                       href={profile.orcidUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="hero-social-pill inline-flex items-center gap-2 px-4 py-2 rounded-full text-white text-sm hover:bg-white/20 transition-all duration-300"
+                      className="hero-social-pill inline-flex items-center gap-1 sm:gap-2 px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 rounded-full text-white text-xs sm:text-sm hover:bg-white/20 transition-all duration-300"
                       title="ORCID"
                       data-testid="link-orcid"
                     >
-                      <SiOrcid className="w-4 h-4" />
-                      <span>ORCID</span>
+                      <SiOrcid className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                      <span className="hidden sm:inline">ORCID</span>
                     </a>
                   )}
                   {profile?.googleScholarUrl && (
@@ -241,12 +241,12 @@ export default function TenantProfilePage() {
                       href={profile.googleScholarUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="hero-social-pill inline-flex items-center gap-2 px-4 py-2 rounded-full text-white text-sm hover:bg-white/20 transition-all duration-300"
+                      className="hero-social-pill inline-flex items-center gap-1 sm:gap-2 px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 rounded-full text-white text-xs sm:text-sm hover:bg-white/20 transition-all duration-300"
                       title="Google Scholar"
                       data-testid="link-google-scholar"
                     >
-                      <SiGooglescholar className="w-4 h-4" />
-                      <span>Scholar</span>
+                      <SiGooglescholar className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                      <span className="hidden sm:inline">Scholar</span>
                     </a>
                   )}
                   {profile?.researchGateUrl && (
@@ -254,12 +254,12 @@ export default function TenantProfilePage() {
                       href={profile.researchGateUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="hero-social-pill inline-flex items-center gap-2 px-4 py-2 rounded-full text-white text-sm hover:bg-white/20 transition-all duration-300"
+                      className="hero-social-pill inline-flex items-center gap-1 sm:gap-2 px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 rounded-full text-white text-xs sm:text-sm hover:bg-white/20 transition-all duration-300"
                       title="ResearchGate"
                       data-testid="link-researchgate"
                     >
-                      <SiResearchgate className="w-4 h-4" />
-                      <span>ResearchGate</span>
+                      <SiResearchgate className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                      <span className="hidden sm:inline">ResearchGate</span>
                     </a>
                   )}
                   {profile?.linkedinUrl && (
@@ -267,12 +267,12 @@ export default function TenantProfilePage() {
                       href={profile.linkedinUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="hero-social-pill inline-flex items-center gap-2 px-4 py-2 rounded-full text-white text-sm hover:bg-white/20 transition-all duration-300"
+                      className="hero-social-pill inline-flex items-center gap-1 sm:gap-2 px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 rounded-full text-white text-xs sm:text-sm hover:bg-white/20 transition-all duration-300"
                       title="LinkedIn"
                       data-testid="link-linkedin"
                     >
-                      <Linkedin className="w-4 h-4" />
-                      <span>LinkedIn</span>
+                      <Linkedin className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                      <span className="hidden sm:inline">LinkedIn</span>
                     </a>
                   )}
                   {profile?.websiteUrl && (
@@ -280,12 +280,12 @@ export default function TenantProfilePage() {
                       href={profile.websiteUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="hero-social-pill inline-flex items-center gap-2 px-4 py-2 rounded-full text-white text-sm hover:bg-white/20 transition-all duration-300"
+                      className="hero-social-pill inline-flex items-center gap-1 sm:gap-2 px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 rounded-full text-white text-xs sm:text-sm hover:bg-white/20 transition-all duration-300"
                       title="Website"
                       data-testid="link-website"
                     >
-                      <Globe className="w-4 h-4" />
-                      <span>Website</span>
+                      <Globe className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                      <span className="hidden sm:inline">Website</span>
                     </a>
                   )}
                   {profile?.twitterUrl && (
@@ -293,12 +293,12 @@ export default function TenantProfilePage() {
                       href={profile.twitterUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="hero-social-pill inline-flex items-center gap-2 px-4 py-2 rounded-full text-white text-sm hover:bg-white/20 transition-all duration-300"
+                      className="hero-social-pill inline-flex items-center gap-1 sm:gap-2 px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 rounded-full text-white text-xs sm:text-sm hover:bg-white/20 transition-all duration-300"
                       title="X (Twitter)"
                       data-testid="link-twitter"
                     >
-                      <FaXTwitter className="w-4 h-4" />
-                      <span>X</span>
+                      <FaXTwitter className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                      <span className="hidden sm:inline">X</span>
                     </a>
                   )}
                 </div>

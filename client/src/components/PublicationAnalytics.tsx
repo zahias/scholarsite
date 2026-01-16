@@ -328,38 +328,38 @@ export default function PublicationAnalytics({ openalexId, researcherData: propR
         </div>
 
         {/* Chart Tabs */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-8">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4 sm:space-y-8">
           <TabsList className="grid w-full max-w-md mx-auto grid-cols-3" data-testid="tabs-analytics">
-            <TabsTrigger value="growth" data-testid="tab-growth">
-              <TrendingUp className="w-4 h-4 mr-2" />
-              Growth
+            <TabsTrigger value="growth" className="text-xs sm:text-sm" data-testid="tab-growth">
+              <TrendingUp className="w-3 h-3 sm:w-4 sm:h-4 sm:mr-2" />
+              <span className="hidden sm:inline">Growth</span>
             </TabsTrigger>
-            <TabsTrigger value="types" data-testid="tab-types">
-              <BarChart3 className="w-4 h-4 mr-2" />
-              Types
+            <TabsTrigger value="types" className="text-xs sm:text-sm" data-testid="tab-types">
+              <BarChart3 className="w-3 h-3 sm:w-4 sm:h-4 sm:mr-2" />
+              <span className="hidden sm:inline">Types</span>
             </TabsTrigger>
-            <TabsTrigger value="impact" data-testid="tab-impact">
-              <Award className="w-4 h-4 mr-2" />
-              Impact
+            <TabsTrigger value="impact" className="text-xs sm:text-sm" data-testid="tab-impact">
+              <Award className="w-3 h-3 sm:w-4 sm:h-4 sm:mr-2" />
+              <span className="hidden sm:inline">Impact</span>
             </TabsTrigger>
           </TabsList>
 
           {/* Growth Tab */}
-          <TabsContent value="growth" className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <TabsContent value="growth" className="space-y-4 sm:space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-8">
               <Card data-testid="card-cumulative-chart">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <TrendingUp className="w-5 h-5 text-primary" />
-                    Cumulative Publications
-                    <Badge variant="secondary" className="ml-auto">
-                      {filteredData.yearRange.start} - {filteredData.yearRange.end}
+                <CardHeader className="p-3 sm:p-6">
+                  <CardTitle className="flex items-center gap-2 text-sm sm:text-base">
+                    <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
+                    <span className="hidden xs:inline">Cumulative</span> Publications
+                    <Badge variant="secondary" className="ml-auto text-xs">
+                      {filteredData.yearRange.start}-{filteredData.yearRange.end}
                     </Badge>
                   </CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <AreaChart data={filteredData.cumulativeData}>
+                <CardContent className="p-2 sm:p-6">
+                  <ResponsiveContainer width="100%" height={220} className="sm:!h-[300px]">
+                    <AreaChart data={filteredData.cumulativeData} margin={{ top: 5, right: 5, left: -15, bottom: 5 }}>
                       <defs>
                         <linearGradient id="colorCumulative" x1="0" y1="0" x2="0" y2="1">
                           <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3}/>
@@ -367,8 +367,8 @@ export default function PublicationAnalytics({ openalexId, researcherData: propR
                         </linearGradient>
                       </defs>
                       <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
-                      <XAxis dataKey="year" />
-                      <YAxis />
+                      <XAxis dataKey="year" tick={{ fontSize: 10 }} tickFormatter={(v) => String(v).slice(-2)} />
+                      <YAxis tick={{ fontSize: 10 }} width={30} />
                       <Tooltip content={<CustomTooltip />} />
                       <Area
                         type="monotone"
@@ -376,7 +376,7 @@ export default function PublicationAnalytics({ openalexId, researcherData: propR
                         name="Total Publications"
                         stroke="hsl(var(--primary))"
                         fill="url(#colorCumulative)"
-                        strokeWidth={3}
+                        strokeWidth={2}
                       />
                     </AreaChart>
                   </ResponsiveContainer>
@@ -384,18 +384,18 @@ export default function PublicationAnalytics({ openalexId, researcherData: propR
               </Card>
 
               <Card data-testid="card-cumulative-citations-chart">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Award className="w-5 h-5 text-accent" />
-                    Cumulative Citations
-                    <Badge variant="secondary" className="ml-auto">
-                      {chartData.totalCitations.toLocaleString()} total
+                <CardHeader className="p-3 sm:p-6">
+                  <CardTitle className="flex items-center gap-2 text-sm sm:text-base">
+                    <Award className="w-4 h-4 sm:w-5 sm:h-5 text-accent" />
+                    <span className="hidden xs:inline">Cumulative</span> Citations
+                    <Badge variant="secondary" className="ml-auto text-xs">
+                      {chartData.totalCitations.toLocaleString()}
                     </Badge>
                   </CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <AreaChart data={filteredData.cumulativeCitationsData}>
+                <CardContent className="p-2 sm:p-6">
+                  <ResponsiveContainer width="100%" height={220} className="sm:!h-[300px]">
+                    <AreaChart data={filteredData.cumulativeCitationsData} margin={{ top: 5, right: 5, left: -15, bottom: 5 }}>
                       <defs>
                         <linearGradient id="colorCumulativeCitations" x1="0" y1="0" x2="0" y2="1">
                           <stop offset="5%" stopColor="hsl(var(--accent))" stopOpacity={0.3}/>
@@ -403,8 +403,8 @@ export default function PublicationAnalytics({ openalexId, researcherData: propR
                         </linearGradient>
                       </defs>
                       <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
-                      <XAxis dataKey="year" />
-                      <YAxis />
+                      <XAxis dataKey="year" tick={{ fontSize: 10 }} tickFormatter={(v) => String(v).slice(-2)} />
+                      <YAxis tick={{ fontSize: 10 }} width={30} />
                       <Tooltip content={<CustomTooltip />} />
                       <Area
                         type="monotone"
@@ -412,7 +412,7 @@ export default function PublicationAnalytics({ openalexId, researcherData: propR
                         name="Total Citations"
                         stroke="hsl(var(--accent))"
                         fill="url(#colorCumulativeCitations)"
-                        strokeWidth={3}
+                        strokeWidth={2}
                       />
                     </AreaChart>
                   </ResponsiveContainer>
@@ -424,20 +424,20 @@ export default function PublicationAnalytics({ openalexId, researcherData: propR
           {/* Types Tab */}
           <TabsContent value="types">
             <Card data-testid="card-types-chart">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <BarChart3 className="w-5 h-5 text-primary" />
-                  Publication Types Distribution
+              <CardHeader className="p-3 sm:p-6">
+                <CardTitle className="flex items-center gap-2 text-sm sm:text-base">
+                  <BarChart3 className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
+                  Publication Types
                 </CardTitle>
               </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              <CardContent className="p-2 sm:p-6">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-8">
                   {/* Bar Chart instead of Pie */}
-                  <ResponsiveContainer width="100%" height={350}>
-                    <BarChart data={chartData.typesData} layout="vertical">
+                  <ResponsiveContainer width="100%" height={250} className="sm:!h-[350px]">
+                    <BarChart data={chartData.typesData} layout="vertical" margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
                       <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
-                      <XAxis type="number" />
-                      <YAxis type="category" dataKey="type" width={150} />
+                      <XAxis type="number" tick={{ fontSize: 10 }} />
+                      <YAxis type="category" dataKey="type" width={80} tick={{ fontSize: 10 }} tickFormatter={(v) => v.length > 10 ? v.slice(0, 10) + '...' : v} />
                       <Tooltip content={<CustomTooltip />} />
                       <Bar dataKey="count" radius={[0, 4, 4, 0]}>
                         {chartData.typesData.map((entry, index) => (
@@ -447,20 +447,20 @@ export default function PublicationAnalytics({ openalexId, researcherData: propR
                     </BarChart>
                   </ResponsiveContainer>
                   
-                  {/* Legend with Colors - Two columns when many types */}
-                  <div className={`gap-3 ${chartData.typesData.length > 4 ? 'grid grid-cols-1 md:grid-cols-2' : 'flex flex-col'} content-center`}>
+                  {/* Legend with Colors - compact on mobile */}
+                  <div className={`gap-2 sm:gap-3 ${chartData.typesData.length > 4 ? 'grid grid-cols-2 sm:grid-cols-1 md:grid-cols-2' : 'flex flex-col'} content-center`}>
                     {chartData.typesData.map((item, index) => (
-                      <div key={item.type} className="flex items-center justify-between p-4 rounded-lg bg-muted/30 border border-border">
-                        <div className="flex items-center gap-3">
+                      <div key={item.type} className="flex items-center justify-between p-2 sm:p-4 rounded-lg bg-muted/30 border border-border">
+                        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
                           <div
-                            className="w-4 h-4 rounded-sm"
+                            className="w-3 h-3 sm:w-4 sm:h-4 rounded-sm flex-shrink-0"
                             style={{ backgroundColor: CHART_COLORS[index % CHART_COLORS.length] }}
                           />
-                          <span className="font-medium">{item.type}</span>
+                          <span className="font-medium text-xs sm:text-sm truncate">{item.type}</span>
                         </div>
-                        <div className="text-right">
-                          <div className="font-bold text-lg">{item.count}</div>
-                          <div className="text-sm text-muted-foreground">{item.percentage}%</div>
+                        <div className="text-right flex-shrink-0 ml-1">
+                          <div className="font-bold text-sm sm:text-lg">{item.count}</div>
+                          <div className="text-xs text-muted-foreground hidden sm:block">{item.percentage}%</div>
                         </div>
                       </div>
                     ))}
@@ -473,15 +473,15 @@ export default function PublicationAnalytics({ openalexId, researcherData: propR
           {/* Impact Tab */}
           <TabsContent value="impact">
             <Card data-testid="card-impact-chart">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Award className="w-5 h-5 text-accent" />
+              <CardHeader className="p-3 sm:p-6">
+                <CardTitle className="flex items-center gap-2 text-sm sm:text-base">
+                  <Award className="w-4 h-4 sm:w-5 sm:h-5 text-accent" />
                   Citation Impact Over Time
                 </CardTitle>
               </CardHeader>
-              <CardContent>
-                <ResponsiveContainer width="100%" height={400}>
-                  <ComposedChart data={filteredData.citationData}>
+              <CardContent className="p-2 sm:p-6">
+                <ResponsiveContainer width="100%" height={280} className="sm:!h-[400px]">
+                  <ComposedChart data={filteredData.citationData} margin={{ top: 5, right: 5, left: -15, bottom: 5 }}>
                     <defs>
                       <linearGradient id="colorCitations" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="5%" stopColor="hsl(var(--accent))" stopOpacity={0.3}/>
@@ -489,11 +489,11 @@ export default function PublicationAnalytics({ openalexId, researcherData: propR
                       </linearGradient>
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" className="opacity-20" />
-                    <XAxis dataKey="year" />
-                    <YAxis yAxisId="left" />
-                    <YAxis yAxisId="right" orientation="right" />
+                    <XAxis dataKey="year" tick={{ fontSize: 10 }} tickFormatter={(v) => String(v).slice(-2)} />
+                    <YAxis yAxisId="left" tick={{ fontSize: 10 }} width={30} />
+                    <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 10 }} width={30} />
                     <Tooltip content={<CustomTooltip />} />
-                    <Legend />
+                    <Legend wrapperStyle={{ fontSize: '10px' }} />
                     <Bar 
                       yAxisId="left" 
                       dataKey="publications" 
@@ -519,62 +519,62 @@ export default function PublicationAnalytics({ openalexId, researcherData: propR
         </Tabs>
 
         {/* Key Metrics Cards - Below Visualizations */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 max-w-6xl mx-auto mt-12">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-4 max-w-6xl mx-auto mt-6 sm:mt-12">
           <Card className="border-l-4 border-l-primary">
-            <CardContent className="p-6 text-center">
-              <div className="text-3xl font-bold text-primary mb-2">
+            <CardContent className="p-3 sm:p-6 text-center">
+              <div className="text-xl sm:text-3xl font-bold text-primary mb-1 sm:mb-2">
                 {chartData.mostProductiveYear.count}
               </div>
-              <div className="text-sm text-muted-foreground font-medium">Most Productive Year</div>
-              <div className="text-xs text-muted-foreground mt-1">
+              <div className="text-xs sm:text-sm text-muted-foreground font-medium">Most Productive</div>
+              <div className="text-xs text-muted-foreground mt-1 hidden sm:block">
                 {chartData.mostProductiveYear.year || 'N/A'}
               </div>
             </CardContent>
           </Card>
 
           <Card className="border-l-4 border-l-accent">
-            <CardContent className="p-6 text-center">
-              <div className="text-3xl font-bold text-accent mb-2">
+            <CardContent className="p-3 sm:p-6 text-center">
+              <div className="text-xl sm:text-3xl font-bold text-accent mb-1 sm:mb-2">
                 {chartData.highestCitationYear.count}
               </div>
-              <div className="text-sm text-muted-foreground font-medium">Highest Citation Year</div>
-              <div className="text-xs text-muted-foreground mt-1">
+              <div className="text-xs sm:text-sm text-muted-foreground font-medium">Top Citations</div>
+              <div className="text-xs text-muted-foreground mt-1 hidden sm:block">
                 {chartData.highestCitationYear.year || 'N/A'}
               </div>
             </CardContent>
           </Card>
 
           <Card className="border-l-4 border-l-primary">
-            <CardContent className="p-6 text-center">
-              <div className="text-3xl font-bold text-primary mb-2">
+            <CardContent className="p-3 sm:p-6 text-center">
+              <div className="text-xl sm:text-3xl font-bold text-primary mb-1 sm:mb-2">
                 {chartData.researchAreasCount}
               </div>
-              <div className="text-sm text-muted-foreground font-medium">Research Areas</div>
-              <div className="text-xs text-muted-foreground mt-1">
+              <div className="text-xs sm:text-sm text-muted-foreground font-medium">Research Areas</div>
+              <div className="text-xs text-muted-foreground mt-1 hidden sm:block">
                 Distinct topics
               </div>
             </CardContent>
           </Card>
 
           <Card className="border-l-4 border-l-accent">
-            <CardContent className="p-6 text-center">
-              <div className="text-3xl font-bold text-accent mb-2">
+            <CardContent className="p-3 sm:p-6 text-center">
+              <div className="text-xl sm:text-3xl font-bold text-accent mb-1 sm:mb-2">
                 {chartData.avgCitations.toFixed(1)}
               </div>
-              <div className="text-sm text-muted-foreground font-medium">Avg Citations/Paper</div>
-              <div className="text-xs text-muted-foreground mt-1">
+              <div className="text-xs sm:text-sm text-muted-foreground font-medium">Avg Citations</div>
+              <div className="text-xs text-muted-foreground mt-1 hidden sm:block">
                 Per publication
               </div>
             </CardContent>
           </Card>
 
-          <Card className="border-l-4 border-l-primary">
-            <CardContent className="p-6 text-center">
-              <div className="text-3xl font-bold text-primary mb-2">
+          <Card className="border-l-4 border-l-primary col-span-2 sm:col-span-1">
+            <CardContent className="p-3 sm:p-6 text-center">
+              <div className="text-xl sm:text-3xl font-bold text-primary mb-1 sm:mb-2">
                 {chartData.yearRange.end - chartData.yearRange.start + 1}
               </div>
-              <div className="text-sm text-muted-foreground font-medium">Active Years</div>
-              <div className="text-xs text-muted-foreground mt-1">
+              <div className="text-xs sm:text-sm text-muted-foreground font-medium">Active Years</div>
+              <div className="text-xs text-muted-foreground mt-1 hidden sm:block">
                 {chartData.yearRange.start} - {chartData.yearRange.end}
               </div>
             </CardContent>

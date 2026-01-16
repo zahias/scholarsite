@@ -646,8 +646,9 @@
   
   .hero-decorative,
   .hero-orb,
-  .hero-slice {
-    display: none;
+  .hero-slice,
+  .hero-grid {
+    display: none !important;
   }
   
   /* Tighter spacing on mobile */
@@ -691,6 +692,28 @@
   .hero-kicker {
     font-size: 0.6rem;
     letter-spacing: 0.2em;
+  }
+  
+  /* Chart optimizations for mobile */
+  .recharts-responsive-container {
+    font-size: 10px;
+  }
+  
+  .recharts-legend-wrapper {
+    font-size: 9px !important;
+    padding: 0 !important;
+  }
+  
+  .recharts-legend-item-text {
+    font-size: 9px !important;
+  }
+  
+  .recharts-tooltip-wrapper {
+    font-size: 11px;
+  }
+  
+  .recharts-cartesian-axis-tick-value {
+    font-size: 9px !important;
   }
 }
 
