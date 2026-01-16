@@ -376,6 +376,60 @@
   position: relative;
 }
 
+/* ===== COMPACT HERO BANNER ===== */
+.hero-banner-compact {
+  background: linear-gradient(
+    130deg,
+    color-mix(in srgb, var(--theme-primary, hsl(216, 50%, 28%)) 85%, black) 0%,
+    var(--theme-primary, hsl(216, 50%, 28%)) 40%,
+    color-mix(in srgb, var(--theme-primary-dark, hsl(216, 45%, 35%)) 70%, white) 100%
+  );
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-banner-compact::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 60%;
+  height: 100%;
+  background: radial-gradient(
+    ellipse at top right,
+    rgba(255, 255, 255, 0.08) 0%,
+    transparent 50%
+  );
+}
+
+.hero-banner-compact::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    115deg,
+    transparent 0%,
+    color-mix(in srgb, var(--theme-accent, #c9a227) 35%, transparent) 35%,
+    transparent 65%
+  );
+  opacity: 0.15;
+  pointer-events: none;
+}
+
+.hero-banner-compact > .relative {
+  z-index: 2;
+  position: relative;
+}
+
+.dark .hero-banner-compact {
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--theme-primary, hsl(220, 35%, 12%)) 40%, black),
+    color-mix(in srgb, var(--theme-primary-dark, hsl(218, 35%, 18%)) 50%, black),
+    color-mix(in srgb, var(--theme-primary, hsl(216, 30%, 22%)) 60%, black)
+  );
+}
+
 /* ===== PREMIUM UI COMPONENTS ===== */
 
 /* Profile Image Container */

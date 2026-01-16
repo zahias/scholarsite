@@ -12,9 +12,10 @@ import { useState, useMemo } from "react";
 
 interface PublicationsProps {
   openalexId: string;
+  inline?: boolean;
 }
 
-export default function Publications({ openalexId }: PublicationsProps) {
+export default function Publications({ openalexId, inline = false }: PublicationsProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState<"year" | "citations" | "title">("year");
   const [sortOrder, setSortOrder] = useState<"desc" | "asc">("desc");
@@ -151,9 +152,9 @@ export default function Publications({ openalexId }: PublicationsProps) {
     );
   }
 
-  return (
-    <section id="publications" className="py-8 md:py-16" data-testid="section-publications">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+  const content = (
+    <>
+      {!inline && (
         <div className="text-center mb-6 md:mb-12">
           <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mb-2 md:mb-4">
             Publications
@@ -167,11 +168,12 @@ export default function Publications({ openalexId }: PublicationsProps) {
             Research contributions with search and filtering capabilities.
           </p>
         </div>
+      )}
 
-        {/* Search and Filter Controls */}
-        {publications.length > 0 && (
-          <Card className="mb-4 md:mb-8">
-            <CardContent className="p-4 md:p-6">
+      {/* Search and Filter Controls */}
+      {publications.length > 0 && (
+        <Card className="mb-4 md:mb-8">
+          <CardContent className="p-4 md:p-6">
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 md:gap-4 items-end">
                 {/* Search */}
                 <div className="lg:col-span-2">
@@ -569,6 +571,17 @@ export default function Publications({ openalexId }: PublicationsProps) {
             </Dialog>
           </div>
         )}
+    </>
+  );
+
+  if (inline) {
+    return <div data-testid="section-publications">{content}</div>;
+  }
+
+  return (
+    <section id="publications" className="py-8 md:py-16" data-testid="section-publications">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {content}
       </div>
     </section>
   );

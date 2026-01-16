@@ -27,6 +27,7 @@ import { TrendingUp, BarChart3, Award } from "lucide-react";
 interface PublicationAnalyticsProps {
   openalexId: string;
   researcherData?: ResearcherData | null;
+  inline?: boolean;
 }
 
 interface Publication {
@@ -63,7 +64,7 @@ const CHART_COLORS = [
   "#14b8a6", // teal
 ];
 
-export default function PublicationAnalytics({ openalexId, researcherData: propResearcherData }: PublicationAnalyticsProps) {
+export default function PublicationAnalytics({ openalexId, researcherData: propResearcherData, inline = false }: PublicationAnalyticsProps) {
   const [activeTab, setActiveTab] = useState("growth");
   const [range, setRange] = useState<"5y" | "10y" | "all">("all");
 
@@ -296,36 +297,39 @@ export default function PublicationAnalytics({ openalexId, researcherData: propR
     return null;
   };
 
-  return (
-    <section id="analytics" className="py-8 md:py-16" data-testid="section-analytics">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header with summary stats */}
-        <div className="text-center mb-6 md:mb-12">
-          <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mb-2 md:mb-4">Publication Analytics</h2>
-          <p className="text-sm md:text-base text-muted-foreground max-w-2xl mx-auto mb-4 md:mb-8 px-4">
-            Comprehensive insights into research output and impact patterns over time.
-          </p>
-          <div className="inline-flex items-center gap-2 rounded-full border border-border bg-muted/40 p-1">
-            {[
-              { label: "5y", value: "5y" as const },
-              { label: "10y", value: "10y" as const },
-              { label: "All", value: "all" as const },
-            ].map((option) => (
-              <button
-                key={option.value}
-                onClick={() => setRange(option.value)}
-                className={`px-3 py-1 text-xs sm:text-sm rounded-full transition-colors ${
-                  range === option.value
-                    ? "bg-primary text-primary-foreground"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-                data-testid={`button-range-${option.value}`}
-              >
-                {option.label}
-              </button>
-            ))}
-          </div>
+  const content = (
+    <>
+      {/* Range selector */}
+      <div className="text-center mb-6 md:mb-8">
+        {!inline && (
+          <>
+            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mb-2 md:mb-4">Publication Analytics</h2>
+            <p className="text-sm md:text-base text-muted-foreground max-w-2xl mx-auto mb-4 md:mb-8 px-4">
+              Comprehensive insights into research output and impact patterns over time.
+            </p>
+          </>
+        )}
+        <div className="inline-flex items-center gap-2 rounded-full border border-border bg-muted/40 p-1">
+          {[
+            { label: "5y", value: "5y" as const },
+            { label: "10y", value: "10y" as const },
+            { label: "All", value: "all" as const },
+          ].map((option) => (
+            <button
+              key={option.value}
+              onClick={() => setRange(option.value)}
+              className={`px-3 py-1 text-xs sm:text-sm rounded-full transition-colors ${
+                range === option.value
+                  ? "bg-primary text-primary-foreground"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+              data-testid={`button-range-${option.value}`}
+            >
+              {option.label}
+            </button>
+          ))}
         </div>
+      </div>
 
         {/* Chart Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4 sm:space-y-8">
@@ -580,6 +584,17 @@ export default function PublicationAnalytics({ openalexId, researcherData: propR
             </CardContent>
           </Card>
         </div>
+      </>
+    );
+  
+  if (inline) {
+    return <div data-testid="section-analytics">{content}</div>;
+  }
+
+  return (
+    <section id="analytics" className="py-8 md:py-16" data-testid="section-analytics">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {content}
       </div>
     </section>
   );
