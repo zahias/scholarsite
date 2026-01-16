@@ -342,6 +342,36 @@ function ResearcherProfileContent() {
                     <Mail className="w-4 h-4" />
                   </a>
                 )}
+                {/* OpenAlex Link - Always show */}
+                <a href={`https://openalex.org/authors/${openalexId}`} target="_blank" rel="noopener noreferrer" 
+                   className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors" title="OpenAlex Profile">
+                  <ExternalLink className="w-4 h-4" />
+                </a>
+              </div>
+              
+              {/* Action Buttons Row - CV & Research Passport */}
+              <div className="flex flex-wrap items-center justify-center md:justify-start gap-2 pt-2">
+                {profile?.cvUrl && profile.cvUrl !== '#cv-placeholder' && (
+                  <a 
+                    href={profile.cvUrl} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 hover:bg-white/20 transition-colors text-sm font-medium"
+                    data-testid="link-cv"
+                  >
+                    <Download className="w-4 h-4" />
+                    Download CV
+                  </a>
+                )}
+                <ResearchPassport
+                  openalexId={openalexId}
+                  name={profile?.displayName || researcher?.display_name || 'Researcher'}
+                  title={profile?.title}
+                  institution={profile?.currentAffiliation || researcher?.last_known_institutions?.[0]?.display_name}
+                  publicationCount={researcher?.works_count || 0}
+                  citationCount={researcher?.cited_by_count || 0}
+                  profileUrl={typeof window !== 'undefined' ? window.location.href : ''}
+                />
               </div>
             </div>
           </div>
@@ -351,8 +381,8 @@ function ResearcherProfileContent() {
       {/* Stats Overview - Always visible */}
       <StatsOverview openalexId={openalexId} />
       
-      {/* About Section - Collapsible */}
-      {(profile?.bio || profile?.cvUrl || openalexId) && (
+      {/* About Section - Always show in preview, show if bio exists in claimed */}
+      {(researcherData?.isPreview || profile?.bio) && (
         <section className="py-6 md:py-10 bg-muted">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <CollapsibleSection
@@ -363,37 +393,16 @@ function ResearcherProfileContent() {
               mobileDefaultOpen={true}
             >
               <div className="space-y-4">
-                {profile?.bio && (
-                  <p className="text-sm md:text-base text-muted-foreground leading-relaxed" data-testid="text-bio">
-                    {profile.bio}
-                  </p>
-                )}
-                <div className="flex flex-wrap gap-3">
-                  {profile?.cvUrl && (
-                    <a 
-                      href={profile.cvUrl} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-2 text-sm text-primary hover:text-primary/80 transition-colors"
-                      data-testid="link-cv"
-                    >
-                      <Download className="w-4 h-4" />
-                      Download CV
-                    </a>
+                <p className="text-sm md:text-base text-muted-foreground leading-relaxed" data-testid="text-bio">
+                  {profile?.bio ? (
+                    profile.bio
+                  ) : (
+                    <span className="italic opacity-70">
+                      Share your research journey, expertise, and what drives your work. Highlight your key contributions 
+                      and areas of specialization to help collaborators and students discover your profile.
+                    </span>
                   )}
-                  {openalexId && (
-                    <a 
-                      href={`https://openalex.org/authors/${openalexId}`}
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-2 text-sm text-primary hover:text-primary/80 transition-colors"
-                      data-testid="link-openalex"
-                    >
-                      <ExternalLink className="w-4 h-4" />
-                      View on OpenAlex
-                    </a>
-                  )}
-                </div>
+                </p>
               </div>
             </CollapsibleSection>
           </div>
