@@ -417,13 +417,6 @@ function ResearcherProfileContent() {
         <PublicationAnalytics openalexId={openalexId} researcherData={researcherData} inline />
       </CollapsibleSection>
 
-      {/* Research Network */}
-      <ResearchNetwork 
-        publications={researcherData?.publications || []}
-        researcherName={profile?.displayName || researcher?.display_name || ''} 
-        isLoading={isLoading}
-      />
-
       {/* Research Topics - Collapsible */}
       <CollapsibleSection
         id="research"
