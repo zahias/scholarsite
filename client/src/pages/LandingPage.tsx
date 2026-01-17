@@ -360,8 +360,134 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* Use Cases Section - Why not just Google Scholar? */}
+      <section id="use-cases" className="py-12 sm:py-16 lg:py-24 bg-white">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-8 sm:mb-12">
+            <Badge className="mb-3 sm:mb-4 bg-blue-100 text-blue-800 hover:bg-blue-100">
+              Common Question
+            </Badge>
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-3 sm:mb-4">
+              "I already have Google Scholar..."
+            </h2>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              Google Scholar is where people <strong>find</strong> your papers. Scholar.name is where you <strong>send</strong> them.
+            </p>
+          </div>
+          
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto">
+            <Card className="border bg-gradient-to-br from-blue-50 to-white hover:shadow-md transition-shadow">
+              <CardContent className="p-6">
+                <div className="text-3xl mb-3">✉️</div>
+                <h3 className="font-semibold text-lg mb-2">Email Signature</h3>
+                <p className="text-sm text-muted-foreground mb-3">
+                  Replace that ugly Google Scholar URL with a clean, memorable link.
+                </p>
+                <div className="text-xs font-mono bg-muted/50 rounded p-2">
+                  <span className="line-through text-muted-foreground">scholar.google.com/citations?user=xY3z...</span>
+                  <br />
+                  <span className="text-primary font-semibold">yourname.scholar.name</span>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="border bg-gradient-to-br from-amber-50 to-white hover:shadow-md transition-shadow">
+              <CardContent className="p-6">
+                <div className="text-3xl mb-3">🎫</div>
+                <h3 className="font-semibold text-lg mb-2">Conference Badge</h3>
+                <p className="text-sm text-muted-foreground mb-3">
+                  Print your Research Passport with QR code. Colleagues scan → see your full portfolio.
+                </p>
+                <div className="text-xs text-muted-foreground italic">
+                  "Way better than handing out business cards that go in the trash."
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="border bg-gradient-to-br from-green-50 to-white hover:shadow-md transition-shadow">
+              <CardContent className="p-6">
+                <div className="text-3xl mb-3">📝</div>
+                <h3 className="font-semibold text-lg mb-2">Grant Applications</h3>
+                <p className="text-sm text-muted-foreground mb-3">
+                  When they ask for a "personal website" — give them a professional research portfolio.
+                </p>
+                <div className="text-xs text-muted-foreground italic">
+                  Beats linking to a dusty faculty page from 2015.
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="border bg-gradient-to-br from-purple-50 to-white hover:shadow-md transition-shadow">
+              <CardContent className="p-6">
+                <div className="text-3xl mb-3">💼</div>
+                <h3 className="font-semibold text-lg mb-2">LinkedIn Profile</h3>
+                <p className="text-sm text-muted-foreground mb-3">
+                  Your website link field finally has something impressive to show.
+                </p>
+                <div className="text-xs text-muted-foreground italic">
+                  Recruiters and collaborators see your impact instantly.
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="border bg-gradient-to-br from-rose-50 to-white hover:shadow-md transition-shadow">
+              <CardContent className="p-6">
+                <div className="text-3xl mb-3">🎤</div>
+                <h3 className="font-semibold text-lg mb-2">Speaker Bio</h3>
+                <p className="text-sm text-muted-foreground mb-3">
+                  Event organizers need your bio, photo, and credentials — one link has it all.
+                </p>
+                <div className="text-xs text-muted-foreground italic">
+                  No more emailing attachments back and forth.
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="border bg-gradient-to-br from-cyan-50 to-white hover:shadow-md transition-shadow">
+              <CardContent className="p-6">
+                <div className="text-3xl mb-3">🤝</div>
+                <h3 className="font-semibold text-lg mb-2">Collaboration</h3>
+                <p className="text-sm text-muted-foreground mb-3">
+                  Potential co-authors can browse your research areas and top papers in seconds.
+                </p>
+                <div className="text-xs text-muted-foreground italic">
+                  Start the conversation with context already shared.
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Quick Comparison */}
+          <div className="mt-12 max-w-2xl mx-auto">
+            <div className="bg-muted/30 rounded-xl p-6 border">
+              <h3 className="font-semibold text-center mb-4">The Difference</h3>
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div>
+                  <p className="font-medium text-muted-foreground mb-2">Google Scholar</p>
+                  <ul className="space-y-1 text-muted-foreground">
+                    <li>• Search engine</li>
+                    <li>• Same look as everyone</li>
+                    <li>• No customization</li>
+                    <li>• Ugly URL</li>
+                  </ul>
+                </div>
+                <div>
+                  <p className="font-medium text-primary mb-2">Scholar.name</p>
+                  <ul className="space-y-1">
+                    <li className="flex items-center gap-1"><Check className="w-3 h-3 text-green-600" /> Portfolio you control</li>
+                    <li className="flex items-center gap-1"><Check className="w-3 h-3 text-green-600" /> Your brand, your story</li>
+                    <li className="flex items-center gap-1"><Check className="w-3 h-3 text-green-600" /> Bio, CV, themes</li>
+                    <li className="flex items-center gap-1"><Check className="w-3 h-3 text-green-600" /> yourname.scholar.name</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Pricing Section */}
-      <section id="pricing" className="py-12 sm:py-16 lg:py-24 bg-white">
+      <section id="pricing" className="py-12 sm:py-16 lg:py-24 bg-muted/30">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-8 sm:mb-12">
             <Badge className="mb-3 sm:mb-4 bg-amber-100 text-amber-800 hover:bg-amber-100">
