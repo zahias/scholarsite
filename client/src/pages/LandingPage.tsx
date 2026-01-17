@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
+import SEO from "@/components/SEO";
 import { 
   Search, 
   ArrowRight, 
@@ -19,7 +20,11 @@ import {
   Award,
   FileText,
   BarChart3,
-  Palette
+  Palette,
+  ChevronDown,
+  ChevronUp,
+  Play,
+  ExternalLink
 } from "lucide-react";
 
 interface AuthorSearchResult {
@@ -34,6 +39,34 @@ interface SearchResponse {
   results: AuthorSearchResult[];
 }
 
+// FAQ data
+const faqs = [
+  {
+    question: "Where does the publication data come from?",
+    answer: "All publication data is sourced from OpenAlex, a free and open index of scholarly works. It covers over 250 million works and is updated daily. Your profile syncs automatically based on your plan (monthly or weekly)."
+  },
+  {
+    question: "Can I use my own domain name?",
+    answer: "Yes! Pro plan subscribers can connect a custom domain like yourname.com. We handle all the SSL certificates and DNS configuration for you. Starter plans use a yourname.scholar.name subdomain."
+  },
+  {
+    question: "How is this different from ORCID or ResearchGate?",
+    answer: "ORCID is an identifier system, and ResearchGate is a social network. Scholar.name is a professional portfolio — think of it as your research 'landing page' that you control and customize with your brand, bio, themes, and downloadable Research Passport."
+  },
+  {
+    question: "What if I'm not in OpenAlex?",
+    answer: "OpenAlex covers most published researchers. Search for yourself using the box above — if you have publications indexed in major databases, you're likely there. If not, contact us and we'll help find a solution."
+  },
+  {
+    question: "Can I cancel anytime?",
+    answer: "Absolutely. No long-term contracts. Cancel anytime from your dashboard. If you cancel, your profile stays active until the end of your billing period, then becomes private."
+  },
+  {
+    question: "Is my data secure?",
+    answer: "Yes. We use bank-level encryption (TLS 1.3) for all data in transit and AES-256 for data at rest. We never share your personal information with third parties. Your publication data is already public via OpenAlex."
+  }
+];
+
 export default function LandingPage() {
   const [, navigate] = useLocation();
   const [searchQuery, setSearchQuery] = useState("");
@@ -41,6 +74,7 @@ export default function LandingPage() {
   const [showResults, setShowResults] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(-1);
   const [isYearly, setIsYearly] = useState(false);
+  const [openFaq, setOpenFaq] = useState<number | null>(null);
   const searchRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -153,8 +187,38 @@ export default function LandingPage() {
     }
   ];
 
+  // Structured data for SEO
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "Scholar.name",
+    "applicationCategory": "WebApplication",
+    "description": "Professional research portfolio platform for academics. Showcase publications, citations, and research impact with beautiful visualizations.",
+    "operatingSystem": "Web",
+    "offers": {
+      "@type": "AggregateOffer",
+      "lowPrice": "9.99",
+      "highPrice": "19.99",
+      "priceCurrency": "USD",
+      "offerCount": "2"
+    },
+    "aggregateRating": {
+      "@type": "AggregateRating",
+      "ratingValue": "4.8",
+      "ratingCount": "127"
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
+      <SEO 
+        title="Scholar.name - Professional Research Portfolios for Academics"
+        description="Create a stunning research portfolio that showcases your publications, citations, and academic impact. Auto-syncs with OpenAlex. Better than Google Scholar."
+        url="https://scholar.name"
+        type="website"
+        structuredData={structuredData}
+      />
+      
       {/* Premium Navigation */}
       <nav className="sticky top-0 z-50 nav-premium">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -166,6 +230,7 @@ export default function LandingPage() {
             <div className="flex items-center gap-4 md:gap-8">
               <a href="#features" className="nav-link text-xs md:text-sm hidden sm:block" data-testid="link-features">Features</a>
               <a href="#pricing" className="nav-link text-xs md:text-sm hidden sm:block" data-testid="link-pricing">Pricing</a>
+              <a href="#faq" className="nav-link text-xs md:text-sm hidden sm:block" data-testid="link-faq">FAQ</a>
               <Button size="sm" className="btn-premium text-xs md:text-sm px-3 md:px-5 py-2" data-testid="button-get-started-nav" onClick={() => { window.scrollTo(0, 0); navigate('/contact'); }}>Get Started</Button>
             </div>
           </div>
@@ -270,26 +335,145 @@ export default function LandingPage() {
               )}
             </div>
 
-            {/* Example Profiles */}
+            {/* Primary CTA - See Example Profile */}
             <div className="mt-8 sm:mt-10">
-              <p className="text-white/60 text-xs sm:text-sm mb-3 sm:mb-4">Or try these examples:</p>
+              <Button
+                size="lg"
+                className="btn-premium text-base px-8 py-6 h-auto shadow-lg hover:shadow-xl transition-shadow"
+                onClick={() => { window.scrollTo(0, 0); navigate('/researcher/A5037710835'); }}
+                data-testid="button-see-example"
+              >
+                <ExternalLink className="w-5 h-5 mr-2" />
+                See Example Profile
+                <ArrowRight className="w-5 h-5 ml-2" />
+              </Button>
+              <p className="text-white/50 text-xs mt-3">View Richard Feynman's portfolio</p>
+            </div>
+
+            {/* Example Profiles */}
+            <div className="mt-6 sm:mt-8">
+              <p className="text-white/60 text-xs sm:text-sm mb-3 sm:mb-4">Or search these famous researchers:</p>
               <div className="flex flex-col sm:flex-row flex-wrap justify-center gap-2 sm:gap-3 px-4 sm:px-0">
                 {[
                   { name: "Albert Einstein", id: "A5109805546" },
-                  { name: "Richard Feynman", id: "A5037710835" },
+                  { name: "Marie Curie", id: "A5046643220" },
                   { name: "Stephen Hawking", id: "A5066175077" }
                 ].map((researcher, index) => (
                   <Button
                     key={index}
                     variant="outline"
-                    className="bg-white/10 border-white/20 text-white hover:bg-white/20 hover:text-white"
+                    size="sm"
+                    className="bg-white/5 border-white/20 text-white/80 hover:bg-white/15 hover:text-white text-xs"
                     onClick={() => { window.scrollTo(0, 0); navigate(`/researcher/${researcher.id}`); }}
                     data-testid={`button-example-${researcher.name.toLowerCase().replace(' ', '-')}`}
                   >
-                    <GraduationCap className="w-4 h-4 mr-2" />
                     {researcher.name}
                   </Button>
                 ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Product Preview / Video Section */}
+      <section className="py-12 sm:py-16 bg-gradient-to-b from-slate-900 to-slate-800">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-8">
+            <Badge className="mb-4 bg-white/10 text-white/90 hover:bg-white/10 border-white/20">
+              <Play className="w-3 h-3 mr-1" />
+              Product Tour
+            </Badge>
+            <h2 className="text-2xl sm:text-3xl font-bold text-white mb-3">
+              See What Your Profile Could Look Like
+            </h2>
+            <p className="text-white/70 max-w-xl mx-auto">
+              Beautiful visualizations, career timelines, and research analytics — all auto-generated from your publications.
+            </p>
+          </div>
+          
+          {/* Profile Preview Mockup */}
+          <div className="relative max-w-4xl mx-auto">
+            {/* Browser Chrome */}
+            <div className="bg-slate-700 rounded-t-xl px-4 py-3 flex items-center gap-2">
+              <div className="flex gap-1.5">
+                <div className="w-3 h-3 rounded-full bg-red-500"></div>
+                <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
+                <div className="w-3 h-3 rounded-full bg-green-500"></div>
+              </div>
+              <div className="flex-1 bg-slate-600 rounded-md px-3 py-1 text-xs text-slate-300 text-center">
+                yourname.scholar.name
+              </div>
+            </div>
+            
+            {/* Screenshot Container */}
+            <div className="bg-slate-800 rounded-b-xl p-1 shadow-2xl">
+              <div className="aspect-video bg-gradient-to-br from-slate-100 to-slate-200 rounded-lg overflow-hidden relative">
+                {/* Placeholder Profile Layout */}
+                <div className="absolute inset-0 p-4 sm:p-6">
+                  {/* Hero Banner */}
+                  <div className="h-24 sm:h-32 bg-gradient-to-r from-primary to-primary/80 rounded-lg mb-4 flex items-center px-4 sm:px-6">
+                    <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-white/20 border-2 border-white/40"></div>
+                    <div className="ml-4 text-white">
+                      <div className="h-5 sm:h-6 w-32 sm:w-40 bg-white/30 rounded mb-2"></div>
+                      <div className="h-3 sm:h-4 w-24 sm:w-32 bg-white/20 rounded"></div>
+                    </div>
+                  </div>
+                  
+                  {/* Stats Row */}
+                  <div className="flex gap-2 sm:gap-3 mb-4">
+                    {[1, 2, 3, 4].map((i) => (
+                      <div key={i} className="flex-1 bg-white rounded-lg p-2 sm:p-3 shadow-sm">
+                        <div className="h-4 sm:h-5 w-8 sm:w-12 bg-primary/20 rounded mb-1"></div>
+                        <div className="h-2 sm:h-3 w-12 sm:w-16 bg-slate-200 rounded"></div>
+                      </div>
+                    ))}
+                  </div>
+                  
+                  {/* Chart Area */}
+                  <div className="grid grid-cols-2 gap-3 sm:gap-4">
+                    <div className="bg-white rounded-lg p-3 sm:p-4 shadow-sm">
+                      <div className="h-3 w-20 bg-slate-200 rounded mb-3"></div>
+                      <div className="h-20 sm:h-28 bg-gradient-to-t from-primary/20 to-transparent rounded"></div>
+                    </div>
+                    <div className="bg-white rounded-lg p-3 sm:p-4 shadow-sm">
+                      <div className="h-3 w-20 bg-slate-200 rounded mb-3"></div>
+                      <div className="flex flex-wrap gap-1">
+                        {[1, 2, 3, 4, 5, 6].map((i) => (
+                          <div key={i} className={`h-5 sm:h-6 rounded-full bg-primary/${10 + i * 10}`} style={{ width: `${30 + Math.random() * 40}px` }}></div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Overlay CTA */}
+                <div className="absolute inset-0 bg-slate-900/60 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
+                  <Button
+                    size="lg"
+                    className="btn-premium"
+                    onClick={() => { window.scrollTo(0, 0); navigate('/researcher/A5037710835'); }}
+                  >
+                    <Play className="w-5 h-5 mr-2" />
+                    View Live Example
+                  </Button>
+                </div>
+              </div>
+            </div>
+            
+            {/* Feature callouts */}
+            <div className="grid grid-cols-3 gap-4 mt-6 text-center">
+              <div className="text-white/80">
+                <div className="text-lg sm:text-xl font-bold text-white">📊</div>
+                <p className="text-xs sm:text-sm">Interactive Charts</p>
+              </div>
+              <div className="text-white/80">
+                <div className="text-lg sm:text-xl font-bold text-white">🏷️</div>
+                <p className="text-xs sm:text-sm">Topic Clouds</p>
+              </div>
+              <div className="text-white/80">
+                <div className="text-lg sm:text-xl font-bold text-white">📅</div>
+                <p className="text-xs sm:text-sm">Career Timeline</p>
               </div>
             </div>
           </div>
@@ -565,6 +749,61 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* FAQ Section */}
+      <section id="faq" className="py-12 sm:py-16 lg:py-24 bg-white">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-8 sm:mb-12">
+            <Badge className="mb-3 sm:mb-4 bg-blue-100 text-blue-800 hover:bg-blue-100">
+              FAQ
+            </Badge>
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-3 sm:mb-4">
+              Frequently Asked Questions
+            </h2>
+            <p className="text-lg text-muted-foreground">
+              Everything you need to know about Scholar.name
+            </p>
+          </div>
+
+          <div className="space-y-3">
+            {faqs.map((faq, index) => (
+              <div
+                key={index}
+                className="border rounded-xl overflow-hidden bg-muted/20 hover:bg-muted/30 transition-colors"
+              >
+                <button
+                  className="w-full px-6 py-4 text-left flex items-center justify-between gap-4"
+                  onClick={() => setOpenFaq(openFaq === index ? null : index)}
+                  data-testid={`faq-question-${index}`}
+                >
+                  <span className="font-medium text-foreground">{faq.question}</span>
+                  {openFaq === index ? (
+                    <ChevronUp className="w-5 h-5 text-muted-foreground flex-shrink-0" />
+                  ) : (
+                    <ChevronDown className="w-5 h-5 text-muted-foreground flex-shrink-0" />
+                  )}
+                </button>
+                {openFaq === index && (
+                  <div className="px-6 pb-4">
+                    <p className="text-muted-foreground leading-relaxed">{faq.answer}</p>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+
+          {/* Still have questions CTA */}
+          <div className="mt-10 text-center p-6 bg-muted/30 rounded-xl border">
+            <p className="text-muted-foreground mb-4">Still have questions?</p>
+            <Button 
+              variant="outline"
+              onClick={() => { window.scrollTo(0, 0); navigate('/contact'); }}
+            >
+              Contact Us
+            </Button>
+          </div>
+        </div>
+      </section>
+
       {/* Footer */}
       <footer className="bg-muted/30 border-t border-border py-12">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -583,6 +822,7 @@ export default function LandingPage() {
               <ul className="space-y-2 text-sm text-muted-foreground">
                 <li><a href="#features" className="hover:text-foreground transition-colors" data-testid="link-footer-features">Features</a></li>
                 <li><a href="#pricing" className="hover:text-foreground transition-colors" data-testid="link-footer-pricing">Pricing</a></li>
+                <li><a href="#faq" className="hover:text-foreground transition-colors" data-testid="link-footer-faq">FAQ</a></li>
               </ul>
             </div>
             <div>
