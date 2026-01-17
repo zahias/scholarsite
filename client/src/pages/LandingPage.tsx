@@ -22,9 +22,7 @@ import {
   BarChart3,
   Palette,
   ChevronDown,
-  ChevronUp,
-  Play,
-  ExternalLink
+  ChevronUp
 } from "lucide-react";
 
 interface AuthorSearchResult {
@@ -335,145 +333,26 @@ export default function LandingPage() {
               )}
             </div>
 
-            {/* Primary CTA - See Example Profile */}
-            <div className="mt-8 sm:mt-10">
-              <Button
-                size="lg"
-                className="btn-premium text-base px-8 py-6 h-auto shadow-lg hover:shadow-xl transition-shadow"
-                onClick={() => { window.scrollTo(0, 0); navigate('/researcher/A5037710835'); }}
-                data-testid="button-see-example"
-              >
-                <ExternalLink className="w-5 h-5 mr-2" />
-                See Example Profile
-                <ArrowRight className="w-5 h-5 ml-2" />
-              </Button>
-              <p className="text-white/50 text-xs mt-3">View Richard Feynman's portfolio</p>
-            </div>
-
             {/* Example Profiles */}
-            <div className="mt-6 sm:mt-8">
-              <p className="text-white/60 text-xs sm:text-sm mb-3 sm:mb-4">Or search these famous researchers:</p>
-              <div className="flex flex-col sm:flex-row flex-wrap justify-center gap-2 sm:gap-3 px-4 sm:px-0">
+            <div className="mt-8 sm:mt-10">
+              <p className="text-white/70 text-sm mb-4">Or explore example profiles:</p>
+              <div className="flex flex-wrap justify-center gap-3">
                 {[
-                  { name: "Albert Einstein", id: "A5109805546" },
+                  { name: "Richard Feynman", id: "A5037710835" },
                   { name: "Marie Curie", id: "A5046643220" },
-                  { name: "Stephen Hawking", id: "A5066175077" }
+                  { name: "Albert Einstein", id: "A5109805546" }
                 ].map((researcher, index) => (
                   <Button
                     key={index}
                     variant="outline"
-                    size="sm"
-                    className="bg-white/5 border-white/20 text-white/80 hover:bg-white/15 hover:text-white text-xs"
+                    className="bg-white/10 border-white/30 text-white hover:bg-white/20 hover:border-white/50 transition-all"
                     onClick={() => { window.scrollTo(0, 0); navigate(`/researcher/${researcher.id}`); }}
                     data-testid={`button-example-${researcher.name.toLowerCase().replace(' ', '-')}`}
                   >
+                    <GraduationCap className="w-4 h-4 mr-2 opacity-70" />
                     {researcher.name}
                   </Button>
                 ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Product Preview / Video Section */}
-      <section className="py-12 sm:py-16 bg-gradient-to-b from-slate-900 to-slate-800">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-8">
-            <Badge className="mb-4 bg-white/10 text-white/90 hover:bg-white/10 border-white/20">
-              <Play className="w-3 h-3 mr-1" />
-              Product Tour
-            </Badge>
-            <h2 className="text-2xl sm:text-3xl font-bold text-white mb-3">
-              See What Your Profile Could Look Like
-            </h2>
-            <p className="text-white/70 max-w-xl mx-auto">
-              Beautiful visualizations, career timelines, and research analytics — all auto-generated from your publications.
-            </p>
-          </div>
-          
-          {/* Profile Preview Mockup */}
-          <div className="relative max-w-4xl mx-auto">
-            {/* Browser Chrome */}
-            <div className="bg-slate-700 rounded-t-xl px-4 py-3 flex items-center gap-2">
-              <div className="flex gap-1.5">
-                <div className="w-3 h-3 rounded-full bg-red-500"></div>
-                <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
-                <div className="w-3 h-3 rounded-full bg-green-500"></div>
-              </div>
-              <div className="flex-1 bg-slate-600 rounded-md px-3 py-1 text-xs text-slate-300 text-center">
-                yourname.scholar.name
-              </div>
-            </div>
-            
-            {/* Screenshot Container */}
-            <div className="bg-slate-800 rounded-b-xl p-1 shadow-2xl">
-              <div className="aspect-video bg-gradient-to-br from-slate-100 to-slate-200 rounded-lg overflow-hidden relative">
-                {/* Placeholder Profile Layout */}
-                <div className="absolute inset-0 p-4 sm:p-6">
-                  {/* Hero Banner */}
-                  <div className="h-24 sm:h-32 bg-gradient-to-r from-primary to-primary/80 rounded-lg mb-4 flex items-center px-4 sm:px-6">
-                    <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-white/20 border-2 border-white/40"></div>
-                    <div className="ml-4 text-white">
-                      <div className="h-5 sm:h-6 w-32 sm:w-40 bg-white/30 rounded mb-2"></div>
-                      <div className="h-3 sm:h-4 w-24 sm:w-32 bg-white/20 rounded"></div>
-                    </div>
-                  </div>
-                  
-                  {/* Stats Row */}
-                  <div className="flex gap-2 sm:gap-3 mb-4">
-                    {[1, 2, 3, 4].map((i) => (
-                      <div key={i} className="flex-1 bg-white rounded-lg p-2 sm:p-3 shadow-sm">
-                        <div className="h-4 sm:h-5 w-8 sm:w-12 bg-primary/20 rounded mb-1"></div>
-                        <div className="h-2 sm:h-3 w-12 sm:w-16 bg-slate-200 rounded"></div>
-                      </div>
-                    ))}
-                  </div>
-                  
-                  {/* Chart Area */}
-                  <div className="grid grid-cols-2 gap-3 sm:gap-4">
-                    <div className="bg-white rounded-lg p-3 sm:p-4 shadow-sm">
-                      <div className="h-3 w-20 bg-slate-200 rounded mb-3"></div>
-                      <div className="h-20 sm:h-28 bg-gradient-to-t from-primary/20 to-transparent rounded"></div>
-                    </div>
-                    <div className="bg-white rounded-lg p-3 sm:p-4 shadow-sm">
-                      <div className="h-3 w-20 bg-slate-200 rounded mb-3"></div>
-                      <div className="flex flex-wrap gap-1">
-                        {[1, 2, 3, 4, 5, 6].map((i) => (
-                          <div key={i} className={`h-5 sm:h-6 rounded-full bg-primary/${10 + i * 10}`} style={{ width: `${30 + Math.random() * 40}px` }}></div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                
-                {/* Overlay CTA */}
-                <div className="absolute inset-0 bg-slate-900/60 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
-                  <Button
-                    size="lg"
-                    className="btn-premium"
-                    onClick={() => { window.scrollTo(0, 0); navigate('/researcher/A5037710835'); }}
-                  >
-                    <Play className="w-5 h-5 mr-2" />
-                    View Live Example
-                  </Button>
-                </div>
-              </div>
-            </div>
-            
-            {/* Feature callouts */}
-            <div className="grid grid-cols-3 gap-4 mt-6 text-center">
-              <div className="text-white/80">
-                <div className="text-lg sm:text-xl font-bold text-white">📊</div>
-                <p className="text-xs sm:text-sm">Interactive Charts</p>
-              </div>
-              <div className="text-white/80">
-                <div className="text-lg sm:text-xl font-bold text-white">🏷️</div>
-                <p className="text-xs sm:text-sm">Topic Clouds</p>
-              </div>
-              <div className="text-white/80">
-                <div className="text-lg sm:text-xl font-bold text-white">📅</div>
-                <p className="text-xs sm:text-sm">Career Timeline</p>
               </div>
             </div>
           </div>
@@ -750,16 +629,13 @@ export default function LandingPage() {
       </section>
 
       {/* FAQ Section */}
-      <section id="faq" className="py-12 sm:py-16 lg:py-24 bg-white">
+      <section id="faq" className="py-12 sm:py-16 lg:py-24 bg-muted/30">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-8 sm:mb-12">
-            <Badge className="mb-3 sm:mb-4 bg-blue-100 text-blue-800 hover:bg-blue-100">
-              FAQ
-            </Badge>
             <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-3 sm:mb-4">
               Frequently Asked Questions
             </h2>
-            <p className="text-lg text-muted-foreground">
+            <p className="text-muted-foreground">
               Everything you need to know about Scholar.name
             </p>
           </div>
@@ -768,22 +644,30 @@ export default function LandingPage() {
             {faqs.map((faq, index) => (
               <div
                 key={index}
-                className="border rounded-xl overflow-hidden bg-muted/20 hover:bg-muted/30 transition-colors"
+                className={`bg-white rounded-lg shadow-sm border overflow-hidden transition-all ${
+                  openFaq === index ? 'border-l-4 border-l-primary' : 'border-border'
+                }`}
               >
                 <button
-                  className="w-full px-6 py-4 text-left flex items-center justify-between gap-4"
+                  className={`w-full px-6 py-5 text-left flex items-center justify-between gap-4 ${
+                    openFaq === index ? 'bg-primary/5' : 'hover:bg-muted/50'
+                  }`}
                   onClick={() => setOpenFaq(openFaq === index ? null : index)}
                   data-testid={`faq-question-${index}`}
                 >
                   <span className="font-medium text-foreground">{faq.question}</span>
-                  {openFaq === index ? (
-                    <ChevronUp className="w-5 h-5 text-muted-foreground flex-shrink-0" />
-                  ) : (
-                    <ChevronDown className="w-5 h-5 text-muted-foreground flex-shrink-0" />
-                  )}
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 transition-colors ${
+                    openFaq === index ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'
+                  }`}>
+                    {openFaq === index ? (
+                      <ChevronUp className="w-4 h-4" />
+                    ) : (
+                      <ChevronDown className="w-4 h-4" />
+                    )}
+                  </div>
                 </button>
                 {openFaq === index && (
-                  <div className="px-6 pb-4">
+                  <div className="px-6 pb-5 bg-primary/5">
                     <p className="text-muted-foreground leading-relaxed">{faq.answer}</p>
                   </div>
                 )}
@@ -792,10 +676,9 @@ export default function LandingPage() {
           </div>
 
           {/* Still have questions CTA */}
-          <div className="mt-10 text-center p-6 bg-muted/30 rounded-xl border">
-            <p className="text-muted-foreground mb-4">Still have questions?</p>
+          <div className="mt-10 text-center">
+            <p className="text-muted-foreground mb-3">Still have questions?</p>
             <Button 
-              variant="outline"
               onClick={() => { window.scrollTo(0, 0); navigate('/contact'); }}
             >
               Contact Us
