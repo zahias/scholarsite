@@ -8,6 +8,7 @@ import LandingPage from "@/pages/LandingPage";
 import ContactPage from "@/pages/ContactPage";
 import PrivacyPage from "@/pages/PrivacyPage";
 import TermsPage from "@/pages/TermsPage";
+import AboutPage from "@/pages/AboutPage";
 import ResearcherProfile from "@/components/ResearcherProfile";
 import AdminLogin from "@/pages/AdminLogin";
 import AdminDashboard from "@/pages/AdminDashboard";
@@ -72,6 +73,7 @@ function Router() {
       <Route path="/contact" component={ContactPage} />
       <Route path="/privacy" component={PrivacyPage} />
       <Route path="/terms" component={TermsPage} />
+      <Route path="/about" component={AboutPage} />
       <Route path="/researcher/:id" component={ResearcherProfile} />
       <Route path="/signup" component={SignupPage} />
       <Route path="/login" component={LoginPage} />

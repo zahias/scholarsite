@@ -13,6 +13,7 @@ import { ThemeSwitcher } from "./ThemeSwitcher";
 import ResearchPassport from "./ResearchPassport";
 import CollapsibleSection from "./CollapsibleSection";
 import ShareButtons from "./ShareButtons";
+import ReportIssue from "./ReportIssue";
 import { ProfileThemeProvider, useProfileTheme, getThemeStyles } from "@/context/ThemeContext";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -421,20 +422,45 @@ function ResearcherProfileContent() {
         </div>
       </section>
 
-      {/* Share Section - Compact bar below hero */}
+      {/* Share & Data Info Bar */}
       <section className="py-3 bg-muted/50 border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between flex-wrap gap-2">
+            {/* Left: Share */}
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <Share2 className="w-4 h-4" />
               <span className="hidden sm:inline">Share this profile:</span>
+              <ShareButtons
+                url={profileUrl}
+                title={profile?.displayName || researcher?.display_name || 'Researcher'}
+                description={seoDescription}
+                openalexId={openalexId}
+              />
             </div>
-            <ShareButtons
-              url={profileUrl}
-              title={profile?.displayName || researcher?.display_name || 'Researcher'}
-              description={seoDescription}
-              openalexId={openalexId}
-            />
+            
+            {/* Right: Data source & Report */}
+            <div className="flex items-center gap-3 text-xs text-muted-foreground">
+              <span className="hidden md:flex items-center gap-1">
+                Data from{" "}
+                <a 
+                  href={`https://openalex.org/authors/${openalexId}`} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-primary hover:underline inline-flex items-center gap-0.5"
+                >
+                  OpenAlex <ExternalLink className="w-3 h-3" />
+                </a>
+                {researcherData?.lastSynced && (
+                  <span className="text-muted-foreground/70">
+                    · Updated {new Date(researcherData.lastSynced).toLocaleDateString()}
+                  </span>
+                )}
+              </span>
+              <ReportIssue 
+                openalexId={openalexId} 
+                researcherName={profile?.displayName || researcher?.display_name || 'Researcher'} 
+              />
+            </div>
           </div>
         </div>
       </section>
@@ -559,11 +585,11 @@ function ResearcherProfileContent() {
                 </p>
               </div>
               <Button
-                onClick={() => navigate('/contact?plan=trial')}
+                onClick={() => navigate('/signup')}
                 className="bg-white text-primary hover:bg-white/90 font-semibold px-6 py-2 rounded-lg shadow-md hover:shadow-lg transition-all"
                 data-testid="button-claim-profile"
               >
-                Create My Portfolio
+                Claim This Profile
               </Button>
             </div>
           </div>
@@ -579,11 +605,11 @@ function ResearcherProfileContent() {
                 Like what you see? Create your own portfolio!
               </p>
               <Button
-                onClick={() => navigate('/contact?plan=trial')}
+                onClick={() => navigate('/signup')}
                 className="bg-white text-primary hover:bg-white/90 font-semibold px-6 py-2 rounded-lg shadow-md w-full"
                 data-testid="button-claim-profile-mobile"
               >
-                Start Free Trial
+                Claim & Customize
               </Button>
             </div>
           </div>

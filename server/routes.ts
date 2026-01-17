@@ -1941,6 +1941,89 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Report Issue endpoint (for profile data issues)
+  app.post('/api/report-issue', async (req, res) => {
+    try {
+      const { openalexId, issueType, email, description } = req.body;
+      
+      if (!openalexId || !issueType || !email || !description) {
+        return res.status(400).json({ message: 'All fields are required' });
+      }
+
+      const issueTypeLabels: Record<string, string> = {
+        'wrong_person': 'Wrong person / Not me',
+        'wrong_publications': 'Wrong publications listed',
+        'missing_publications': 'Missing publications',
+        'wrong_affiliation': 'Wrong affiliation',
+        'other': 'Other issue',
+      };
+      
+      // Send email notification to admin
+      const transporter = nodemailer.createTransport({
+        host: process.env.SMTP_HOST || 'smtp.gmail.com',
+        port: parseInt(process.env.SMTP_PORT || '587'),
+        secure: process.env.SMTP_SECURE === 'true',
+        auth: {
+          user: process.env.SMTP_USER,
+          pass: process.env.SMTP_PASS,
+        },
+      });
+      
+      const adminEmail = process.env.ADMIN_EMAIL || process.env.SMTP_USER;
+      
+      if (adminEmail && process.env.SMTP_USER && process.env.SMTP_PASS) {
+        await transporter.sendMail({
+          from: process.env.SMTP_FROM || process.env.SMTP_USER,
+          to: adminEmail,
+          subject: `[Scholar.name] Data Issue Report: ${issueTypeLabels[issueType] || issueType}`,
+          html: `
+            <h2>🚨 Data Issue Report</h2>
+            <table style="border-collapse: collapse; width: 100%; max-width: 600px;">
+              <tr>
+                <td style="padding: 8px; border: 1px solid #ddd; background: #f9f9f9;"><strong>Issue Type</strong></td>
+                <td style="padding: 8px; border: 1px solid #ddd;">${issueTypeLabels[issueType] || issueType}</td>
+              </tr>
+              <tr>
+                <td style="padding: 8px; border: 1px solid #ddd; background: #f9f9f9;"><strong>OpenAlex ID</strong></td>
+                <td style="padding: 8px; border: 1px solid #ddd;">
+                  <a href="https://openalex.org/authors/${openalexId}">${openalexId}</a>
+                </td>
+              </tr>
+              <tr>
+                <td style="padding: 8px; border: 1px solid #ddd; background: #f9f9f9;"><strong>Profile URL</strong></td>
+                <td style="padding: 8px; border: 1px solid #ddd;">
+                  <a href="https://scholar.name/researcher/${openalexId}">View Profile</a>
+                </td>
+              </tr>
+              <tr>
+                <td style="padding: 8px; border: 1px solid #ddd; background: #f9f9f9;"><strong>Reporter Email</strong></td>
+                <td style="padding: 8px; border: 1px solid #ddd;">${email}</td>
+              </tr>
+              <tr>
+                <td style="padding: 8px; border: 1px solid #ddd; background: #f9f9f9;"><strong>Description</strong></td>
+                <td style="padding: 8px; border: 1px solid #ddd;">${description.replace(/\n/g, '<br>')}</td>
+              </tr>
+            </table>
+            <hr style="margin: 20px 0;">
+            <p style="color: #666; font-size: 12px;">
+              Respond to this user at ${email}. If the issue is with source data, 
+              guide them to submit a correction to OpenAlex.
+            </p>
+          `,
+          replyTo: email,
+        });
+      }
+      
+      res.json({ 
+        success: true, 
+        message: 'Report submitted successfully' 
+      });
+    } catch (error) {
+      console.error('Error handling issue report:', error);
+      res.status(500).json({ message: 'Failed to submit report' });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

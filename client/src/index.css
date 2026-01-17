@@ -123,6 +123,62 @@
   h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-serif);
   }
+  
+  /* ===== ACCESSIBILITY: Focus States ===== */
+  /* Visible focus rings for keyboard navigation */
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+  
+  /* Skip link for keyboard users */
+  .skip-link {
+    position: absolute;
+    top: -100%;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 9999;
+    padding: 1rem 2rem;
+    background: var(--primary);
+    color: white;
+    font-weight: 600;
+    border-radius: var(--radius);
+    transition: top 0.2s ease;
+  }
+  
+  .skip-link:focus {
+    top: 1rem;
+  }
+  
+  /* Better focus for buttons */
+  button:focus-visible,
+  a:focus-visible,
+  [role="button"]:focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+    box-shadow: 0 0 0 4px rgba(var(--theme-primary-hsl), 0.15);
+  }
+  
+  /* High contrast focus for form elements */
+  input:focus-visible,
+  textarea:focus-visible,
+  select:focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 0;
+    border-color: var(--ring);
+  }
+  
+  /* Reduced motion preference */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
 }
 
 /* Serif font class for headings */

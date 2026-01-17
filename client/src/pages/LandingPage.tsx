@@ -43,39 +43,39 @@ interface SearchResponse {
   results: AuthorSearchResult[];
 }
 
-// FAQ data
+// FAQ data - addresses real user objections
 const faqs = [
   {
     question: "Where does the publication data come from?",
-    answer: "All publication data is sourced from OpenAlex, a free and open index of scholarly works. It covers over 250 million works and is updated daily. Your profile syncs automatically based on your plan (monthly or weekly)."
+    answer: "All publication data is sourced from OpenAlex, a free and open index of over 250 million scholarly works, updated daily. Your profile syncs automatically based on your plan (monthly or weekly). We show exactly when data was last updated, and you can report any issues directly from your profile."
+  },
+  {
+    question: "How accurate is the publication matching?",
+    answer: "OpenAlex uses advanced algorithms to match publications to authors, but no system is perfect — especially for common names or transliterated names. You can see all attributed publications on your profile and report any that don't belong to you. We'll help you request corrections at the source."
+  },
+  {
+    question: "Can I edit my publications or add missing papers?",
+    answer: "You control your bio, profile photo, themes, and which publications to feature. However, the publication list itself comes from OpenAlex. If papers are missing or incorrectly attributed, we'll guide you through requesting a correction — it usually takes 1-2 weeks to reflect."
+  },
+  {
+    question: "Will this affect my Google Scholar profile?",
+    answer: "No. Scholar.name is completely separate from Google Scholar. It's a professional portfolio that complements (not replaces) your other academic profiles. Many researchers use both — Google Scholar for discovery, and Scholar.name for a polished, shareable landing page."
+  },
+  {
+    question: "Is this an official academic registry?",
+    answer: "No, we're not a registry or identifier system like ORCID. Scholar.name is a portfolio platform — think of it as your personal research website, professionally designed and automatically updated. You control what's shown and how."
   },
   {
     question: "Can I use my own domain name?",
-    answer: "Yes! Pro plan subscribers can connect a custom domain like yourname.com. We handle all the SSL certificates and DNS configuration for you. Starter plans use a yourname.scholar.name subdomain."
+    answer: "Yes! Pro plan subscribers can connect a custom domain like yourname.com. We handle all SSL certificates and DNS configuration. Starter plans use a yourname.scholar.name subdomain, which is also professional and memorable."
   },
   {
-    question: "How is this different from ORCID or ResearchGate?",
-    answer: "ORCID is an identifier system, and ResearchGate is a social network. Scholar.name is a professional portfolio — think of it as your research 'landing page' that you control and customize with your brand, bio, themes, and downloadable Research Passport."
-  },
-  {
-    question: "What if I'm not in OpenAlex?",
-    answer: "OpenAlex covers most published researchers. Search for yourself using the box above — if you have publications indexed in major databases, you're likely there. If not, contact us and we'll help find a solution."
-  },
-  {
-    question: "Can I cancel anytime?",
-    answer: "Absolutely. No long-term contracts. Cancel anytime from your dashboard. If you cancel, your profile stays active until the end of your billing period, then becomes private."
-  },
-  {
-    question: "Is my data secure?",
-    answer: "Yes. We use bank-level encryption (TLS 1.3) for all data in transit and AES-256 for data at rest. We never share your personal information with third parties. Your publication data is already public via OpenAlex."
-  },
-  {
-    question: "How long does setup take?",
-    answer: "Most researchers are up and running in under 5 minutes. Just search for yourself, customize your bio and theme, and you're done. Your publications sync automatically from OpenAlex."
+    question: "What happens if I cancel?",
+    answer: "No long-term contracts — cancel anytime from your dashboard. Your profile stays active until the end of your billing period, then becomes private (not deleted). You can reactivate anytime and all your customizations will still be there."
   },
   {
     question: "Is there a free trial?",
-    answer: "Yes! We offer a 14-day free trial so you can explore all features before committing. No credit card required to start. If you love it, upgrade to lock in founder pricing."
+    answer: "Yes! 14 days free to explore all features. No credit card required to start. Set up your profile, customize everything, and only pay if you decide to keep it public."
   }
 ];
 
@@ -235,6 +235,11 @@ export default function LandingPage() {
 
   return (
     <div className="min-h-screen bg-background">
+      {/* Skip link for keyboard accessibility */}
+      <a href="#main-content" className="skip-link">
+        Skip to main content
+      </a>
+      
       <SEO 
         title="Scholar.name - Professional Research Portfolios for Academics"
         description="Create a stunning research portfolio that showcases your publications, citations, and academic impact. Auto-syncs with OpenAlex. Better than Google Scholar."
@@ -259,20 +264,21 @@ export default function LandingPage() {
                 <LogIn className="w-3.5 h-3.5" />
                 Login
               </Button>
-              <Button size="sm" className="btn-premium text-xs md:text-sm px-3 md:px-5 py-2" data-testid="button-get-started-nav" onClick={() => { window.scrollTo(0, 0); navigate('/signup'); }}>Get Started</Button>
+              <Button size="sm" className="btn-premium text-xs md:text-sm px-3 md:px-5 py-2" data-testid="button-get-started-nav" onClick={() => { window.scrollTo(0, 0); navigate('/signup'); }}>Create Portfolio</Button>
             </div>
           </div>
         </div>
       </nav>
 
       {/* Hero Section with Embedded Search */}
-      <section className="landing-hero py-16 lg:py-24 relative">
+      <main id="main-content">
+      <section className="landing-hero py-16 lg:py-24 relative" aria-labelledby="hero-heading">
         <div className="hero-orb hero-orb-1"></div>
         <div className="hero-orb hero-orb-2"></div>
         
         <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto">
-            <h1 className="text-2xl sm:text-4xl lg:text-6xl font-bold tracking-tight mb-4 sm:mb-6 text-white leading-tight">
+            <h1 id="hero-heading" className="text-2xl sm:text-4xl lg:text-6xl font-bold tracking-tight mb-4 sm:mb-6 text-white leading-tight">
               Your Research Deserves Better Than{" "}
               <span className="bg-gradient-to-r from-orange-300 via-orange-200 to-amber-200 bg-clip-text text-transparent">a Google Scholar Page</span>
             </h1>
@@ -698,9 +704,9 @@ export default function LandingPage() {
                     className="w-full" 
                     variant={plan.highlighted ? "default" : "outline"}
                     data-testid={`button-select-${plan.name.toLowerCase()}`}
-                    onClick={() => { window.scrollTo(0, 0); navigate(`/contact?plan=${plan.name.toLowerCase()}`); }}
+                    onClick={() => { window.scrollTo(0, 0); navigate(`/signup?plan=${plan.name.toLowerCase()}`); }}
                   >
-                    Get Started
+                    {plan.highlighted ? 'Start 14-Day Free Trial' : `Choose ${plan.name}`}
                   </Button>
                 </CardContent>
               </Card>
@@ -777,17 +783,25 @@ export default function LandingPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
       />
 
+      </main>
+      
       {/* Footer */}
       <footer className="bg-muted/30 border-t border-border py-12">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid md:grid-cols-4 gap-8">
             <div>
               <div className="flex items-center mb-4">
                 <BookOpen className="h-6 w-6 text-primary mr-2" />
                 <span className="font-semibold">ScholarName</span>
               </div>
-              <p className="text-sm text-muted-foreground">
-                Professional research portfolios for academics.
+              <p className="text-sm text-muted-foreground mb-4">
+                Professional research portfolios for academics. Auto-syncs with OpenAlex.
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Data sourced from{" "}
+                <a href="https://openalex.org" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+                  OpenAlex
+                </a>
               </p>
             </div>
             <div>
@@ -799,16 +813,29 @@ export default function LandingPage() {
               </ul>
             </div>
             <div>
+              <h4 className="font-medium mb-4">Company</h4>
+              <ul className="space-y-2 text-sm text-muted-foreground">
+                <li><button onClick={() => { window.scrollTo(0, 0); navigate('/about'); }} className="hover:text-foreground transition-colors" data-testid="link-footer-about">About Us</button></li>
+                <li><button onClick={() => { window.scrollTo(0, 0); navigate('/contact'); }} className="hover:text-foreground transition-colors" data-testid="link-footer-contact">Contact</button></li>
+              </ul>
+            </div>
+            <div>
               <h4 className="font-medium mb-4">Legal</h4>
               <ul className="space-y-2 text-sm text-muted-foreground">
                 <li><button onClick={() => { window.scrollTo(0, 0); navigate('/privacy'); }} className="hover:text-foreground transition-colors" data-testid="link-footer-privacy">Privacy Policy</button></li>
                 <li><button onClick={() => { window.scrollTo(0, 0); navigate('/terms'); }} className="hover:text-foreground transition-colors" data-testid="link-footer-terms">Terms of Service</button></li>
-                <li><button onClick={() => { window.scrollTo(0, 0); navigate('/contact'); }} className="hover:text-foreground transition-colors" data-testid="link-footer-contact">Contact</button></li>
               </ul>
             </div>
           </div>
-          <div className="mt-8 pt-8 border-t border-border text-center text-sm text-muted-foreground">
+          <div className="mt-8 pt-8 border-t border-border flex flex-col sm:flex-row justify-between items-center text-sm text-muted-foreground gap-4">
             <p>&copy; {new Date().getFullYear()} ScholarName. All rights reserved.</p>
+            <div className="flex items-center gap-4">
+              <span className="flex items-center gap-1">
+                <Lock className="w-3 h-3" /> SSL Secured
+              </span>
+              <span>•</span>
+              <span>Made for Researchers</span>
+            </div>
           </div>
         </div>
       </footer>
