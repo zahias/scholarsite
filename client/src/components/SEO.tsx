@@ -48,13 +48,16 @@ export default function SEO({
     updateMetaTag('meta[property="og:title"]', 'property', title);
     updateMetaTag('meta[property="og:description"]', 'property', description);
     updateMetaTag('meta[property="og:type"]', 'property', type);
+    updateMetaTag('meta[property="og:site_name"]', 'property', 'Scholar.name');
     if (url) {
       updateMetaTag('meta[property="og:url"]', 'property', url);
     }
-    if (image) {
-      updateMetaTag('meta[property="og:image"]', 'property', image);
-      updateMetaTag('meta[property="og:image:alt"]', 'property', `${author || 'Researcher'} profile picture`);
-    }
+    // Use provided image or default OG image
+    const ogImage = image || 'https://scholar.name/og-image.svg';
+    updateMetaTag('meta[property="og:image"]', 'property', ogImage);
+    updateMetaTag('meta[property="og:image:width"]', 'property', '1200');
+    updateMetaTag('meta[property="og:image:height"]', 'property', '630');
+    updateMetaTag('meta[property="og:image:alt"]', 'property', image ? `${author || 'Researcher'} profile picture` : 'Scholar.name - Professional Research Portfolios');
 
     // Twitter Card tags
     updateMetaTag('meta[name="twitter:card"]', 'name', image ? 'summary_large_image' : 'summary');

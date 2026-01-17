@@ -12,6 +12,7 @@ import MobileBottomNav from "./MobileBottomNav";
 import { ThemeSwitcher } from "./ThemeSwitcher";
 import ResearchPassport from "./ResearchPassport";
 import CollapsibleSection from "./CollapsibleSection";
+import ShareButtons from "./ShareButtons";
 import { ProfileThemeProvider, useProfileTheme, getThemeStyles } from "@/context/ThemeContext";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -20,7 +21,7 @@ import { Badge } from "@/components/ui/badge";
 import { useRealtimeUpdates } from "@/hooks/useRealtimeUpdates";
 import type { ResearcherProfile as ResearcherProfileType } from "@shared/schema";
 import { useMemo, useState, useEffect } from "react";
-import { ArrowLeft, MapPin, Building2, Mail, Globe, Linkedin, BarChart3, Lightbulb, FileText, User, ExternalLink, Download, Calendar } from "lucide-react";
+import { ArrowLeft, MapPin, Building2, Mail, Globe, Linkedin, BarChart3, Lightbulb, FileText, User, ExternalLink, Download, Calendar, Share2 } from "lucide-react";
 import { SiOrcid, SiGooglescholar, SiResearchgate } from "react-icons/si";
 import { FaXTwitter } from "react-icons/fa6";
 
@@ -376,6 +377,24 @@ function ResearcherProfileContent() {
         </div>
       </section>
 
+      {/* Share Section - Compact bar below hero */}
+      <section className="py-3 bg-muted/50 border-b">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Share2 className="w-4 h-4" />
+              <span className="hidden sm:inline">Share this profile:</span>
+            </div>
+            <ShareButtons
+              url={profileUrl}
+              title={profile?.displayName || researcher?.display_name || 'Researcher'}
+              description={seoDescription}
+              openalexId={openalexId}
+            />
+          </div>
+        </div>
+      </section>
+
       {/* Stats Overview - Always visible */}
       <StatsOverview openalexId={openalexId} />
       
@@ -490,15 +509,17 @@ function ResearcherProfileContent() {
               <div className="flex items-center gap-3">
                 <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
                 <p className="text-white text-sm md:text-base font-medium">
-                  This is a preview. Claim your profile at <span className="font-semibold">{(profile?.displayName || researcher?.display_name || 'yourname').toLowerCase().replace(/\s+/g, '')}.scholar.name</span>
+                  <span className="hidden lg:inline">This is a preview of what your profile could look like.</span>
+                  <span className="lg:hidden">Preview mode</span>
+                  {' '}Create yours at <span className="font-semibold">{(profile?.displayName || researcher?.display_name || 'yourname').toLowerCase().replace(/\s+/g, '')}.scholar.name</span>
                 </p>
               </div>
               <Button
-                onClick={() => navigate('/contact')}
+                onClick={() => navigate('/contact?plan=trial')}
                 className="bg-white text-primary hover:bg-white/90 font-semibold px-6 py-2 rounded-lg shadow-md hover:shadow-lg transition-all"
                 data-testid="button-claim-profile"
               >
-                Claim This Profile
+                Create My Portfolio
               </Button>
             </div>
           </div>
@@ -511,14 +532,14 @@ function ResearcherProfileContent() {
           <div className="px-4 py-3">
             <div className="flex flex-col gap-2 text-center">
               <p className="text-white text-sm font-medium">
-                Preview Mode - Claim your profile today!
+                Like what you see? Create your own portfolio!
               </p>
               <Button
-                onClick={() => navigate('/contact')}
+                onClick={() => navigate('/contact?plan=trial')}
                 className="bg-white text-primary hover:bg-white/90 font-semibold px-6 py-2 rounded-lg shadow-md w-full"
                 data-testid="button-claim-profile-mobile"
               >
-                Claim This Profile
+                Start Free Trial
               </Button>
             </div>
           </div>

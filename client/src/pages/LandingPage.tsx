@@ -22,8 +22,14 @@ import {
   BarChart3,
   Palette,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  Lock,
+  Zap,
+  Sparkles,
+  LogIn
 } from "lucide-react";
+import ExitIntentPopup from "@/components/ExitIntentPopup";
+import CountdownTimer from "@/components/CountdownTimer";
 
 interface AuthorSearchResult {
   id: string;
@@ -62,6 +68,14 @@ const faqs = [
   {
     question: "Is my data secure?",
     answer: "Yes. We use bank-level encryption (TLS 1.3) for all data in transit and AES-256 for data at rest. We never share your personal information with third parties. Your publication data is already public via OpenAlex."
+  },
+  {
+    question: "How long does setup take?",
+    answer: "Most researchers are up and running in under 5 minutes. Just search for yourself, customize your bio and theme, and you're done. Your publications sync automatically from OpenAlex."
+  },
+  {
+    question: "Is there a free trial?",
+    answer: "Yes! We offer a 14-day free trial so you can explore all features before committing. No credit card required to start. If you love it, upgrade to lock in founder pricing."
   }
 ];
 
@@ -199,13 +213,25 @@ export default function LandingPage() {
       "highPrice": "19.99",
       "priceCurrency": "USD",
       "offerCount": "2"
-    },
-    "aggregateRating": {
-      "@type": "AggregateRating",
-      "ratingValue": "4.8",
-      "ratingCount": "127"
     }
   };
+
+  // FAQ Schema for Google rich snippets
+  const faqSchema = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": faqs.map(faq => ({
+      "@type": "Question",
+      "name": faq.question,
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": faq.answer
+      }
+    }))
+  };
+
+  // Founder pricing end date (6 weeks from now)
+  const founderPricingEndDate = new Date('2026-02-28T23:59:59');
 
   return (
     <div className="min-h-screen bg-background">
@@ -225,10 +251,14 @@ export default function LandingPage() {
               <BookOpen className="h-7 w-7 text-white mr-2" />
               <span className="text-lg font-semibold text-white">ScholarName</span>
             </Link>
-            <div className="flex items-center gap-4 md:gap-8">
+            <div className="flex items-center gap-3 md:gap-6">
               <a href="#features" className="nav-link text-xs md:text-sm hidden sm:block" data-testid="link-features">Features</a>
               <a href="#pricing" className="nav-link text-xs md:text-sm hidden sm:block" data-testid="link-pricing">Pricing</a>
               <a href="#faq" className="nav-link text-xs md:text-sm hidden sm:block" data-testid="link-faq">FAQ</a>
+              <Button variant="ghost" size="sm" className="text-white/80 hover:text-white hover:bg-white/10 text-xs md:text-sm hidden sm:flex items-center gap-1" data-testid="link-login" onClick={() => { window.scrollTo(0, 0); navigate('/login'); }}>
+                <LogIn className="w-3.5 h-3.5" />
+                Login
+              </Button>
               <Button size="sm" className="btn-premium text-xs md:text-sm px-3 md:px-5 py-2" data-testid="button-get-started-nav" onClick={() => { window.scrollTo(0, 0); navigate('/contact'); }}>Get Started</Button>
             </div>
           </div>
@@ -246,9 +276,31 @@ export default function LandingPage() {
               Your Research Deserves Better Than{" "}
               <span className="bg-gradient-to-r from-orange-300 via-orange-200 to-amber-200 bg-clip-text text-transparent">a Google Scholar Page</span>
             </h1>
-            <p className="text-base sm:text-lg lg:text-xl text-white/80 mb-6 sm:mb-8 leading-relaxed px-2">
-              See it in action
+            <p className="text-base sm:text-lg lg:text-xl text-white/80 mb-4 sm:mb-6 leading-relaxed px-2">
+              Create a stunning portfolio that showcases your publications, citations, and research impact. 
+              Auto-syncs with OpenAlex. Setup takes 5 minutes.
             </p>
+
+            {/* Free Trial CTA */}
+            <div className="flex flex-wrap justify-center gap-3 mb-6 sm:mb-8">
+              <Button 
+                size="lg" 
+                className="btn-premium px-6 py-3 text-base font-semibold shadow-lg hover:shadow-xl transition-all"
+                onClick={() => { window.scrollTo(0, 0); navigate('/contact?plan=trial'); }}
+                data-testid="button-free-trial"
+              >
+                <Sparkles className="w-4 h-4 mr-2" />
+                Start Free Trial
+              </Button>
+              <Button 
+                variant="outline" 
+                size="lg"
+                className="bg-white/10 border-white/30 text-white hover:bg-white/20 px-6 py-3"
+                onClick={() => document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth' })}
+              >
+                View Pricing
+              </Button>
+            </div>
 
             {/* Search Box - Embedded in Hero */}
             <div className="max-w-xl mx-auto relative" ref={searchRef}>
@@ -359,37 +411,61 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Credibility Badges */}
-      <section className="py-6 sm:py-8 bg-white border-b">
+      {/* Trust Bar */}
+      <section className="py-4 sm:py-6 bg-gradient-to-r from-slate-50 to-white border-b">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
-            <div className="flex items-center justify-center gap-3" data-testid="badge-auto-sync">
-              <div className="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center flex-shrink-0">
-                <RefreshCw className="w-5 h-5 text-green-600" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-sm">Auto-Sync</h3>
-                <p className="text-xs text-muted-foreground">Updates automatically</p>
-              </div>
+          <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-8 text-sm">
+            <div className="flex items-center gap-2 text-muted-foreground" data-testid="trust-secure">
+              <Lock className="w-4 h-4 text-green-600" />
+              <span>256-bit SSL Secure</span>
             </div>
-            <div className="flex items-center justify-center gap-3" data-testid="badge-enterprise">
-              <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center flex-shrink-0">
-                <Shield className="w-5 h-5 text-blue-600" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-sm">Enterprise Security</h3>
-                <p className="text-xs text-muted-foreground">Bank-level encryption</p>
-              </div>
+            <div className="hidden sm:block w-px h-4 bg-border"></div>
+            <div className="flex items-center gap-2 text-muted-foreground" data-testid="trust-openalex">
+              <BookOpen className="w-4 h-4 text-blue-600" />
+              <span>Powered by OpenAlex</span>
             </div>
-            <div className="flex items-center justify-center gap-3" data-testid="badge-early-adopter">
-              <div className="w-10 h-10 rounded-lg bg-amber-100 flex items-center justify-center flex-shrink-0">
-                <Award className="w-5 h-5 text-amber-600" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-sm">Early Adopters</h3>
-                <p className="text-xs text-muted-foreground">Lock in founder pricing</p>
-              </div>
+            <div className="hidden sm:block w-px h-4 bg-border"></div>
+            <div className="flex items-center gap-2 text-muted-foreground" data-testid="trust-setup">
+              <Zap className="w-4 h-4 text-amber-600" />
+              <span>Setup in 5 minutes</span>
             </div>
+            <div className="hidden sm:block w-px h-4 bg-border"></div>
+            <div className="flex items-center gap-2 text-muted-foreground" data-testid="trust-founding">
+              <Users className="w-4 h-4 text-purple-600" />
+              <span>Be among the first 100 founding members</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Built by a Researcher - Founder Story */}
+      <section className="py-8 sm:py-12 bg-white border-b">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col md:flex-row items-center gap-6 md:gap-8">
+            <div className="w-20 h-20 md:w-24 md:h-24 rounded-full bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center flex-shrink-0 shadow-lg">
+              <GraduationCap className="w-10 h-10 md:w-12 md:h-12 text-white" />
+            </div>
+            <div className="text-center md:text-left">
+              <Badge className="mb-2 bg-primary/10 text-primary hover:bg-primary/10">Built by a Researcher, for Researchers</Badge>
+              <p className="text-muted-foreground leading-relaxed">
+                "I built Scholar.name because I was tired of pointing collaborators to my outdated faculty page 
+                or a bare Google Scholar listing. As a researcher myself, I wanted a professional portfolio 
+                that actually reflects my work — one that updates automatically and looks great."
+              </p>
+              <p className="text-sm text-muted-foreground/70 mt-2 italic">— Founder, Scholar.name</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Institutional Logos - Aspirational */}
+      <section className="py-6 sm:py-8 bg-muted/20 border-b">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <p className="text-center text-sm text-muted-foreground mb-4">Built for researchers at leading institutions</p>
+          <div className="flex flex-wrap items-center justify-center gap-6 sm:gap-10 opacity-60">
+            {['MIT', 'Stanford', 'Harvard', 'Oxford', 'Cambridge'].map((uni) => (
+              <span key={uni} className="text-lg sm:text-xl font-serif text-muted-foreground/80">{uni}</span>
+            ))}
           </div>
         </div>
       </section>
@@ -553,16 +629,21 @@ export default function LandingPage() {
       <section id="pricing" className="py-12 sm:py-16 lg:py-24 bg-muted/30">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-8 sm:mb-12">
-            <Badge className="mb-3 sm:mb-4 bg-amber-100 text-amber-800 hover:bg-amber-100">
+            <Badge className="mb-3 sm:mb-4 bg-amber-100 text-amber-800 hover:bg-amber-100 animate-pulse">
               <Award className="w-3 h-3 mr-1" />
-              Early Adopter Pricing
+              Founder Pricing — Limited Time
             </Badge>
             <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-3 sm:mb-4">
-              Simple Pricing
+              Simple, Transparent Pricing
             </h2>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
-              Lock in these rates as a founding member.
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-4">
+              Lock in these founding member rates forever. Prices increase after Feb 28.
             </p>
+            
+            {/* Countdown Timer */}
+            <div className="flex justify-center mb-6">
+              <CountdownTimer targetDate={founderPricingEndDate} />
+            </div>
             
             {/* Monthly/Yearly Toggle */}
             <div className="flex items-center justify-center gap-3 mb-8">
@@ -686,6 +767,15 @@ export default function LandingPage() {
           </div>
         </div>
       </section>
+
+      {/* Exit Intent Popup */}
+      <ExitIntentPopup />
+
+      {/* FAQ Schema for SEO */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
+      />
 
       {/* Footer */}
       <footer className="bg-muted/30 border-t border-border py-12">

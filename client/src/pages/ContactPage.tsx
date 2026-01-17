@@ -13,20 +13,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { BookOpen, ArrowLeft, Send, Building2, User, Users, Palette } from "lucide-react";
+import { BookOpen, ArrowLeft, Send, Building2, User, Sparkles } from "lucide-react";
 import type { Theme, ThemeConfig } from "@shared/schema";
 
 const contactFormSchema = z.object({
   fullName: z.string().min(2, "Name must be at least 2 characters"),
   email: z.string().email("Please enter a valid email address"),
-  institution: z.string().optional(),
-  role: z.string().optional(),
   planInterest: z.string().min(1, "Please select a plan"),
-  researchField: z.string().optional(),
-  openalexId: z.string().optional(),
-  estimatedProfiles: z.string().optional(),
-  biography: z.string().min(10, "Please provide a short biography").max(500, "Biography must be 500 characters or less"),
-  preferredTheme: z.string().optional(),
+  message: z.string().optional(),
 });
 
 type ContactFormData = z.infer<typeof contactFormSchema>;
@@ -52,14 +46,8 @@ export default function ContactPage() {
     defaultValues: {
       fullName: "",
       email: "",
-      institution: "",
-      role: "",
-      planInterest: preselectedPlan,
-      researchField: "",
-      openalexId: "",
-      estimatedProfiles: "",
-      biography: "",
-      preferredTheme: "",
+      planInterest: preselectedPlan || "trial",
+      message: "",
     },
   });
 
@@ -163,9 +151,9 @@ export default function ContactPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Contact Information</CardTitle>
+            <CardTitle>Get Started</CardTitle>
             <CardDescription>
-              Fill out the form below and our team will reach out to discuss your requirements.
+              Fill out this quick form and we'll set up your portfolio within 24 hours.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -213,47 +201,6 @@ export default function ContactPage() {
                   />
                 </div>
 
-                <div className="grid md:grid-cols-2 gap-6">
-                  <FormField
-                    control={form.control}
-                    name="institution"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel htmlFor="institution">Institution / Organization</FormLabel>
-                        <FormControl>
-                          <Input
-                            id="institution"
-                            autoComplete="organization"
-                            placeholder="Stanford University"
-                            {...field}
-                            data-testid="input-institution"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="role"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel htmlFor="role">Your Role</FormLabel>
-                        <FormControl>
-                          <Input
-                            id="role"
-                            autoComplete="organization-title"
-                            placeholder="e.g., Professor, Researcher, PhD Student"
-                            {...field}
-                            data-testid="input-role"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
                 <FormField
                   control={form.control}
                   name="planInterest"
@@ -264,8 +211,24 @@ export default function ContactPage() {
                         <RadioGroup
                           onValueChange={field.onChange}
                           defaultValue={field.value}
-                          className="grid sm:grid-cols-2 gap-4"
+                          className="grid sm:grid-cols-3 gap-4"
                         >
+                          <div className="relative">
+                            <RadioGroupItem
+                              value="trial"
+                              id="trial"
+                              className="peer sr-only"
+                              data-testid="radio-trial"
+                            />
+                            <Label
+                              htmlFor="trial"
+                              className="flex flex-col items-center justify-center rounded-lg border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary cursor-pointer"
+                            >
+                              <Sparkles className="mb-2 h-6 w-6 text-primary" />
+                              <span className="font-semibold">Free Trial</span>
+                              <span className="text-sm text-muted-foreground">14 days free</span>
+                            </Label>
+                          </div>
                           <div className="relative">
                             <RadioGroupItem
                               value="starter"
@@ -305,150 +268,25 @@ export default function ContactPage() {
                   )}
                 />
 
-                <div className="grid md:grid-cols-2 gap-6">
-                  <FormField
-                    control={form.control}
-                    name="researchField"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel htmlFor="researchField">Primary Research Field</FormLabel>
-                        <FormControl>
-                          <Input
-                            id="researchField"
-                            autoComplete="off"
-                            placeholder="e.g., Machine Learning, Molecular Biology"
-                            {...field}
-                            data-testid="input-research-field"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="openalexId"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel htmlFor="openalexId">OpenAlex ID (if known)</FormLabel>
-                        <FormControl>
-                          <Input
-                            id="openalexId"
-                            autoComplete="off"
-                            placeholder="e.g., A5037710835"
-                            {...field}
-                            data-testid="input-openalex-id"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                  {selectedPlan === "institution" && (
-                    <FormField
-                      control={form.control}
-                      name="estimatedProfiles"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel htmlFor="estimatedProfiles">Estimated Number of Researcher Profiles</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
-                            <FormControl>
-                              <SelectTrigger id="estimatedProfiles" data-testid="select-profiles">
-                                <SelectValue placeholder="Select range" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              <SelectItem value="1-5">1-5 profiles</SelectItem>
-                              <SelectItem value="6-10">6-10 profiles</SelectItem>
-                              <SelectItem value="11-25">11-25 profiles</SelectItem>
-                              <SelectItem value="26-50">26-50 profiles</SelectItem>
-                              <SelectItem value="50+">50+ profiles</SelectItem>
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  )}
-
                 <FormField
                   control={form.control}
-                  name="biography"
+                  name="message"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel htmlFor="biography">Short Biography *</FormLabel>
+                      <FormLabel htmlFor="message">Anything else we should know? (optional)</FormLabel>
                       <FormControl>
                         <Textarea
-                          id="biography"
-                          autoComplete="off"
-                          placeholder="Tell us about yourself, your research interests, and academic background. This will help us understand your portfolio needs."
-                          className="min-h-[120px]"
-                          maxLength={500}
+                          id="message"
+                          placeholder="Tell us about yourself, your OpenAlex ID, or any questions..."
+                          className="min-h-[80px]"
                           {...field}
-                          data-testid="textarea-biography"
+                          data-testid="textarea-message"
                         />
                       </FormControl>
-                      <div className="flex justify-between items-center mt-1">
-                        <FormMessage />
-                        <span className={`text-xs ${(field.value?.length || 0) > 450 ? 'text-orange-500' : 'text-muted-foreground'}`}>
-                          {field.value?.length || 0}/500 characters
-                        </span>
-                      </div>
+                      <FormMessage />
                     </FormItem>
                   )}
                 />
-
-                {themes.length > 0 && (
-                  <FormField
-                    control={form.control}
-                    name="preferredTheme"
-                    render={({ field }) => (
-                      <FormItem>
-                      <FormLabel htmlFor="preferredTheme" className="flex items-center gap-2">
-                        <Palette className="w-4 h-4" />
-                        Preferred Theme
-                      </FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <FormControl>
-                            <SelectTrigger id="preferredTheme" data-testid="select-theme">
-                              <SelectValue placeholder="Choose your portfolio theme" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {themes.filter(theme => theme.config).map((theme) => {
-                              const config = theme.config as any;
-                              const primaryColor = config?.primary || config?.colors?.primary || '#0B1F3A';
-                              const accentColor = config?.accent || config?.colors?.accent || '#F2994A';
-                              return (
-                                <SelectItem key={theme.id} value={theme.id}>
-                                  <div className="flex items-center gap-3">
-                                    <div className="flex gap-1">
-                                      <div
-                                        className="w-4 h-4 rounded-full border border-border"
-                                        style={{ backgroundColor: primaryColor }}
-                                      />
-                                      <div
-                                        className="w-4 h-4 rounded-full border border-border -ml-1"
-                                        style={{ backgroundColor: accentColor }}
-                                      />
-                                    </div>
-                                    <span>{theme.name}</span>
-                                  </div>
-                                </SelectItem>
-                              );
-                            })}
-                          </SelectContent>
-                        </Select>
-                        <FormDescription>
-                          Select a color theme for your portfolio. You can change this later.
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                )}
 
                 <Button 
                   type="submit" 
@@ -456,7 +294,7 @@ export default function ContactPage() {
                   disabled={submitMutation.isPending}
                   data-testid="button-submit-inquiry"
                 >
-                  {submitMutation.isPending ? "Submitting..." : "Submit Inquiry"}
+                  {submitMutation.isPending ? "Setting up your portfolio..." : "Start My Free Trial"}
                 </Button>
               </form>
             </Form>
