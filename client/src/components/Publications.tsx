@@ -44,6 +44,17 @@ export default function Publications({ openalexId, inline = false }: Publication
 
   const publications = researcherData?.publications || [];
 
+  // Get featured publications (marked as featured OR top 3 by citations if none marked)
+  const featuredPublications = useMemo(() => {
+    const marked = publications.filter(pub => pub.isFeatured);
+    if (marked.length > 0) return marked;
+    
+    // Auto-feature top 3 most-cited if none are manually featured
+    return [...publications]
+      .sort((a, b) => (b.citationCount || 0) - (a.citationCount || 0))
+      .slice(0, 3);
+  }, [publications]);
+
   // Filter and sort publications
   const filteredAndSortedPublications = useMemo(() => {
     let filtered = [...publications];
@@ -155,18 +166,55 @@ export default function Publications({ openalexId, inline = false }: Publication
   const content = (
     <>
       {!inline && (
-        <div className="text-center mb-6 md:mb-12">
-          <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mb-2 md:mb-4">
+        <div className="text-center mb-6 md:mb-8">
+          <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mb-2">
             Publications
             {publications.length > 0 && (
               <Badge variant="secondary" className="ml-2 text-xs md:text-sm">
-                {filteredAndSortedPublications.length} of {publications.length}
+                {publications.length}
               </Badge>
             )}
           </h2>
-          <p className="text-sm md:text-base text-muted-foreground max-w-2xl mx-auto px-4">
-            Research contributions with search and filtering capabilities.
-          </p>
+        </div>
+      )}
+
+      {/* Featured Publications Section */}
+      {featuredPublications.length > 0 && (
+        <div className="mb-8">
+          <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+            <Star className="w-5 h-5 text-yellow-500 fill-yellow-500" />
+            Featured Works
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {featuredPublications.slice(0, 3).map((pub: any, index: number) => (
+              <Card 
+                key={pub.id} 
+                className="bg-gradient-to-br from-yellow-50 to-amber-50 dark:from-yellow-900/10 dark:to-amber-900/10 border-yellow-200 dark:border-yellow-800/30 hover:shadow-lg transition-shadow"
+                data-testid={`card-featured-${index}`}
+              >
+                <CardContent className="p-4">
+                  <h4 className="font-semibold text-sm line-clamp-2 mb-2">{pub.title}</h4>
+                  <p className="text-xs text-muted-foreground line-clamp-1 mb-2">{pub.authorNames}</p>
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-muted-foreground">{pub.publicationYear}</span>
+                    <span className="font-medium text-amber-600 dark:text-amber-400">
+                      {pub.citationCount?.toLocaleString() || 0} citations
+                    </span>
+                  </div>
+                  {pub.doi && (
+                    <a 
+                      href={`https://doi.org/${pub.doi}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center text-xs text-primary hover:underline mt-2"
+                    >
+                      View →
+                    </a>
+                  )}
+                </CardContent>
+              </Card>
+            ))}
+          </div>
         </div>
       )}
 

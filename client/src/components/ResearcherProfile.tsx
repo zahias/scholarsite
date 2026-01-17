@@ -3,7 +3,6 @@ import { useQuery } from "@tanstack/react-query";
 import Navigation from "./Navigation";
 import StatsOverview from "./StatsOverview";
 import PublicationAnalytics from "./PublicationAnalytics";
-import ResearchNetwork from "./ResearchNetwork";
 import ResearchTopics from "./ResearchTopics";
 import Publications from "./Publications";
 import ProfileSections from "./ProfileSections";
@@ -432,13 +431,6 @@ function ResearcherProfileContent() {
         defaultOpen={true}
         mobileDefaultOpen={false}
         className="bg-muted"
-        badge={
-          researcherData?.topics?.length ? (
-            <Badge variant="secondary" className="ml-2">
-              {researcherData.topics.length}
-            </Badge>
-          ) : null
-        }
       >
         <ResearchTopics openalexId={openalexId} inline />
       </CollapsibleSection>
@@ -451,13 +443,6 @@ function ResearcherProfileContent() {
         defaultOpen={true}
         mobileDefaultOpen={false}
         className="bg-background"
-        badge={
-          researcher?.works_count ? (
-            <Badge variant="secondary" className="ml-2">
-              {researcher.works_count}
-            </Badge>
-          ) : null
-        }
       >
         <Publications openalexId={openalexId} inline />
       </CollapsibleSection>
