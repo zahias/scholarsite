@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import Navigation from "./Navigation";
 import StatsOverview from "./StatsOverview";
 import PublicationAnalytics from "./PublicationAnalytics";
+import CareerTimeline from "./CareerTimeline";
 import ResearchTopics from "./ResearchTopics";
 import Publications from "./Publications";
 import ProfileSections from "./ProfileSections";
@@ -19,7 +20,7 @@ import { Badge } from "@/components/ui/badge";
 import { useRealtimeUpdates } from "@/hooks/useRealtimeUpdates";
 import type { ResearcherProfile as ResearcherProfileType } from "@shared/schema";
 import { useMemo, useState, useEffect } from "react";
-import { ArrowLeft, MapPin, Building2, Mail, Globe, Linkedin, BarChart3, Lightbulb, FileText, User, ExternalLink, Download } from "lucide-react";
+import { ArrowLeft, MapPin, Building2, Mail, Globe, Linkedin, BarChart3, Lightbulb, FileText, User, ExternalLink, Download, Calendar } from "lucide-react";
 import { SiOrcid, SiGooglescholar, SiResearchgate } from "react-icons/si";
 import { FaXTwitter } from "react-icons/fa6";
 
@@ -411,6 +412,18 @@ function ResearcherProfileContent() {
         <ProfileSections sections={researcherData.profileSections} />
       )}
 
+      {/* Career Timeline - New section showing research journey */}
+      <CollapsibleSection
+        id="timeline"
+        title="Research Journey"
+        icon={<Calendar className="w-5 h-5 md:w-6 md:h-6" />}
+        defaultOpen={true}
+        mobileDefaultOpen={false}
+        className="bg-background"
+      >
+        <CareerTimeline openalexId={openalexId} researcherData={researcherData} inline />
+      </CollapsibleSection>
+
       {/* Analytics - Collapsible */}
       <CollapsibleSection
         id="analytics"
@@ -418,7 +431,7 @@ function ResearcherProfileContent() {
         icon={<BarChart3 className="w-5 h-5 md:w-6 md:h-6" />}
         defaultOpen={true}
         mobileDefaultOpen={false}
-        className="bg-background"
+        className="bg-muted"
       >
         <PublicationAnalytics openalexId={openalexId} researcherData={researcherData} inline />
       </CollapsibleSection>
@@ -430,7 +443,7 @@ function ResearcherProfileContent() {
         icon={<Lightbulb className="w-5 h-5 md:w-6 md:h-6" />}
         defaultOpen={true}
         mobileDefaultOpen={false}
-        className="bg-muted"
+        className="bg-background"
       >
         <ResearchTopics openalexId={openalexId} inline />
       </CollapsibleSection>
@@ -442,7 +455,7 @@ function ResearcherProfileContent() {
         icon={<FileText className="w-5 h-5 md:w-6 md:h-6" />}
         defaultOpen={true}
         mobileDefaultOpen={false}
-        className="bg-background"
+        className="bg-muted"
       >
         <Publications openalexId={openalexId} inline />
       </CollapsibleSection>
