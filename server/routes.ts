@@ -1818,6 +1818,129 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ========================================
+  // Analytics Routes
+  // ========================================
+  
+  // Track analytics event (public - for profile pages)
+  app.post('/api/analytics/track', async (req, res) => {
+    try {
+      const { openalexId, eventType, eventTarget, visitorId, referrer, userAgent, country, city } = req.body;
+      
+      if (!openalexId || !eventType) {
+        return res.status(400).json({ message: 'openalexId and eventType are required' });
+      }
+      
+      // Get profileId if it exists
+      const profile = await storage.getResearcherProfileByOpenalexId(openalexId);
+      
+      const event = await storage.trackAnalyticsEvent({
+        profileId: profile?.id || null,
+        openalexId,
+        eventType,
+        eventTarget: eventTarget || null,
+        visitorId: visitorId || null,
+        referrer: referrer || req.get('referer') || null,
+        userAgent: userAgent || req.get('user-agent') || null,
+        country: country || null,
+        city: city || null,
+      });
+      
+      res.json({ success: true, eventId: event.id });
+    } catch (error) {
+      console.error('Error tracking analytics event:', error);
+      res.status(500).json({ message: 'Failed to track event' });
+    }
+  });
+  
+  // Get analytics summary for a profile (requires authentication)
+  app.get('/api/analytics/:openalexId', async (req, res) => {
+    try {
+      const { openalexId } = req.params;
+      const days = parseInt(req.query.days as string) || 30;
+      
+      // Check if user is authenticated and owns this profile or is admin
+      const session = req.session as any;
+      if (!session?.userId) {
+        return res.status(401).json({ message: 'Authentication required' });
+      }
+      
+      // Get user and check ownership or admin
+      const user = await storage.getUser(session.userId);
+      if (!user) {
+        return res.status(401).json({ message: 'User not found' });
+      }
+      
+      // Allow admin or profile owner
+      if (user.role !== 'admin') {
+        const profile = await storage.getResearcherProfileByOpenalexId(openalexId);
+        if (!profile || profile.tenantId !== user.tenantId) {
+          return res.status(403).json({ message: 'Access denied' });
+        }
+      }
+      
+      const summary = await storage.getAnalyticsSummary(openalexId, days);
+      res.json(summary);
+    } catch (error) {
+      console.error('Error fetching analytics:', error);
+      res.status(500).json({ message: 'Failed to fetch analytics' });
+    }
+  });
+
+  // Chat message endpoint (for built-in chat widget)
+  app.post('/api/chat-message', async (req, res) => {
+    try {
+      const { name, email, message, page } = req.body;
+      
+      if (!email || !message) {
+        return res.status(400).json({ message: 'Email and message are required' });
+      }
+      
+      // Send email notification to admin
+      const transporter = nodemailer.createTransport({
+        host: process.env.SMTP_HOST || 'smtp.gmail.com',
+        port: parseInt(process.env.SMTP_PORT || '587'),
+        secure: process.env.SMTP_SECURE === 'true',
+        auth: {
+          user: process.env.SMTP_USER,
+          pass: process.env.SMTP_PASS,
+        },
+      });
+      
+      const adminEmail = process.env.ADMIN_EMAIL || process.env.SMTP_USER;
+      
+      if (adminEmail && process.env.SMTP_USER && process.env.SMTP_PASS) {
+        await transporter.sendMail({
+          from: process.env.SMTP_FROM || process.env.SMTP_USER,
+          to: adminEmail,
+          subject: `[Scholar.name Chat] New message from ${name || email}`,
+          html: `
+            <h2>New Chat Message</h2>
+            <p><strong>From:</strong> ${name || 'Anonymous'} (${email})</p>
+            <p><strong>Page:</strong> ${page || 'Unknown'}</p>
+            <p><strong>Message:</strong></p>
+            <p>${message.replace(/\n/g, '<br>')}</p>
+            <hr>
+            <p style="color: #666; font-size: 12px;">This message was sent via the Scholar.name chat widget.</p>
+          `,
+          replyTo: email,
+        });
+      }
+      
+      res.json({ 
+        success: true, 
+        message: 'Message received! We\'ll get back to you soon.' 
+      });
+    } catch (error) {
+      console.error('Error handling chat message:', error);
+      // Still return success to user even if email fails
+      res.json({ 
+        success: true, 
+        message: 'Message received! We\'ll get back to you soon.' 
+      });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

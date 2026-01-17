@@ -259,7 +259,7 @@ export default function LandingPage() {
                 <LogIn className="w-3.5 h-3.5" />
                 Login
               </Button>
-              <Button size="sm" className="btn-premium text-xs md:text-sm px-3 md:px-5 py-2" data-testid="button-get-started-nav" onClick={() => { window.scrollTo(0, 0); navigate('/contact'); }}>Get Started</Button>
+              <Button size="sm" className="btn-premium text-xs md:text-sm px-3 md:px-5 py-2" data-testid="button-get-started-nav" onClick={() => { window.scrollTo(0, 0); navigate('/signup'); }}>Get Started</Button>
             </div>
           </div>
         </div>
@@ -286,7 +286,7 @@ export default function LandingPage() {
               <Button 
                 size="lg" 
                 className="btn-premium px-6 py-3 text-base font-semibold shadow-lg hover:shadow-xl transition-all"
-                onClick={() => { window.scrollTo(0, 0); navigate('/contact?plan=trial'); }}
+                onClick={() => { window.scrollTo(0, 0); navigate('/signup'); }}
                 data-testid="button-free-trial"
               >
                 <Sparkles className="w-4 h-4 mr-2" />

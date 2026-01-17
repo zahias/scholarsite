@@ -20,6 +20,10 @@ import TenantProfilePage from "@/pages/TenantProfilePage";
 import CheckoutPage from "@/pages/CheckoutPage";
 import CheckoutSuccessPage from "@/pages/CheckoutSuccessPage";
 import CheckoutCancelPage from "@/pages/CheckoutCancelPage";
+import SignupPage from "@/pages/SignupPage";
+import LoginPage from "@/pages/LoginPage";
+import ChatWidget from "@/components/ChatWidget";
+import { AnalyticsProvider } from "@/lib/analytics";
 
 interface SiteContext {
   isTenantSite: boolean;
@@ -69,6 +73,8 @@ function Router() {
       <Route path="/privacy" component={PrivacyPage} />
       <Route path="/terms" component={TermsPage} />
       <Route path="/researcher/:id" component={ResearcherProfile} />
+      <Route path="/signup" component={SignupPage} />
+      <Route path="/login" component={LoginPage} />
       <Route path="/admin/login" component={AdminLogin} />
       <Route path="/admin" component={AdminDashboard} />
       <Route path="/admin/themes" component={AdminThemes} />
@@ -87,10 +93,13 @@ function Router() {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Router />
-      </TooltipProvider>
+      <AnalyticsProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Router />
+          <ChatWidget />
+        </TooltipProvider>
+      </AnalyticsProvider>
     </QueryClientProvider>
   );
 }

@@ -20,10 +20,37 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { useRealtimeUpdates } from "@/hooks/useRealtimeUpdates";
 import type { ResearcherProfile as ResearcherProfileType } from "@shared/schema";
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState, useEffect, useCallback } from "react";
 import { ArrowLeft, MapPin, Building2, Mail, Globe, Linkedin, BarChart3, Lightbulb, FileText, User, ExternalLink, Download, Calendar, Share2 } from "lucide-react";
 import { SiOrcid, SiGooglescholar, SiResearchgate } from "react-icons/si";
 import { FaXTwitter } from "react-icons/fa6";
+
+// Analytics tracking helper
+const trackProfileEvent = async (openalexId: string, eventType: string, eventTarget?: string) => {
+  try {
+    // Get or create visitor ID
+    let visitorId = localStorage.getItem('scholar_visitor_id');
+    if (!visitorId) {
+      visitorId = crypto.randomUUID();
+      localStorage.setItem('scholar_visitor_id', visitorId);
+    }
+    
+    await fetch('/api/analytics/track', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        openalexId,
+        eventType,
+        eventTarget,
+        visitorId,
+        referrer: document.referrer || null,
+      }),
+    });
+  } catch (error) {
+    // Silently fail - analytics should not break the app
+    console.debug('Analytics tracking failed:', error);
+  }
+};
 
 function getInitials(name: string): string {
   if (!name) return '?';
@@ -71,6 +98,23 @@ function ResearcherProfileContent() {
     retry: false,
   });
 
+  // Track page view once when profile loads
+  const openalexIdForTracking = researcherData?.profile?.openalexId || id;
+  useEffect(() => {
+    if (openalexIdForTracking && !researcherData?.isPreview) {
+      trackProfileEvent(openalexIdForTracking, 'view');
+    }
+  }, [openalexIdForTracking, researcherData?.isPreview]);
+
+  // Track click events (for external links like CV, LinkedIn, etc.)
+  const handleTrackedClick = useCallback((target: string, url?: string) => {
+    if (openalexIdForTracking && !researcherData?.isPreview) {
+      trackProfileEvent(openalexIdForTracking, 'click', target);
+    }
+    if (url) {
+      window.open(url, '_blank', 'noopener,noreferrer');
+    }
+  }, [openalexIdForTracking, researcherData?.isPreview]);
 
   // SEO data - must be before conditional returns to satisfy Rules of Hooks
   const profile = researcherData?.profile;

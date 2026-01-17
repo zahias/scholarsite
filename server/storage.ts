@@ -12,6 +12,8 @@ import {
   payments,
   profileSections,
   syncLogs,
+  profileAnalytics,
+  profileAnalyticsDaily,
   type User,
   type UpsertUser,
   type SafeUser,
@@ -41,9 +43,13 @@ import {
   type InsertProfileSection,
   type SyncLog,
   type InsertSyncLog,
+  type ProfileAnalytics,
+  type InsertProfileAnalytics,
+  type ProfileAnalyticsDaily,
+  type InsertProfileAnalyticsDaily,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, and, ne, inArray, asc } from "drizzle-orm";
+import { eq, desc, and, ne, inArray, asc, sql, gte, lte, count, countDistinct } from "drizzle-orm";
 import crypto from "crypto";
 
 function generateUUID(): string {
@@ -141,6 +147,21 @@ export interface IStorage {
   setDefaultTheme(id: string): Promise<Theme | undefined>;
   bulkApplyThemeToTenants(themeId: string, tenantIds?: string[]): Promise<{ updated: number }>;
   getTenantsWithThemeInfo(): Promise<Array<{ id: string; name: string; currentThemeId: string | null; currentThemeName: string | null }>>;
+  
+  // Analytics operations
+  trackAnalyticsEvent(event: InsertProfileAnalytics): Promise<ProfileAnalytics>;
+  getAnalyticsByOpenalexId(openalexId: string, startDate?: Date, endDate?: Date): Promise<ProfileAnalytics[]>;
+  getAnalyticsSummary(openalexId: string, days?: number): Promise<{
+    totalViews: number;
+    uniqueVisitors: number;
+    totalClicks: number;
+    totalShares: number;
+    totalDownloads: number;
+    viewsByDay: Array<{ date: string; views: number; uniqueVisitors: number }>;
+    topReferrers: Array<{ referrer: string; count: number }>;
+    clicksByTarget: Array<{ target: string; count: number }>;
+  }>;
+  aggregateDailyAnalytics(openalexId: string, date: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -869,6 +890,129 @@ export class DatabaseStorage implements IStorage {
 
   async getAllPayments(): Promise<Payment[]> {
     return await db.select().from(payments).orderBy(desc(payments.createdAt));
+  }
+
+  // Analytics operations
+  async trackAnalyticsEvent(event: InsertProfileAnalytics): Promise<ProfileAnalytics> {
+    const [result] = await db.insert(profileAnalytics).values({
+      ...event,
+      id: generateUUID(),
+    }).returning();
+    return result;
+  }
+
+  async getAnalyticsByOpenalexId(openalexId: string, startDate?: Date, endDate?: Date): Promise<ProfileAnalytics[]> {
+    const conditions = [eq(profileAnalytics.openalexId, openalexId)];
+    if (startDate) conditions.push(gte(profileAnalytics.createdAt, startDate));
+    if (endDate) conditions.push(lte(profileAnalytics.createdAt, endDate));
+    
+    return await db.select().from(profileAnalytics)
+      .where(and(...conditions))
+      .orderBy(desc(profileAnalytics.createdAt));
+  }
+
+  async getAnalyticsSummary(openalexId: string, days: number = 30): Promise<{
+    totalViews: number;
+    uniqueVisitors: number;
+    totalClicks: number;
+    totalShares: number;
+    totalDownloads: number;
+    viewsByDay: Array<{ date: string; views: number; uniqueVisitors: number }>;
+    topReferrers: Array<{ referrer: string; count: number }>;
+    clicksByTarget: Array<{ target: string; count: number }>;
+  }> {
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - days);
+    
+    const events = await this.getAnalyticsByOpenalexId(openalexId, startDate);
+    
+    // Calculate totals
+    const totalViews = events.filter(e => e.eventType === 'view').length;
+    const uniqueVisitors = new Set(events.filter(e => e.eventType === 'view').map(e => e.visitorId)).size;
+    const totalClicks = events.filter(e => e.eventType === 'click').length;
+    const totalShares = events.filter(e => e.eventType === 'share').length;
+    const totalDownloads = events.filter(e => e.eventType === 'download').length;
+    
+    // Group views by day
+    const viewsByDayMap = new Map<string, { views: number; visitors: Set<string> }>();
+    events.filter(e => e.eventType === 'view').forEach(e => {
+      const date = e.createdAt ? new Date(e.createdAt).toISOString().split('T')[0] : '';
+      if (!viewsByDayMap.has(date)) {
+        viewsByDayMap.set(date, { views: 0, visitors: new Set() });
+      }
+      const day = viewsByDayMap.get(date)!;
+      day.views++;
+      if (e.visitorId) day.visitors.add(e.visitorId);
+    });
+    
+    const viewsByDay = Array.from(viewsByDayMap.entries())
+      .map(([date, data]) => ({ date, views: data.views, uniqueVisitors: data.visitors.size }))
+      .sort((a, b) => a.date.localeCompare(b.date));
+    
+    // Top referrers
+    const referrerMap = new Map<string, number>();
+    events.filter(e => e.referrer).forEach(e => {
+      const ref = e.referrer || 'Direct';
+      referrerMap.set(ref, (referrerMap.get(ref) || 0) + 1);
+    });
+    const topReferrers = Array.from(referrerMap.entries())
+      .map(([referrer, count]) => ({ referrer, count }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 10);
+    
+    // Clicks by target
+    const clickMap = new Map<string, number>();
+    events.filter(e => e.eventType === 'click' && e.eventTarget).forEach(e => {
+      const target = e.eventTarget || 'unknown';
+      clickMap.set(target, (clickMap.get(target) || 0) + 1);
+    });
+    const clicksByTarget = Array.from(clickMap.entries())
+      .map(([target, count]) => ({ target, count }))
+      .sort((a, b) => b.count - a.count);
+    
+    return {
+      totalViews,
+      uniqueVisitors,
+      totalClicks,
+      totalShares,
+      totalDownloads,
+      viewsByDay,
+      topReferrers,
+      clicksByTarget,
+    };
+  }
+
+  async aggregateDailyAnalytics(openalexId: string, date: string): Promise<void> {
+    const startOfDay = new Date(date);
+    startOfDay.setHours(0, 0, 0, 0);
+    const endOfDay = new Date(date);
+    endOfDay.setHours(23, 59, 59, 999);
+    
+    const events = await this.getAnalyticsByOpenalexId(openalexId, startOfDay, endOfDay);
+    
+    const views = events.filter(e => e.eventType === 'view').length;
+    const uniqueVisitors = new Set(events.filter(e => e.eventType === 'view').map(e => e.visitorId)).size;
+    const clicks = events.filter(e => e.eventType === 'click').length;
+    const shares = events.filter(e => e.eventType === 'share').length;
+    const downloads = events.filter(e => e.eventType === 'download').length;
+    
+    // Get profileId from first event if exists
+    const profileId = events[0]?.profileId || null;
+    
+    await db.insert(profileAnalyticsDaily).values({
+      id: generateUUID(),
+      profileId,
+      openalexId,
+      date,
+      views,
+      uniqueVisitors,
+      clicks,
+      shares,
+      downloads,
+    }).onConflictDoUpdate({
+      target: [profileAnalyticsDaily.openalexId, profileAnalyticsDaily.date],
+      set: { views, uniqueVisitors, clicks, shares, downloads },
+    });
   }
 }
 

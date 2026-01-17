@@ -18,7 +18,7 @@ import { z } from "zod";
 // See server/index.ts for session configuration
 
 // Plan types for pricing tiers
-export type PlanType = 'starter' | 'professional' | 'institution';
+export type PlanType = 'free' | 'starter' | 'professional' | 'institution';
 
 // Tenant status
 export type TenantStatus = 'active' | 'suspended' | 'cancelled' | 'pending';
@@ -205,6 +205,46 @@ export const syncLogs = pgTable("sync_logs", {
 
 export type InsertSyncLog = typeof syncLogs.$inferInsert;
 export type SyncLog = typeof syncLogs.$inferSelect;
+
+// Profile analytics - track views, clicks, shares
+export const profileAnalytics = pgTable("profile_analytics", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  profileId: varchar("profile_id").references(() => researcherProfiles.id),
+  openalexId: varchar("openalex_id").notNull(),
+  eventType: varchar("event_type").notNull(), // 'view', 'click', 'share', 'download'
+  eventTarget: varchar("event_target"), // 'publication', 'cv', 'linkedin', 'email', etc.
+  visitorId: varchar("visitor_id"), // Anonymous visitor tracking
+  referrer: varchar("referrer"),
+  userAgent: varchar("user_agent"),
+  country: varchar("country"),
+  city: varchar("city"),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => ({
+  profileIdIdx: index("profile_analytics_profile_id_idx").on(table.profileId),
+  openalexIdIdx: index("profile_analytics_openalex_id_idx").on(table.openalexId),
+  createdAtIdx: index("profile_analytics_created_at_idx").on(table.createdAt),
+}));
+
+export type InsertProfileAnalytics = typeof profileAnalytics.$inferInsert;
+export type ProfileAnalytics = typeof profileAnalytics.$inferSelect;
+
+// Daily analytics aggregates for faster queries
+export const profileAnalyticsDaily = pgTable("profile_analytics_daily", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  profileId: varchar("profile_id").references(() => researcherProfiles.id),
+  openalexId: varchar("openalex_id").notNull(),
+  date: date("date").notNull(),
+  views: integer("views").default(0),
+  uniqueVisitors: integer("unique_visitors").default(0),
+  clicks: integer("clicks").default(0),
+  shares: integer("shares").default(0),
+  downloads: integer("downloads").default(0),
+}, (table) => ({
+  uniqueProfileDate: unique().on(table.openalexId, table.date),
+}));
+
+export type InsertProfileAnalyticsDaily = typeof profileAnalyticsDaily.$inferInsert;
+export type ProfileAnalyticsDaily = typeof profileAnalyticsDaily.$inferSelect;
 
 // Tenant types
 export type InsertTenant = typeof tenants.$inferInsert;
