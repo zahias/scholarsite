@@ -23,7 +23,6 @@ import CheckoutSuccessPage from "@/pages/CheckoutSuccessPage";
 import CheckoutCancelPage from "@/pages/CheckoutCancelPage";
 import SignupPage from "@/pages/SignupPage";
 import LoginPage from "@/pages/LoginPage";
-import ChatWidget from "@/components/ChatWidget";
 import { AnalyticsProvider } from "@/lib/analytics";
 
 interface SiteContext {
@@ -99,7 +98,6 @@ function App() {
         <TooltipProvider>
           <Toaster />
           <Router />
-          <ChatWidget />
         </TooltipProvider>
       </AnalyticsProvider>
     </QueryClientProvider>

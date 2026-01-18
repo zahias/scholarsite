@@ -16,20 +16,16 @@ import {
   Loader2,
   GraduationCap,
   RefreshCw,
-  Shield,
-  Award,
   FileText,
   BarChart3,
-  Palette,
   ChevronDown,
   ChevronUp,
   Lock,
   Zap,
   Sparkles,
-  LogIn
+  LogIn,
+  Globe
 } from "lucide-react";
-import ExitIntentPopup from "@/components/ExitIntentPopup";
-import CountdownTimer from "@/components/CountdownTimer";
 
 interface AuthorSearchResult {
   id: string;
@@ -43,39 +39,31 @@ interface SearchResponse {
   results: AuthorSearchResult[];
 }
 
-// FAQ data - addresses real user objections
+// FAQ data - purchase-blocker questions only (6 items)
 const faqs = [
   {
     question: "Where does the publication data come from?",
-    answer: "All publication data is sourced from OpenAlex, a free and open index of over 250 million scholarly works, updated daily. Your profile syncs automatically based on your plan (monthly or weekly). We show exactly when data was last updated, and you can report any issues directly from your profile."
+    answer: "All publication data comes from OpenAlex, a free and open index of 250M+ scholarly works. Your profile syncs automatically. You can report issues directly from your profile."
   },
   {
     question: "How accurate is the publication matching?",
-    answer: "OpenAlex uses advanced algorithms to match publications to authors, but no system is perfect — especially for common names or transliterated names. You can see all attributed publications on your profile and report any that don't belong to you. We'll help you request corrections at the source."
+    answer: "OpenAlex uses advanced algorithms, but no system is perfect for common names. You can see all attributed publications and report any that don't belong to you."
   },
   {
-    question: "Can I edit my publications or add missing papers?",
-    answer: "You control your bio, profile photo, themes, and which publications to feature. However, the publication list itself comes from OpenAlex. If papers are missing or incorrectly attributed, we'll guide you through requesting a correction — it usually takes 1-2 weeks to reflect."
+    question: "Can I edit my publications?",
+    answer: "You control your bio, photo, themes, and featured works. The publication list comes from OpenAlex — we'll guide you through requesting corrections if needed."
   },
   {
-    question: "Will this affect my Google Scholar profile?",
-    answer: "No. Scholar.name is completely separate from Google Scholar. It's a professional portfolio that complements (not replaces) your other academic profiles. Many researchers use both — Google Scholar for discovery, and Scholar.name for a polished, shareable landing page."
-  },
-  {
-    question: "Is this an official academic registry?",
-    answer: "No, we're not a registry or identifier system like ORCID. Scholar.name is a portfolio platform — think of it as your personal research website, professionally designed and automatically updated. You control what's shown and how."
-  },
-  {
-    question: "Can I use my own domain name?",
-    answer: "Yes! Pro plan subscribers can connect a custom domain like yourname.com. We handle all SSL certificates and DNS configuration. Starter plans use a yourname.scholar.name subdomain, which is also professional and memorable."
+    question: "Can I use my own domain?",
+    answer: "Yes! Pro plan includes custom domains (yourname.com). Starter uses yourname.scholar.name. Both are professional and memorable."
   },
   {
     question: "What happens if I cancel?",
-    answer: "No long-term contracts — cancel anytime from your dashboard. Your profile stays active until the end of your billing period, then becomes private (not deleted). You can reactivate anytime and all your customizations will still be there."
+    answer: "Cancel anytime. Your profile stays active until the billing period ends, then becomes private (not deleted). Reactivate anytime."
   },
   {
     question: "Is there a free trial?",
-    answer: "Yes! 14 days free to explore all features. No credit card required to start. Set up your profile, customize everything, and only pay if you decide to keep it public."
+    answer: "Yes — 14 days free, no credit card required. Set up your profile, customize everything, and only pay if you keep it public."
   }
 ];
 
@@ -144,24 +132,19 @@ export default function LandingPage() {
 
   const features = [
     {
-      icon: FileText,
-      title: "Research Passport",
-      description: "Download a printable PDF with your name, institution, and QR code linking to your portfolio. Perfect for conferences."
-    },
-    {
-      icon: BarChart3,
-      title: "Research Visuals",
-      description: "Interactive charts, topic clouds, citation trends, and co-author network maps that bring your research to life."
-    },
-    {
-      icon: Palette,
-      title: "Custom Bio Sections",
-      description: "Add awards, grants, teaching experience, media mentions, and other achievements to your profile."
-    },
-    {
       icon: RefreshCw,
       title: "Auto-Sync",
       description: "Your publications update automatically from OpenAlex. No manual entry needed."
+    },
+    {
+      icon: BarChart3,
+      title: "Professional Design",
+      description: "Interactive charts, citation trends, and topic visualizations that bring your research to life."
+    },
+    {
+      icon: Globe,
+      title: "Shareable URL",
+      description: "Get yourname.scholar.name — a clean, memorable link for email signatures, grants, and conferences."
     }
   ];
 
@@ -230,9 +213,6 @@ export default function LandingPage() {
     }))
   };
 
-  // Founder pricing end date (6 weeks from now)
-  const founderPricingEndDate = new Date('2026-02-28T23:59:59');
-
   return (
     <div className="min-h-screen bg-background">
       {/* Skip link for keyboard accessibility */}
@@ -264,7 +244,7 @@ export default function LandingPage() {
                 <LogIn className="w-3.5 h-3.5" />
                 Login
               </Button>
-              <Button size="sm" className="btn-premium text-xs md:text-sm px-3 md:px-5 py-2" data-testid="button-get-started-nav" onClick={() => { window.scrollTo(0, 0); navigate('/signup'); }}>Create Portfolio</Button>
+              <Button size="sm" className="btn-premium text-xs md:text-sm px-3 md:px-5 py-2" data-testid="button-get-started-nav" onClick={() => { window.scrollTo(0, 0); navigate('/signup'); }}>Create Your Portfolio</Button>
             </div>
           </div>
         </div>
@@ -279,33 +259,30 @@ export default function LandingPage() {
         <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto">
             <h1 id="hero-heading" className="text-2xl sm:text-4xl lg:text-6xl font-bold tracking-tight mb-4 sm:mb-6 text-white leading-tight">
-              Your Research Deserves Better Than{" "}
-              <span className="bg-gradient-to-r from-orange-300 via-orange-200 to-amber-200 bg-clip-text text-transparent">a Google Scholar Page</span>
+              A professional research profile,{" "}
+              <span className="bg-gradient-to-r from-orange-300 via-orange-200 to-amber-200 bg-clip-text text-transparent">auto-updated</span>
             </h1>
             <p className="text-base sm:text-lg lg:text-xl text-white/80 mb-4 sm:mb-6 leading-relaxed px-2">
-              Create a stunning portfolio that showcases your publications, citations, and research impact. 
-              Auto-syncs with OpenAlex. Setup takes 5 minutes.
+              ScholarName turns your OpenAlex record into a polished portfolio you can share in minutes.
             </p>
 
-            {/* Free Trial CTA */}
-            <div className="flex flex-wrap justify-center gap-3 mb-6 sm:mb-8">
+            {/* Primary CTA */}
+            <div className="flex flex-col items-center gap-3 mb-6 sm:mb-8">
               <Button 
                 size="lg" 
-                className="btn-premium px-6 py-3 text-base font-semibold shadow-lg hover:shadow-xl transition-all"
+                className="btn-premium px-8 py-3 text-base font-semibold shadow-lg hover:shadow-xl transition-all"
                 onClick={() => { window.scrollTo(0, 0); navigate('/signup'); }}
                 data-testid="button-free-trial"
               >
                 <Sparkles className="w-4 h-4 mr-2" />
-                Start Free Trial
+                Create Your Portfolio
               </Button>
-              <Button 
-                variant="outline" 
-                size="lg"
-                className="bg-white/10 border-white/30 text-white hover:bg-white/20 px-6 py-3"
-                onClick={() => document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth' })}
+              <button 
+                className="text-white/70 hover:text-white text-sm underline-offset-4 hover:underline transition-colors"
+                onClick={() => { window.scrollTo(0, 0); navigate('/researcher/A5037710835'); }}
               >
-                View Pricing
-              </Button>
+                View a demo profile →
+              </button>
             </div>
 
             {/* Search Box - Embedded in Hero */}
@@ -391,28 +368,7 @@ export default function LandingPage() {
               )}
             </div>
 
-            {/* Example Profiles */}
-            <div className="mt-8 sm:mt-10">
-              <p className="text-white/70 text-sm mb-4">Or explore example profiles:</p>
-              <div className="flex flex-wrap justify-center gap-3">
-                {[
-                  { name: "Richard Feynman", id: "A5037710835" },
-                  { name: "Marie Curie", id: "A5046643220" },
-                  { name: "Albert Einstein", id: "A5109805546" }
-                ].map((researcher, index) => (
-                  <Button
-                    key={index}
-                    variant="outline"
-                    className="bg-white/10 border-white/30 text-white hover:bg-white/20 hover:border-white/50 transition-all"
-                    onClick={() => { window.scrollTo(0, 0); navigate(`/researcher/${researcher.id}`); }}
-                    data-testid={`button-example-${researcher.name.toLowerCase().replace(' ', '-')}`}
-                  >
-                    <GraduationCap className="w-4 h-4 mr-2 opacity-70" />
-                    {researcher.name}
-                  </Button>
-                ))}
-              </div>
-            </div>
+
           </div>
         </div>
       </section>
@@ -421,46 +377,30 @@ export default function LandingPage() {
       <section className="py-4 sm:py-6 bg-gradient-to-r from-slate-50 to-white border-b">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-8 text-sm">
-            <div className="flex items-center gap-2 text-muted-foreground" data-testid="trust-secure">
-              <Lock className="w-4 h-4 text-green-600" />
-              <span>256-bit SSL Secure</span>
-            </div>
-            <div className="hidden sm:block w-px h-4 bg-border"></div>
             <div className="flex items-center gap-2 text-muted-foreground" data-testid="trust-openalex">
               <BookOpen className="w-4 h-4 text-blue-600" />
               <span>Powered by OpenAlex</span>
+            </div>
+            <div className="hidden sm:block w-px h-4 bg-border"></div>
+            <div className="flex items-center gap-2 text-muted-foreground" data-testid="trust-secure">
+              <Lock className="w-4 h-4 text-green-600" />
+              <span>256-bit SSL</span>
             </div>
             <div className="hidden sm:block w-px h-4 bg-border"></div>
             <div className="flex items-center gap-2 text-muted-foreground" data-testid="trust-setup">
               <Zap className="w-4 h-4 text-amber-600" />
               <span>Setup in 5 minutes</span>
             </div>
-            <div className="hidden sm:block w-px h-4 bg-border"></div>
-            <div className="flex items-center gap-2 text-muted-foreground" data-testid="trust-founding">
-              <Users className="w-4 h-4 text-purple-600" />
-              <span>Be among the first 100 founding members</span>
-            </div>
           </div>
         </div>
       </section>
 
-      {/* Built by a Researcher - Founder Story */}
-      <section className="py-8 sm:py-12 bg-white border-b">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col md:flex-row items-center gap-6 md:gap-8">
-            <div className="w-20 h-20 md:w-24 md:h-24 rounded-full bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center flex-shrink-0 shadow-lg">
-              <GraduationCap className="w-10 h-10 md:w-12 md:h-12 text-white" />
-            </div>
-            <div className="text-center md:text-left">
-              <Badge className="mb-2 bg-primary/10 text-primary hover:bg-primary/10">Built by a Researcher, for Researchers</Badge>
-              <p className="text-muted-foreground leading-relaxed">
-                "I built Scholar.name because I was tired of pointing collaborators to my outdated faculty page 
-                or a bare Google Scholar listing. As a researcher myself, I wanted a professional portfolio 
-                that actually reflects my work — one that updates automatically and looks great."
-              </p>
-              <p className="text-sm text-muted-foreground/70 mt-2 italic">— Founder, Scholar.name</p>
-            </div>
-          </div>
+      {/* Founder Note */}
+      <section className="py-6 bg-white border-b">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <p className="text-muted-foreground text-sm italic">
+            "Built by a researcher who was tired of pointing collaborators to an outdated faculty page." — Founder
+          </p>
         </div>
       </section>
 
@@ -505,47 +445,26 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Use Cases Section - Why not just Google Scholar? */}
+      {/* Use Cases Section - simplified to 3 cards */}
       <section id="use-cases" className="py-12 sm:py-16 lg:py-24 bg-white">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-8 sm:mb-12">
-            <Badge className="mb-3 sm:mb-4 bg-blue-100 text-blue-800 hover:bg-blue-100">
-              Common Question
-            </Badge>
             <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-3 sm:mb-4">
-              "I already have Google Scholar..."
+              Where You'll Use It
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Google Scholar is where people <strong>find</strong> your papers. Scholar.name is where you <strong>send</strong> them.
+              One link for email signatures, grant applications, and conference networking.
             </p>
           </div>
           
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto">
+          <div className="grid sm:grid-cols-3 gap-6 max-w-4xl mx-auto">
             <Card className="border bg-gradient-to-br from-blue-50 to-white hover:shadow-md transition-shadow">
               <CardContent className="p-6">
                 <div className="text-3xl mb-3">✉️</div>
                 <h3 className="font-semibold text-lg mb-2">Email Signature</h3>
-                <p className="text-sm text-muted-foreground mb-3">
-                  Replace that ugly Google Scholar URL with a clean, memorable link.
+                <p className="text-sm text-muted-foreground">
+                  A clean, memorable link instead of an ugly Google Scholar URL.
                 </p>
-                <div className="text-xs font-mono bg-muted/50 rounded p-2">
-                  <span className="line-through text-muted-foreground">scholar.google.com/citations?user=xY3z...</span>
-                  <br />
-                  <span className="text-primary font-semibold">yourname.scholar.name</span>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="border bg-gradient-to-br from-amber-50 to-white hover:shadow-md transition-shadow">
-              <CardContent className="p-6">
-                <div className="text-3xl mb-3">🎫</div>
-                <h3 className="font-semibold text-lg mb-2">Conference Badge</h3>
-                <p className="text-sm text-muted-foreground mb-3">
-                  Print your Research Passport with QR code. Colleagues scan → see your full portfolio.
-                </p>
-                <div className="text-xs text-muted-foreground italic">
-                  "Way better than handing out business cards that go in the trash."
-                </div>
               </CardContent>
             </Card>
 
@@ -553,80 +472,21 @@ export default function LandingPage() {
               <CardContent className="p-6">
                 <div className="text-3xl mb-3">📝</div>
                 <h3 className="font-semibold text-lg mb-2">Grant Applications</h3>
-                <p className="text-sm text-muted-foreground mb-3">
-                  When they ask for a "personal website" — give them a professional research portfolio.
+                <p className="text-sm text-muted-foreground">
+                  A professional portfolio when they ask for your "personal website."
                 </p>
-                <div className="text-xs text-muted-foreground italic">
-                  Beats linking to a dusty faculty page from 2015.
-                </div>
               </CardContent>
             </Card>
 
-            <Card className="border bg-gradient-to-br from-purple-50 to-white hover:shadow-md transition-shadow">
-              <CardContent className="p-6">
-                <div className="text-3xl mb-3">💼</div>
-                <h3 className="font-semibold text-lg mb-2">LinkedIn Profile</h3>
-                <p className="text-sm text-muted-foreground mb-3">
-                  Your website link field finally has something impressive to show.
-                </p>
-                <div className="text-xs text-muted-foreground italic">
-                  Recruiters and collaborators see your impact instantly.
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="border bg-gradient-to-br from-rose-50 to-white hover:shadow-md transition-shadow">
-              <CardContent className="p-6">
-                <div className="text-3xl mb-3">🎤</div>
-                <h3 className="font-semibold text-lg mb-2">Speaker Bio</h3>
-                <p className="text-sm text-muted-foreground mb-3">
-                  Event organizers need your bio, photo, and credentials — one link has it all.
-                </p>
-                <div className="text-xs text-muted-foreground italic">
-                  No more emailing attachments back and forth.
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="border bg-gradient-to-br from-cyan-50 to-white hover:shadow-md transition-shadow">
+            <Card className="border bg-gradient-to-br from-amber-50 to-white hover:shadow-md transition-shadow">
               <CardContent className="p-6">
                 <div className="text-3xl mb-3">🤝</div>
                 <h3 className="font-semibold text-lg mb-2">Collaboration</h3>
-                <p className="text-sm text-muted-foreground mb-3">
-                  Potential co-authors can browse your research areas and top papers in seconds.
+                <p className="text-sm text-muted-foreground">
+                  Potential co-authors see your research areas and top papers instantly.
                 </p>
-                <div className="text-xs text-muted-foreground italic">
-                  Start the conversation with context already shared.
-                </div>
               </CardContent>
             </Card>
-          </div>
-
-          {/* Quick Comparison */}
-          <div className="mt-12 max-w-2xl mx-auto">
-            <div className="bg-muted/30 rounded-xl p-6 border">
-              <h3 className="font-semibold text-center mb-4">The Difference</h3>
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div>
-                  <p className="font-medium text-muted-foreground mb-2">Google Scholar</p>
-                  <ul className="space-y-1 text-muted-foreground">
-                    <li>• Search engine</li>
-                    <li>• Same look as everyone</li>
-                    <li>• No customization</li>
-                    <li>• Ugly URL</li>
-                  </ul>
-                </div>
-                <div>
-                  <p className="font-medium text-primary mb-2">Scholar.name</p>
-                  <ul className="space-y-1">
-                    <li className="flex items-center gap-1"><Check className="w-3 h-3 text-green-600" /> Portfolio you control</li>
-                    <li className="flex items-center gap-1"><Check className="w-3 h-3 text-green-600" /> Your brand, your story</li>
-                    <li className="flex items-center gap-1"><Check className="w-3 h-3 text-green-600" /> Bio, CV, themes</li>
-                    <li className="flex items-center gap-1"><Check className="w-3 h-3 text-green-600" /> yourname.scholar.name</li>
-                  </ul>
-                </div>
-              </div>
-            </div>
           </div>
         </div>
       </section>
@@ -635,21 +495,12 @@ export default function LandingPage() {
       <section id="pricing" className="py-12 sm:py-16 lg:py-24 bg-muted/30">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-8 sm:mb-12">
-            <Badge className="mb-3 sm:mb-4 bg-amber-100 text-amber-800 hover:bg-amber-100 animate-pulse">
-              <Award className="w-3 h-3 mr-1" />
-              Founder Pricing — Limited Time
-            </Badge>
             <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-3 sm:mb-4">
               Simple, Transparent Pricing
             </h2>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-4">
-              Lock in these founding member rates forever. Prices increase after Feb 28.
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-6">
+              Start with a 14-day free trial. No credit card required.
             </p>
-            
-            {/* Countdown Timer */}
-            <div className="flex justify-center mb-6">
-              <CountdownTimer targetDate={founderPricingEndDate} />
-            </div>
             
             {/* Monthly/Yearly Toggle */}
             <div className="flex items-center justify-center gap-3 mb-8">
@@ -706,7 +557,7 @@ export default function LandingPage() {
                     data-testid={`button-select-${plan.name.toLowerCase()}`}
                     onClick={() => { window.scrollTo(0, 0); navigate(`/signup?plan=${plan.name.toLowerCase()}`); }}
                   >
-                    {plan.highlighted ? 'Start 14-Day Free Trial' : `Choose ${plan.name}`}
+                    {plan.highlighted ? 'Start Free Trial' : 'Start Free Trial'}
                   </Button>
                 </CardContent>
               </Card>
@@ -766,6 +617,7 @@ export default function LandingPage() {
           <div className="mt-10 text-center">
             <p className="text-muted-foreground mb-3">Still have questions?</p>
             <Button 
+              variant="outline"
               onClick={() => { window.scrollTo(0, 0); navigate('/contact'); }}
             >
               Contact Us
@@ -773,9 +625,6 @@ export default function LandingPage() {
           </div>
         </div>
       </section>
-
-      {/* Exit Intent Popup */}
-      <ExitIntentPopup />
 
       {/* FAQ Schema for SEO */}
       <script

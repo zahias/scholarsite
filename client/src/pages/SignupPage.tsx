@@ -274,7 +274,7 @@ export default function SignupPage() {
                       Creating account...
                     </>
                   ) : (
-                    "Create free account"
+                    "Create Your Portfolio"
                   )}
                 </Button>
               </form>
