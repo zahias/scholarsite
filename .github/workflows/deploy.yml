@@ -21,6 +21,10 @@ jobs:
             cd ${{ secrets.A2_PATH }}
             git pull origin main
             cp -rf production/* /home/bannwebs/scholarsite/
+            rm -rf /home/bannwebs/scholarsite/public/assets/*
+            cp -rf production/public/assets/* /home/bannwebs/scholarsite/public/assets/
+            cd /home/bannwebs/scholarsite
+            npm install --omit=dev --ignore-scripts 2>&1 || true
             mkdir -p /home/bannwebs/scholarsite/tmp
             mkdir -p /home/bannwebs/scholarsite/uploads
             chmod 755 /home/bannwebs/scholarsite/uploads
