@@ -169,7 +169,7 @@ function ResearcherProfileContent() {
                 <div className="profile-image-container">
                   <div className="profile-image-glow"></div>
                   <div className="relative bg-white/10 backdrop-blur-sm rounded-full p-3 shadow-2xl">
-                    <div className="w-44 h-44 lg:w-56 lg:h-56 rounded-full border-4 border-white/30 shadow-2xl flex items-center justify-center bg-gradient-to-br from-primary/40 to-primary/60 animate-pulse">
+                    <div className="w-44 h-44 lg:w-56 lg:h-56 rounded-full border-4 border-white/30 shadow-2xl flex items-center justify-center bg-primary/20 animate-pulse">
                       <div className="w-20 h-20 rounded-full bg-white/20"></div>
                     </div>
                   </div>
@@ -221,9 +221,7 @@ function ResearcherProfileContent() {
             </div>
           </div>
           
-          {/* Decorative Elements */}
-          <div className="hero-decorative top-20 right-20 w-80 h-80 bg-gradient-to-r from-white/8 to-accent/5"></div>
-          <div className="hero-decorative bottom-20 left-20 w-64 h-64 bg-gradient-to-r from-accent/8 to-primary/5"></div>
+          {/* No decorative elements - simplified design */}
         </section>
         
         {/* Stats Section Skeleton */}
@@ -282,21 +280,7 @@ function ResearcherProfileContent() {
       {/* Compact Hero Section */}
       <section id="overview" className="hero-banner-compact py-8 md:py-12 relative">
         <div className="hero-pattern"></div>
-        
-        {/* Back Button */}
-        <div className="absolute top-4 left-4 md:top-6 md:left-6 z-20">
-          <Button
-            variant="outline"
-            onClick={() => navigate('/')}
-            className="bg-white/10 backdrop-blur-sm border-white/20 text-white hover:bg-white/20 hover:text-white text-sm px-3 py-2 min-h-[44px]"
-            data-testid="button-back-to-home"
-          >
-            <ArrowLeft className="w-4 h-4 mr-1" />
-            <span className="hidden sm:inline">Back</span>
-          </Button>
-        </div>
-        
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 z-10 pt-12 md:pt-0">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="flex flex-col md:flex-row items-center gap-6 md:gap-8 text-white">
             {/* Profile Image */}
             <div className="flex-shrink-0">
@@ -309,10 +293,10 @@ function ResearcherProfileContent() {
                 />
               ) : (
                 <div 
-                  className={`w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 rounded-full border-4 border-white/30 shadow-2xl flex items-center justify-center bg-gradient-to-br ${getAvatarColor(profile?.displayName || researcher?.display_name || '')}`}
+                  className={`w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 rounded-full border-4 border-white/30 shadow-2xl flex items-center justify-center bg-primary/20 flex-shrink-0`}
                   data-testid="img-profile-photo"
                 >
-                  <span className="text-3xl sm:text-4xl md:text-5xl font-bold text-white">
+                  <span className="text-3xl sm:text-4xl md:text-5xl font-bold text-primary">
                     {getInitials(profile?.displayName || researcher?.display_name || '')}
                   </span>
                 </div>
@@ -339,7 +323,8 @@ function ResearcherProfileContent() {
               
               {/* Combined action row: Social + CV + Passport */}
               <div className="flex flex-wrap items-center justify-center md:justify-start gap-2">
-                {/* Social Links */}
+              {/* Social Icons - Reduced to 3 + dropdown */}
+              <div className="flex items-center gap-2 flex-wrap justify-center md:justify-start">
                 {profile?.orcidUrl && (
                   <a href={profile.orcidUrl} target="_blank" rel="noopener noreferrer" 
                      className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors" title="ORCID">
@@ -358,28 +343,7 @@ function ResearcherProfileContent() {
                     <Linkedin className="w-4 h-4" />
                   </a>
                 )}
-                {profile?.twitterUrl && (
-                  <a href={profile.twitterUrl} target="_blank" rel="noopener noreferrer" 
-                     className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors" title="Twitter/X">
-                    <FaXTwitter className="w-4 h-4" />
-                  </a>
-                )}
-                {profile?.websiteUrl && (
-                  <a href={profile.websiteUrl} target="_blank" rel="noopener noreferrer" 
-                     className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors" title="Website">
-                    <Globe className="w-4 h-4" />
-                  </a>
-                )}
-                {profile?.contactEmail && (
-                  <a href={`mailto:${profile.contactEmail}`} 
-                     className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors" title="Email">
-                    <Mail className="w-4 h-4" />
-                  </a>
-                )}
-                <a href={`https://openalex.org/authors/${openalexId}`} target="_blank" rel="noopener noreferrer" 
-                   className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors" title="OpenAlex">
-                  <ExternalLink className="w-4 h-4" />
-                </a>
+              </div>
                 
                 {/* Separator */}
                 <span className="hidden md:block w-px h-6 bg-white/20 mx-1"></span>
@@ -550,7 +514,7 @@ function ResearcherProfileContent() {
       </CollapsibleSection>
 
       {/* Footer */}
-      <footer className="bg-gradient-to-br from-card to-muted/20 border-t border-border py-8">
+      <footer className="bg-muted/30 border-t border-border py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             <p className="text-muted-foreground/70 text-sm">
@@ -573,7 +537,7 @@ function ResearcherProfileContent() {
 
       {/* Sticky Claim Profile CTA Banner - Preview Mode Only */}
       {researcherData?.isPreview && (
-        <div className="fixed bottom-0 left-0 right-0 z-50 bg-gradient-to-r from-primary to-primary/90 shadow-lg border-t border-primary/20 md:block hidden" data-testid="banner-claim-profile">
+        <div className="fixed bottom-0 left-0 right-0 z-50 bg-primary shadow-lg border-t border-primary/20 md:block hidden" data-testid="banner-claim-profile">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
             <div className="flex items-center justify-between gap-4">
               <div className="flex items-center gap-3">
@@ -598,7 +562,7 @@ function ResearcherProfileContent() {
 
       {/* Mobile Sticky CTA for Preview Mode */}
       {researcherData?.isPreview && (
-        <div className="fixed bottom-16 left-0 right-0 z-40 bg-gradient-to-r from-primary to-primary/90 shadow-lg border-t border-primary/20 md:hidden" data-testid="banner-claim-profile-mobile">
+        <div className="fixed bottom-16 left-0 right-0 z-40 bg-primary shadow-lg border-t border-primary/20 md:hidden" data-testid="banner-claim-profile-mobile">
           <div className="px-4 py-3">
             <div className="flex flex-col gap-2 text-center">
               <p className="text-white text-sm font-medium">

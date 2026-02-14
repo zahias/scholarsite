@@ -1,12 +1,14 @@
 import { useState, useEffect, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useLocation, Link } from "wouter";
+import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import SEO from "@/components/SEO";
+import GlobalNav from "@/components/GlobalNav";
+import GlobalFooter from "@/components/GlobalFooter";
 import { 
   Search, 
   ArrowRight, 
@@ -16,14 +18,12 @@ import {
   Loader2,
   GraduationCap,
   RefreshCw,
-  FileText,
   BarChart3,
   ChevronDown,
   ChevronUp,
   Lock,
   Zap,
   Sparkles,
-  LogIn,
   Globe
 } from "lucide-react";
 
@@ -228,27 +228,7 @@ export default function LandingPage() {
         structuredData={structuredData}
       />
       
-      {/* Premium Navigation */}
-      <nav className="sticky top-0 z-50 nav-premium">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16">
-            <Link href="/" className="flex items-center cursor-pointer" onClick={() => window.scrollTo(0, 0)} data-testid="link-logo">
-              <BookOpen className="h-7 w-7 text-white mr-2" />
-              <span className="text-lg font-semibold text-white">ScholarName</span>
-            </Link>
-            <div className="flex items-center gap-3 md:gap-6">
-              <a href="#features" className="nav-link text-xs md:text-sm hidden sm:block" data-testid="link-features">Features</a>
-              <a href="#pricing" className="nav-link text-xs md:text-sm hidden sm:block" data-testid="link-pricing">Pricing</a>
-              <a href="#faq" className="nav-link text-xs md:text-sm hidden sm:block" data-testid="link-faq">FAQ</a>
-              <Button variant="ghost" size="sm" className="text-white/80 hover:text-white hover:bg-white/10 text-xs md:text-sm hidden sm:flex items-center gap-1" data-testid="link-login" onClick={() => { window.scrollTo(0, 0); navigate('/login'); }}>
-                <LogIn className="w-3.5 h-3.5" />
-                Login
-              </Button>
-              <Button size="sm" className="btn-premium text-xs md:text-sm px-3 md:px-5 py-2" data-testid="button-get-started-nav" onClick={() => { window.scrollTo(0, 0); navigate('/signup'); }}>Create Your Portfolio</Button>
-            </div>
-          </div>
-        </div>
-      </nav>
+      <GlobalNav mode="landing" />
 
       {/* Hero Section with Embedded Search */}
       <main id="main-content">
@@ -634,60 +614,7 @@ export default function LandingPage() {
 
       </main>
       
-      {/* Footer */}
-      <footer className="bg-muted/30 border-t border-border py-12">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid md:grid-cols-4 gap-8">
-            <div>
-              <div className="flex items-center mb-4">
-                <BookOpen className="h-6 w-6 text-primary mr-2" />
-                <span className="font-semibold">ScholarName</span>
-              </div>
-              <p className="text-sm text-muted-foreground mb-4">
-                Professional research portfolios for academics. Auto-syncs with OpenAlex.
-              </p>
-              <p className="text-xs text-muted-foreground">
-                Data sourced from{" "}
-                <a href="https://openalex.org" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
-                  OpenAlex
-                </a>
-              </p>
-            </div>
-            <div>
-              <h4 className="font-medium mb-4">Product</h4>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><a href="#features" className="hover:text-foreground transition-colors" data-testid="link-footer-features">Features</a></li>
-                <li><a href="#pricing" className="hover:text-foreground transition-colors" data-testid="link-footer-pricing">Pricing</a></li>
-                <li><a href="#faq" className="hover:text-foreground transition-colors" data-testid="link-footer-faq">FAQ</a></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-medium mb-4">Company</h4>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><button onClick={() => { window.scrollTo(0, 0); navigate('/about'); }} className="hover:text-foreground transition-colors" data-testid="link-footer-about">About Us</button></li>
-                <li><button onClick={() => { window.scrollTo(0, 0); navigate('/contact'); }} className="hover:text-foreground transition-colors" data-testid="link-footer-contact">Contact</button></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-medium mb-4">Legal</h4>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><button onClick={() => { window.scrollTo(0, 0); navigate('/privacy'); }} className="hover:text-foreground transition-colors" data-testid="link-footer-privacy">Privacy Policy</button></li>
-                <li><button onClick={() => { window.scrollTo(0, 0); navigate('/terms'); }} className="hover:text-foreground transition-colors" data-testid="link-footer-terms">Terms of Service</button></li>
-              </ul>
-            </div>
-          </div>
-          <div className="mt-8 pt-8 border-t border-border flex flex-col sm:flex-row justify-between items-center text-sm text-muted-foreground gap-4">
-            <p>&copy; {new Date().getFullYear()} ScholarName. All rights reserved.</p>
-            <div className="flex items-center gap-4">
-              <span className="flex items-center gap-1">
-                <Lock className="w-3 h-3" /> SSL Secured
-              </span>
-              <span>•</span>
-              <span>Made for Researchers</span>
-            </div>
-          </div>
-        </div>
-      </footer>
+      <GlobalFooter mode="landing" />
     </div>
   );
 }

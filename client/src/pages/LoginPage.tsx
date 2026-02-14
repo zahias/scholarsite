@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useLocation, Link } from "wouter";
+import { useLocation } from "wouter";
 import { useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -9,7 +9,9 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
-import { BookOpen, ArrowLeft, Eye, EyeOff, Loader2, LogIn } from "lucide-react";
+import GlobalNav from "@/components/GlobalNav";
+import GlobalFooter from "@/components/GlobalFooter";
+import { ArrowLeft, Eye, EyeOff, Loader2, LogIn } from "lucide-react";
 
 const loginSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -74,24 +76,10 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <nav className="sticky top-0 z-50 nav-premium">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16">
-            <Link href="/" className="flex items-center">
-              <BookOpen className="h-7 w-7 text-white mr-2" />
-              <span className="text-lg font-semibold text-white">ScholarName</span>
-            </Link>
-            <div className="flex items-center gap-4">
-              <Link href="/signup" className="text-white/80 hover:text-white text-sm">
-                Don't have an account? Sign up
-              </Link>
-            </div>
-          </div>
-        </div>
-      </nav>
+    <div className="min-h-screen bg-background flex flex-col">
+      <GlobalNav mode="auth" />
 
-      <div className="max-w-md mx-auto px-4 py-12">
+      <div className="flex-1 max-w-md mx-auto w-full px-4 py-12">
         <Button
           variant="ghost"
           className="mb-6"
@@ -140,9 +128,9 @@ export default function LoginPage() {
                     <FormItem>
                       <div className="flex items-center justify-between">
                         <FormLabel>Password</FormLabel>
-                        <Link href="/forgot-password" className="text-xs text-primary hover:underline">
+                        <a href="/forgot-password" className="text-xs text-primary hover:underline">
                           Forgot password?
-                        </Link>
+                        </a>
                       </div>
                       <FormControl>
                         <div className="relative">
@@ -204,11 +192,13 @@ export default function LoginPage() {
 
         <p className="text-center text-sm text-muted-foreground mt-6">
           Need help?{" "}
-          <Link href="/contact" className="text-primary hover:underline">
+          <a href="/contact" className="text-primary hover:underline">
             Contact support
-          </Link>
+          </a>
         </p>
       </div>
+
+      <GlobalFooter mode="landing" />
     </div>
   );
 }
