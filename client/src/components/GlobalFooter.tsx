@@ -22,7 +22,7 @@ export default function GlobalFooter({ mode = "landing" }: GlobalFooterProps) {
               <div>
                 <div className="flex items-center mb-4">
                   <BookOpen className="h-6 w-6 text-primary mr-2" />
-                  <span className="font-semibold">ScholarName</span>
+                  <span className="font-semibold">Scholar.name</span>
                 </div>
                 <p className="text-sm text-muted-foreground mb-4">
                   Professional research portfolios for academics. Auto-syncs with OpenAlex.
@@ -139,7 +139,7 @@ export default function GlobalFooter({ mode = "landing" }: GlobalFooterProps) {
 
             {/* Bottom bar */}
             <div className="pt-8 border-t border-border flex flex-col sm:flex-row justify-between items-center text-sm text-muted-foreground gap-4">
-              <p>&copy; {new Date().getFullYear()} ScholarName. All rights reserved.</p>
+              <p>&copy; {new Date().getFullYear()} Scholar.name. All rights reserved.</p>
               <div className="flex items-center gap-4">
                 <span className="flex items-center gap-1">
                   <Lock className="w-3 h-3" /> SSL Secured

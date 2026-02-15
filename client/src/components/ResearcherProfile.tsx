@@ -576,9 +576,9 @@ function ResearcherProfileContent() {
         </div>
       )}
 
-      {/* Mobile Sticky CTA for Preview Mode */}
+      {/* Mobile Sticky CTA for Preview Mode — positioned above MobileBottomNav */}
       {researcherData?.isPreview && (
-        <div className="fixed bottom-16 left-0 right-0 z-40 bg-primary shadow-lg border-t border-primary/20 md:hidden" data-testid="banner-claim-profile-mobile">
+        <div className="fixed bottom-[72px] left-0 right-0 z-40 bg-primary shadow-lg border-t border-primary/20 md:hidden" data-testid="banner-claim-profile-mobile" style={{ paddingBottom: '0' }}>
           <div className="px-4 py-3">
             <div className="flex flex-col gap-2 text-center">
               <p className="text-white text-sm font-medium">

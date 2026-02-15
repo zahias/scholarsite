@@ -15,7 +15,7 @@ export default function PrivacyPage() {
           <div className="flex justify-between h-16">
             <Link href="/" className="flex items-center">
               <BookOpen className="h-7 w-7 text-white mr-2" />
-              <span className="text-lg font-semibold text-white">ScholarName</span>
+              <span className="text-lg font-semibold text-white">Scholar.name</span>
             </Link>
           </div>
         </div>
@@ -36,7 +36,7 @@ export default function PrivacyPage() {
           <section className="mb-8">
             <h2 className="text-2xl font-semibold mb-4">1. Introduction</h2>
             <p className="text-muted-foreground leading-relaxed mb-4">
-              ScholarName ("we", "our", or "us") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our research portfolio website service.
+              Scholar.name ("we", "our", or "us") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our research portfolio website service.
             </p>
             <p className="text-muted-foreground leading-relaxed">
               Please read this privacy policy carefully. If you do not agree with the terms of this privacy policy, please do not access the site or use our services.
@@ -166,7 +166,7 @@ export default function PrivacyPage() {
 
       <footer className="bg-muted/50 border-t border-border py-8 mt-12">
         <div className="max-w-4xl mx-auto px-4 text-center text-sm text-muted-foreground">
-          <p>&copy; {new Date().getFullYear()} ScholarName. All rights reserved.</p>
+          <p>&copy; {new Date().getFullYear()} Scholar.name. All rights reserved.</p>
         </div>
       </footer>
     </div>

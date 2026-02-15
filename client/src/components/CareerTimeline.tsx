@@ -36,10 +36,16 @@ interface ResearcherData {
   lastSynced: string;
 }
 
-// Brand colors
-const BRAND_NAVY = "#0B1F3A";
-const BRAND_GOLD = "#D4AF37";
-const BRAND_NAVY_LIGHT = "#1a3a5c";
+// Theme-aware colors — read from CSS custom properties at render time
+function getThemeColors() {
+  if (typeof window === 'undefined') return { primary: '#1e3a5f', accent: '#c9a227', primaryLight: '#2a4d6e' };
+  const styles = getComputedStyle(document.documentElement);
+  return {
+    primary: styles.getPropertyValue('--theme-primary').trim() || '#1e3a5f',
+    accent: styles.getPropertyValue('--theme-accent').trim() || '#c9a227',
+    primaryLight: styles.getPropertyValue('--theme-primary').trim() || '#1e3a5f',
+  };
+}
 
 interface MilestoneEvent {
   year: number;
@@ -49,6 +55,8 @@ interface MilestoneEvent {
 }
 
 export default function CareerTimeline({ openalexId, researcherData: propResearcherData, inline = false }: CareerTimelineProps) {
+  const themeColors = useMemo(() => getThemeColors(), []);
+  
   const { data: fetchedData, isLoading } = useQuery<ResearcherData | null>({
     queryKey: [`/api/researcher/${openalexId}/data`],
     retry: false,
@@ -215,12 +223,13 @@ export default function CareerTimeline({ openalexId, researcherData: propResearc
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
       const data = payload[0].payload;
+      const colors = themeColors;
       return (
         <div className="bg-background/95 backdrop-blur-sm border border-border rounded-lg shadow-lg p-3 text-sm">
           <p className="font-semibold text-foreground mb-2">{label}</p>
           <div className="space-y-1">
             <p className="flex items-center gap-2">
-              <span className="w-3 h-3 rounded-full" style={{ backgroundColor: BRAND_NAVY }}></span>
+              <span className="w-3 h-3 rounded-full" style={{ backgroundColor: colors.primary }}></span>
               <span className="text-muted-foreground">Publications:</span>
               <span className="font-medium">{data.publications}</span>
               <span className="text-xs text-muted-foreground">
@@ -228,7 +237,7 @@ export default function CareerTimeline({ openalexId, researcherData: propResearc
               </span>
             </p>
             <p className="flex items-center gap-2">
-              <span className="w-3 h-3 rounded-full" style={{ backgroundColor: BRAND_GOLD }}></span>
+              <span className="w-3 h-3 rounded-full" style={{ backgroundColor: colors.accent }}></span>
               <span className="text-muted-foreground">Citations:</span>
               <span className="font-medium">{data.citations.toLocaleString()}</span>
               <span className="text-xs text-muted-foreground">
@@ -349,12 +358,12 @@ export default function CareerTimeline({ openalexId, researcherData: propResearc
               >
                 <defs>
                   <linearGradient id="pubGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor={BRAND_NAVY} stopOpacity={0.4} />
-                    <stop offset="95%" stopColor={BRAND_NAVY} stopOpacity={0.05} />
+                    <stop offset="5%" stopColor={themeColors.primary} stopOpacity={0.4} />
+                    <stop offset="95%" stopColor={themeColors.primary} stopOpacity={0.05} />
                   </linearGradient>
                   <linearGradient id="citeGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor={BRAND_GOLD} stopOpacity={0.4} />
-                    <stop offset="95%" stopColor={BRAND_GOLD} stopOpacity={0.05} />
+                    <stop offset="5%" stopColor={themeColors.accent} stopOpacity={0.4} />
+                    <stop offset="95%" stopColor={themeColors.accent} stopOpacity={0.05} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" className="stroke-muted" opacity={0.3} />
@@ -375,7 +384,7 @@ export default function CareerTimeline({ openalexId, researcherData: propResearc
                     value: 'Publications', 
                     angle: -90, 
                     position: 'insideLeft',
-                    style: { fontSize: 10, fill: BRAND_NAVY }
+                    style: { fontSize: 10, fill: themeColors.primary }
                   }}
                 />
                 <YAxis 
@@ -390,7 +399,7 @@ export default function CareerTimeline({ openalexId, researcherData: propResearc
                     value: 'Citations', 
                     angle: 90, 
                     position: 'insideRight',
-                    style: { fontSize: 10, fill: BRAND_GOLD }
+                    style: { fontSize: 10, fill: themeColors.accent }
                   }}
                 />
                 <Tooltip content={<CustomTooltip />} />
@@ -426,22 +435,22 @@ export default function CareerTimeline({ openalexId, researcherData: propResearc
                   type="monotone"
                   dataKey="publications"
                   name="Publications"
-                  stroke={BRAND_NAVY}
+                  stroke={themeColors.primary}
                   strokeWidth={2}
                   fill="url(#pubGradient)"
                   dot={false}
-                  activeDot={{ r: 4, fill: BRAND_NAVY }}
+                  activeDot={{ r: 4, fill: themeColors.primary }}
                 />
                 <Area
                   yAxisId="right"
                   type="monotone"
                   dataKey="citations"
                   name="Citations"
-                  stroke={BRAND_GOLD}
+                  stroke={themeColors.accent}
                   strokeWidth={2}
                   fill="url(#citeGradient)"
                   dot={false}
-                  activeDot={{ r: 4, fill: BRAND_GOLD }}
+                  activeDot={{ r: 4, fill: themeColors.accent }}
                 />
               </AreaChart>
             </ResponsiveContainer>

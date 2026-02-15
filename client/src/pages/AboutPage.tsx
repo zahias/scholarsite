@@ -26,7 +26,7 @@ export default function AboutPage() {
           <div className="flex justify-between h-16">
             <Link href="/" className="flex items-center">
               <BookOpen className="h-7 w-7 text-white mr-2" />
-              <span className="text-lg font-semibold text-white">ScholarName</span>
+              <span className="text-lg font-semibold text-white">Scholar.name</span>
             </Link>
             <div className="flex items-center gap-4">
               <Link href="/contact" className="text-white/80 hover:text-white text-sm">
@@ -255,7 +255,7 @@ export default function AboutPage() {
       {/* Footer */}
       <footer className="bg-muted/30 border-t border-border py-8 mt-12">
         <div className="max-w-4xl mx-auto px-4 text-center text-sm text-muted-foreground">
-          <p>&copy; {new Date().getFullYear()} ScholarName. All rights reserved.</p>
+          <p>&copy; {new Date().getFullYear()} Scholar.name. All rights reserved.</p>
           <div className="flex justify-center gap-4 mt-2">
             <Link href="/privacy" className="hover:text-foreground">Privacy Policy</Link>
             <Link href="/terms" className="hover:text-foreground">Terms of Service</Link>

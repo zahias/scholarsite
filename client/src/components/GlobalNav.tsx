@@ -29,11 +29,9 @@ export default function GlobalNav({
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             {/* Logo */}
-            <Link href="/" onClick={handleNavClick}>
-              <a className="flex items-center cursor-pointer" data-testid="link-logo">
+            <Link href="/" onClick={handleNavClick} className="flex items-center cursor-pointer" data-testid="link-logo">
                 <BookOpen className="h-7 w-7 text-white mr-2" />
-                <span className="text-lg font-semibold text-white">ScholarName</span>
-              </a>
+                <span className="text-lg font-semibold text-white">Scholar.name</span>
             </Link>
 
             {/* Desktop Navigation */}
@@ -94,8 +92,7 @@ export default function GlobalNav({
           </div>
 
           {/* Mobile Navigation */}
-          {mobileOpen && (
-            <div className="md:hidden pb-4 space-y-2 border-t border-white/10">
+          <div className={`md:hidden overflow-hidden transition-all duration-200 ease-in-out ${mobileOpen ? 'max-h-96 opacity-100 pb-4' : 'max-h-0 opacity-0'} space-y-2 border-t border-white/10`}>
               <button
                 className="nav-link block py-2 text-sm"
                 onClick={() => { handleNavClick(); navigate("/features"); }}
@@ -137,8 +134,7 @@ export default function GlobalNav({
                   Create Your Portfolio
                 </Button>
               )}
-            </div>
-          )}
+          </div>
         </div>
       </nav>
     );
@@ -150,11 +146,9 @@ export default function GlobalNav({
       <nav className="sticky top-0 z-40 bg-white border-b border-border">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-14">
-            <Link href="/dashboard" onClick={handleNavClick}>
-              <a className="flex items-center cursor-pointer" data-testid="link-app-logo">
+            <Link href="/dashboard" onClick={handleNavClick} className="flex items-center cursor-pointer" data-testid="link-app-logo">
                 <BookOpen className="h-5 w-5 text-primary mr-2" />
-                <span className="font-semibold text-foreground">ScholarName</span>
-              </a>
+                <span className="font-semibold text-foreground">Scholar.name</span>
             </Link>
             <div className="flex items-center gap-2">
               <Button
@@ -180,12 +174,18 @@ export default function GlobalNav({
       <nav className="sticky top-0 z-40 bg-white border-b border-border">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-14">
-            <Link href="/" onClick={handleNavClick}>
-              <a className="flex items-center cursor-pointer" data-testid="link-auth-logo">
+            <Link href="/" onClick={handleNavClick} className="flex items-center cursor-pointer" data-testid="link-auth-logo">
                 <BookOpen className="h-5 w-5 text-primary mr-2" />
-                <span className="font-semibold text-foreground">ScholarName</span>
-              </a>
+                <span className="font-semibold text-foreground">Scholar.name</span>
             </Link>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-muted-foreground hover:text-foreground"
+              onClick={() => { handleNavClick(); navigate("/"); }}
+            >
+              ← Back to Home
+            </Button>
           </div>
         </div>
       </nav>

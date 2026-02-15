@@ -47,7 +47,7 @@ export default function CheckoutSuccessPage() {
           <div className="flex justify-between h-16">
             <div className="flex items-center cursor-pointer" onClick={() => navigate("/")}>
               <BookOpen className="h-7 w-7 text-white mr-2" />
-              <span className="text-lg font-semibold text-white">ScholarName</span>
+              <span className="text-lg font-semibold text-white">Scholar.name</span>
             </div>
           </div>
         </div>
@@ -61,7 +61,7 @@ export default function CheckoutSuccessPage() {
             </div>
             <CardTitle className="text-2xl">Payment Successful!</CardTitle>
             <CardDescription>
-              Welcome to ScholarName. Your research portfolio is being set up.
+              Welcome to Scholar.name. Your research portfolio is being set up.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">

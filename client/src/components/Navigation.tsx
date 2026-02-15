@@ -65,7 +65,7 @@ export default function Navigation({ researcherName = 'Researcher' }: Navigation
               >
                 {item.label}
                 {activeSection === item.id && (
-                  <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#0B1F3A] dark:bg-white rounded-full" />
+                  <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary dark:bg-white rounded-full" />
                 )}
               </button>
             ))}

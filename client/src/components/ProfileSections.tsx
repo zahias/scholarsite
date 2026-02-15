@@ -113,18 +113,21 @@ function renderContent(content: string) {
       return <br key={index} />;
     }
     
-    // Regular paragraphs - handle bold and italic
-    let processedLine = line
-      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-      .replace(/\*(.+?)\*/g, '<em>$1</em>')
-      .replace(/_(.+?)_/g, '<em>$1</em>');
+    // Regular paragraphs - handle bold and italic safely
+    const parts = line.split(/(\*\*.*?\*\*|\*.*?\*|_.*?_)/g);
     
     return (
-      <p 
-        key={index} 
-        className="text-muted-foreground mb-2"
-        dangerouslySetInnerHTML={{ __html: processedLine }}
-      />
+      <p key={index} className="text-muted-foreground mb-2">
+        {parts.map((part, i) => {
+          if (part.startsWith('**') && part.endsWith('**')) {
+            return <strong key={i}>{part.slice(2, -2)}</strong>;
+          }
+          if ((part.startsWith('*') && part.endsWith('*')) || (part.startsWith('_') && part.endsWith('_'))) {
+            return <em key={i}>{part.slice(1, -1)}</em>;
+          }
+          return part;
+        })}
+      </p>
     );
   });
 }

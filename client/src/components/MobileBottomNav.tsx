@@ -34,7 +34,7 @@ export default function MobileBottomNav() {
 
   const navItems = [
     { id: 'overview', icon: Home, label: 'Overview' },
-    { id: 'analytics', icon: BarChart3, label: 'Analytics' },
+    { id: 'analytics', icon: BarChart3, label: 'Impact' },
     { id: 'research', icon: User, label: 'Research' },
     { id: 'publications', icon: BookOpen, label: 'Publications' },
   ];

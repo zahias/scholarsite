@@ -20,7 +20,7 @@ export function ThemeSwitcher({ isPreview = false }: ThemeSwitcherProps) {
   }
 
   return (
-    <div className={`fixed ${isPreview ? 'bottom-20 md:bottom-6' : 'bottom-6'} right-6 z-50`}>
+    <div className={`fixed ${isPreview ? 'bottom-36 md:bottom-6' : 'bottom-20 md:bottom-6'} right-4 md:right-6 z-40`}>
       <Popover>
         <PopoverTrigger asChild>
           <Button

@@ -42,11 +42,19 @@ interface ResearcherData {
   lastSynced: string;
 }
 
-// Brand colors
-const BRAND_NAVY = "#0B1F3A";
-const BRAND_GOLD = "#D4AF37";
+// Theme-aware colors — read from CSS custom properties at render time
+function getThemeColors() {
+  if (typeof window === 'undefined') return { primary: '#1e3a5f', accent: '#c9a227' };
+  const styles = getComputedStyle(document.documentElement);
+  return {
+    primary: styles.getPropertyValue('--theme-primary').trim() || '#1e3a5f',
+    accent: styles.getPropertyValue('--theme-accent').trim() || '#c9a227',
+  };
+}
 
 export default function PublicationAnalytics({ openalexId, researcherData: propResearcherData, inline = false }: PublicationAnalyticsProps) {
+  const themeColors = useMemo(() => getThemeColors(), []);
+  
   const { data: fetchedData, isLoading } = useQuery<ResearcherData | null>({
     queryKey: [`/api/researcher/${openalexId}/data`],
     retry: false,
@@ -158,11 +166,11 @@ export default function PublicationAnalytics({ openalexId, researcherData: propR
           <p className="font-bold text-base mb-2 border-b pb-1">{label}</p>
           <div className="space-y-1.5 text-sm">
             <div className="flex justify-between items-center">
-              <span style={{ color: BRAND_NAVY }}>Publications:</span>
+              <span style={{ color: themeColors.primary }}>Publications:</span>
               <span className="font-semibold">{data?.yearlyPubs}</span>
             </div>
             <div className="flex justify-between items-center">
-              <span style={{ color: BRAND_GOLD }}>Cumulative Citations:</span>
+              <span style={{ color: themeColors.accent }}>Cumulative Citations:</span>
               <span className="font-semibold">{data?.cumulativeCitations?.toLocaleString()}</span>
             </div>
             {data?.yearlyCitations > 0 && (
@@ -214,8 +222,8 @@ export default function PublicationAnalytics({ openalexId, researcherData: propR
             >
               <defs>
                 <linearGradient id="gradientPubs" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor={BRAND_NAVY} stopOpacity={0.8}/>
-                  <stop offset="95%" stopColor={BRAND_NAVY} stopOpacity={0.3}/>
+                  <stop offset="5%" stopColor={themeColors.primary} stopOpacity={0.8}/>
+                  <stop offset="95%" stopColor={themeColors.primary} stopOpacity={0.3}/>
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
@@ -229,7 +237,7 @@ export default function PublicationAnalytics({ openalexId, researcherData: propR
                 tick={{ fontSize: 11 }} 
                 width={45}
                 tickFormatter={(v) => v >= 1000 ? `${(v/1000).toFixed(0)}k` : v}
-                label={{ value: 'Pubs/Year', angle: -90, position: 'insideLeft', style: { fontSize: 11, fill: BRAND_NAVY } }}
+                label={{ value: 'Pubs/Year', angle: -90, position: 'insideLeft', style: { fontSize: 11, fill: themeColors.primary } }}
               />
               <YAxis 
                 yAxisId="right" 
@@ -237,7 +245,7 @@ export default function PublicationAnalytics({ openalexId, researcherData: propR
                 tick={{ fontSize: 11 }} 
                 width={50}
                 tickFormatter={(v) => v >= 1000 ? `${(v/1000).toFixed(0)}k` : v}
-                label={{ value: 'Citations', angle: 90, position: 'insideRight', style: { fontSize: 11, fill: BRAND_GOLD } }}
+                label={{ value: 'Citations', angle: 90, position: 'insideRight', style: { fontSize: 11, fill: themeColors.accent } }}
               />
               <Tooltip content={<CustomTooltip />} />
               <Legend 
@@ -256,10 +264,10 @@ export default function PublicationAnalytics({ openalexId, researcherData: propR
                 yAxisId="right"
                 type="monotone"
                 dataKey="cumulativeCitations"
-                stroke={BRAND_GOLD}
+                stroke={themeColors.accent}
                 strokeWidth={3}
-                dot={{ fill: BRAND_GOLD, strokeWidth: 0, r: 3 }}
-                activeDot={{ r: 6, fill: BRAND_GOLD }}
+                dot={{ fill: themeColors.accent, strokeWidth: 0, r: 3 }}
+                activeDot={{ r: 6, fill: themeColors.accent }}
                 name="Total Citations"
               />
             </ComposedChart>

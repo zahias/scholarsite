@@ -71,7 +71,7 @@ export default function AdminLogin() {
           <div className="mx-auto w-12 h-12 bg-orange-500/20 rounded-xl flex items-center justify-center mb-4">
             <GraduationCap className="w-6 h-6 text-orange-400" />
           </div>
-          <CardTitle className="text-2xl text-white">ScholarName Admin</CardTitle>
+          <CardTitle className="text-2xl text-white">Scholar.name Admin</CardTitle>
           <CardDescription className="text-slate-400">
             Sign in to manage customer sites
           </CardDescription>
@@ -91,7 +91,7 @@ export default function AdminLogin() {
                         <Input
                           {...field}
                           type="email"
-                          placeholder="admin@scholarname.com"
+                          placeholder="admin@scholar.name"
                           className="pl-10 bg-white/5 border-white/10 text-white placeholder:text-slate-500"
                           data-testid="input-email"
                         />

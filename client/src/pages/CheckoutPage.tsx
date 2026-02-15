@@ -77,7 +77,7 @@ export default function CheckoutPage() {
             <div className="flex justify-between h-16">
               <div className="flex items-center cursor-pointer" onClick={() => navigate("/")}>
                 <BookOpen className="h-7 w-7 text-white mr-2" />
-                <span className="text-lg font-semibold text-white">ScholarName</span>
+                <span className="text-lg font-semibold text-white">Scholar.name</span>
               </div>
             </div>
           </div>
@@ -109,7 +109,7 @@ export default function CheckoutPage() {
           <div className="flex justify-between h-16">
             <div className="flex items-center cursor-pointer" onClick={() => navigate("/")}>
               <BookOpen className="h-7 w-7 text-white mr-2" />
-              <span className="text-lg font-semibold text-white">ScholarName</span>
+              <span className="text-lg font-semibold text-white">Scholar.name</span>
             </div>
           </div>
         </div>

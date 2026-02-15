@@ -146,7 +146,7 @@ export default function AdminDashboard() {
               <Settings className="w-5 h-5 text-orange-400" />
             </div>
             <div>
-              <h1 className="text-xl font-semibold text-white">ScholarName Admin</h1>
+              <h1 className="text-xl font-semibold text-white">Scholar.name Admin</h1>
               <p className="text-sm text-slate-400">Welcome, {userData.user.firstName}</p>
             </div>
           </div>

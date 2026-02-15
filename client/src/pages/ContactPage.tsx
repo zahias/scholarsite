@@ -91,7 +91,7 @@ export default function ContactPage() {
             <div className="flex justify-between h-16">
               <Link href="/" className="flex items-center">
                 <BookOpen className="h-7 w-7 text-white mr-2" />
-                <span className="text-lg font-semibold text-white">ScholarName</span>
+                <span className="text-lg font-semibold text-white">Scholar.name</span>
               </Link>
             </div>
           </div>
@@ -125,7 +125,7 @@ export default function ContactPage() {
           <div className="flex justify-between h-16">
             <Link href="/" className="flex items-center">
               <BookOpen className="h-7 w-7 text-white mr-2" />
-              <span className="text-lg font-semibold text-white">ScholarName</span>
+              <span className="text-lg font-semibold text-white">Scholar.name</span>
             </Link>
           </div>
         </div>
@@ -143,7 +143,7 @@ export default function ContactPage() {
         </Button>
 
         <div className="text-center mb-10">
-          <h1 className="text-3xl sm:text-4xl font-bold mb-4">Get Started with ScholarName</h1>
+          <h1 className="text-3xl sm:text-4xl font-bold mb-4">Get Started with Scholar.name</h1>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
             Tell us about your needs and we'll help you create the perfect research portfolio website.
           </p>
