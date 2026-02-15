@@ -215,11 +215,6 @@ export default function LandingPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Skip link for keyboard accessibility */}
-      <a href="#main-content" className="skip-link">
-        Skip to main content
-      </a>
-      
       <SEO 
         title="Scholar.name - Professional Research Portfolios for Academics"
         description="Create a professional research portfolio that showcases your publications, citations, and academic impact. Auto-updates. One link for everything."

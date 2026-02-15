@@ -22,7 +22,8 @@ import { Badge } from "@/components/ui/badge";
 import { useRealtimeUpdates } from "@/hooks/useRealtimeUpdates";
 import type { ResearcherProfile as ResearcherProfileType } from "@shared/schema";
 import { useMemo, useState, useEffect, useCallback } from "react";
-import { ArrowLeft, MapPin, Building2, Mail, Globe, Linkedin, BarChart3, Lightbulb, FileText, User, ExternalLink, Download, Calendar, Share2 } from "lucide-react";
+import { ArrowLeft, MapPin, Building2, Mail, Globe, Linkedin, BarChart3, Lightbulb, FileText, User, UserX, ExternalLink, Download, Calendar, Share2 } from "lucide-react";
+import EmptyState from "@/components/EmptyState";
 import { SiOrcid, SiGooglescholar, SiResearchgate } from "react-icons/si";
 import { FaXTwitter } from "react-icons/fa6";
 
@@ -248,17 +249,11 @@ function ResearcherProfileContent() {
         <Navigation researcherName="Researcher Profile" />
         
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
-          <Card>
-            <CardContent className="pt-6">
-              <div className="text-center">
-                <h1 className="text-3xl font-bold mb-4">No Profile Available</h1>
-                <p className="text-muted-foreground mb-8 max-w-2xl mx-auto">
-                  The researcher profile you're looking for doesn't exist or isn't public yet.
-                </p>
-                
-              </div>
-            </CardContent>
-          </Card>
+          <EmptyState
+            icon={UserX}
+            title="No Profile Available"
+            description="The researcher profile you're looking for doesn't exist or isn't public yet."
+          />
         </div>
       </div>
     );

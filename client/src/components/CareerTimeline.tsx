@@ -14,6 +14,7 @@ import {
   Legend,
 } from "recharts";
 import { TrendingUp, Calendar, Award, Sparkles } from "lucide-react";
+import EmptyState from "@/components/EmptyState";
 
 interface CareerTimelineProps {
   openalexId: string;
@@ -266,17 +267,12 @@ export default function CareerTimeline({ openalexId, researcherData: propResearc
 
   if (timelineData.data.length === 0) {
     return (
-      <div data-testid="section-timeline-empty">
-        <Card>
-          <CardContent className="p-6 text-center">
-            <div className="text-4xl mb-3">📅</div>
-            <h3 className="text-lg font-semibold mb-2">No Timeline Data</h3>
-            <p className="text-muted-foreground text-sm">
-              Career timeline will appear once publication data is available.
-            </p>
-          </CardContent>
-        </Card>
-      </div>
+      <EmptyState
+        data-testid="section-timeline-empty"
+        icon={Calendar}
+        title="No Timeline Data"
+        description="Career timeline will appear once publication data is available."
+      />
     );
   }
 

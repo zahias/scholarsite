@@ -1,6 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import EmptyState from "@/components/EmptyState";
+import { BarChart3 } from "lucide-react";
 import { useMemo } from "react";
 import {
   ComposedChart,
@@ -143,17 +145,12 @@ export default function PublicationAnalytics({ openalexId, researcherData: propR
 
   if (chartData.totalPublications === 0) {
     return (
-      <div data-testid="section-analytics-empty">
-        <Card>
-          <CardContent className="p-6 text-center">
-            <div className="text-4xl mb-3">📊</div>
-            <h3 className="text-lg font-semibold mb-2">No Publication Data</h3>
-            <p className="text-muted-foreground text-sm">
-              Analytics will appear once publication data is synchronized.
-            </p>
-          </CardContent>
-        </Card>
-      </div>
+      <EmptyState
+        data-testid="section-analytics-empty"
+        icon={BarChart3}
+        title="No Publication Data"
+        description="Analytics will appear once publication data is synchronized."
+      />
     );
   }
 

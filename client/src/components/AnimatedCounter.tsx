@@ -18,6 +18,10 @@ export default function AnimatedCounter({
   const [lastEnd, setLastEnd] = useState(end);
   const elementRef = useRef<HTMLSpanElement>(null);
 
+  // Check if user prefers reduced motion
+  const prefersReducedMotion = typeof window !== 'undefined'
+    && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
   // Reset animation when end value changes significantly
   useEffect(() => {
     if (end !== lastEnd && end > 0) {
@@ -34,6 +38,13 @@ export default function AnimatedCounter({
     }
 
     if (hasAnimated) return;
+
+    // Skip animation for users who prefer reduced motion
+    if (prefersReducedMotion) {
+      setCount(end);
+      setHasAnimated(true);
+      return;
+    }
 
     const observer = new IntersectionObserver(
       (entries) => {
@@ -74,7 +85,7 @@ export default function AnimatedCounter({
     }
 
     return () => observer.disconnect();
-  }, [end, duration, hasAnimated]);
+  }, [end, duration, hasAnimated, prefersReducedMotion]);
 
   return (
     <span ref={elementRef} className={className}>

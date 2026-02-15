@@ -25,7 +25,9 @@ export default function GlobalNav({
   // Landing site nav
   if (mode === "landing") {
     return (
-      <nav className="sticky top-0 z-50 nav-premium">
+      <>
+      <a href="#main-content" className="skip-link">Skip to main content</a>
+      <nav className="sticky top-0 z-50 nav-premium" aria-label="Main navigation">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             {/* Logo */}
@@ -82,6 +84,8 @@ export default function GlobalNav({
               className="md:hidden text-white"
               onClick={() => setMobileOpen(!mobileOpen)}
               aria-label="Toggle menu"
+              aria-expanded={mobileOpen}
+              aria-controls="mobile-nav-menu"
             >
               {mobileOpen ? (
                 <X className="w-6 h-6" />
@@ -92,7 +96,7 @@ export default function GlobalNav({
           </div>
 
           {/* Mobile Navigation */}
-          <div className={`md:hidden overflow-hidden transition-all duration-200 ease-in-out ${mobileOpen ? 'max-h-96 opacity-100 pb-4' : 'max-h-0 opacity-0'} space-y-2 border-t border-white/10`}>
+          <div id="mobile-nav-menu" className={`md:hidden overflow-hidden transition-all duration-200 ease-in-out ${mobileOpen ? 'max-h-96 opacity-100 pb-4' : 'max-h-0 opacity-0'} space-y-2 border-t border-white/10`}>
               <button
                 className="nav-link block py-2 text-sm"
                 onClick={() => { handleNavClick(); navigate("/features"); }}
@@ -137,13 +141,14 @@ export default function GlobalNav({
           </div>
         </div>
       </nav>
+      </>
     );
   }
 
   // App authenticated nav (minimal)
   if (mode === "app") {
     return (
-      <nav className="sticky top-0 z-40 bg-white border-b border-border">
+      <nav className="sticky top-0 z-40 bg-white border-b border-border" aria-label="App navigation">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-14">
             <Link href="/dashboard" onClick={handleNavClick} className="flex items-center cursor-pointer" data-testid="link-app-logo">
@@ -171,7 +176,7 @@ export default function GlobalNav({
   // Auth pages nav (minimal)
   if (mode === "auth") {
     return (
-      <nav className="sticky top-0 z-40 bg-white border-b border-border">
+      <nav className="sticky top-0 z-40 bg-white border-b border-border" aria-label="Authentication navigation">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-14">
             <Link href="/" onClick={handleNavClick} className="flex items-center cursor-pointer" data-testid="link-auth-logo">

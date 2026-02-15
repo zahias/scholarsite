@@ -7,7 +7,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Download, FileText, Database, Table, FileJson, Star, Quote, ExternalLink } from "lucide-react";
+import { Download, FileText, Database, Table, FileJson, Star, Quote, ExternalLink, Search } from "lucide-react";
+import EmptyState from "@/components/EmptyState";
 import { useState, useMemo } from "react";
 
 interface PublicationsProps {
@@ -398,30 +399,26 @@ export default function Publications({ openalexId, inline = false }: Publication
         )}
         
         {publications.length === 0 ? (
-          <Card>
-            <CardContent className="p-6 text-center">
-              <p className="text-muted-foreground">No publications available. Please sync your data in the admin panel.</p>
-            </CardContent>
-          </Card>
+          <EmptyState
+            icon={FileText}
+            title="No Publications"
+            description="No publications available. Please sync your data in the admin panel."
+          />
         ) : filteredAndSortedPublications.length === 0 ? (
-          <Card>
-            <CardContent className="p-6 text-center">
-              <p className="text-muted-foreground">No publications match your current filters.</p>
-              <Button 
-                variant="outline" 
-                onClick={() => {
-                  setSearchTerm("");
-                  setYearFilter("all");
-                  setOpenAccessFilter("all");
-                  setPublicationTypeFilter("all");
-                }}
-                className="mt-2"
-                data-testid="button-clear-search"
-              >
-                Clear Filters
-              </Button>
-            </CardContent>
-          </Card>
+          <EmptyState
+            icon={Search}
+            title="No Results"
+            description="No publications match your current filters."
+            action={{
+              label: "Clear Filters",
+              onClick: () => {
+                setSearchTerm("");
+                setYearFilter("all");
+                setOpenAccessFilter("all");
+                setPublicationTypeFilter("all");
+              },
+            }}
+          />
         ) : (
           <div className="space-y-6">
             {displayedPublications.map((publication: any, index: number) => (
