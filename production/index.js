@@ -50,7 +50,6 @@ __export(schema_exports, {
 });
 import { sql } from "drizzle-orm";
 import {
-  index,
   jsonb,
   pgTable,
   timestamp,
@@ -253,11 +252,7 @@ var profileAnalytics = pgTable("profile_analytics", {
   country: varchar("country"),
   city: varchar("city"),
   createdAt: timestamp("created_at").defaultNow()
-}, (table) => ({
-  profileIdIdx: index("profile_analytics_profile_id_idx").on(table.profileId),
-  openalexIdIdx: index("profile_analytics_openalex_id_idx").on(table.openalexId),
-  createdAtIdx: index("profile_analytics_created_at_idx").on(table.createdAt)
-}));
+});
 var profileAnalyticsDaily = pgTable("profile_analytics_daily", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   profileId: varchar("profile_id").references(() => researcherProfiles.id),
@@ -3575,10 +3570,10 @@ function generateBibTeX(publications2) {
     "erratum": "misc",
     "paratext": "misc"
   };
-  return publications2.map((pub, index2) => {
+  return publications2.map((pub, index) => {
     const openalexType = pub.publicationType?.toLowerCase() || "article";
     const bibtexType = bibtexTypeMap[openalexType] || "misc";
-    const key = `${bibtexType}${pub.publicationYear || "unknown"}${index2 + 1}`;
+    const key = `${bibtexType}${pub.publicationYear || "unknown"}${index + 1}`;
     const authors = pub.authorNames?.replace(/,/g, " and") || "Unknown Author";
     const title = pub.title || "Untitled";
     const year = pub.publicationYear || "";

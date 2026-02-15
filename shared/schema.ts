@@ -1,6 +1,5 @@
 import { sql } from 'drizzle-orm';
 import {
-  index,
   jsonb,
   pgTable,
   timestamp,
@@ -219,11 +218,7 @@ export const profileAnalytics = pgTable("profile_analytics", {
   country: varchar("country"),
   city: varchar("city"),
   createdAt: timestamp("created_at").defaultNow(),
-}, (table) => ({
-  profileIdIdx: index("profile_analytics_profile_id_idx").on(table.profileId),
-  openalexIdIdx: index("profile_analytics_openalex_id_idx").on(table.openalexId),
-  createdAtIdx: index("profile_analytics_created_at_idx").on(table.createdAt),
-}));
+});
 
 export type InsertProfileAnalytics = typeof profileAnalytics.$inferInsert;
 export type ProfileAnalytics = typeof profileAnalytics.$inferSelect;

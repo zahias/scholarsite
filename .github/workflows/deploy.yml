@@ -23,11 +23,7 @@ jobs:
             cp -rf production/* /home/bannwebs/scholarsite/
             rm -rf /home/bannwebs/scholarsite/public/assets/*
             cp -rf production/public/assets/* /home/bannwebs/scholarsite/public/assets/
-            cd /home/bannwebs/scholarsite
-            npm install --omit=dev 2>&1 || true
-            mkdir -p tmp uploads
-            chmod 755 uploads
-            echo "--- Testing node startup ---"
-            timeout 10 node index.js 2>&1 || true
-            echo "--- Restarting via tmp/restart.txt ---"
-            touch tmp/restart.txt
+            mkdir -p /home/bannwebs/scholarsite/tmp
+            mkdir -p /home/bannwebs/scholarsite/uploads
+            chmod 755 /home/bannwebs/scholarsite/uploads
+            touch /home/bannwebs/scholarsite/tmp/restart.txt
