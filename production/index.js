@@ -29,8 +29,6 @@ __export(schema_exports, {
   loginUserSchema: () => loginUserSchema,
   openalexData: () => openalexData,
   payments: () => payments,
-  profileAnalytics: () => profileAnalytics,
-  profileAnalyticsDaily: () => profileAnalyticsDaily,
   profileSections: () => profileSections,
   publications: () => publications,
   registerUserSchema: () => registerUserSchema,
@@ -237,35 +235,6 @@ var syncLogs = pgTable("sync_logs", {
   startedAt: timestamp("started_at").defaultNow(),
   completedAt: timestamp("completed_at")
 });
-var profileAnalytics = pgTable("profile_analytics", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  profileId: varchar("profile_id").references(() => researcherProfiles.id),
-  openalexId: varchar("openalex_id").notNull(),
-  eventType: varchar("event_type").notNull(),
-  // 'view', 'click', 'share', 'download'
-  eventTarget: varchar("event_target"),
-  // 'publication', 'cv', 'linkedin', 'email', etc.
-  visitorId: varchar("visitor_id"),
-  // Anonymous visitor tracking
-  referrer: varchar("referrer"),
-  userAgent: varchar("user_agent"),
-  country: varchar("country"),
-  city: varchar("city"),
-  createdAt: timestamp("created_at").defaultNow()
-});
-var profileAnalyticsDaily = pgTable("profile_analytics_daily", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  profileId: varchar("profile_id").references(() => researcherProfiles.id),
-  openalexId: varchar("openalex_id").notNull(),
-  date: date("date").notNull(),
-  views: integer("views").default(0),
-  uniqueVisitors: integer("unique_visitors").default(0),
-  clicks: integer("clicks").default(0),
-  shares: integer("shares").default(0),
-  downloads: integer("downloads").default(0)
-}, (table) => ({
-  uniqueProfileDate: unique().on(table.openalexId, table.date)
-}));
 var registerUserSchema = z.object({
   email: z.string().email("Invalid email address"),
   password: z.string().min(8, "Password must be at least 8 characters"),
@@ -406,7 +375,7 @@ if (!process.env.DATABASE_URL) {
 }
 
 // server/storage.ts
-import { eq, desc, and, inArray, asc, gte, lte } from "drizzle-orm";
+import { eq, desc, and, inArray, asc } from "drizzle-orm";
 import crypto from "crypto";
 function generateUUID() {
   return crypto.randomUUID();
@@ -876,90 +845,6 @@ var DatabaseStorage = class {
   }
   async getAllPayments() {
     return await db.select().from(payments).orderBy(desc(payments.createdAt));
-  }
-  // Analytics operations
-  async trackAnalyticsEvent(event) {
-    const [result] = await db.insert(profileAnalytics).values({
-      ...event,
-      id: generateUUID()
-    }).returning();
-    return result;
-  }
-  async getAnalyticsByOpenalexId(openalexId, startDate, endDate) {
-    const conditions = [eq(profileAnalytics.openalexId, openalexId)];
-    if (startDate) conditions.push(gte(profileAnalytics.createdAt, startDate));
-    if (endDate) conditions.push(lte(profileAnalytics.createdAt, endDate));
-    return await db.select().from(profileAnalytics).where(and(...conditions)).orderBy(desc(profileAnalytics.createdAt));
-  }
-  async getAnalyticsSummary(openalexId, days = 30) {
-    const startDate = /* @__PURE__ */ new Date();
-    startDate.setDate(startDate.getDate() - days);
-    const events = await this.getAnalyticsByOpenalexId(openalexId, startDate);
-    const totalViews = events.filter((e) => e.eventType === "view").length;
-    const uniqueVisitors = new Set(events.filter((e) => e.eventType === "view").map((e) => e.visitorId)).size;
-    const totalClicks = events.filter((e) => e.eventType === "click").length;
-    const totalShares = events.filter((e) => e.eventType === "share").length;
-    const totalDownloads = events.filter((e) => e.eventType === "download").length;
-    const viewsByDayMap = /* @__PURE__ */ new Map();
-    events.filter((e) => e.eventType === "view").forEach((e) => {
-      const date2 = e.createdAt ? new Date(e.createdAt).toISOString().split("T")[0] : "";
-      if (!viewsByDayMap.has(date2)) {
-        viewsByDayMap.set(date2, { views: 0, visitors: /* @__PURE__ */ new Set() });
-      }
-      const day = viewsByDayMap.get(date2);
-      day.views++;
-      if (e.visitorId) day.visitors.add(e.visitorId);
-    });
-    const viewsByDay = Array.from(viewsByDayMap.entries()).map(([date2, data]) => ({ date: date2, views: data.views, uniqueVisitors: data.visitors.size })).sort((a, b) => a.date.localeCompare(b.date));
-    const referrerMap = /* @__PURE__ */ new Map();
-    events.filter((e) => e.referrer).forEach((e) => {
-      const ref = e.referrer || "Direct";
-      referrerMap.set(ref, (referrerMap.get(ref) || 0) + 1);
-    });
-    const topReferrers = Array.from(referrerMap.entries()).map(([referrer, count2]) => ({ referrer, count: count2 })).sort((a, b) => b.count - a.count).slice(0, 10);
-    const clickMap = /* @__PURE__ */ new Map();
-    events.filter((e) => e.eventType === "click" && e.eventTarget).forEach((e) => {
-      const target = e.eventTarget || "unknown";
-      clickMap.set(target, (clickMap.get(target) || 0) + 1);
-    });
-    const clicksByTarget = Array.from(clickMap.entries()).map(([target, count2]) => ({ target, count: count2 })).sort((a, b) => b.count - a.count);
-    return {
-      totalViews,
-      uniqueVisitors,
-      totalClicks,
-      totalShares,
-      totalDownloads,
-      viewsByDay,
-      topReferrers,
-      clicksByTarget
-    };
-  }
-  async aggregateDailyAnalytics(openalexId, date2) {
-    const startOfDay = new Date(date2);
-    startOfDay.setHours(0, 0, 0, 0);
-    const endOfDay = new Date(date2);
-    endOfDay.setHours(23, 59, 59, 999);
-    const events = await this.getAnalyticsByOpenalexId(openalexId, startOfDay, endOfDay);
-    const views = events.filter((e) => e.eventType === "view").length;
-    const uniqueVisitors = new Set(events.filter((e) => e.eventType === "view").map((e) => e.visitorId)).size;
-    const clicks = events.filter((e) => e.eventType === "click").length;
-    const shares = events.filter((e) => e.eventType === "share").length;
-    const downloads = events.filter((e) => e.eventType === "download").length;
-    const profileId = events[0]?.profileId || null;
-    await db.insert(profileAnalyticsDaily).values({
-      id: generateUUID(),
-      profileId,
-      openalexId,
-      date: date2,
-      views,
-      uniqueVisitors,
-      clicks,
-      shares,
-      downloads
-    }).onConflictDoUpdate({
-      target: [profileAnalyticsDaily.openalexId, profileAnalyticsDaily.date],
-      set: { views, uniqueVisitors, clicks, shares, downloads }
-    });
   }
 };
 var MemoryStorage = class {
@@ -3570,10 +3455,10 @@ function generateBibTeX(publications2) {
     "erratum": "misc",
     "paratext": "misc"
   };
-  return publications2.map((pub, index) => {
+  return publications2.map((pub, index2) => {
     const openalexType = pub.publicationType?.toLowerCase() || "article";
     const bibtexType = bibtexTypeMap[openalexType] || "misc";
-    const key = `${bibtexType}${pub.publicationYear || "unknown"}${index + 1}`;
+    const key = `${bibtexType}${pub.publicationYear || "unknown"}${index2 + 1}`;
     const authors = pub.authorNames?.replace(/,/g, " and") || "Unknown Author";
     const title = pub.title || "Untitled";
     const year = pub.publicationYear || "";
@@ -4683,174 +4568,6 @@ async function registerRoutes(app2) {
     } catch (error) {
       console.error("Error applying theme to tenants:", error);
       res.status(500).json({ message: "Failed to apply theme" });
-    }
-  });
-  app2.post("/api/analytics/track", async (req, res) => {
-    try {
-      const { openalexId, eventType, eventTarget, visitorId, referrer, userAgent, country, city } = req.body;
-      if (!openalexId || !eventType) {
-        return res.status(400).json({ message: "openalexId and eventType are required" });
-      }
-      const profile = await storage.getResearcherProfileByOpenalexId(openalexId);
-      const event = await storage.trackAnalyticsEvent({
-        profileId: profile?.id || null,
-        openalexId,
-        eventType,
-        eventTarget: eventTarget || null,
-        visitorId: visitorId || null,
-        referrer: referrer || req.get("referer") || null,
-        userAgent: userAgent || req.get("user-agent") || null,
-        country: country || null,
-        city: city || null
-      });
-      res.json({ success: true, eventId: event.id });
-    } catch (error) {
-      console.error("Error tracking analytics event:", error);
-      res.status(500).json({ message: "Failed to track event" });
-    }
-  });
-  app2.get("/api/analytics/:openalexId", async (req, res) => {
-    try {
-      const { openalexId } = req.params;
-      const days = parseInt(req.query.days) || 30;
-      const session2 = req.session;
-      if (!session2?.userId) {
-        return res.status(401).json({ message: "Authentication required" });
-      }
-      const user = await storage.getUser(session2.userId);
-      if (!user) {
-        return res.status(401).json({ message: "User not found" });
-      }
-      if (user.role !== "admin") {
-        const profile = await storage.getResearcherProfileByOpenalexId(openalexId);
-        if (!profile || profile.tenantId !== user.tenantId) {
-          return res.status(403).json({ message: "Access denied" });
-        }
-      }
-      const summary = await storage.getAnalyticsSummary(openalexId, days);
-      res.json(summary);
-    } catch (error) {
-      console.error("Error fetching analytics:", error);
-      res.status(500).json({ message: "Failed to fetch analytics" });
-    }
-  });
-  app2.post("/api/chat-message", async (req, res) => {
-    try {
-      const { name, email, message, page } = req.body;
-      if (!email || !message) {
-        return res.status(400).json({ message: "Email and message are required" });
-      }
-      const transporter = nodemailer.createTransport({
-        host: process.env.SMTP_HOST || "smtp.gmail.com",
-        port: parseInt(process.env.SMTP_PORT || "587"),
-        secure: process.env.SMTP_SECURE === "true",
-        auth: {
-          user: process.env.SMTP_USER,
-          pass: process.env.SMTP_PASS
-        }
-      });
-      const adminEmail = process.env.ADMIN_EMAIL || process.env.SMTP_USER;
-      if (adminEmail && process.env.SMTP_USER && process.env.SMTP_PASS) {
-        await transporter.sendMail({
-          from: process.env.SMTP_FROM || process.env.SMTP_USER,
-          to: adminEmail,
-          subject: `[Scholar.name Chat] New message from ${name || email}`,
-          html: `
-            <h2>New Chat Message</h2>
-            <p><strong>From:</strong> ${name || "Anonymous"} (${email})</p>
-            <p><strong>Page:</strong> ${page || "Unknown"}</p>
-            <p><strong>Message:</strong></p>
-            <p>${message.replace(/\n/g, "<br>")}</p>
-            <hr>
-            <p style="color: #666; font-size: 12px;">This message was sent via the Scholar.name chat widget.</p>
-          `,
-          replyTo: email
-        });
-      }
-      res.json({
-        success: true,
-        message: "Message received! We'll get back to you soon."
-      });
-    } catch (error) {
-      console.error("Error handling chat message:", error);
-      res.json({
-        success: true,
-        message: "Message received! We'll get back to you soon."
-      });
-    }
-  });
-  app2.post("/api/report-issue", async (req, res) => {
-    try {
-      const { openalexId, issueType, email, description } = req.body;
-      if (!openalexId || !issueType || !email || !description) {
-        return res.status(400).json({ message: "All fields are required" });
-      }
-      const issueTypeLabels = {
-        "wrong_person": "Wrong person / Not me",
-        "wrong_publications": "Wrong publications listed",
-        "missing_publications": "Missing publications",
-        "wrong_affiliation": "Wrong affiliation",
-        "other": "Other issue"
-      };
-      const transporter = nodemailer.createTransport({
-        host: process.env.SMTP_HOST || "smtp.gmail.com",
-        port: parseInt(process.env.SMTP_PORT || "587"),
-        secure: process.env.SMTP_SECURE === "true",
-        auth: {
-          user: process.env.SMTP_USER,
-          pass: process.env.SMTP_PASS
-        }
-      });
-      const adminEmail = process.env.ADMIN_EMAIL || process.env.SMTP_USER;
-      if (adminEmail && process.env.SMTP_USER && process.env.SMTP_PASS) {
-        await transporter.sendMail({
-          from: process.env.SMTP_FROM || process.env.SMTP_USER,
-          to: adminEmail,
-          subject: `[Scholar.name] Data Issue Report: ${issueTypeLabels[issueType] || issueType}`,
-          html: `
-            <h2>\u{1F6A8} Data Issue Report</h2>
-            <table style="border-collapse: collapse; width: 100%; max-width: 600px;">
-              <tr>
-                <td style="padding: 8px; border: 1px solid #ddd; background: #f9f9f9;"><strong>Issue Type</strong></td>
-                <td style="padding: 8px; border: 1px solid #ddd;">${issueTypeLabels[issueType] || issueType}</td>
-              </tr>
-              <tr>
-                <td style="padding: 8px; border: 1px solid #ddd; background: #f9f9f9;"><strong>OpenAlex ID</strong></td>
-                <td style="padding: 8px; border: 1px solid #ddd;">
-                  <a href="https://openalex.org/authors/${openalexId}">${openalexId}</a>
-                </td>
-              </tr>
-              <tr>
-                <td style="padding: 8px; border: 1px solid #ddd; background: #f9f9f9;"><strong>Profile URL</strong></td>
-                <td style="padding: 8px; border: 1px solid #ddd;">
-                  <a href="https://scholar.name/researcher/${openalexId}">View Profile</a>
-                </td>
-              </tr>
-              <tr>
-                <td style="padding: 8px; border: 1px solid #ddd; background: #f9f9f9;"><strong>Reporter Email</strong></td>
-                <td style="padding: 8px; border: 1px solid #ddd;">${email}</td>
-              </tr>
-              <tr>
-                <td style="padding: 8px; border: 1px solid #ddd; background: #f9f9f9;"><strong>Description</strong></td>
-                <td style="padding: 8px; border: 1px solid #ddd;">${description.replace(/\n/g, "<br>")}</td>
-              </tr>
-            </table>
-            <hr style="margin: 20px 0;">
-            <p style="color: #666; font-size: 12px;">
-              Respond to this user at ${email}. If the issue is with source data, 
-              guide them to submit a correction to OpenAlex.
-            </p>
-          `,
-          replyTo: email
-        });
-      }
-      res.json({
-        success: true,
-        message: "Report submitted successfully"
-      });
-    } catch (error) {
-      console.error("Error handling issue report:", error);
-      res.status(500).json({ message: "Failed to submit report" });
     }
   });
   const httpServer = createServer(app2);
