@@ -23,6 +23,8 @@ export default function Publications({ openalexId, inline = false }: Publication
   const [openAccessFilter, setOpenAccessFilter] = useState<"all" | "open" | "closed">("all");
   const [publicationTypeFilter, setPublicationTypeFilter] = useState<string>("all");
   const [showAll, setShowAll] = useState(false);
+  const INITIAL_COUNT = 10;
+  const LOAD_MORE_COUNT = 20;
   const [exportDialogOpen, setExportDialogOpen] = useState(false);
 
   const handleExportBibliography = (format: string) => {
@@ -137,7 +139,7 @@ export default function Publications({ openalexId, inline = false }: Publication
     return Array.from(new Set(types));
   }, [publications]);
 
-  const displayedPublications = showAll ? filteredAndSortedPublications : filteredAndSortedPublications.slice(0, 10);
+  const displayedPublications = showAll ? filteredAndSortedPublications : filteredAndSortedPublications.slice(0, INITIAL_COUNT);
 
   if (isLoading) {
     return (
@@ -463,7 +465,7 @@ export default function Publications({ openalexId, inline = false }: Publication
           </div>
         )}
         
-        {filteredAndSortedPublications.length > 10 && !showAll && (
+        {filteredAndSortedPublications.length > INITIAL_COUNT && !showAll && (
           <div className="text-center mt-12">
             <Button 
               onClick={() => setShowAll(true)}
@@ -541,11 +543,18 @@ export default function Publications({ openalexId, inline = false }: Publication
           </div>
         )}
 
-        {showAll && filteredAndSortedPublications.length > 10 && (
+        {showAll && filteredAndSortedPublications.length > INITIAL_COUNT && (
           <div className="text-center mt-12">
+            <p className="text-sm text-muted-foreground mb-3">
+              Showing all {filteredAndSortedPublications.length} publications
+            </p>
             <Button 
               variant="outline"
-              onClick={() => setShowAll(false)}
+              onClick={() => {
+                setShowAll(false);
+                // Scroll back to publications section
+                document.getElementById('publications')?.scrollIntoView({ behavior: 'smooth' });
+              }}
               className="mr-4" 
               data-testid="button-show-less"
             >

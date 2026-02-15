@@ -44,9 +44,9 @@ const features = [
   },
   {
     icon: Users,
-    title: "Collaboration Map",
+    title: "Co-Author Network",
     description:
-      "Visualize your co-author network and institutional connections. Show potential collaborators exactly who you work with.",
+      "See your co-author connections and institutional relationships at a glance. Great for discovering shared research interests.",
   },
   {
     icon: Download,

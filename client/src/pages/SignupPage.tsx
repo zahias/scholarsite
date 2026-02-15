@@ -30,6 +30,7 @@ const step1Schema = z.object({
   lastName: z.string().min(1, "Last name is required"),
   email: z.string().email("Please enter a valid email address"),
   password: z.string().min(8, "Password must be at least 8 characters"),
+  affiliation: z.string().optional(),
 });
 
 type Step1Data = z.infer<typeof step1Schema>;
@@ -75,7 +76,7 @@ export default function SignupPage() {
   // -- Step 1 form --
   const form = useForm<Step1Data>({
     resolver: zodResolver(step1Schema),
-    defaultValues: { firstName: "", lastName: "", email: "", password: "" },
+    defaultValues: { firstName: "", lastName: "", email: "", password: "", affiliation: "" },
   });
 
   // -- Step 2 search --
@@ -108,7 +109,7 @@ export default function SignupPage() {
 
   // -- Registration mutation --
   const signupMutation = useMutation({
-    mutationFn: async (data: Step1Data) => {
+    mutationFn: async (data: Step1Data & { openalexId?: string }) => {
       const response = await fetch("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -117,6 +118,8 @@ export default function SignupPage() {
           lastName: data.lastName,
           email: data.email,
           password: data.password,
+          openalexId: data.openalexId,
+          affiliation: data.affiliation,
         }),
       });
       if (!response.ok) {
@@ -154,7 +157,11 @@ export default function SignupPage() {
   };
 
   const handleStep2Next = () => {
-    signupMutation.mutate(form.getValues());
+    const formData = form.getValues();
+    signupMutation.mutate({
+      ...formData,
+      openalexId: selectedAuthor?.id || undefined,
+    });
   };
 
   const handleSelectAuthor = (author: AuthorSearchResult) => {
@@ -310,7 +317,7 @@ export default function SignupPage() {
                           <div className="relative">
                             <Input
                               type={showPassword ? "text" : "password"}
-                              placeholder="\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022"
+                              placeholder="Enter your password"
                               autoComplete="new-password"
                               {...field}
                             />
@@ -326,6 +333,24 @@ export default function SignupPage() {
                               )}
                             </button>
                           </div>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="affiliation"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Affiliation <span className="text-muted-foreground font-normal">(optional)</span></FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="e.g., MIT, Stanford University"
+                            autoComplete="organization"
+                            {...field}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>

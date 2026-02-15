@@ -133,18 +133,18 @@ export default function LandingPage() {
   const features = [
     {
       icon: RefreshCw,
-      title: "Auto-Sync",
-      description: "Your publications update automatically from OpenAlex. No manual entry needed."
+      title: "Auto-Updated Publications",
+      description: "Your publication list stays current automatically. New papers appear on your profile without lifting a finger."
     },
     {
       icon: BarChart3,
-      title: "Professional Design",
-      description: "Interactive charts, citation trends, and topic visualizations that bring your research to life."
+      title: "Impact Visualizations",
+      description: "Beautiful charts showing citation trends, h-index growth, and research topic maps that bring your work to life."
     },
     {
       icon: Globe,
-      title: "Shareable URL",
-      description: "Get yourname.scholar.name — a clean, memorable link for email signatures, grants, and conferences."
+      title: "Your Own Academic URL",
+      description: "Get yourname.scholar.name — a clean, professional link for email signatures, CVs, and conference bios."
     }
   ];
 
@@ -222,7 +222,7 @@ export default function LandingPage() {
       
       <SEO 
         title="Scholar.name - Professional Research Portfolios for Academics"
-        description="Create a stunning research portfolio that showcases your publications, citations, and academic impact. Auto-syncs with OpenAlex. Better than Google Scholar."
+        description="Create a professional research portfolio that showcases your publications, citations, and academic impact. Auto-updates. One link for everything."
         url="https://scholar.name"
         type="website"
         structuredData={structuredData}
@@ -239,11 +239,11 @@ export default function LandingPage() {
         <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto">
             <h1 id="hero-heading" className="text-2xl sm:text-4xl lg:text-6xl font-bold tracking-tight mb-4 sm:mb-6 text-white leading-tight">
-              A professional research profile,{" "}
-              <span className="bg-gradient-to-r from-orange-300 via-orange-200 to-amber-200 bg-clip-text text-transparent">auto-updated</span>
+              Your research, one link,{" "}
+              <span className="bg-gradient-to-r from-orange-300 via-orange-200 to-amber-200 bg-clip-text text-transparent">always up to date</span>
             </h1>
             <p className="text-base sm:text-lg lg:text-xl text-white/80 mb-4 sm:mb-6 leading-relaxed px-2">
-              ScholarName turns your OpenAlex record into a polished portfolio you can share in minutes.
+              Scholar.name creates a professional academic portfolio from your publications — no manual entry, no maintenance.
             </p>
 
             {/* Primary CTA */}
@@ -272,7 +272,7 @@ export default function LandingPage() {
                 <Input
                   ref={inputRef}
                   type="text"
-                  placeholder="Search for yourself or a colleague..."
+                  placeholder="Search for any researcher by name..."
                   value={searchQuery}
                   onChange={(e) => {
                     setSearchQuery(e.target.value);
@@ -359,17 +359,17 @@ export default function LandingPage() {
           <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-8 text-sm">
             <div className="flex items-center gap-2 text-muted-foreground" data-testid="trust-openalex">
               <BookOpen className="w-4 h-4 text-blue-600" />
-              <span>Powered by OpenAlex</span>
+              <span>250M+ indexed works</span>
             </div>
             <div className="hidden sm:block w-px h-4 bg-border"></div>
             <div className="flex items-center gap-2 text-muted-foreground" data-testid="trust-secure">
               <Lock className="w-4 h-4 text-green-600" />
-              <span>256-bit SSL</span>
+              <span>Secure & private</span>
             </div>
             <div className="hidden sm:block w-px h-4 bg-border"></div>
             <div className="flex items-center gap-2 text-muted-foreground" data-testid="trust-setup">
               <Zap className="w-4 h-4 text-amber-600" />
-              <span>Setup in 5 minutes</span>
+              <span>Ready in 5 minutes</span>
             </div>
           </div>
         </div>
@@ -379,7 +379,7 @@ export default function LandingPage() {
       <section className="py-6 bg-white border-b">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <p className="text-muted-foreground text-sm italic">
-            "Built by a researcher who was tired of pointing collaborators to an outdated faculty page." — Founder
+            "I built this because I was tired of sending people to an outdated faculty page that didn't reflect my work." — Founder
           </p>
         </div>
       </section>

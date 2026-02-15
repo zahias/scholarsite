@@ -1,8 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
-import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useMemo } from "react";
-import { TrendingUp, TrendingDown, Minus } from "lucide-react";
+import { BookOpen, Quote, Hash, Award } from "lucide-react";
 import AnimatedCounter from "./AnimatedCounter";
 
 interface StatsOverviewProps {
@@ -22,53 +21,13 @@ export default function StatsOverview({ openalexId }: StatsOverviewProps) {
     retry: false,
   });
 
-  // Calculate YoY trends from publications
-  const trends = useMemo(() => {
-    if (!researcherData?.publications || researcherData.publications.length === 0) {
-      return { pubsChange: 0, citesChange: 0 };
-    }
-
-    const currentYear = new Date().getFullYear();
-    const lastYear = currentYear - 1;
-    const twoYearsAgo = currentYear - 2;
-
-    let lastYearPubs = 0;
-    let twoYearsAgoPubs = 0;
-    let lastYearCites = 0;
-    let twoYearsAgoCites = 0;
-
-    researcherData.publications.forEach(pub => {
-      const year = pub.publicationYear;
-      const cites = pub.citationCount || 0;
-      
-      if (year === lastYear) {
-        lastYearPubs++;
-        lastYearCites += cites;
-      } else if (year === twoYearsAgo) {
-        twoYearsAgoPubs++;
-        twoYearsAgoCites += cites;
-      }
-    });
-
-    // Calculate percentage changes
-    const pubsChange = twoYearsAgoPubs > 0 
-      ? Math.round(((lastYearPubs - twoYearsAgoPubs) / twoYearsAgoPubs) * 100)
-      : lastYearPubs > 0 ? 100 : 0;
-
-    const citesChange = twoYearsAgoCites > 0 
-      ? Math.round(((lastYearCites - twoYearsAgoCites) / twoYearsAgoCites) * 100)
-      : lastYearCites > 0 ? 100 : 0;
-
-    return { pubsChange, citesChange };
-  }, [researcherData]);
-
   if (isLoading) {
     return (
-      <section className="py-6 -mt-4">
+      <section className="py-8 -mt-6">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-wrap justify-center gap-4 md:gap-6">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             {[...Array(4)].map((_, i) => (
-              <Skeleton key={i} className="h-16 w-32 rounded-lg" />
+              <Skeleton key={i} className="h-24 rounded-xl" />
             ))}
           </div>
         </div>
@@ -85,67 +44,59 @@ export default function StatsOverview({ openalexId }: StatsOverviewProps) {
   const worksCount = stats?.works_count ?? 0;
   const citationCount = stats?.cited_by_count ?? 0;
 
-  const TrendIndicator = ({ value, label }: { value: number; label: string }) => {
-    if (value === 0) return null;
-    
-    const isPositive = value > 0;
-    const Icon = isPositive ? TrendingUp : TrendingDown;
-    const colorClass = isPositive ? "text-green-600" : "text-red-500";
-    
-    return (
-      <span className={`inline-flex items-center gap-0.5 text-xs ${colorClass}`} title={`${label} YoY change`}>
-        <Icon className="w-3 h-3" />
-        {Math.abs(value)}%
-      </span>
-    );
-  };
+  const statItems = [
+    { 
+      label: "Publications", 
+      value: worksCount, 
+      icon: BookOpen,
+      color: "text-blue-600",
+      bgColor: "bg-blue-50",
+      borderColor: "border-blue-100",
+    },
+    { 
+      label: "Citations", 
+      value: citationCount, 
+      icon: Quote,
+      color: "text-amber-600",
+      bgColor: "bg-amber-50",
+      borderColor: "border-amber-100",
+    },
+    { 
+      label: "h-index", 
+      value: summaryStats.h_index ?? 0, 
+      icon: Hash,
+      color: "text-emerald-600",
+      bgColor: "bg-emerald-50",
+      borderColor: "border-emerald-100",
+    },
+    { 
+      label: "i10-index", 
+      value: summaryStats.i10_index ?? 0, 
+      icon: Award,
+      color: "text-purple-600",
+      bgColor: "bg-purple-50",
+      borderColor: "border-purple-100",
+    },
+  ];
 
   return (
-    <section className="py-4 md:py-6 -mt-4 md:-mt-6" data-testid="section-stats">
+    <section className="py-8 -mt-6 md:-mt-8" data-testid="section-stats">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Compact horizontal stat row */}
-        <div className="flex flex-wrap justify-center items-center gap-3 md:gap-6">
-          <Card className="bg-card/80 backdrop-blur-sm border border-border/50 shadow-sm">
-            <CardContent className="px-4 py-3 flex items-center gap-3">
-              <div className="text-center">
-                <div className="text-xl md:text-2xl font-bold text-primary" data-testid="stat-publications">
-                  <AnimatedCounter end={worksCount} />
-                </div>
-                <div className="text-xs text-muted-foreground">Publications</div>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          {statItems.map((item) => (
+            <div 
+              key={item.label}
+              className={`${item.bgColor} ${item.borderColor} border rounded-xl p-5 text-center transition-shadow hover:shadow-md`}
+            >
+              <div className={`inline-flex items-center justify-center w-10 h-10 rounded-lg ${item.bgColor} mb-3`}>
+                <item.icon className={`w-5 h-5 ${item.color}`} />
               </div>
-              <TrendIndicator value={trends.pubsChange} label="Publications" />
-            </CardContent>
-          </Card>
-          
-          <Card className="bg-card/80 backdrop-blur-sm border border-border/50 shadow-sm">
-            <CardContent className="px-4 py-3 flex items-center gap-3">
-              <div className="text-center">
-                <div className="text-xl md:text-2xl font-bold text-accent" data-testid="stat-citations">
-                  <AnimatedCounter end={citationCount} />
-                </div>
-                <div className="text-xs text-muted-foreground">Citations</div>
+              <div className={`text-2xl md:text-3xl font-bold ${item.color}`} data-testid={`stat-${item.label.toLowerCase().replace('-', '-')}`}>
+                <AnimatedCounter end={item.value} />
               </div>
-              <TrendIndicator value={trends.citesChange} label="Citations" />
-            </CardContent>
-          </Card>
-          
-          <Card className="bg-card/80 backdrop-blur-sm border border-border/50 shadow-sm">
-            <CardContent className="px-4 py-3 text-center">
-              <div className="text-xl md:text-2xl font-bold text-primary" data-testid="stat-h-index">
-                <AnimatedCounter end={summaryStats.h_index ?? 0} />
-              </div>
-              <div className="text-xs text-muted-foreground">h-index</div>
-            </CardContent>
-          </Card>
-          
-          <Card className="bg-card/80 backdrop-blur-sm border border-border/50 shadow-sm">
-            <CardContent className="px-4 py-3 text-center">
-              <div className="text-xl md:text-2xl font-bold text-accent" data-testid="stat-i10-index">
-                <AnimatedCounter end={summaryStats.i10_index ?? 0} />
-              </div>
-              <div className="text-xs text-muted-foreground">i10-index</div>
-            </CardContent>
-          </Card>
+              <div className="text-sm text-muted-foreground font-medium mt-1">{item.label}</div>
+            </div>
+          ))}
         </div>
       </div>
     </section>

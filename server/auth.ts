@@ -63,6 +63,22 @@ router.post("/register", async (req: Request, res: Response) => {
       role: "researcher",
     });
 
+    // If OpenAlex ID was provided during signup, create a researcher profile
+    if (validatedData.openalexId) {
+      try {
+        await storage.upsertResearcherProfile({
+          userId: user.id,
+          openalexId: validatedData.openalexId,
+          displayName: `${validatedData.firstName} ${validatedData.lastName}`,
+          currentAffiliation: validatedData.affiliation || null,
+          isPublic: false,
+        } as any);
+      } catch (profileError) {
+        console.error("Failed to create researcher profile during registration:", profileError);
+        // Don't fail registration if profile creation fails
+      }
+    }
+
     req.session.regenerate((err) => {
       if (err) {
         console.error("Session regeneration error:", err);

@@ -270,7 +270,9 @@ var registerUserSchema = z.object({
   email: z.string().email("Invalid email address"),
   password: z.string().min(8, "Password must be at least 8 characters"),
   firstName: z.string().min(1, "First name is required"),
-  lastName: z.string().min(1, "Last name is required")
+  lastName: z.string().min(1, "Last name is required"),
+  openalexId: z.string().optional(),
+  affiliation: z.string().optional()
 });
 var loginUserSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -1536,6 +1538,19 @@ router.post("/register", async (req, res) => {
       lastName: validatedData.lastName,
       role: "researcher"
     });
+    if (validatedData.openalexId) {
+      try {
+        await storage.upsertResearcherProfile({
+          userId: user.id,
+          openalexId: validatedData.openalexId,
+          displayName: `${validatedData.firstName} ${validatedData.lastName}`,
+          currentAffiliation: validatedData.affiliation || null,
+          isPublic: false
+        });
+      } catch (profileError) {
+        console.error("Failed to create researcher profile during registration:", profileError);
+      }
+    }
     req.session.regenerate((err) => {
       if (err) {
         console.error("Session regeneration error:", err);

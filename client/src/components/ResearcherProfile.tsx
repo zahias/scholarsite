@@ -277,110 +277,126 @@ function ResearcherProfileContent() {
       />
       <Navigation researcherName={profile?.displayName || researcher?.display_name || 'Researcher'} />
       
-      {/* Compact Hero Section */}
-      <section id="overview" className="hero-banner-compact py-8 md:py-12 relative">
+      {/* Hero Section — Clean, spacious layout */}
+      <section id="overview" className="hero-banner-compact py-10 md:py-16 relative">
         <div className="hero-pattern"></div>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="flex flex-col md:flex-row items-center gap-6 md:gap-8 text-white">
+          <div className="flex flex-col items-center text-center text-white">
             {/* Profile Image */}
-            <div className="flex-shrink-0">
+            <div className="mb-5">
               {profile?.profileImageUrl ? (
                 <img 
                   src={profile.profileImageUrl} 
                   alt="Professional portrait" 
-                  className="w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 rounded-full object-cover border-4 border-white/30 shadow-2xl"
+                  className="w-28 h-28 sm:w-32 sm:h-32 md:w-36 md:h-36 rounded-full object-cover border-4 border-white/30 shadow-2xl"
                   data-testid="img-profile-photo"
                 />
               ) : (
                 <div 
-                  className={`w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 rounded-full border-4 border-white/30 shadow-2xl flex items-center justify-center bg-primary/20 flex-shrink-0`}
+                  className={`w-28 h-28 sm:w-32 sm:h-32 md:w-36 md:h-36 rounded-full border-4 border-white/30 shadow-2xl flex items-center justify-center bg-primary/20`}
                   data-testid="img-profile-photo"
                 >
-                  <span className="text-3xl sm:text-4xl md:text-5xl font-bold text-primary">
+                  <span className="text-4xl sm:text-5xl font-bold text-primary">
                     {getInitials(profile?.displayName || researcher?.display_name || '')}
                   </span>
                 </div>
               )}
             </div>
             
-            {/* Name, Title & Actions */}
-            <div className="flex-1 text-center md:text-left">
-              {/* Name & Title */}
-              <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-1" data-testid="text-display-name">
-                {profile?.displayName || researcher?.display_name || 'Researcher Profile'}
-              </h1>
-              <p className="text-base sm:text-lg md:text-xl text-white/90 mb-3" data-testid="text-title">
-                {researcherData?.isPreview && !profile?.title 
-                  ? <span className="italic opacity-70">Professor of [Your Field]</span>
-                  : (profile?.title || 'Research Professional')}
-                {' · '}
-                <span className="text-white/70" data-testid="text-affiliation">
-                  {researcherData?.isPreview && !profile?.currentAffiliation
-                    ? <span className="italic">Your Institution</span>
-                    : (profile?.currentAffiliation || researcher?.last_known_institutions?.[0]?.display_name || '')}
-                </span>
+            {/* Name & Title */}
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-2" data-testid="text-display-name">
+              {profile?.displayName || researcher?.display_name || 'Researcher Profile'}
+            </h1>
+            <p className="text-base sm:text-lg text-white/90 mb-1" data-testid="text-title">
+              {researcherData?.isPreview && !profile?.title 
+                ? <span className="italic opacity-70">Professor of [Your Field]</span>
+                : (profile?.title || 'Research Professional')}
+            </p>
+            {(profile?.currentAffiliation || researcher?.last_known_institutions?.[0]?.display_name || researcherData?.isPreview) && (
+              <p className="text-sm text-white/70 flex items-center gap-1.5 mb-4" data-testid="text-affiliation">
+                <Building2 className="w-3.5 h-3.5" />
+                {researcherData?.isPreview && !profile?.currentAffiliation
+                  ? <span className="italic">Your Institution</span>
+                  : (profile?.currentAffiliation || researcher?.last_known_institutions?.[0]?.display_name || '')}
               </p>
+            )}
+
+            {/* Bio excerpt in hero */}
+            {profile?.bio && (
+              <p className="text-sm text-white/75 max-w-xl leading-relaxed mb-5 line-clamp-2">
+                {profile.bio}
+              </p>
+            )}
+
+            {/* Social Icons Row */}
+            <div className="flex items-center gap-2 mb-5">
+              {profile?.orcidUrl && (
+                <a href={profile.orcidUrl} target="_blank" rel="noopener noreferrer" 
+                   className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors" title="ORCID">
+                  <SiOrcid className="w-4 h-4" />
+                </a>
+              )}
+              {profile?.googleScholarUrl && (
+                <a href={profile.googleScholarUrl} target="_blank" rel="noopener noreferrer" 
+                   className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors" title="Google Scholar">
+                  <SiGooglescholar className="w-4 h-4" />
+                </a>
+              )}
+              {profile?.linkedinUrl && (
+                <a href={profile.linkedinUrl} target="_blank" rel="noopener noreferrer" 
+                   className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors" title="LinkedIn">
+                  <Linkedin className="w-4 h-4" />
+                </a>
+              )}
+            </div>
+            
+            {/* Action Buttons — separated, clear hierarchy */}
+            <div className="flex flex-wrap items-center justify-center gap-3">
+              {/* CV Download */}
+              {profile?.cvUrl && profile.cvUrl !== '#cv-placeholder' ? (
+                <a 
+                  href={profile.cvUrl} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-white text-primary font-semibold text-sm hover:bg-white/90 transition-colors shadow-md"
+                  onClick={() => handleTrackedClick('cv_download')}
+                  data-testid="link-cv"
+                >
+                  <Download className="w-4 h-4" />
+                  Download CV
+                </a>
+              ) : (
+                <span 
+                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-white/15 text-sm font-medium opacity-50 cursor-not-allowed"
+                  title="CV available after claiming profile"
+                >
+                  <Download className="w-4 h-4" />
+                  Download CV
+                </span>
+              )}
               
-              {/* Combined action row: Social + CV + Passport */}
-              <div className="flex flex-wrap items-center justify-center md:justify-start gap-2">
-              {/* Social Icons - Reduced to 3 + dropdown */}
-              <div className="flex items-center gap-2 flex-wrap justify-center md:justify-start">
-                {profile?.orcidUrl && (
-                  <a href={profile.orcidUrl} target="_blank" rel="noopener noreferrer" 
-                     className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors" title="ORCID">
-                    <SiOrcid className="w-4 h-4" />
-                  </a>
-                )}
-                {profile?.googleScholarUrl && (
-                  <a href={profile.googleScholarUrl} target="_blank" rel="noopener noreferrer" 
-                     className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors" title="Google Scholar">
-                    <SiGooglescholar className="w-4 h-4" />
-                  </a>
-                )}
-                {profile?.linkedinUrl && (
-                  <a href={profile.linkedinUrl} target="_blank" rel="noopener noreferrer" 
-                     className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors" title="LinkedIn">
-                    <Linkedin className="w-4 h-4" />
-                  </a>
-                )}
-              </div>
-                
-                {/* Separator */}
-                <span className="hidden md:block w-px h-6 bg-white/20 mx-1"></span>
-                
-                {/* CV Download - show real link or preview placeholder */}
-                {profile?.cvUrl && profile.cvUrl !== '#cv-placeholder' ? (
-                  <a 
-                    href={profile.cvUrl} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/15 hover:bg-white/25 transition-colors text-sm font-medium"
-                    data-testid="link-cv"
-                  >
-                    <Download className="w-3.5 h-3.5" />
-                    CV
-                  </a>
-                ) : (
-                  <span 
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/10 text-sm font-medium opacity-50 cursor-not-allowed"
-                    title="CV available after claiming profile"
-                  >
-                    <Download className="w-3.5 h-3.5" />
-                    CV
-                  </span>
-                )}
-                
-                {/* Research Passport */}
-                <ResearchPassport
-                  openalexId={openalexId}
-                  name={profile?.displayName || researcher?.display_name || 'Researcher'}
-                  title={profile?.title}
-                  institution={profile?.currentAffiliation || researcher?.last_known_institutions?.[0]?.display_name}
-                  publicationCount={researcher?.works_count || 0}
-                  citationCount={researcher?.cited_by_count || 0}
-                  profileUrl={typeof window !== 'undefined' ? window.location.href : ''}
-                />
-              </div>
+              {/* View on OpenAlex */}
+              <a 
+                href={`https://openalex.org/authors/${openalexId}`}
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-white/15 hover:bg-white/25 text-sm font-medium transition-colors"
+                onClick={() => handleTrackedClick('openalex_profile')}
+              >
+                <ExternalLink className="w-4 h-4" />
+                OpenAlex Profile
+              </a>
+              
+              {/* Research Passport */}
+              <ResearchPassport
+                openalexId={openalexId}
+                name={profile?.displayName || researcher?.display_name || 'Researcher'}
+                title={profile?.title}
+                institution={profile?.currentAffiliation || researcher?.last_known_institutions?.[0]?.display_name}
+                publicationCount={researcher?.works_count || 0}
+                citationCount={researcher?.cited_by_count || 0}
+                profileUrl={typeof window !== 'undefined' ? window.location.href : ''}
+              />
             </div>
           </div>
         </div>
@@ -434,7 +450,7 @@ function ResearcherProfileContent() {
       
       {/* About Section - Always show in preview, show if bio exists in claimed */}
       {(researcherData?.isPreview || profile?.bio) && (
-        <section className="py-6 md:py-10 bg-muted">
+        <section className="py-8 md:py-12">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <CollapsibleSection
               id="about"
@@ -465,50 +481,50 @@ function ResearcherProfileContent() {
         <ProfileSections sections={researcherData.profileSections} />
       )}
 
-      {/* Career Timeline - New section showing research journey */}
+      {/* Career Timeline */}
       <CollapsibleSection
         id="timeline"
         title="Research Journey"
         icon={<Calendar className="w-5 h-5 md:w-6 md:h-6" />}
         defaultOpen={true}
         mobileDefaultOpen={false}
-        className="bg-background"
+        className="bg-muted/30"
       >
         <CareerTimeline openalexId={openalexId} researcherData={researcherData} inline />
       </CollapsibleSection>
 
-      {/* Analytics - Collapsible */}
+      {/* Analytics */}
       <CollapsibleSection
         id="analytics"
-        title="Publication Analytics"
+        title="Research Impact"
         icon={<BarChart3 className="w-5 h-5 md:w-6 md:h-6" />}
         defaultOpen={true}
         mobileDefaultOpen={false}
-        className="bg-muted"
+        className="bg-background"
       >
         <PublicationAnalytics openalexId={openalexId} researcherData={researcherData} inline />
       </CollapsibleSection>
 
-      {/* Research Topics - Collapsible */}
+      {/* Research Topics */}
       <CollapsibleSection
         id="research"
         title="Research Areas"
         icon={<Lightbulb className="w-5 h-5 md:w-6 md:h-6" />}
         defaultOpen={true}
         mobileDefaultOpen={false}
-        className="bg-background"
+        className="bg-muted/30"
       >
         <ResearchTopics openalexId={openalexId} inline />
       </CollapsibleSection>
 
-      {/* Publications - Collapsible */}
+      {/* Publications */}
       <CollapsibleSection
         id="publications"
         title="Publications"
         icon={<FileText className="w-5 h-5 md:w-6 md:h-6" />}
         defaultOpen={true}
         mobileDefaultOpen={false}
-        className="bg-muted"
+        className="bg-background"
       >
         <Publications openalexId={openalexId} inline />
       </CollapsibleSection>
@@ -518,7 +534,7 @@ function ResearcherProfileContent() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             <p className="text-muted-foreground/70 text-sm">
-              © {new Date().getFullYear()} ResearchHub. All rights reserved.
+              © {new Date().getFullYear()} Scholar.name. All rights reserved.
             </p>
             {researcherData?.lastSynced && (
               <p className="text-xs text-muted-foreground/60">

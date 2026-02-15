@@ -10,7 +10,7 @@ export default function Navigation({ researcherName = 'Researcher' }: Navigation
 
   useEffect(() => {
     const handleScroll = () => {
-      const sections = ['overview', 'analytics', 'network', 'research', 'publications'];
+      const sections = ['overview', 'analytics', 'research', 'publications'];
       const scrollPosition = window.scrollY + window.innerHeight / 3; // Trigger earlier for better UX
 
       for (const sectionId of sections) {
@@ -39,9 +39,8 @@ export default function Navigation({ researcherName = 'Researcher' }: Navigation
 
   const navItems = [
     { id: 'overview', label: 'Overview' },
-    { id: 'analytics', label: 'Analytics' },
-    { id: 'network', label: 'Collaborators' },
-    { id: 'research', label: 'Topics' },
+    { id: 'analytics', label: 'Impact' },
+    { id: 'research', label: 'Research' },
     { id: 'publications', label: 'Publications' },
   ];
 

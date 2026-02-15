@@ -149,7 +149,7 @@ export default function PublicationAnalytics({ openalexId, researcherData: propR
     );
   }
 
-  // Custom tooltip with year-over-year delta
+  // Custom tooltip
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
       const data = payload[0]?.payload;
@@ -159,20 +159,15 @@ export default function PublicationAnalytics({ openalexId, researcherData: propR
           <div className="space-y-1.5 text-sm">
             <div className="flex justify-between items-center">
               <span style={{ color: BRAND_NAVY }}>Publications:</span>
-              <span className="font-semibold">{data?.cumulativePubs?.toLocaleString()}</span>
+              <span className="font-semibold">{data?.yearlyPubs}</span>
             </div>
-            {data?.pubsDelta > 0 && (
-              <div className="text-xs text-muted-foreground pl-2">
-                +{data.pubsDelta} this year
-              </div>
-            )}
             <div className="flex justify-between items-center">
-              <span style={{ color: BRAND_GOLD }}>Citations:</span>
+              <span style={{ color: BRAND_GOLD }}>Cumulative Citations:</span>
               <span className="font-semibold">{data?.cumulativeCitations?.toLocaleString()}</span>
             </div>
-            {data?.citationsDelta > 0 && (
+            {data?.yearlyCitations > 0 && (
               <div className="text-xs text-muted-foreground pl-2">
-                +{data.citationsDelta.toLocaleString()} this year
+                +{data.yearlyCitations.toLocaleString()} citations this year
               </div>
             )}
           </div>
@@ -188,14 +183,31 @@ export default function PublicationAnalytics({ openalexId, researcherData: propR
         <div className="text-center mb-4">
           <h2 className="text-xl sm:text-2xl font-bold mb-1">Research Impact</h2>
           <p className="text-sm text-muted-foreground">
-            Cumulative publications and citations over {chartData.yearRange.end - chartData.yearRange.start + 1} years
+            Publication output and citation growth over {chartData.yearRange.end - chartData.yearRange.start + 1} years
           </p>
         </div>
       )}
       
+      {/* Summary stats row above chart */}
+      <div className="grid grid-cols-3 gap-3 mb-2">
+        <div className="text-center p-3 bg-muted/50 rounded-lg">
+          <div className="text-lg font-bold text-foreground">{chartData.totalPublications.toLocaleString()}</div>
+          <div className="text-xs text-muted-foreground">Total Works</div>
+        </div>
+        <div className="text-center p-3 bg-muted/50 rounded-lg">
+          <div className="text-lg font-bold text-foreground">{chartData.totalCitations.toLocaleString()}</div>
+          <div className="text-xs text-muted-foreground">Total Citations</div>
+        </div>
+        <div className="text-center p-3 bg-muted/50 rounded-lg">
+          <div className="text-lg font-bold text-foreground">{chartData.yearRange.end - chartData.yearRange.start + 1}</div>
+          <div className="text-xs text-muted-foreground">Active Years</div>
+        </div>
+      </div>
+
       <Card className="overflow-hidden" data-testid="card-impact-chart">
         <CardContent className="p-3 sm:p-6">
-          <ResponsiveContainer width="100%" height={300}>
+          <p className="text-xs text-muted-foreground mb-3 font-medium">Publications per year &amp; cumulative citations</p>
+          <ResponsiveContainer width="100%" height={320}>
             <ComposedChart 
               data={chartData.impactData} 
               margin={{ top: 20, right: 20, left: 0, bottom: 5 }}
@@ -217,7 +229,7 @@ export default function PublicationAnalytics({ openalexId, researcherData: propR
                 tick={{ fontSize: 11 }} 
                 width={45}
                 tickFormatter={(v) => v >= 1000 ? `${(v/1000).toFixed(0)}k` : v}
-                label={{ value: 'Publications', angle: -90, position: 'insideLeft', style: { fontSize: 11, fill: BRAND_NAVY } }}
+                label={{ value: 'Pubs/Year', angle: -90, position: 'insideLeft', style: { fontSize: 11, fill: BRAND_NAVY } }}
               />
               <YAxis 
                 yAxisId="right" 
@@ -234,10 +246,10 @@ export default function PublicationAnalytics({ openalexId, researcherData: propR
               />
               <Bar 
                 yAxisId="left" 
-                dataKey="cumulativePubs" 
+                dataKey="yearlyPubs" 
                 fill="url(#gradientPubs)"
                 radius={[4, 4, 0, 0]}
-                name="Total Publications"
+                name="Publications / Year"
                 maxBarSize={40}
               />
               <Line
