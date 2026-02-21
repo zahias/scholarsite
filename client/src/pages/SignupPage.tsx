@@ -11,6 +11,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { useToast } from "@/hooks/use-toast";
 import GlobalNav from "@/components/GlobalNav";
 import GlobalFooter from "@/components/GlobalFooter";
+import SEO from "@/components/SEO";
 import {
   ArrowLeft,
   ArrowRight,
@@ -220,6 +221,12 @@ export default function SignupPage() {
   // -- Main render --
   return (
     <div className="min-h-screen bg-background flex flex-col">
+      <SEO
+        title="Sign Up — Scholar.name"
+        description="Create your free academic portfolio on Scholar.name. Showcase publications, citations, and career milestones."
+        url="https://scholar.name/signup"
+        type="website"
+      />
       <GlobalNav mode="auth" />
 
       <div className="flex-1 max-w-md mx-auto w-full px-4 py-12">
@@ -323,6 +330,7 @@ export default function SignupPage() {
                             />
                             <button
                               type="button"
+                              aria-label={showPassword ? "Hide password" : "Show password"}
                               onClick={() => setShowPassword(!showPassword)}
                               className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                             >

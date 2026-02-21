@@ -2,6 +2,7 @@ import { useLocation } from "wouter";
 import GlobalNav from "@/components/GlobalNav";
 import GlobalFooter from "@/components/GlobalFooter";
 import ResearcherProfile from "@/components/ResearcherProfile";
+import SEO from "@/components/SEO";
 import { Button } from "@/components/ui/button";
 import { Sparkles } from "lucide-react";
 
@@ -10,6 +11,12 @@ export default function DemoPage() {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
+      <SEO
+        title="Demo Profile — Scholar.name"
+        description="See what a Scholar.name research portfolio looks like. Preview publication analytics, career timeline, and more."
+        url="https://scholar.name/demo"
+        type="website"
+      />
       <GlobalNav mode="landing" />
 
       {/* Profile Preview */}

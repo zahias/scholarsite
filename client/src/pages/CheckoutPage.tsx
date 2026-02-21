@@ -11,6 +11,8 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { BookOpen, Check, Loader2, Shield, CreditCard } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { apiRequest } from "@/lib/queryClient";
+import GlobalNav from "@/components/GlobalNav";
+import SEO from "@/components/SEO";
 
 const checkoutFormSchema = z.object({
   customerName: z.string().min(1, "Name is required"),
@@ -72,16 +74,13 @@ export default function CheckoutPage() {
   if (checkoutConfig && !checkoutConfig.isConfigured) {
     return (
       <div className="min-h-screen bg-background">
-        <nav className="sticky top-0 z-50 nav-premium">
-          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between h-16">
-              <div className="flex items-center cursor-pointer" onClick={() => navigate("/")}>
-                <BookOpen className="h-7 w-7 text-white mr-2" />
-                <span className="text-lg font-semibold text-white">Scholar.name</span>
-              </div>
-            </div>
-          </div>
-        </nav>
+        <SEO
+          title="Checkout — Scholar.name"
+          description="Complete your order for a Scholar.name research portfolio."
+          url="https://scholar.name/checkout"
+          type="website"
+        />
+        <GlobalNav mode="auth" />
 
         <div className="max-w-md mx-auto px-4 py-16">
           <Card>
@@ -104,16 +103,13 @@ export default function CheckoutPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/30">
-      <nav className="sticky top-0 z-50 nav-premium">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16">
-            <div className="flex items-center cursor-pointer" onClick={() => navigate("/")}>
-              <BookOpen className="h-7 w-7 text-white mr-2" />
-              <span className="text-lg font-semibold text-white">Scholar.name</span>
-            </div>
-          </div>
-        </div>
-      </nav>
+      <SEO
+        title="Checkout — Scholar.name"
+        description="Complete your order for a Scholar.name research portfolio."
+        url="https://scholar.name/checkout"
+        type="website"
+      />
+      <GlobalNav mode="auth" />
 
       <div className="max-w-4xl mx-auto px-4 py-12">
         <div className="grid md:grid-cols-2 gap-8">

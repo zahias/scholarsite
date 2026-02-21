@@ -2,22 +2,20 @@ import { useLocation } from "wouter";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { BookOpen, XCircle } from "lucide-react";
+import GlobalNav from "@/components/GlobalNav";
+import SEO from "@/components/SEO";
 
 export default function CheckoutCancelPage() {
   const [, navigate] = useLocation();
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/30">
-      <nav className="sticky top-0 z-50 nav-premium">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16">
-            <div className="flex items-center cursor-pointer" onClick={() => navigate("/")}>
-              <BookOpen className="h-7 w-7 text-white mr-2" />
-              <span className="text-lg font-semibold text-white">Scholar.name</span>
-            </div>
-          </div>
-        </div>
-      </nav>
+      <SEO
+        title="Payment Cancelled — Scholar.name"
+        description="Your payment was cancelled. No charges were made."
+        type="website"
+      />
+      <GlobalNav mode="auth" />
 
       <div className="max-w-lg mx-auto px-4 py-16">
         <Card className="text-center">

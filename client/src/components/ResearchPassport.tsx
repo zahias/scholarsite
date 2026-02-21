@@ -189,6 +189,7 @@ export default function ResearchPassport({
                   src={qrCodeUrl} 
                   alt="QR Code" 
                   className="w-32 h-32"
+                  loading="lazy"
                   data-testid="img-passport-qr"
                 />
               </div>

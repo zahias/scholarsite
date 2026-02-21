@@ -51,6 +51,14 @@ export default function SEO({
     updateMetaTag('meta[property="og:site_name"]', 'property', 'Scholar.name');
     if (url) {
       updateMetaTag('meta[property="og:url"]', 'property', url);
+      // Update canonical link
+      let canonical = document.querySelector('link[rel="canonical"]') as HTMLLinkElement | null;
+      if (!canonical) {
+        canonical = document.createElement('link');
+        canonical.setAttribute('rel', 'canonical');
+        document.head.appendChild(canonical);
+      }
+      canonical.setAttribute('href', url);
     }
     // Use provided image or default OG image
     const ogImage = image || 'https://scholar.name/og-image.svg';

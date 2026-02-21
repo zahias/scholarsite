@@ -1,7 +1,9 @@
 import { useEffect } from "react";
 import { Link } from "wouter";
-import { BookOpen, ArrowLeft } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import GlobalNav from "@/components/GlobalNav";
+import SEO from "@/components/SEO";
 
 export default function TermsPage() {
   useEffect(() => {
@@ -10,16 +12,13 @@ export default function TermsPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <nav className="sticky top-0 z-50 nav-premium">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16">
-            <Link href="/" className="flex items-center">
-              <BookOpen className="h-7 w-7 text-white mr-2" />
-              <span className="text-lg font-semibold text-white">Scholar.name</span>
-            </Link>
-          </div>
-        </div>
-      </nav>
+      <SEO
+        title="Terms of Service — Scholar.name"
+        description="Terms and conditions governing your use of Scholar.name research portfolio service."
+        url="https://scholar.name/terms"
+        type="website"
+      />
+      <GlobalNav mode="landing" hideSignup hideLogin />
 
       <div className="max-w-4xl mx-auto px-4 py-12">
         <Link href="/">

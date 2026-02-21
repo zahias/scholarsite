@@ -11,6 +11,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { useToast } from "@/hooks/use-toast";
 import GlobalNav from "@/components/GlobalNav";
 import GlobalFooter from "@/components/GlobalFooter";
+import SEO from "@/components/SEO";
 import { ArrowLeft, Eye, EyeOff, Loader2, LogIn } from "lucide-react";
 
 const loginSchema = z.object({
@@ -77,6 +78,12 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
+      <SEO
+        title="Sign In — Scholar.name"
+        description="Sign in to manage your academic portfolio on Scholar.name."
+        url="https://scholar.name/login"
+        type="website"
+      />
       <GlobalNav mode="auth" />
 
       <div className="flex-1 max-w-md mx-auto w-full px-4 py-12">
@@ -142,6 +149,7 @@ export default function LoginPage() {
                           />
                           <button
                             type="button"
+                            aria-label={showPassword ? "Hide password" : "Show password"}
                             onClick={() => setShowPassword(!showPassword)}
                             className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                           >

@@ -13,7 +13,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { BookOpen, ArrowLeft, Send, Building2, User, Sparkles } from "lucide-react";
+import { ArrowLeft, Send, Building2, User, Sparkles } from "lucide-react";
+import GlobalNav from "@/components/GlobalNav";
+import SEO from "@/components/SEO";
 import type { Theme, ThemeConfig } from "@shared/schema";
 
 const contactFormSchema = z.object({
@@ -86,18 +88,15 @@ export default function ContactPage() {
   if (isSubmitted) {
     return (
       <div className="min-h-screen bg-background">
-        <nav className="sticky top-0 z-50 nav-premium">
-          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between h-16">
-              <Link href="/" className="flex items-center">
-                <BookOpen className="h-7 w-7 text-white mr-2" />
-                <span className="text-lg font-semibold text-white">Scholar.name</span>
-              </Link>
-            </div>
-          </div>
-        </nav>
+        <SEO
+          title="Thank You — Scholar.name"
+          description="Your inquiry has been submitted successfully."
+          url="https://scholar.name/contact"
+          type="website"
+        />
+        <GlobalNav mode="landing" hideSignup hideLogin />
         
-        <div className="max-w-2xl mx-auto px-4 py-20">
+        <div className="max-w-2xl mx-auto px-4 py-20" aria-live="polite">
           <Card>
             <CardContent className="pt-12 pb-12 text-center">
               <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-6">
@@ -120,16 +119,13 @@ export default function ContactPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <nav className="sticky top-0 z-50 nav-premium">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16">
-            <Link href="/" className="flex items-center">
-              <BookOpen className="h-7 w-7 text-white mr-2" />
-              <span className="text-lg font-semibold text-white">Scholar.name</span>
-            </Link>
-          </div>
-        </div>
-      </nav>
+      <SEO
+        title="Get Started — Scholar.name"
+        description="Contact us to set up your professional research portfolio website."
+        url="https://scholar.name/contact"
+        type="website"
+      />
+      <GlobalNav mode="landing" hideSignup hideLogin />
 
       <div className="max-w-4xl mx-auto px-4 py-12">
         <Button 

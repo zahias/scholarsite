@@ -144,6 +144,7 @@ export default function ShareButtons({ url, title, description, openalexId }: Sh
                 src={qrCodeUrl} 
                 alt="QR Code for profile" 
                 className="w-64 h-64 border rounded-lg"
+                loading="lazy"
                 data-testid="img-qr-code"
               />
             )}

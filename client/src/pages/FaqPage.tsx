@@ -110,6 +110,9 @@ export default function FaqPage() {
                   }`}
                 >
                   <button
+                    id={`faq-heading-${index}`}
+                    aria-expanded={openIndex === index}
+                    aria-controls={`faq-panel-${index}`}
                     className={`w-full px-6 py-5 text-left flex items-center justify-between gap-4 ${
                       openIndex === index ? "bg-primary/5" : "hover:bg-muted/50"
                     }`}
@@ -131,7 +134,12 @@ export default function FaqPage() {
                     </div>
                   </button>
                   {openIndex === index && (
-                    <div className="px-6 pb-5 bg-primary/5">
+                    <div
+                      id={`faq-panel-${index}`}
+                      role="region"
+                      aria-labelledby={`faq-heading-${index}`}
+                      className="px-6 pb-5 bg-primary/5"
+                    >
                       <p className="text-muted-foreground leading-relaxed">{faq.answer}</p>
                     </div>
                   )}

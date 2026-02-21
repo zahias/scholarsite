@@ -1,1 +1,0 @@
-import{r as s,ae as o,ah as u}from"./index-DsMkGSNQ.js";var i=u[" useId ".trim().toString()]||(()=>{}),c=0;function n(a){const[t,e]=s.useState(i());return o(()=>{e(r=>r??String(c++))},[a]),t?`radix-${t}`:""}export{n as u};

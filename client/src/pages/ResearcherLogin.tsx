@@ -9,6 +9,8 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
+import GlobalNav from "@/components/GlobalNav";
+import SEO from "@/components/SEO";
 import { Lock, Mail, GraduationCap } from "lucide-react";
 
 const loginSchema = z.object({
@@ -64,7 +66,15 @@ export default function ResearcherLogin() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex flex-col">
+      <SEO
+        title="Sign In — Scholar.name"
+        description="Sign in to manage your academic portfolio on Scholar.name."
+        url="https://scholar.name/dashboard/login"
+        type="website"
+      />
+      <GlobalNav mode="auth" />
+      <div className="flex-1 flex items-center justify-center p-4">
       <Card className="w-full max-w-md shadow-lg">
         <CardHeader className="text-center">
           <div className="mx-auto w-12 h-12 bg-gradient-to-br from-[#0B1F3A] to-[#233F5F] rounded-xl flex items-center justify-center mb-4">
@@ -140,6 +150,7 @@ export default function ResearcherLogin() {
           </p>
         </CardContent>
       </Card>
+      </div>
     </div>
   );
 }
