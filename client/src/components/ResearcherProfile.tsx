@@ -7,6 +7,7 @@ import CareerTimeline from "./CareerTimeline";
 import ResearchTopics from "./ResearchTopics";
 import Publications from "./Publications";
 import ProfileSections from "./ProfileSections";
+import ResearchInsights from "./ResearchInsights";
 import SEO from "./SEO";
 import MobileBottomNav from "./MobileBottomNav";
 import { ThemeSwitcher } from "./ThemeSwitcher";
@@ -36,7 +37,7 @@ const trackProfileEvent = async (openalexId: string, eventType: string, eventTar
       visitorId = crypto.randomUUID();
       localStorage.setItem('scholar_visitor_id', visitorId);
     }
-    
+
     await fetch('/api/analytics/track', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -79,13 +80,13 @@ function getAvatarColor(name: string): string {
 function ResearcherProfileContent() {
   const { id } = useParams();
   const [, navigate] = useLocation();
-  
+
   // Get theme context for dynamic styling
   const { themeConfig } = useProfileTheme();
-  
+
   // Enable real-time updates for this researcher profile
   const { isConnected } = useRealtimeUpdates();
-  
+
   const { data: researcherData, isLoading, error } = useQuery<{
     profile: any;
     researcher: any;
@@ -122,7 +123,7 @@ function ResearcherProfileContent() {
   const profile = researcherData?.profile;
   const researcher = researcherData?.researcher;
   const openalexId = profile?.openalexId || id || '';
-  
+
   const seoTitle = profile ? `${profile.displayName || researcher?.display_name} - Research Profile` : 'Research Profile';
   const seoDescription = profile?.bio || (researcher ? `${profile?.displayName || researcher.display_name} - ${researcher?.works_count || 0} publications, ${researcher?.cited_by_count || 0} citations, h-index: ${researcher?.summary_stats?.h_index || 0}` : 'Research Profile Platform');
   const profileUrl = typeof window !== 'undefined' ? window.location.href : '';
@@ -176,7 +177,7 @@ function ResearcherProfileContent() {
                   </div>
                 </div>
               </div>
-              
+
               {/* Content Skeleton */}
               <div className="lg:col-span-8 text-center lg:text-left text-white space-y-8">
                 <div className="space-y-6">
@@ -192,7 +193,7 @@ function ResearcherProfileContent() {
                     </div>
                   </div>
                 </div>
-                
+
                 {/* Bio skeleton */}
                 <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-6 border border-white/10">
                   <div className="space-y-3">
@@ -201,14 +202,14 @@ function ResearcherProfileContent() {
                     <div className="h-4 bg-white/15 rounded animate-pulse w-4/6"></div>
                   </div>
                 </div>
-                
+
                 {/* Action buttons skeleton */}
                 <div className="flex flex-wrap justify-center lg:justify-start gap-4 pt-4">
                   <div className="h-14 bg-white/15 rounded-xl animate-pulse w-44"></div>
                   <div className="h-14 bg-white/20 rounded-xl animate-pulse w-48"></div>
                   <div className="h-14 bg-white/10 rounded-xl animate-pulse w-40"></div>
                 </div>
-                
+
                 {/* Loading indicator */}
                 <div className="flex items-center justify-center lg:justify-start gap-3 pt-4">
                   <div className="flex gap-1">
@@ -221,10 +222,10 @@ function ResearcherProfileContent() {
               </div>
             </div>
           </div>
-          
+
           {/* No decorative elements - simplified design */}
         </section>
-        
+
         {/* Stats Section Skeleton */}
         <section className="py-16 bg-muted/30">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -247,7 +248,7 @@ function ResearcherProfileContent() {
     return (
       <div className="min-h-screen bg-background">
         <Navigation researcherName="Researcher Profile" />
-        
+
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
           <EmptyState
             icon={UserX}
@@ -261,7 +262,7 @@ function ResearcherProfileContent() {
 
   return (
     <div className="min-h-screen bg-background pb-20 md:pb-0" data-testid="page-researcher-profile" style={getThemeStyles(themeConfig)}>
-      <SEO 
+      <SEO
         title={seoTitle}
         description={seoDescription}
         image={profileImage}
@@ -271,45 +272,51 @@ function ResearcherProfileContent() {
         structuredData={structuredData || undefined}
       />
       <Navigation researcherName={profile?.displayName || researcher?.display_name || 'Researcher'} />
-      
-      {/* Hero Section — Clean, spacious layout */}
-      <section id="overview" className="hero-banner-compact py-10 md:py-16 relative">
-        <div className="hero-pattern"></div>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="flex flex-col items-center text-center text-white">
+
+      {/* Hero Section — Profile Banner */}
+      <section id="overview" className="relative pb-10">
+        {/* The Wide Banner Background */}
+        <div className="h-48 md:h-64 bg-midnight w-full relative overflow-hidden">
+          {/* Institutional context image */}
+          <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&q=80')] bg-cover bg-center opacity-40 mix-blend-overlay"></div>
+          <div className="absolute inset-0 bg-gradient-to-t from-midnight/90 to-transparent"></div>
+        </div>
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 -mt-20 md:-mt-24">
+          <div className="flex flex-col items-center text-center">
             {/* Profile Image */}
-            <div className="mb-5">
+            <div className="mb-5 relative">
               {profile?.profileImageUrl ? (
-                <img 
-                  src={profile.profileImageUrl} 
-                  alt="Professional portrait" 
-                  className="w-28 h-28 sm:w-32 sm:h-32 md:w-36 md:h-36 rounded-full object-cover border-4 border-white/30 shadow-2xl"
+                <img
+                  src={profile.profileImageUrl}
+                  alt="Professional portrait"
+                  className="w-32 h-32 md:w-40 md:h-40 rounded-full object-cover border-[6px] border-background shadow-xl"
                   data-testid="img-profile-photo"
                 />
               ) : (
-                <div 
-                  className={`w-28 h-28 sm:w-32 sm:h-32 md:w-36 md:h-36 rounded-full border-4 border-white/30 shadow-2xl flex items-center justify-center bg-primary/20`}
+                <div
+                  className={`w-32 h-32 md:w-40 md:h-40 rounded-full border-[6px] border-background shadow-xl flex items-center justify-center bg-midnight/90 backdrop-blur-md`}
                   data-testid="img-profile-photo"
                 >
-                  <span className="text-4xl sm:text-5xl font-bold text-primary">
+                  <span className="text-4xl sm:text-5xl font-serif font-bold text-white">
                     {getInitials(profile?.displayName || researcher?.display_name || '')}
                   </span>
                 </div>
               )}
             </div>
-            
+
             {/* Name & Title */}
-            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-2" data-testid="text-display-name">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-serif font-bold text-midnight dark:text-white mb-2" data-testid="text-display-name">
               {profile?.displayName || researcher?.display_name || 'Researcher Profile'}
             </h1>
-            <p className="text-base sm:text-lg text-white/90 mb-1" data-testid="text-title">
-              {researcherData?.isPreview && !profile?.title 
+            <p className="text-base sm:text-lg font-medium text-muted-foreground mb-2" data-testid="text-title">
+              {researcherData?.isPreview && !profile?.title
                 ? <span className="italic opacity-70">Professor of [Your Field]</span>
                 : (profile?.title || 'Research Professional')}
             </p>
             {(profile?.currentAffiliation || researcher?.last_known_institutions?.[0]?.display_name || researcherData?.isPreview) && (
-              <p className="text-sm text-white/70 flex items-center gap-1.5 mb-4" data-testid="text-affiliation">
-                <Building2 className="w-3.5 h-3.5" />
+              <p className="text-sm font-medium text-midnight/70 dark:text-platinum flex items-center gap-1.5 mb-6" data-testid="text-affiliation">
+                <Building2 className="w-4 h-4 text-warm" />
                 {researcherData?.isPreview && !profile?.currentAffiliation
                   ? <span className="italic">Your Institution</span>
                   : (profile?.currentAffiliation || researcher?.last_known_institutions?.[0]?.display_name || '')}
@@ -318,42 +325,42 @@ function ResearcherProfileContent() {
 
             {/* Bio excerpt in hero */}
             {profile?.bio && (
-              <p className="text-sm text-white/75 max-w-xl leading-relaxed mb-5 line-clamp-2">
+              <p className="text-base text-midnight/80 dark:text-white/80 max-w-2xl leading-relaxed mb-6 line-clamp-2">
                 {profile.bio}
               </p>
             )}
 
             {/* Social Icons Row */}
-            <div className="flex items-center gap-2 mb-5">
+            <div className="flex items-center gap-3 mb-6">
               {profile?.orcidUrl && (
-                <a href={profile.orcidUrl} target="_blank" rel="noopener noreferrer" 
-                   className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors" title="ORCID">
-                  <SiOrcid className="w-4 h-4" />
+                <a href={profile.orcidUrl} target="_blank" rel="noopener noreferrer"
+                  className="p-2.5 rounded-full bg-white dark:bg-midnight/50 shadow-sm border border-platinum dark:border-white/10 hover:-translate-y-1 hover:shadow-md transition-all text-midnight dark:text-white" title="ORCID">
+                  <SiOrcid className="w-5 h-5" />
                 </a>
               )}
               {profile?.googleScholarUrl && (
-                <a href={profile.googleScholarUrl} target="_blank" rel="noopener noreferrer" 
-                   className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors" title="Google Scholar">
-                  <SiGooglescholar className="w-4 h-4" />
+                <a href={profile.googleScholarUrl} target="_blank" rel="noopener noreferrer"
+                  className="p-2.5 rounded-full bg-white dark:bg-midnight/50 shadow-sm border border-platinum dark:border-white/10 hover:-translate-y-1 hover:shadow-md transition-all text-midnight dark:text-white" title="Google Scholar">
+                  <SiGooglescholar className="w-5 h-5" />
                 </a>
               )}
               {profile?.linkedinUrl && (
-                <a href={profile.linkedinUrl} target="_blank" rel="noopener noreferrer" 
-                   className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors" title="LinkedIn">
-                  <Linkedin className="w-4 h-4" />
+                <a href={profile.linkedinUrl} target="_blank" rel="noopener noreferrer"
+                  className="p-2.5 rounded-full bg-white dark:bg-midnight/50 shadow-sm border border-platinum dark:border-white/10 hover:-translate-y-1 hover:shadow-md transition-all text-midnight dark:text-white" title="LinkedIn">
+                  <Linkedin className="w-5 h-5" />
                 </a>
               )}
             </div>
-            
+
             {/* Action Buttons — separated, clear hierarchy */}
-            <div className="flex flex-wrap items-center justify-center gap-3">
+            <div className="flex flex-wrap items-center justify-center gap-4">
               {/* CV Download */}
               {profile?.cvUrl && profile.cvUrl !== '#cv-placeholder' ? (
-                <a 
-                  href={profile.cvUrl} 
-                  target="_blank" 
+                <a
+                  href={profile.cvUrl}
+                  target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-white text-primary font-semibold text-sm hover:bg-white/90 transition-colors shadow-md"
+                  className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-midnight text-white font-semibold text-sm hover:bg-midnight/90 hover:-translate-y-0.5 shadow-lg hover:shadow-xl transition-all"
                   onClick={() => handleTrackedClick('cv_download')}
                   data-testid="link-cv"
                 >
@@ -361,27 +368,27 @@ function ResearcherProfileContent() {
                   Download CV
                 </a>
               ) : (
-                <span 
-                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-white/15 text-sm font-medium opacity-50 cursor-not-allowed"
+                <span
+                  className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-muted text-muted-foreground text-sm font-medium opacity-50 cursor-not-allowed"
                   title="CV available after claiming profile"
                 >
                   <Download className="w-4 h-4" />
                   Download CV
                 </span>
               )}
-              
+
               {/* View on OpenAlex */}
-              <a 
+              <a
                 href={`https://openalex.org/authors/${openalexId}`}
-                target="_blank" 
+                target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-white/15 hover:bg-white/25 text-sm font-medium transition-colors"
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-white shadow-sm border border-platinum hover:-translate-y-0.5 hover:shadow-md text-midnight text-sm font-medium transition-all"
                 onClick={() => handleTrackedClick('openalex_profile')}
               >
-                <ExternalLink className="w-4 h-4" />
+                <ExternalLink className="w-4 h-4 text-warm" />
                 OpenAlex Profile
               </a>
-              
+
               {/* Research Passport */}
               <ResearchPassport
                 openalexId={openalexId}
@@ -397,120 +404,52 @@ function ResearcherProfileContent() {
         </div>
       </section>
 
-      {/* Share & Data Info Bar */}
-      <section className="py-3 bg-muted/50 border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between flex-wrap gap-2">
-            {/* Left: Share */}
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Share2 className="w-4 h-4" />
-              <span className="hidden sm:inline">Share this profile:</span>
-              <ShareButtons
-                url={profileUrl}
-                title={profile?.displayName || researcher?.display_name || 'Researcher'}
-                description={seoDescription}
-                openalexId={openalexId}
-              />
-            </div>
-            
-            {/* Right: Data source & Report */}
-            <div className="flex items-center gap-3 text-xs text-muted-foreground">
-              <span className="hidden md:flex items-center gap-1">
-                Data from{" "}
-                <a 
-                  href={`https://openalex.org/authors/${openalexId}`} 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="text-primary hover:underline inline-flex items-center gap-0.5"
-                >
-                  OpenAlex <ExternalLink className="w-3 h-3" />
-                </a>
-                {researcherData?.lastSynced && (
-                  <span className="text-muted-foreground/70">
-                    · Updated {new Date(researcherData.lastSynced).toLocaleDateString()}
-                  </span>
-                )}
-              </span>
-              <ReportIssue 
-                openalexId={openalexId} 
-                researcherName={profile?.displayName || researcher?.display_name || 'Researcher'} 
-              />
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* Stats Overview - Always visible */}
       <StatsOverview openalexId={openalexId} />
-      
+
       {/* About Section - Always show in preview, show if bio exists in claimed */}
-      {(researcherData?.isPreview || profile?.bio) && (
-        <section className="py-8 md:py-12">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <CollapsibleSection
-              id="about"
-              title="About"
-              icon={<User className="w-5 h-5 md:w-6 md:h-6" />}
-              defaultOpen={true}
-              mobileDefaultOpen={true}
-            >
-              <div className="space-y-4">
-                <p className="text-sm md:text-base text-muted-foreground leading-relaxed" data-testid="text-bio">
-                  {profile?.bio ? (
-                    profile.bio
-                  ) : (
-                    <span className="italic opacity-70">
-                      Share your research journey, expertise, and what drives your work. Highlight your key contributions 
-                      and areas of specialization to help collaborators and students discover your profile.
-                    </span>
-                  )}
-                </p>
-              </div>
-            </CollapsibleSection>
-          </div>
-        </section>
-      )}
-      
+      {
+        (researcherData?.isPreview || profile?.bio) && (
+          <section className="py-8 md:py-12">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              <CollapsibleSection
+                id="about"
+                title="About"
+                icon={<User className="w-5 h-5 md:w-6 md:h-6" />}
+                defaultOpen={true}
+                mobileDefaultOpen={true}
+              >
+                <div className="space-y-4">
+                  <p className="text-sm md:text-base text-muted-foreground leading-relaxed" data-testid="text-bio">
+                    {profile?.bio ? (
+                      profile.bio
+                    ) : (
+                      <span className="italic opacity-70">
+                        Share your research journey, expertise, and what drives your work. Highlight your key contributions
+                        and areas of specialization to help collaborators and students discover your profile.
+                      </span>
+                    )}
+                  </p>
+                </div>
+              </CollapsibleSection>
+            </div>
+          </section>
+        )
+      }
+
       {/* Custom Profile Sections */}
-      {researcherData?.profileSections && researcherData.profileSections.length > 0 && (
-        <ProfileSections sections={researcherData.profileSections} />
-      )}
+      {
+        researcherData?.profileSections && researcherData.profileSections.length > 0 && (
+          <ProfileSections sections={researcherData.profileSections} />
+        )
+      }
 
-      {/* Career Timeline */}
-      <CollapsibleSection
-        id="timeline"
-        title="Research Journey"
-        icon={<Calendar className="w-5 h-5 md:w-6 md:h-6" />}
-        defaultOpen={true}
-        mobileDefaultOpen={false}
-        className="bg-muted/30"
-      >
-        <CareerTimeline openalexId={openalexId} researcherData={researcherData} inline />
-      </CollapsibleSection>
-
-      {/* Analytics */}
-      <CollapsibleSection
-        id="analytics"
-        title="Research Impact"
-        icon={<BarChart3 className="w-5 h-5 md:w-6 md:h-6" />}
-        defaultOpen={true}
-        mobileDefaultOpen={false}
-        className="bg-background"
-      >
-        <PublicationAnalytics openalexId={openalexId} researcherData={researcherData} inline />
-      </CollapsibleSection>
-
-      {/* Research Topics */}
-      <CollapsibleSection
-        id="research"
-        title="Research Areas"
-        icon={<Lightbulb className="w-5 h-5 md:w-6 md:h-6" />}
-        defaultOpen={true}
-        mobileDefaultOpen={false}
-        className="bg-muted/30"
-      >
-        <ResearchTopics openalexId={openalexId} inline />
-      </CollapsibleSection>
+      {/* Research Insights Dashboard (Tabs) */}
+      <ResearchInsights
+        openalexId={openalexId}
+        researcherData={researcherData}
+        researcherName={profile?.displayName || researcher?.display_name || 'Researcher'}
+      />
 
       {/* Publications */}
       <CollapsibleSection
@@ -533,9 +472,9 @@ function ResearcherProfileContent() {
             </p>
             {researcherData?.lastSynced && (
               <p className="text-xs text-muted-foreground/60">
-                Last data sync: {new Date(researcherData.lastSynced).toLocaleDateString('en-US', { 
-                  year: 'numeric', 
-                  month: 'short', 
+                Last data sync: {new Date(researcherData.lastSynced).toLocaleDateString('en-US', {
+                  year: 'numeric',
+                  month: 'short',
                   day: 'numeric',
                   hour: '2-digit',
                   minute: '2-digit'
@@ -547,62 +486,66 @@ function ResearcherProfileContent() {
       </footer>
 
       {/* Sticky Claim Profile CTA Banner - Preview Mode Only */}
-      {researcherData?.isPreview && (
-        <div className="fixed bottom-0 left-0 right-0 z-50 bg-primary shadow-lg border-t border-primary/20 md:block hidden" data-testid="banner-claim-profile">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
-            <div className="flex items-center justify-between gap-4">
-              <div className="flex items-center gap-3">
-                <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
-                <p className="text-white text-sm md:text-base font-medium">
-                  <span className="hidden lg:inline">This is a preview of what your profile could look like.</span>
-                  <span className="lg:hidden">Preview mode</span>
-                  {' '}Create yours at <span className="font-semibold">{(profile?.displayName || researcher?.display_name || 'yourname').toLowerCase().replace(/\s+/g, '')}.scholar.name</span>
-                </p>
+      {
+        researcherData?.isPreview && (
+          <div className="fixed bottom-0 left-0 right-0 z-50 bg-primary shadow-lg border-t border-primary/20 md:block hidden" data-testid="banner-claim-profile">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+              <div className="flex items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+                  <p className="text-white text-sm md:text-base font-medium">
+                    <span className="hidden lg:inline">This is a preview of what your profile could look like.</span>
+                    <span className="lg:hidden">Preview mode</span>
+                    {' '}Create yours at <span className="font-semibold">{(profile?.displayName || researcher?.display_name || 'yourname').toLowerCase().replace(/\s+/g, '')}.scholar.name</span>
+                  </p>
+                </div>
+                <Button
+                  onClick={() => navigate('/signup')}
+                  className="bg-white text-primary hover:bg-white/90 font-semibold px-6 py-2 rounded-lg shadow-md hover:shadow-lg transition-all"
+                  data-testid="button-claim-profile"
+                >
+                  Claim This Profile
+                </Button>
               </div>
-              <Button
-                onClick={() => navigate('/signup')}
-                className="bg-white text-primary hover:bg-white/90 font-semibold px-6 py-2 rounded-lg shadow-md hover:shadow-lg transition-all"
-                data-testid="button-claim-profile"
-              >
-                Claim This Profile
-              </Button>
             </div>
           </div>
-        </div>
-      )}
+        )
+      }
 
       {/* Mobile Sticky CTA for Preview Mode — positioned above MobileBottomNav */}
-      {researcherData?.isPreview && (
-        <div className="fixed bottom-[72px] left-0 right-0 z-40 bg-primary shadow-lg border-t border-primary/20 md:hidden" data-testid="banner-claim-profile-mobile" style={{ paddingBottom: '0' }}>
-          <div className="px-4 py-3">
-            <div className="flex flex-col gap-2 text-center">
-              <p className="text-white text-sm font-medium">
-                Like what you see? Create your own portfolio!
-              </p>
-              <Button
-                onClick={() => navigate('/signup')}
-                className="bg-white text-primary hover:bg-white/90 font-semibold px-6 py-2 rounded-lg shadow-md w-full"
-                data-testid="button-claim-profile-mobile"
-              >
-                Claim & Customize
-              </Button>
+      {
+        researcherData?.isPreview && (
+          <div className="fixed bottom-[72px] left-0 right-0 z-40 bg-primary shadow-lg border-t border-primary/20 md:hidden" data-testid="banner-claim-profile-mobile" style={{ paddingBottom: '0' }}>
+            <div className="px-4 py-3">
+              <div className="flex flex-col gap-2 text-center">
+                <p className="text-white text-sm font-medium">
+                  Like what you see? Create your own portfolio!
+                </p>
+                <Button
+                  onClick={() => navigate('/signup')}
+                  className="bg-white text-primary hover:bg-white/90 font-semibold px-6 py-2 rounded-lg shadow-md w-full"
+                  data-testid="button-claim-profile-mobile"
+                >
+                  Claim & Customize
+                </Button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )
+      }
 
       {/* Mobile Bottom Navigation */}
       <MobileBottomNav />
 
       {/* Theme Switcher - Floating button for theme preview */}
       <ThemeSwitcher isPreview={researcherData?.isPreview} />
-    </div>
+    </div >
   );
 }
 
 export default function ResearcherProfile() {
   const { id } = useParams();
-  
+
   return (
     <ProfileThemeProvider initialThemeId={null}>
       <ResearcherProfileContent />

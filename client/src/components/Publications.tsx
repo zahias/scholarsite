@@ -100,7 +100,7 @@ export default function Publications({ openalexId, inline = false }: Publication
   const featuredPublications = useMemo(() => {
     const marked = publications.filter(pub => pub.isFeatured);
     if (marked.length > 0) return marked;
-    
+
     // Auto-feature top 3 most-cited if none are manually featured
     return [...publications]
       .sort((a, b) => (b.citationCount || 0) - (a.citationCount || 0))
@@ -114,7 +114,7 @@ export default function Publications({ openalexId, inline = false }: Publication
     // Apply search filter
     if (searchTerm) {
       const term = searchTerm.toLowerCase();
-      filtered = filtered.filter(pub => 
+      filtered = filtered.filter(pub =>
         pub.title?.toLowerCase().includes(term) ||
         pub.authorNames?.toLowerCase().includes(term) ||
         pub.journal?.toLowerCase().includes(term) ||
@@ -129,7 +129,7 @@ export default function Publications({ openalexId, inline = false }: Publication
 
     // Apply open access filter
     if (openAccessFilter !== "all") {
-      filtered = filtered.filter(pub => 
+      filtered = filtered.filter(pub =>
         openAccessFilter === "open" ? pub.isOpenAccess : !pub.isOpenAccess
       );
     }
@@ -142,7 +142,7 @@ export default function Publications({ openalexId, inline = false }: Publication
     // Sort publications
     filtered.sort((a, b) => {
       let aValue, bValue;
-      
+
       switch (sortBy) {
         case "year":
           aValue = a.publicationYear || 0;
@@ -161,7 +161,7 @@ export default function Publications({ openalexId, inline = false }: Publication
       }
 
       if (sortBy === "title") {
-        return sortOrder === "desc" 
+        return sortOrder === "desc"
           ? bValue.localeCompare(aValue)
           : aValue.localeCompare(bValue);
       } else {
@@ -219,7 +219,7 @@ export default function Publications({ openalexId, inline = false }: Publication
     <>
       {!inline && (
         <div className="text-center mb-6 md:mb-8">
-          <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mb-2">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-serif font-bold text-midnight dark:text-white mb-2">
             Publications
             {publications.length > 0 && (
               <Badge variant="secondary" className="ml-2 text-xs md:text-sm">
@@ -233,19 +233,19 @@ export default function Publications({ openalexId, inline = false }: Publication
       {/* Featured Publications Section */}
       {featuredPublications.length > 0 && (
         <div className="mb-8">
-          <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-            <Star className="w-5 h-5 text-yellow-500 fill-yellow-500" />
+          <h3 className="text-xl font-serif font-bold text-midnight dark:text-white mb-4 flex items-center gap-2">
+            <Star className="w-5 h-5 text-warm fill-warm" />
             Featured Works
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {featuredPublications.slice(0, 3).map((pub: any, index: number) => (
-              <Card 
-                key={pub.id} 
-                className="bg-gradient-to-br from-yellow-50 to-amber-50 dark:from-yellow-900/10 dark:to-amber-900/10 border-yellow-200 dark:border-yellow-800/30 hover:shadow-lg transition-shadow"
+              <Card
+                key={pub.id}
+                className="bg-white/80 dark:bg-midnight/40 backdrop-blur-xl border-l-4 border-l-warm border-platinum dark:border-white/20 shadow-lg hover:-translate-y-1 hover:shadow-2xl transition-all"
                 data-testid={`card-featured-${index}`}
               >
                 <CardContent className="p-4">
-                  <h4 className="font-semibold text-sm line-clamp-2 mb-2">{pub.title}</h4>
+                  <h4 className="font-serif font-bold text-base text-midnight dark:text-white line-clamp-2 mb-2">{pub.title}</h4>
                   <p className="text-xs text-muted-foreground line-clamp-1 mb-2">{pub.authorNames}</p>
                   <div className="flex items-center justify-between text-xs">
                     <span className="text-muted-foreground">{pub.publicationYear}</span>
@@ -254,7 +254,7 @@ export default function Publications({ openalexId, inline = false }: Publication
                     </span>
                   </div>
                   {pub.doi && (
-                    <a 
+                    <a
                       href={`https://doi.org/${pub.doi}`}
                       target="_blank"
                       rel="noopener noreferrer"
@@ -274,276 +274,276 @@ export default function Publications({ openalexId, inline = false }: Publication
       {publications.length > 0 && (
         <Card className="mb-4 md:mb-8">
           <CardContent className="p-4 md:p-6">
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 md:gap-4 items-end">
-                {/* Search */}
-                <div className="lg:col-span-2">
-                  <label className="text-sm font-medium mb-2 block">Search Publications</label>
-                  <Input
-                    placeholder="Search by title, author, journal, or topic..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full"
-                    data-testid="input-search-publications"
-                  />
-                </div>
-
-                {/* Sort By */}
-                <div>
-                  <label className="text-sm font-medium mb-2 block">Sort By</label>
-                  <Select value={sortBy} onValueChange={(value: "year" | "citations" | "title") => setSortBy(value)}>
-                    <SelectTrigger data-testid="select-sort-by">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="year">Publication Year</SelectItem>
-                      <SelectItem value="citations">Citation Count</SelectItem>
-                      <SelectItem value="title">Title</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {/* Sort Order */}
-                <div>
-                  <label className="text-sm font-medium mb-2 block">Order</label>
-                  <Select value={sortOrder} onValueChange={(value: "desc" | "asc") => setSortOrder(value)}>
-                    <SelectTrigger data-testid="select-sort-order">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="desc">Descending</SelectItem>
-                      <SelectItem value="asc">Ascending</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {/* Clear Filters */}
-                <div>
-                  <Button 
-                    variant="outline" 
-                    onClick={() => {
-                      setSearchTerm("");
-                      setYearFilter("all");
-                      setOpenAccessFilter("all");
-                      setPublicationTypeFilter("all");
-                      setSortBy("year");
-                      setSortOrder("desc");
-                    }}
-                    className="w-full"
-                    data-testid="button-clear-filters"
-                  >
-                    Clear Filters
-                  </Button>
-                </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 md:gap-4 items-end">
+              {/* Search */}
+              <div className="lg:col-span-2">
+                <label className="text-sm font-medium mb-2 block">Search Publications</label>
+                <Input
+                  placeholder="Search by title, author, journal, or topic..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full"
+                  data-testid="input-search-publications"
+                />
               </div>
 
-              <Separator className="my-4" />
+              {/* Sort By */}
+              <div>
+                <label className="text-sm font-medium mb-2 block">Sort By</label>
+                <Select value={sortBy} onValueChange={(value: "year" | "citations" | "title") => setSortBy(value)}>
+                  <SelectTrigger data-testid="select-sort-by">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="year">Publication Year</SelectItem>
+                    <SelectItem value="citations">Citation Count</SelectItem>
+                    <SelectItem value="title">Title</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
 
-              {/* Additional Filters */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                {/* Year Filter */}
-                <div>
-                  <label className="text-sm font-medium mb-2 block">Publication Year</label>
-                  <Select value={yearFilter} onValueChange={setYearFilter}>
-                    <SelectTrigger data-testid="select-year-filter">
-                      <SelectValue placeholder="All years" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All years</SelectItem>
-                      {availableYears.map(year => (
-                        <SelectItem key={year} value={year.toString()}>{year}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+              {/* Sort Order */}
+              <div>
+                <label className="text-sm font-medium mb-2 block">Order</label>
+                <Select value={sortOrder} onValueChange={(value: "desc" | "asc") => setSortOrder(value)}>
+                  <SelectTrigger data-testid="select-sort-order">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="desc">Descending</SelectItem>
+                    <SelectItem value="asc">Ascending</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
 
-                {/* Publication Type Filter */}
-                <div>
-                  <label className="text-sm font-medium mb-2 block">Publication Type</label>
-                  <Select value={publicationTypeFilter} onValueChange={setPublicationTypeFilter}>
-                    <SelectTrigger data-testid="select-type-filter">
-                      <SelectValue placeholder="All types" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All types</SelectItem>
-                      {availablePublicationTypes.map(type => (
-                        <SelectItem key={type} value={type}>{type}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+              {/* Clear Filters */}
+              <div>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setSearchTerm("");
+                    setYearFilter("all");
+                    setOpenAccessFilter("all");
+                    setPublicationTypeFilter("all");
+                    setSortBy("year");
+                    setSortOrder("desc");
+                  }}
+                  className="w-full"
+                  data-testid="button-clear-filters"
+                >
+                  Clear Filters
+                </Button>
+              </div>
+            </div>
 
-                {/* Open Access Filter */}
-                <div>
-                  <label className="text-sm font-medium mb-2 block">Access Type</label>
-                  <Select value={openAccessFilter} onValueChange={(value: "all" | "open" | "closed") => setOpenAccessFilter(value)}>
-                    <SelectTrigger data-testid="select-access-filter">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Types</SelectItem>
-                      <SelectItem value="open">Open Access</SelectItem>
-                      <SelectItem value="closed">Closed Access</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+            <Separator className="my-4" />
 
-                {/* Results Info */}
-                <div className="flex items-end">
-                  <div className="text-sm text-muted-foreground">
-                    Showing {displayedPublications.length} of {filteredAndSortedPublications.length}
-                  </div>
+            {/* Additional Filters */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {/* Year Filter */}
+              <div>
+                <label className="text-sm font-medium mb-2 block">Publication Year</label>
+                <Select value={yearFilter} onValueChange={setYearFilter}>
+                  <SelectTrigger data-testid="select-year-filter">
+                    <SelectValue placeholder="All years" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All years</SelectItem>
+                    {availableYears.map(year => (
+                      <SelectItem key={year} value={year.toString()}>{year}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Publication Type Filter */}
+              <div>
+                <label className="text-sm font-medium mb-2 block">Publication Type</label>
+                <Select value={publicationTypeFilter} onValueChange={setPublicationTypeFilter}>
+                  <SelectTrigger data-testid="select-type-filter">
+                    <SelectValue placeholder="All types" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All types</SelectItem>
+                    {availablePublicationTypes.map(type => (
+                      <SelectItem key={type} value={type}>{type}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Open Access Filter */}
+              <div>
+                <label className="text-sm font-medium mb-2 block">Access Type</label>
+                <Select value={openAccessFilter} onValueChange={(value: "all" | "open" | "closed") => setOpenAccessFilter(value)}>
+                  <SelectTrigger data-testid="select-access-filter">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Types</SelectItem>
+                    <SelectItem value="open">Open Access</SelectItem>
+                    <SelectItem value="closed">Closed Access</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Results Info */}
+              <div className="flex items-end">
+                <div className="text-sm text-muted-foreground">
+                  Showing {displayedPublications.length} of {filteredAndSortedPublications.length}
                 </div>
               </div>
-            </CardContent>
-          </Card>
-        )}
-        
-        {publications.length === 0 ? (
-          <EmptyState
-            icon={FileText}
-            title="No Publications"
-            description="No publications available. Please sync your data in the admin panel."
-          />
-        ) : filteredAndSortedPublications.length === 0 ? (
-          <EmptyState
-            icon={Search}
-            title="No Results"
-            description="No publications match your current filters."
-            action={{
-              label: "Clear Filters",
-              onClick: () => {
-                setSearchTerm("");
-                setYearFilter("all");
-                setOpenAccessFilter("all");
-                setPublicationTypeFilter("all");
-              },
-            }}
-          />
-        ) : (
-          <div className="space-y-6">
-            {displayedPublications.map((publication: any, index: number) => (
-              <Card 
-                key={publication.id} 
-                className={`hover:shadow-xl transition-shadow ${publication.isFeatured ? 'ring-2 ring-yellow-400 bg-yellow-50/50 dark:bg-yellow-900/10' : ''}`} 
-                data-testid={`card-publication-${index}`}
-              >
-                <CardContent className="p-6">
-                  <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-start gap-2 mb-2">
-                        {publication.isFeatured && (
-                          <Star className="w-5 h-5 text-yellow-500 fill-yellow-500 flex-shrink-0 mt-1" />
-                        )}
-                        <h3 className="font-semibold text-lg text-card-foreground" data-testid={`text-publication-title-${index}`}>
-                          {publication.title}
-                        </h3>
-                      </div>
-                      <p className="text-muted-foreground text-sm mb-3" data-testid={`text-publication-authors-${index}`}>
-                        {publication.authorNames}
-                      </p>
-                      <div className="flex flex-wrap items-center gap-4 mb-3">
-                        {publication.isFeatured && (
-                          <Badge className="bg-yellow-100 text-yellow-800 border-yellow-300">
-                            Featured
-                          </Badge>
-                        )}
-                        {publication.journal && (
-                          <span className="text-sm text-muted-foreground" data-testid={`text-publication-journal-${index}`}>
-                            {publication.journal}
-                          </span>
-                        )}
-                        {publication.publicationYear && (
-                          <span className="text-sm text-muted-foreground" data-testid={`text-publication-year-${index}`}>
-                            {publication.publicationYear}
-                          </span>
-                        )}
-                        <div className="flex items-center">
-                          <Quote className="w-3.5 h-3.5 text-accent mr-1" />
-                          <span className="text-sm font-medium text-accent" data-testid={`text-publication-citations-${index}`}>
-                            {publication.citationCount} citations
-                          </span>
-                        </div>
-                      </div>
-                      {publication.topics && publication.topics.length > 0 && (
-                        <div className="flex flex-wrap gap-2">
-                          {(publication.topics as string[]).slice(0, 3).map((topic, topicIndex) => (
-                            <span key={topicIndex} className="bg-primary/10 text-primary text-xs px-2 py-1 rounded" data-testid={`tag-topic-${index}-${topicIndex}`}>
-                              {topic}
-                            </span>
-                          ))}
-                        </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {publications.length === 0 ? (
+        <EmptyState
+          icon={FileText}
+          title="No Publications"
+          description="No publications available. Please sync your data in the admin panel."
+        />
+      ) : filteredAndSortedPublications.length === 0 ? (
+        <EmptyState
+          icon={Search}
+          title="No Results"
+          description="No publications match your current filters."
+          action={{
+            label: "Clear Filters",
+            onClick: () => {
+              setSearchTerm("");
+              setYearFilter("all");
+              setOpenAccessFilter("all");
+              setPublicationTypeFilter("all");
+            },
+          }}
+        />
+      ) : (
+        <div className="space-y-6">
+          {displayedPublications.map((publication: any, index: number) => (
+            <Card
+              key={publication.id}
+              className={`bg-white/70 dark:bg-midnight/30 backdrop-blur-xl shadow-lg border-platinum dark:border-white/20 hover:-translate-y-1 hover:shadow-2xl transition-all ${publication.isFeatured ? 'border-l-4 border-l-warm' : 'border-l-4 border-l-sage'}`}
+              data-testid={`card-publication-${index}`}
+            >
+              <CardContent className="p-6">
+                <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-start gap-2 mb-2">
+                      {publication.isFeatured && (
+                        <Star className="w-5 h-5 text-yellow-500 fill-yellow-500 flex-shrink-0 mt-1" />
                       )}
+                      <h3 className="font-serif font-bold text-xl text-midnight dark:text-white" data-testid={`text-publication-title-${index}`}>
+                        {publication.title}
+                      </h3>
                     </div>
-                    <div className="mt-4 lg:mt-0 lg:ml-6 flex flex-col items-end space-y-2">
-                      {publication.pdfUrl && (
-                        <a 
-                          href={publication.pdfUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1 text-red-600 hover:text-red-700 text-sm font-medium"
-                          data-testid={`link-publication-pdf-${index}`}
-                        >
-                          <FileText className="w-4 h-4" />
-                          Download PDF
-                        </a>
+                    <p className="text-muted-foreground text-sm mb-3" data-testid={`text-publication-authors-${index}`}>
+                      {publication.authorNames}
+                    </p>
+                    <div className="flex flex-wrap items-center gap-4 mb-3">
+                      {publication.isFeatured && (
+                        <Badge className="bg-yellow-100 text-yellow-800 border-yellow-300">
+                          Featured
+                        </Badge>
                       )}
-                      {publication.doi && (
-                        <a 
-                          href={`https://doi.org/${publication.doi}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-primary hover:text-primary/80 text-sm font-medium"
-                          data-testid={`link-publication-doi-${index}`}
-                        >
-                          <ExternalLink className="w-3.5 h-3.5 mr-1 inline" />View Publication
-                        </a>
-                      )}
-                      {publication.isOpenAccess && (
-                        <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded" data-testid={`badge-open-access-${index}`}>
-                          Open Access
+                      {publication.journal && (
+                        <span className="text-sm text-muted-foreground" data-testid={`text-publication-journal-${index}`}>
+                          {publication.journal}
                         </span>
                       )}
+                      {publication.publicationYear && (
+                        <span className="text-sm text-muted-foreground" data-testid={`text-publication-year-${index}`}>
+                          {publication.publicationYear}
+                        </span>
+                      )}
+                      <div className="flex items-center">
+                        <Quote className="w-3.5 h-3.5 text-accent mr-1" />
+                        <span className="text-sm font-medium text-accent" data-testid={`text-publication-citations-${index}`}>
+                          {publication.citationCount} citations
+                        </span>
+                      </div>
                     </div>
+                    {publication.topics && publication.topics.length > 0 && (
+                      <div className="flex flex-wrap gap-2">
+                        {(publication.topics as string[]).slice(0, 3).map((topic, topicIndex) => (
+                          <span key={topicIndex} className="bg-primary/10 text-primary text-xs px-2 py-1 rounded" data-testid={`tag-topic-${index}-${topicIndex}`}>
+                            {topic}
+                          </span>
+                        ))}
+                      </div>
+                    )}
                   </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        )}
-        
-        {filteredAndSortedPublications.length > INITIAL_COUNT && !showAll && (
-          <div className="text-center mt-12">
-            <Button 
-              onClick={() => setShowAll(true)}
-              className="bg-primary text-primary-foreground hover:bg-primary/90 mr-4" 
-              data-testid="button-view-all-publications"
-            >
-              View All {filteredAndSortedPublications.length} Publications
-            </Button>
-            <ExportBibliographyDialog />
-          </div>
-        )}
+                  <div className="mt-4 lg:mt-0 lg:ml-6 flex flex-col items-end space-y-2">
+                    {publication.pdfUrl && (
+                      <a
+                        href={publication.pdfUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 text-red-600 hover:text-red-700 text-sm font-medium"
+                        data-testid={`link-publication-pdf-${index}`}
+                      >
+                        <FileText className="w-4 h-4" />
+                        Download PDF
+                      </a>
+                    )}
+                    {publication.doi && (
+                      <a
+                        href={`https://doi.org/${publication.doi}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-primary hover:text-primary/80 text-sm font-medium"
+                        data-testid={`link-publication-doi-${index}`}
+                      >
+                        <ExternalLink className="w-3.5 h-3.5 mr-1 inline" />View Publication
+                      </a>
+                    )}
+                    {publication.isOpenAccess && (
+                      <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded" data-testid={`badge-open-access-${index}`}>
+                        Open Access
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
 
-        {showAll && filteredAndSortedPublications.length > INITIAL_COUNT && (
-          <div className="text-center mt-12">
-            <p className="text-sm text-muted-foreground mb-3">
-              Showing all {filteredAndSortedPublications.length} publications
-            </p>
-            <Button 
-              variant="outline"
-              onClick={() => {
-                setShowAll(false);
-                // Scroll back to publications section
-                document.getElementById('publications')?.scrollIntoView({ behavior: 'smooth' });
-              }}
-              className="mr-4" 
-              data-testid="button-show-less"
-            >
-              Show Less
-            </Button>
-            <ExportBibliographyDialog />
-          </div>
-        )}
+      {filteredAndSortedPublications.length > INITIAL_COUNT && !showAll && (
+        <div className="text-center mt-12">
+          <Button
+            onClick={() => setShowAll(true)}
+            className="bg-primary text-primary-foreground hover:bg-primary/90 mr-4"
+            data-testid="button-view-all-publications"
+          >
+            View All {filteredAndSortedPublications.length} Publications
+          </Button>
+          <ExportBibliographyDialog />
+        </div>
+      )}
+
+      {showAll && filteredAndSortedPublications.length > INITIAL_COUNT && (
+        <div className="text-center mt-12">
+          <p className="text-sm text-muted-foreground mb-3">
+            Showing all {filteredAndSortedPublications.length} publications
+          </p>
+          <Button
+            variant="outline"
+            onClick={() => {
+              setShowAll(false);
+              // Scroll back to publications section
+              document.getElementById('publications')?.scrollIntoView({ behavior: 'smooth' });
+            }}
+            className="mr-4"
+            data-testid="button-show-less"
+          >
+            Show Less
+          </Button>
+          <ExportBibliographyDialog />
+        </div>
+      )}
     </>
   );
 
@@ -552,8 +552,8 @@ export default function Publications({ openalexId, inline = false }: Publication
   }
 
   return (
-    <section id="publications" className="py-8 md:py-16" data-testid="section-publications">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section id="publications" className="py-8 md:py-16 bg-academic-motif relative" data-testid="section-publications">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         {content}
       </div>
     </section>

@@ -46,17 +46,19 @@ interface ResearcherData {
 
 // Theme-aware colors — read from CSS custom properties at render time
 function getThemeColors() {
-  if (typeof window === 'undefined') return { primary: '#1e3a5f', accent: '#c9a227' };
-  const styles = getComputedStyle(document.documentElement);
   return {
-    primary: styles.getPropertyValue('--theme-primary').trim() || '#1e3a5f',
-    accent: styles.getPropertyValue('--theme-accent').trim() || '#c9a227',
+    primary: '#0B1F3A',
+    accent: '#F2994A',
+    sage: '#7AA874',
+    purple: '#6b21a8',
+    rose: '#e11d48',
+    teal: '#0d9488'
   };
 }
 
 export default function PublicationAnalytics({ openalexId, researcherData: propResearcherData, inline = false }: PublicationAnalyticsProps) {
   const themeColors = useMemo(() => getThemeColors(), []);
-  
+
   const { data: fetchedData, isLoading } = useQuery<ResearcherData | null>({
     queryKey: [`/api/researcher/${openalexId}/data`],
     retry: false,
@@ -105,10 +107,10 @@ export default function PublicationAnalytics({ openalexId, researcherData: propR
     for (let year = startYear; year <= endYear; year++) {
       const pubs = yearCounts[year] || 0;
       const cites = yearCitations[year] || 0;
-      
+
       prevCumulativePubs = cumulativePubs;
       prevCumulativeCitations = cumulativeCitations;
-      
+
       cumulativePubs += pubs;
       cumulativeCitations += cites;
 
@@ -159,8 +161,8 @@ export default function PublicationAnalytics({ openalexId, researcherData: propR
     if (active && payload && payload.length) {
       const data = payload[0]?.payload;
       return (
-        <div className="bg-background border border-border rounded-lg p-3 shadow-lg min-w-[180px]">
-          <p className="font-bold text-base mb-2 border-b pb-1">{label}</p>
+        <div className="bg-white/80 dark:bg-midnight/60 backdrop-blur-xl border border-platinum dark:border-white/20 rounded-lg p-3 shadow-xl min-w-[180px]">
+          <p className="font-bold text-base mb-2 border-b pb-1 text-midnight dark:text-white">{label}</p>
           <div className="space-y-1.5 text-sm">
             <div className="flex justify-between items-center">
               <span style={{ color: themeColors.primary }}>Publications:</span>
@@ -192,7 +194,7 @@ export default function PublicationAnalytics({ openalexId, researcherData: propR
           </p>
         </div>
       )}
-      
+
       {/* Summary stats row above chart */}
       <div className="grid grid-cols-3 gap-3 mb-2">
         <div className="text-center p-3 bg-muted/50 rounded-lg">
@@ -213,45 +215,45 @@ export default function PublicationAnalytics({ openalexId, researcherData: propR
         <CardContent className="p-3 sm:p-6">
           <p className="text-xs text-muted-foreground mb-3 font-medium">Publications per year &amp; cumulative citations</p>
           <ResponsiveContainer width="100%" height={320}>
-            <ComposedChart 
-              data={chartData.impactData} 
+            <ComposedChart
+              data={chartData.impactData}
               margin={{ top: 20, right: 20, left: 0, bottom: 5 }}
             >
               <defs>
                 <linearGradient id="gradientPubs" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor={themeColors.primary} stopOpacity={0.8}/>
-                  <stop offset="95%" stopColor={themeColors.primary} stopOpacity={0.3}/>
+                  <stop offset="5%" stopColor={themeColors.primary} stopOpacity={0.8} />
+                  <stop offset="95%" stopColor={themeColors.primary} stopOpacity={0.3} />
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
-              <XAxis 
-                dataKey="year" 
-                tick={{ fontSize: 11 }} 
+              <XAxis
+                dataKey="year"
+                tick={{ fontSize: 11 }}
                 tickFormatter={(v) => `'${String(v).slice(-2)}`}
               />
-              <YAxis 
-                yAxisId="left" 
-                tick={{ fontSize: 11 }} 
+              <YAxis
+                yAxisId="left"
+                tick={{ fontSize: 11 }}
                 width={45}
-                tickFormatter={(v) => v >= 1000 ? `${(v/1000).toFixed(0)}k` : v}
+                tickFormatter={(v) => v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v}
                 label={{ value: 'Pubs/Year', angle: -90, position: 'insideLeft', style: { fontSize: 11, fill: themeColors.primary } }}
               />
-              <YAxis 
-                yAxisId="right" 
-                orientation="right" 
-                tick={{ fontSize: 11 }} 
+              <YAxis
+                yAxisId="right"
+                orientation="right"
+                tick={{ fontSize: 11 }}
                 width={50}
-                tickFormatter={(v) => v >= 1000 ? `${(v/1000).toFixed(0)}k` : v}
+                tickFormatter={(v) => v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v}
                 label={{ value: 'Citations', angle: 90, position: 'insideRight', style: { fontSize: 11, fill: themeColors.accent } }}
               />
               <Tooltip content={<CustomTooltip />} />
-              <Legend 
+              <Legend
                 wrapperStyle={{ fontSize: '12px', paddingTop: '10px' }}
                 formatter={(value) => <span className="text-foreground">{value}</span>}
               />
-              <Bar 
-                yAxisId="left" 
-                dataKey="yearlyPubs" 
+              <Bar
+                yAxisId="left"
+                dataKey="yearlyPubs"
                 fill="url(#gradientPubs)"
                 radius={[4, 4, 0, 0]}
                 name="Publications / Year"

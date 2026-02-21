@@ -10,7 +10,7 @@ export default function Navigation({ researcherName = 'Researcher' }: Navigation
 
   useEffect(() => {
     const handleScroll = () => {
-      const sections = ['overview', 'analytics', 'research', 'publications'];
+      const sections = ['overview', 'insights', 'publications'];
       const scrollPosition = window.scrollY + window.innerHeight / 3; // Trigger earlier for better UX
 
       for (const sectionId of sections) {
@@ -39,8 +39,7 @@ export default function Navigation({ researcherName = 'Researcher' }: Navigation
 
   const navItems = [
     { id: 'overview', label: 'Overview' },
-    { id: 'analytics', label: 'Impact' },
-    { id: 'research', label: 'Research' },
+    { id: 'insights', label: 'Insights' },
     { id: 'publications', label: 'Publications' },
   ];
 
@@ -56,11 +55,10 @@ export default function Navigation({ researcherName = 'Researcher' }: Navigation
               <button
                 key={item.id}
                 onClick={() => scrollToSection(item.id)}
-                className={`relative py-2 transition-colors ${
-                  activeSection === item.id 
-                    ? 'text-slate-900 dark:text-white font-medium' 
+                className={`relative py-2 transition-colors ${activeSection === item.id
+                    ? 'text-slate-900 dark:text-white font-medium'
                     : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
-                }`}
+                  }`}
                 data-testid={`nav-${item.id}`}
               >
                 {item.label}

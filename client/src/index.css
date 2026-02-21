@@ -584,8 +584,8 @@
 }
 
 .btn-premium:hover {
-  transform: translateY(-2px) scale(1.02);
-  box-shadow: 0 8px 25px color-mix(in srgb, var(--theme-accent) 40%, transparent);
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 0 15px rgba(242, 153, 74, 0.4);
 }
 
 .btn-premium:hover::before {
@@ -692,6 +692,12 @@
   border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
+/* ===== ACADEMIC MOTIF ===== */
+.bg-academic-motif {
+  background-image: radial-gradient(circle at 1px 1px, rgba(11, 31, 58, 0.04) 2px, transparent 0);
+  background-size: 24px 24px;
+}
+
 /* ===== DARK MODE ===== */
 .dark .landing-hero,
 .dark .hero-banner {
@@ -728,6 +734,10 @@
 
 .dark .stats-pill:hover {
   background: rgba(255, 255, 255, 0.15);
+}
+
+.dark .bg-academic-motif {
+  background-image: radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.04) 2px, transparent 0);
 }
 
 /* ===== ACCESSIBILITY ===== */

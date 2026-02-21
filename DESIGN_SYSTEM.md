@@ -22,21 +22,36 @@ Colors are applied via `--theme-*` variables on `:root`, managed by `ThemeContex
 
 | Token | Default | Usage |
 |-------|---------|-------|
-| `--theme-primary` | `#1e3a5f` | Navy — headings, nav, buttons, chart strokes |
-| `--theme-accent` | `#c9a227` | Gold — highlights, citations, secondary charts |
+| `--theme-midnight` | `#0B1F3A` | Midnight Blue — primary headers, navigation, key CTAs |
+| `--theme-oxford` | `#142850` | Oxford Blue — secondary navy logic |
+| `--theme-platinum` | `#E4E9F7` | Platinum — subtle borders, inactive backgrounds |
+| `--theme-sage` | `#7AA874` | Sage Green — positive metrics, open access labels |
+| `--theme-warm` | `#F2994A` | Warm Accent — primary CTAs, interactive highlights |
+| `--theme-primary` | `#1e3a5f` | Navy — fallback/legacy, prefer midnight |
+| `--theme-accent` | `#c9a227` | Gold — fallback/legacy, prefer warm accent |
 | `--theme-background` | `#fafbfc` | Page background |
 | `--theme-surface` | `#ffffff` | Card/container backgrounds |
 | `--theme-text` | `#1a1a2e` | Body text |
 | `--theme-text-secondary` | `#64748b` | Muted/secondary text |
 | `--theme-border` | `#e2e8f0` | Borders and dividers |
 
+### Glassmorphism Rules
+For elevated cards (e.g., ProfileStats, built-for-researchers), use:
+```css
+/* Light Mode */
+bg-white/70 backdrop-blur-xl border border-platinum shadow-xl
+
+/* Dark Mode */
+dark:bg-midnight/30 dark:border-white/20
+```
+Hover states: `hover:-translate-y-1 hover:shadow-2xl transition-all`
+
 ### Retired Colors — Do NOT Use
 
 | Old Value | Replacement |
 |-----------|-------------|
-| `#0B1F3A` | `var(--theme-primary)` or Tailwind `text-primary` |
-| `#D4AF37` | `var(--theme-accent)` or Tailwind `text-accent` |
-| `#1a3a5c` | `var(--theme-primary)` with opacity |
+| `#1a3a5c` | `var(--theme-midnight)` with opacity |
+| Standard Tailwinds | Must replace standard generic blues/ambers with the specialized tokens above. |
 
 ### Dark Mode Rule
 

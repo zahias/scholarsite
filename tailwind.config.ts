@@ -44,6 +44,11 @@ export default {
         border: "var(--border)",
         input: "var(--input)",
         ring: "var(--ring)",
+        midnight: '#0B1F3A',
+        oxford: '#142850',
+        platinum: '#E4E9F7',
+        sage: '#7AA874',
+        warm: '#F2994A',
         chart: {
           "1": "var(--chart-1)",
           "2": "var(--chart-2)",

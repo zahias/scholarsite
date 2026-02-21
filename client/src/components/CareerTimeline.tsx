@@ -57,7 +57,7 @@ interface MilestoneEvent {
 
 export default function CareerTimeline({ openalexId, researcherData: propResearcherData, inline = false }: CareerTimelineProps) {
   const themeColors = useMemo(() => getThemeColors(), []);
-  
+
   const { data: fetchedData, isLoading } = useQuery<ResearcherData | null>({
     queryKey: [`/api/researcher/${openalexId}/data`],
     retry: false,
@@ -70,7 +70,7 @@ export default function CareerTimeline({ openalexId, researcherData: propResearc
   const timelineData = useMemo(() => {
     const researcher = researcherData?.researcher;
     const countsByYear: CountByYear[] = researcher?.counts_by_year || [];
-    
+
     if (countsByYear.length === 0) {
       // Fallback: compute from publications if counts_by_year not available
       const publications = researcherData?.publications || [];
@@ -109,7 +109,7 @@ export default function CareerTimeline({ openalexId, researcherData: propResearc
         const yearData = yearCounts[year] || { works: 0, citations: 0 };
         cumulativeWorks += yearData.works;
         cumulativeCitations += yearData.citations;
-        
+
         data.push({
           year,
           publications: yearData.works,
@@ -136,10 +136,10 @@ export default function CareerTimeline({ openalexId, researcherData: propResearc
       const yearData = sortedCounts.find(c => c.year === year);
       const works = yearData?.works_count || 0;
       const citations = yearData?.cited_by_count || 0;
-      
+
       cumulativeWorks += works;
       cumulativeCitations += citations;
-      
+
       data.push({
         year,
         publications: works,
@@ -167,7 +167,7 @@ export default function CareerTimeline({ openalexId, researcherData: propResearc
 
     // Find milestones
     const milestones: MilestoneEvent[] = [];
-    
+
     // First publication year
     const firstPubYear = data.find(d => d.publications > 0);
     if (firstPubYear) {
@@ -179,7 +179,7 @@ export default function CareerTimeline({ openalexId, researcherData: propResearc
     }
 
     // Peak publication year
-    const peakYear = data.reduce((max, d) => 
+    const peakYear = data.reduce((max, d) =>
       d.publications > (max?.publications || 0) ? d : max, data[0]);
     if (peakYear && peakYear.publications > 0) {
       milestones.push({
@@ -363,27 +363,27 @@ export default function CareerTimeline({ openalexId, researcherData: propResearc
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" className="stroke-muted" opacity={0.3} />
-                <XAxis 
-                  dataKey="year" 
+                <XAxis
+                  dataKey="year"
                   tick={{ fontSize: 11, fill: 'currentColor' }}
                   tickLine={false}
                   axisLine={{ stroke: 'currentColor', opacity: 0.2 }}
                   interval="preserveStartEnd"
                 />
-                <YAxis 
+                <YAxis
                   yAxisId="left"
                   tick={{ fontSize: 11, fill: 'currentColor' }}
                   tickLine={false}
                   axisLine={{ stroke: 'currentColor', opacity: 0.2 }}
                   width={35}
-                  label={{ 
-                    value: 'Publications', 
-                    angle: -90, 
+                  label={{
+                    value: 'Publications',
+                    angle: -90,
                     position: 'insideLeft',
                     style: { fontSize: 10, fill: themeColors.primary }
                   }}
                 />
-                <YAxis 
+                <YAxis
                   yAxisId="right"
                   orientation="right"
                   tick={{ fontSize: 11, fill: 'currentColor' }}
@@ -391,22 +391,22 @@ export default function CareerTimeline({ openalexId, researcherData: propResearc
                   axisLine={{ stroke: 'currentColor', opacity: 0.2 }}
                   width={45}
                   tickFormatter={(value) => value >= 1000 ? `${(value / 1000).toFixed(0)}k` : value}
-                  label={{ 
-                    value: 'Citations', 
-                    angle: 90, 
+                  label={{
+                    value: 'Citations',
+                    angle: 90,
                     position: 'insideRight',
                     style: { fontSize: 10, fill: themeColors.accent }
                   }}
                 />
                 <Tooltip content={<CustomTooltip />} />
-                <Legend 
-                  verticalAlign="top" 
+                <Legend
+                  verticalAlign="top"
                   height={36}
                   formatter={(value) => (
                     <span className="text-sm text-foreground">{value}</span>
                   )}
                 />
-                
+
                 {/* Reference lines for milestones */}
                 {timelineData.milestones
                   .filter(m => m.type === 'first_publication' || m.type === 'peak_year')
@@ -425,12 +425,12 @@ export default function CareerTimeline({ openalexId, researcherData: propResearc
                       }}
                     />
                   ))}
-                
+
                 <Area
                   yAxisId="left"
                   type="monotone"
-                  dataKey="publications"
-                  name="Publications"
+                  dataKey="cumulativePublications"
+                  name="Cumulative Publications"
                   stroke={themeColors.primary}
                   strokeWidth={2}
                   fill="url(#pubGradient)"
@@ -440,8 +440,8 @@ export default function CareerTimeline({ openalexId, researcherData: propResearc
                 <Area
                   yAxisId="right"
                   type="monotone"
-                  dataKey="citations"
-                  name="Citations"
+                  dataKey="cumulativeCitations"
+                  name="Cumulative Citations"
                   stroke={themeColors.accent}
                   strokeWidth={2}
                   fill="url(#citeGradient)"
@@ -451,7 +451,7 @@ export default function CareerTimeline({ openalexId, researcherData: propResearc
               </AreaChart>
             </ResponsiveContainer>
           </div>
-          
+
           {/* Chart Legend/Note */}
           <div className="mt-4 pt-4 border-t border-border">
             <p className="text-xs text-muted-foreground text-center">

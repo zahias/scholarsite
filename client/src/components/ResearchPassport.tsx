@@ -34,7 +34,7 @@ export default function ResearchPassport({
 
   const handleDownload = async () => {
     setIsDownloading(true);
-    
+
     try {
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d');
@@ -59,7 +59,7 @@ export default function ResearchPassport({
       ctx.fillStyle = '#FFFFFF';
       ctx.font = 'bold 24px Inter, system-ui, sans-serif';
       ctx.textAlign = 'center';
-      
+
       const displayName = name.length > 25 ? name.substring(0, 22) + '...' : name;
       ctx.fillText(displayName, width / 2, 50);
 
@@ -79,18 +79,18 @@ export default function ResearchPassport({
 
       const qrImg = new Image();
       qrImg.crossOrigin = 'anonymous';
-      
+
       await new Promise<void>((resolve, reject) => {
         qrImg.onload = () => {
           const qrSize = 150;
           const qrX = (width - qrSize) / 2;
           const qrY = 120;
-          
+
           ctx.fillStyle = '#FFFFFF';
           ctx.beginPath();
           ctx.roundRect(qrX - 10, qrY - 10, qrSize + 20, qrSize + 20, 12);
           ctx.fill();
-          
+
           ctx.drawImage(qrImg, qrX, qrY, qrSize, qrSize);
           resolve();
         };
@@ -151,11 +151,11 @@ export default function ResearchPassport({
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <button 
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/15 hover:bg-white/25 transition-colors text-sm font-medium text-white"
+        <button
+          className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-white shadow-sm border border-platinum hover:-translate-y-0.5 hover:shadow-md text-midnight text-sm font-medium transition-all"
           data-testid="button-research-passport"
         >
-          <QrCode className="w-3.5 h-3.5" />
+          <QrCode className="w-4 h-4 text-warm" />
           Passport
         </button>
       </DialogTrigger>
@@ -166,9 +166,9 @@ export default function ResearchPassport({
             Research Passport
           </DialogTitle>
         </DialogHeader>
-        
+
         <div className="flex flex-col items-center gap-4">
-          <div 
+          <div
             ref={cardRef}
             className="w-full max-w-[320px] rounded-xl overflow-hidden shadow-2xl"
             style={{ background: 'linear-gradient(135deg, #0B1F3A 0%, #1a365d 100%)' }}
@@ -182,19 +182,19 @@ export default function ResearchPassport({
                 <p className="text-xs text-white/60 truncate">{institution}</p>
               )}
             </div>
-            
+
             <div className="flex justify-center pb-4">
               <div className="bg-white p-3 rounded-xl">
-                <img 
-                  src={qrCodeUrl} 
-                  alt="QR Code" 
+                <img
+                  src={qrCodeUrl}
+                  alt="QR Code"
                   className="w-32 h-32"
                   loading="lazy"
                   data-testid="img-passport-qr"
                 />
               </div>
             </div>
-            
+
             <div className="grid grid-cols-2 gap-3 px-6 pb-4">
               <div className="bg-white/10 rounded-lg p-3 text-center">
                 <div className="flex items-center justify-center gap-1 mb-1">
@@ -211,17 +211,17 @@ export default function ResearchPassport({
                 <p className="text-xs text-white/70">Citations</p>
               </div>
             </div>
-            
+
             <div className="text-center pb-4">
               <p className="text-xs text-white/50">Scan to view full profile</p>
             </div>
-            
+
             <div className="bg-white/5 py-2 text-center">
               <p className="text-xs text-white/40">scholar.name</p>
             </div>
           </div>
-          
-          <Button 
+
+          <Button
             onClick={handleDownload}
             disabled={isDownloading}
             className="w-full max-w-[320px] gap-2"
@@ -230,9 +230,9 @@ export default function ResearchPassport({
             <Download className="h-4 w-4" />
             {isDownloading ? 'Generating...' : 'Download Passport'}
           </Button>
-          
+
           <p className="text-xs text-muted-foreground text-center max-w-[280px]">
-            Use this card at conferences, on business cards, or in email signatures. 
+            Use this card at conferences, on business cards, or in email signatures.
             Scan the QR code to view the full research profile.
           </p>
         </div>
