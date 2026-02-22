@@ -1,0 +1,1 @@
+import{r as o,a as s}from"./vendor-react-DHpf67ko.js";import{a6 as u}from"./index-ADePB-jF.js";var i=s[" useId ".trim().toString()]||(()=>{}),c=0;function f(r){const[t,a]=o.useState(i());return u(()=>{a(e=>e??String(c++))},[r]),t?`radix-${t}`:""}export{f as u};

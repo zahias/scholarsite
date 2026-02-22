@@ -61,7 +61,7 @@ export default function SEO({
       canonical.setAttribute('href', url);
     }
     // Use provided image or default OG image
-    const ogImage = image || 'https://scholar.name/og-image.svg';
+    const ogImage = image || 'https://scholar.name/og-image.png';
     updateMetaTag('meta[property="og:image"]', 'property', ogImage);
     updateMetaTag('meta[property="og:image:width"]', 'property', '1200');
     updateMetaTag('meta[property="og:image:height"]', 'property', '630');

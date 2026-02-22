@@ -152,7 +152,7 @@ export default function GlobalFooter({ mode = "landing" }: GlobalFooterProps) {
         ) : (
           // Minimal app footer
           <div className="text-center text-sm text-muted-foreground">
-            <p>&copy; {new Date().getFullYear()} ScholarName. All rights reserved.</p>
+            <p>&copy; {new Date().getFullYear()} Scholar.name. All rights reserved.</p>
             <div className="flex items-center justify-center gap-2 mt-2 text-xs">
               <button
                 onClick={() => {
