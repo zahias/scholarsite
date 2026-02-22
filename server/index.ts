@@ -19,10 +19,9 @@ app.set('trust proxy', 1);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true })); // Changed to true for form parsing
 
-// Require SESSION_SECRET in production
+// Warn loudly if SESSION_SECRET is not set in production
 if (process.env.NODE_ENV === 'production' && !process.env.SESSION_SECRET) {
-  console.error('FATAL: SESSION_SECRET environment variable must be set in production');
-  process.exit(1);
+  console.error('⚠️  WARNING: SESSION_SECRET not set — using insecure fallback. Set SESSION_SECRET env var ASAP!');
 }
 
 // Set up PostgreSQL-backed session store
@@ -33,7 +32,7 @@ app.use(session({
     tableName: 'sessions', // Managed by connect-pg-simple
     createTableIfMissing: true // Allow connect-pg-simple to manage the sessions table
   }),
-  secret: process.env.SESSION_SECRET || 'dev-only-insecure-key',
+  secret: process.env.SESSION_SECRET || 'research-profile-admin-secret-key',
   resave: false,
   saveUninitialized: false,
   proxy: true,

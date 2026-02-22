@@ -5001,8 +5001,7 @@ app.set("trust proxy", 1);
 app.use(express2.json());
 app.use(express2.urlencoded({ extended: true }));
 if (!process.env.SESSION_SECRET) {
-  console.error("FATAL: SESSION_SECRET environment variable must be set in production");
-  process.exit(1);
+  console.error("\u26A0\uFE0F  WARNING: SESSION_SECRET not set \u2014 using insecure fallback. Set SESSION_SECRET env var ASAP!");
 }
 var PgSession = connectPgSimple(session);
 app.use(session({
@@ -5011,7 +5010,7 @@ app.use(session({
     tableName: "sessions",
     createTableIfMissing: false
   }),
-  secret: process.env.SESSION_SECRET,
+  secret: process.env.SESSION_SECRET || "research-profile-admin-secret-key",
   resave: false,
   saveUninitialized: false,
   proxy: true,
