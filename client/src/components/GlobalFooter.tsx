@@ -139,7 +139,7 @@ export default function GlobalFooter({ mode = "landing" }: GlobalFooterProps) {
 
             {/* Bottom bar */}
             <div className="pt-8 border-t border-border flex flex-col sm:flex-row justify-between items-center text-sm text-muted-foreground gap-4">
-              <p>&copy; {new Date().getFullYear()} Scholar.name. All rights reserved.</p>
+              <p data-version="1.0.3-performance-ux">&copy; {new Date().getFullYear()} Scholar.name. All rights reserved.</p>
               <div className="flex items-center gap-4">
                 <span className="flex items-center gap-1">
                   <Lock className="w-3 h-3" /> SSL Secured

@@ -18,12 +18,23 @@ jobs:
           port: 7822
           request_pty: true
           script: |
+            set -e
+            echo "🚀 Connecting to A2..."
             cd ${{ secrets.A2_PATH }}
-            git pull origin main
+            
+            echo "📥 Fetching latest code..."
+            git fetch origin main
+            git reset --hard origin/main
+            git clean -fd
+            
+            echo "📋 Syncing production files..."
             cp -rf production/* /home/bannwebs/scholarsite/
             rm -rf /home/bannwebs/scholarsite/public/assets/*
             cp -rf production/public/assets/* /home/bannwebs/scholarsite/public/assets/
+            
+            echo "🧹 Cleaning up and restarting..."
             mkdir -p /home/bannwebs/scholarsite/tmp
             mkdir -p /home/bannwebs/scholarsite/uploads
             chmod 755 /home/bannwebs/scholarsite/uploads
             touch /home/bannwebs/scholarsite/tmp/restart.txt
+            echo "✅ Deployment successful!"
