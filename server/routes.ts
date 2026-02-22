@@ -1051,20 +1051,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Test endpoint to manually trigger SSE updates (for debugging)
-  app.post('/api/test/broadcast/:openalexId', (req, res) => {
-    const { openalexId } = req.params;
-    console.log(`🧪 Test broadcast triggered for researcher: ${openalexId}`);
-    
-    // Broadcast test update
-    broadcastResearcherUpdate(openalexId, 'profile');
-    
-    res.json({ 
-      message: `Test broadcast sent for researcher ${openalexId}`,
-      connectionsNotified: sseConnections.size,
-      timestamp: new Date().toISOString()
+  // Test endpoint to manually trigger SSE updates (for debugging — disabled in production)
+  if (process.env.NODE_ENV !== 'production') {
+    app.post('/api/test/broadcast/:openalexId', (req, res) => {
+      const { openalexId } = req.params;
+      console.log(`🧪 Test broadcast triggered for researcher: ${openalexId}`);
+      
+      // Broadcast test update
+      broadcastResearcherUpdate(openalexId, 'profile');
+      
+      res.json({ 
+        message: `Test broadcast sent for researcher ${openalexId}`,
+        connectionsNotified: sseConnections.size,
+        timestamp: new Date().toISOString()
+      });
     });
-  });
+  }
 
   // Search researchers by OpenAlex ID (public)
   app.get('/api/openalex/search/:openalexId', async (req, res) => {

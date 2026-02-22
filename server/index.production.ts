@@ -14,6 +14,12 @@ app.set('trust proxy', 1);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Require SESSION_SECRET in production
+if (!process.env.SESSION_SECRET) {
+  console.error('FATAL: SESSION_SECRET environment variable must be set in production');
+  process.exit(1);
+}
+
 // Set up PostgreSQL-backed session store
 const PgSession = connectPgSimple(session);
 app.use(session({
@@ -22,7 +28,7 @@ app.use(session({
     tableName: 'sessions',
     createTableIfMissing: true
   }),
-  secret: process.env.SESSION_SECRET || 'research-profile-admin-secret-key',
+  secret: process.env.SESSION_SECRET,
   resave: false,
   saveUninitialized: false,
   proxy: true,
@@ -72,7 +78,7 @@ app.use((req, res, next) => {
     const message = err.message || "Internal Server Error";
 
     res.status(status).json({ message });
-    throw err;
+    console.error('Unhandled route error:', err);
   });
 
   // Production only - serve static files (no Vite)

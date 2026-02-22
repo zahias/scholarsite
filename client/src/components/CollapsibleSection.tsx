@@ -24,7 +24,7 @@ export default function CollapsibleSection({
   badge,
 }: CollapsibleSectionProps) {
   const [isOpen, setIsOpen] = useState(defaultOpen);
-  
+
   // Handle different defaults for mobile vs desktop
   useEffect(() => {
     if (mobileDefaultOpen !== undefined && window.innerWidth < 768) {
@@ -33,7 +33,7 @@ export default function CollapsibleSection({
   }, [mobileDefaultOpen]);
 
   return (
-    <section id={id} className={cn("py-6 md:py-12", className)}>
+    <section id={id} className={cn("py-6 md:py-12 scroll-mt-20", className)}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Collapsible Header — h2 contains button for proper semantics */}
         <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mb-4 md:mb-8">
@@ -60,7 +60,7 @@ export default function CollapsibleSection({
             </div>
           </button>
         </h2>
-        
+
         {/* Collapsible Content — CSS grid animation for smooth expand/collapse */}
         <div
           id={`${id}-content`}

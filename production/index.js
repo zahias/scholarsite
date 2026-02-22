@@ -679,16 +679,33 @@ var DatabaseStorage = class {
     }
     return await query;
   }
+  async getPublicationById(id) {
+    const [result] = await db.select().from(publications).where(eq(publications.id, id));
+    return result;
+  }
   async getPublicationsByOpenalexId(openalexId) {
     return await db.select().from(publications).where(eq(publications.openalexId, openalexId)).orderBy(desc(publications.publicationYear), desc(publications.citationCount));
   }
   async upsertPublications(pubs) {
     if (pubs.length === 0) return;
-    await db.delete(publications).where(eq(publications.openalexId, pubs[0].openalexId));
-    const pubsWithIds = pubs.map((pub) => ({
-      ...pub,
-      id: generateUUID()
-    }));
+    const openalexId = pubs[0].openalexId;
+    const existing = await db.select({ workId: publications.workId, isFeatured: publications.isFeatured, pdfUrl: publications.pdfUrl }).from(publications).where(eq(publications.openalexId, openalexId));
+    const preservedData = /* @__PURE__ */ new Map();
+    for (const pub of existing) {
+      if (pub.isFeatured || pub.pdfUrl) {
+        preservedData.set(pub.workId, { isFeatured: pub.isFeatured, pdfUrl: pub.pdfUrl });
+      }
+    }
+    await db.delete(publications).where(eq(publications.openalexId, openalexId));
+    const pubsWithIds = pubs.map((pub) => {
+      const preserved = preservedData.get(pub.workId);
+      return {
+        ...pub,
+        id: generateUUID(),
+        ...preserved?.isFeatured ? { isFeatured: preserved.isFeatured } : {},
+        ...preserved?.pdfUrl ? { pdfUrl: preserved.pdfUrl } : {}
+      };
+    });
     await db.insert(publications).values(pubsWithIds);
   }
   async updatePublicationFeatured(publicationId, isFeatured) {
@@ -713,6 +730,10 @@ var DatabaseStorage = class {
     await db.insert(affiliations).values(affsWithIds);
   }
   // Profile sections operations
+  async getProfileSectionById(id) {
+    const [result] = await db.select().from(profileSections).where(eq(profileSections.id, id));
+    return result;
+  }
   async getProfileSections(profileId) {
     return await db.select().from(profileSections).where(eq(profileSections.profileId, profileId)).orderBy(asc(profileSections.sortOrder));
   }
@@ -804,8 +825,10 @@ var DatabaseStorage = class {
     await db.delete(themes).where(eq(themes.id, id));
   }
   async setDefaultTheme(id) {
-    await db.update(themes).set({ isDefault: false }).where(eq(themes.isDefault, true));
-    const [result] = await db.update(themes).set({ isDefault: true, updatedAt: /* @__PURE__ */ new Date() }).where(eq(themes.id, id)).returning();
+    const [result] = await db.transaction(async (tx) => {
+      await tx.update(themes).set({ isDefault: false }).where(eq(themes.isDefault, true));
+      return await tx.update(themes).set({ isDefault: true, updatedAt: /* @__PURE__ */ new Date() }).where(eq(themes.id, id)).returning();
+    });
     return result;
   }
   async bulkApplyThemeToTenants(themeId, tenantIds) {
@@ -2810,6 +2833,11 @@ router4.patch("/publications/:publicationId/feature", isAuthenticated2, async (r
     if (typeof isFeatured !== "boolean") {
       return res.status(400).json({ message: "isFeatured must be a boolean" });
     }
+    const tenant = await storage.getTenantWithDetails(user.tenantId);
+    const pub = await storage.getPublicationById(publicationId);
+    if (!pub || !tenant?.profile?.openalexId || pub.openalexId !== tenant.profile.openalexId) {
+      return res.status(403).json({ message: "Not authorized to modify this publication" });
+    }
     const publication = await storage.updatePublicationFeatured(publicationId, isFeatured);
     res.json({ publication });
   } catch (error) {
@@ -2834,6 +2862,11 @@ router4.post("/publications/:publicationId/upload-pdf", isAuthenticated2, upload
       return res.status(404).json({ message: "No tenant associated with this user" });
     }
     const { publicationId } = req.params;
+    const tenant = await storage.getTenantWithDetails(user.tenantId);
+    const pub = await storage.getPublicationById(publicationId);
+    if (!pub || !tenant?.profile?.openalexId || pub.openalexId !== tenant.profile.openalexId) {
+      return res.status(403).json({ message: "Not authorized to modify this publication" });
+    }
     const filename = `uploads/publication-pdfs/${user.tenantId}-${publicationId}-${Date.now()}.pdf`;
     let pdfUrl;
     const storageBucketId = process.env.DEFAULT_OBJECT_STORAGE_BUCKET_ID;
@@ -2871,6 +2904,11 @@ router4.delete("/publications/:publicationId/pdf", isAuthenticated2, async (req,
       return res.status(404).json({ message: "No tenant associated with this user" });
     }
     const { publicationId } = req.params;
+    const tenant = await storage.getTenantWithDetails(user.tenantId);
+    const pub = await storage.getPublicationById(publicationId);
+    if (!pub || !tenant?.profile?.openalexId || pub.openalexId !== tenant.profile.openalexId) {
+      return res.status(403).json({ message: "Not authorized to modify this publication" });
+    }
     const publication = await storage.updatePublicationPdf(publicationId, null);
     res.json({ message: "PDF removed successfully", publication });
   } catch (error) {
@@ -2942,7 +2980,15 @@ router4.patch("/sections/:sectionId", isAuthenticated2, async (req, res) => {
     if (!user || !user.tenantId) {
       return res.status(404).json({ message: "No tenant associated with this user" });
     }
+    const profile = await storage.getResearcherProfileByTenant(user.tenantId);
+    if (!profile) {
+      return res.status(404).json({ message: "Profile not found" });
+    }
     const { sectionId } = req.params;
+    const existingSection = await storage.getProfileSectionById(sectionId);
+    if (!existingSection || existingSection.profileId !== profile.id) {
+      return res.status(403).json({ message: "Not authorized to modify this section" });
+    }
     const { title, content, sectionType, sortOrder, isVisible } = req.body;
     const section = await storage.updateProfileSection(sectionId, {
       title,
@@ -2967,7 +3013,15 @@ router4.delete("/sections/:sectionId", isAuthenticated2, async (req, res) => {
     if (!user || !user.tenantId) {
       return res.status(404).json({ message: "No tenant associated with this user" });
     }
+    const profile = await storage.getResearcherProfileByTenant(user.tenantId);
+    if (!profile) {
+      return res.status(404).json({ message: "Profile not found" });
+    }
     const { sectionId } = req.params;
+    const existingSection = await storage.getProfileSectionById(sectionId);
+    if (!existingSection || existingSection.profileId !== profile.id) {
+      return res.status(403).json({ message: "Not authorized to delete this section" });
+    }
     await storage.deleteProfileSection(sectionId);
     res.json({ message: "Section deleted successfully" });
   } catch (error) {
@@ -2985,9 +3039,19 @@ router4.post("/sections/reorder", isAuthenticated2, async (req, res) => {
     if (!user || !user.tenantId) {
       return res.status(404).json({ message: "No tenant associated with this user" });
     }
+    const profile = await storage.getResearcherProfileByTenant(user.tenantId);
+    if (!profile) {
+      return res.status(404).json({ message: "Profile not found" });
+    }
     const { sectionIds } = req.body;
     if (!Array.isArray(sectionIds)) {
       return res.status(400).json({ message: "sectionIds must be an array" });
+    }
+    const userSections = await storage.getProfileSections(profile.id);
+    const userSectionIds = new Set(userSections.map((s) => s.id));
+    const unauthorized = sectionIds.filter((id) => !userSectionIds.has(id));
+    if (unauthorized.length > 0) {
+      return res.status(403).json({ message: "Not authorized to reorder these sections" });
     }
     await storage.reorderProfileSections(sectionIds);
     res.json({ message: "Sections reordered successfully" });
@@ -3204,6 +3268,21 @@ router5.post("/create-session", async (req, res) => {
 });
 router5.post("/webhook", async (req, res) => {
   try {
+    const webhookSecret = process.env.WEBHOOK_SECRET;
+    if (webhookSecret) {
+      const signature = req.headers["x-webhook-signature"] || req.headers["x-signature"];
+      if (!signature) {
+        console.warn("Webhook rejected: missing signature header");
+        return res.status(403).send("Forbidden");
+      }
+      const expectedSig = crypto3.createHmac("sha256", webhookSecret).update(JSON.stringify(req.body)).digest("hex");
+      if (signature !== expectedSig) {
+        console.warn("Webhook rejected: invalid signature");
+        return res.status(403).send("Forbidden");
+      }
+    } else if (process.env.NODE_ENV === "production") {
+      console.warn("WARNING: WEBHOOK_SECRET not set \u2014 webhook signature verification disabled");
+    }
     const payload = req.body;
     console.log("MontyPay webhook received:", JSON.stringify(payload, null, 2));
     const orderNumber = payload.order?.number;
@@ -3220,8 +3299,12 @@ router5.post("/webhook", async (req, res) => {
     }
     if (status === "SUCCESS" || status === "SETTLED") {
       await storage.updatePaymentStatus(orderNumber, "completed", transactionId);
-      const tenant = await storage.provisionTenantFromPayment(payment.id);
-      console.log(`Tenant provisioned for payment ${orderNumber}:`, tenant?.id);
+      if (payment.tenantId) {
+        console.log(`Tenant already provisioned for order ${orderNumber}, skipping`);
+      } else {
+        const tenant = await storage.provisionTenantFromPayment(payment.id);
+        console.log(`Tenant provisioned for payment ${orderNumber}:`, tenant?.id);
+      }
     } else if (status === "DECLINE" || status === "ERROR") {
       await storage.updatePaymentStatus(orderNumber, "failed", transactionId);
     }
@@ -3241,9 +3324,7 @@ router5.get("/status/:orderNumber", async (req, res) => {
     res.json({
       orderNumber: payment.orderNumber,
       status: payment.status,
-      plan: payment.plan,
-      amount: payment.amount,
-      currency: payment.currency
+      plan: payment.plan
     });
   } catch (error) {
     console.error("Payment status check failed:", error);
@@ -4084,16 +4165,18 @@ async function registerRoutes(app2) {
       res.status(500).json({ message: "Failed to delete researcher profile" });
     }
   });
-  app2.post("/api/test/broadcast/:openalexId", (req, res) => {
-    const { openalexId } = req.params;
-    console.log(`\u{1F9EA} Test broadcast triggered for researcher: ${openalexId}`);
-    broadcastResearcherUpdate(openalexId, "profile");
-    res.json({
-      message: `Test broadcast sent for researcher ${openalexId}`,
-      connectionsNotified: sseConnections.size,
-      timestamp: (/* @__PURE__ */ new Date()).toISOString()
+  if (process.env.NODE_ENV !== "production") {
+    app2.post("/api/test/broadcast/:openalexId", (req, res) => {
+      const { openalexId } = req.params;
+      console.log(`\u{1F9EA} Test broadcast triggered for researcher: ${openalexId}`);
+      broadcastResearcherUpdate(openalexId, "profile");
+      res.json({
+        message: `Test broadcast sent for researcher ${openalexId}`,
+        connectionsNotified: sseConnections.size,
+        timestamp: (/* @__PURE__ */ new Date()).toISOString()
+      });
     });
-  });
+  }
   app2.get("/api/openalex/search/:openalexId", async (req, res) => {
     try {
       const { openalexId } = req.params;
@@ -4917,6 +5000,10 @@ var app = express2();
 app.set("trust proxy", 1);
 app.use(express2.json());
 app.use(express2.urlencoded({ extended: true }));
+if (!process.env.SESSION_SECRET) {
+  console.error("FATAL: SESSION_SECRET environment variable must be set in production");
+  process.exit(1);
+}
 var PgSession = connectPgSimple(session);
 app.use(session({
   store: new PgSession({
@@ -4924,7 +5011,7 @@ app.use(session({
     tableName: "sessions",
     createTableIfMissing: false
   }),
-  secret: process.env.SESSION_SECRET || "research-profile-admin-secret-key",
+  secret: process.env.SESSION_SECRET,
   resave: false,
   saveUninitialized: false,
   proxy: true,
@@ -4965,7 +5052,7 @@ app.use((req, res, next) => {
     const status = err.status || err.statusCode || 500;
     const message = err.message || "Internal Server Error";
     res.status(status).json({ message });
-    throw err;
+    console.error("Unhandled route error:", err);
   });
   serveStatic(app);
   const port = parseInt(process.env.PORT || "5000", 10);

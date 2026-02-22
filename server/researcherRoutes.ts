@@ -373,6 +373,13 @@ router.patch("/publications/:publicationId/feature", isAuthenticated, async (req
       return res.status(400).json({ message: "isFeatured must be a boolean" });
     }
 
+    // C2: Verify publication belongs to this user's researcher profile
+    const tenant = await storage.getTenantWithDetails(user.tenantId);
+    const pub = await storage.getPublicationById(publicationId);
+    if (!pub || !tenant?.profile?.openalexId || pub.openalexId !== tenant.profile.openalexId) {
+      return res.status(403).json({ message: "Not authorized to modify this publication" });
+    }
+
     const publication = await storage.updatePublicationFeatured(publicationId, isFeatured);
     res.json({ publication });
   } catch (error: any) {
@@ -403,6 +410,13 @@ router.post("/publications/:publicationId/upload-pdf", isAuthenticated, uploadDo
     }
 
     const { publicationId } = req.params;
+
+    // C2: Verify publication belongs to this user's researcher profile
+    const tenant = await storage.getTenantWithDetails(user.tenantId);
+    const pub = await storage.getPublicationById(publicationId);
+    if (!pub || !tenant?.profile?.openalexId || pub.openalexId !== tenant.profile.openalexId) {
+      return res.status(403).json({ message: "Not authorized to modify this publication" });
+    }
 
     const filename = `uploads/publication-pdfs/${user.tenantId}-${publicationId}-${Date.now()}.pdf`;
     let pdfUrl: string;
@@ -453,6 +467,14 @@ router.delete("/publications/:publicationId/pdf", isAuthenticated, async (req: R
     }
 
     const { publicationId } = req.params;
+
+    // C2: Verify publication belongs to this user's researcher profile
+    const tenant = await storage.getTenantWithDetails(user.tenantId);
+    const pub = await storage.getPublicationById(publicationId);
+    if (!pub || !tenant?.profile?.openalexId || pub.openalexId !== tenant.profile.openalexId) {
+      return res.status(403).json({ message: "Not authorized to modify this publication" });
+    }
+
     const publication = await storage.updatePublicationPdf(publicationId, null);
 
     res.json({ message: "PDF removed successfully", publication });
@@ -546,7 +568,19 @@ router.patch("/sections/:sectionId", isAuthenticated, async (req: Request, res: 
       return res.status(404).json({ message: "No tenant associated with this user" });
     }
 
+    const profile = await storage.getResearcherProfileByTenant(user.tenantId);
+    if (!profile) {
+      return res.status(404).json({ message: "Profile not found" });
+    }
+
     const { sectionId } = req.params;
+
+    // C2: Verify section belongs to this user's profile
+    const existingSection = await storage.getProfileSectionById(sectionId);
+    if (!existingSection || existingSection.profileId !== profile.id) {
+      return res.status(403).json({ message: "Not authorized to modify this section" });
+    }
+
     const { title, content, sectionType, sortOrder, isVisible } = req.body;
 
     const section = await storage.updateProfileSection(sectionId, {
@@ -577,7 +611,19 @@ router.delete("/sections/:sectionId", isAuthenticated, async (req: Request, res:
       return res.status(404).json({ message: "No tenant associated with this user" });
     }
 
+    const profile = await storage.getResearcherProfileByTenant(user.tenantId);
+    if (!profile) {
+      return res.status(404).json({ message: "Profile not found" });
+    }
+
     const { sectionId } = req.params;
+
+    // C2: Verify section belongs to this user's profile
+    const existingSection = await storage.getProfileSectionById(sectionId);
+    if (!existingSection || existingSection.profileId !== profile.id) {
+      return res.status(403).json({ message: "Not authorized to delete this section" });
+    }
+
     await storage.deleteProfileSection(sectionId);
 
     res.json({ message: "Section deleted successfully" });
@@ -600,10 +646,23 @@ router.post("/sections/reorder", isAuthenticated, async (req: Request, res: Resp
       return res.status(404).json({ message: "No tenant associated with this user" });
     }
 
+    const profile = await storage.getResearcherProfileByTenant(user.tenantId);
+    if (!profile) {
+      return res.status(404).json({ message: "Profile not found" });
+    }
+
     const { sectionIds } = req.body;
 
     if (!Array.isArray(sectionIds)) {
       return res.status(400).json({ message: "sectionIds must be an array" });
+    }
+
+    // C2: Verify all sections belong to this user's profile
+    const userSections = await storage.getProfileSections(profile.id);
+    const userSectionIds = new Set(userSections.map(s => s.id));
+    const unauthorized = sectionIds.filter((id: string) => !userSectionIds.has(id));
+    if (unauthorized.length > 0) {
+      return res.status(403).json({ message: "Not authorized to reorder these sections" });
     }
 
     await storage.reorderProfileSections(sectionIds);

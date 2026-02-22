@@ -101,6 +101,25 @@ router.post('/create-session', async (req: Request, res: Response) => {
 
 router.post('/webhook', async (req: Request, res: Response) => {
   try {
+    // C1: Verify webhook authenticity via shared secret
+    const webhookSecret = process.env.WEBHOOK_SECRET;
+    if (webhookSecret) {
+      const signature = req.headers['x-webhook-signature'] || req.headers['x-signature'];
+      if (!signature) {
+        console.warn('Webhook rejected: missing signature header');
+        return res.status(403).send('Forbidden');
+      }
+      const expectedSig = crypto.createHmac('sha256', webhookSecret)
+        .update(JSON.stringify(req.body))
+        .digest('hex');
+      if (signature !== expectedSig) {
+        console.warn('Webhook rejected: invalid signature');
+        return res.status(403).send('Forbidden');
+      }
+    } else if (process.env.NODE_ENV === 'production') {
+      console.warn('WARNING: WEBHOOK_SECRET not set — webhook signature verification disabled');
+    }
+
     const payload = req.body;
     
     console.log('MontyPay webhook received:', JSON.stringify(payload, null, 2));
@@ -123,8 +142,13 @@ router.post('/webhook', async (req: Request, res: Response) => {
     if (status === 'SUCCESS' || status === 'SETTLED') {
       await storage.updatePaymentStatus(orderNumber, 'completed', transactionId);
       
-      const tenant = await storage.provisionTenantFromPayment(payment.id);
-      console.log(`Tenant provisioned for payment ${orderNumber}:`, tenant?.id);
+      // H6: Skip provisioning if tenant already created (idempotent webhook)
+      if (payment.tenantId) {
+        console.log(`Tenant already provisioned for order ${orderNumber}, skipping`);
+      } else {
+        const tenant = await storage.provisionTenantFromPayment(payment.id);
+        console.log(`Tenant provisioned for payment ${orderNumber}:`, tenant?.id);
+      }
     } else if (status === 'DECLINE' || status === 'ERROR') {
       await storage.updatePaymentStatus(orderNumber, 'failed', transactionId);
     }
@@ -149,8 +173,6 @@ router.get('/status/:orderNumber', async (req: Request, res: Response) => {
       orderNumber: payment.orderNumber,
       status: payment.status,
       plan: payment.plan,
-      amount: payment.amount,
-      currency: payment.currency,
     });
   } catch (error) {
     console.error('Payment status check failed:', error);

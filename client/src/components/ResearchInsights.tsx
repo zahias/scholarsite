@@ -246,7 +246,7 @@ function PublicationVenues({ publications }: { publications: any[] }) {
 // ----------------------------------------------------------------------
 export default function ResearchInsights({ openalexId, researcherData, researcherName }: ResearchInsightsProps) {
     return (
-        <section id="insights" className="py-8 md:py-16 bg-academic-motif relative">
+        <section id="insights" className="py-8 md:py-16 bg-academic-motif relative scroll-mt-20">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
 
                 <div className="mb-8 text-center">

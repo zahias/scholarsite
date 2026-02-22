@@ -274,7 +274,7 @@ function ResearcherProfileContent() {
       <Navigation researcherName={profile?.displayName || researcher?.display_name || 'Researcher'} />
 
       {/* Hero Section — Profile Banner */}
-      <section id="overview" className="relative pb-10">
+      <section id="overview" className="relative pb-10 scroll-mt-20">
         {/* The Wide Banner Background */}
         <div className="h-48 md:h-64 bg-midnight w-full relative overflow-hidden">
           {/* Institutional context image */}

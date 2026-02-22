@@ -108,6 +108,7 @@ export interface IStorage {
   upsertResearchTopics(topics: InsertResearchTopic[]): Promise<void>;
   
   // Publications operations
+  getPublicationById(id: string): Promise<Publication | undefined>;
   getPublications(openalexId: string, limit?: number): Promise<Publication[]>;
   getPublicationsByOpenalexId(openalexId: string): Promise<Publication[]>;
   upsertPublications(publications: InsertPublication[]): Promise<void>;
@@ -119,6 +120,7 @@ export interface IStorage {
   upsertAffiliations(affiliations: InsertAffiliation[]): Promise<void>;
   
   // Profile sections operations
+  getProfileSectionById(id: string): Promise<ProfileSection | undefined>;
   getProfileSections(profileId: string): Promise<ProfileSection[]>;
   createProfileSection(section: InsertProfileSection): Promise<ProfileSection>;
   updateProfileSection(id: string, updates: Partial<ProfileSection>): Promise<ProfileSection | undefined>;
@@ -554,6 +556,14 @@ export class DatabaseStorage implements IStorage {
     return await query;
   }
 
+  async getPublicationById(id: string): Promise<Publication | undefined> {
+    const [result] = await db
+      .select()
+      .from(publications)
+      .where(eq(publications.id, id));
+    return result;
+  }
+
   async getPublicationsByOpenalexId(openalexId: string): Promise<Publication[]> {
     return await db
       .select()
@@ -565,16 +575,36 @@ export class DatabaseStorage implements IStorage {
   async upsertPublications(pubs: InsertPublication[]): Promise<void> {
     if (pubs.length === 0) return;
     
+    const openalexId = pubs[0].openalexId;
+    
+    // H2: Preserve user-curated data (isFeatured, pdfUrl) across syncs
+    const existing = await db
+      .select({ workId: publications.workId, isFeatured: publications.isFeatured, pdfUrl: publications.pdfUrl })
+      .from(publications)
+      .where(eq(publications.openalexId, openalexId));
+    
+    const preservedData = new Map<string, { isFeatured: boolean | null; pdfUrl: string | null }>();
+    for (const pub of existing) {
+      if (pub.isFeatured || pub.pdfUrl) {
+        preservedData.set(pub.workId, { isFeatured: pub.isFeatured, pdfUrl: pub.pdfUrl });
+      }
+    }
+    
     // Delete existing publications for this researcher
     await db
       .delete(publications)
-      .where(eq(publications.openalexId, pubs[0].openalexId));
+      .where(eq(publications.openalexId, openalexId));
     
-    // Insert new publications with generated IDs
-    const pubsWithIds = pubs.map(pub => ({
-      ...pub,
-      id: generateUUID(),
-    }));
+    // Insert new publications with generated IDs, restoring preserved data
+    const pubsWithIds = pubs.map(pub => {
+      const preserved = preservedData.get(pub.workId);
+      return {
+        ...pub,
+        id: generateUUID(),
+        ...(preserved?.isFeatured ? { isFeatured: preserved.isFeatured } : {}),
+        ...(preserved?.pdfUrl ? { pdfUrl: preserved.pdfUrl } : {}),
+      };
+    });
     await db.insert(publications).values(pubsWithIds);
   }
 
@@ -622,6 +652,14 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Profile sections operations
+  async getProfileSectionById(id: string): Promise<ProfileSection | undefined> {
+    const [result] = await db
+      .select()
+      .from(profileSections)
+      .where(eq(profileSections.id, id));
+    return result;
+  }
+
   async getProfileSections(profileId: string): Promise<ProfileSection[]> {
     return await db
       .select()
@@ -779,14 +817,17 @@ export class DatabaseStorage implements IStorage {
   }
 
   async setDefaultTheme(id: string): Promise<Theme | undefined> {
-    // First, unset any existing default theme
-    await db.update(themes).set({ isDefault: false }).where(eq(themes.isDefault, true));
-    // Then set the new default
-    const [result] = await db
-      .update(themes)
-      .set({ isDefault: true, updatedAt: new Date() })
-      .where(eq(themes.id, id))
-      .returning();
+    // H5: Use transaction to prevent race condition between unset and set
+    const [result] = await db.transaction(async (tx) => {
+      // First, unset any existing default theme
+      await tx.update(themes).set({ isDefault: false }).where(eq(themes.isDefault, true));
+      // Then set the new default
+      return await tx
+        .update(themes)
+        .set({ isDefault: true, updatedAt: new Date() })
+        .where(eq(themes.id, id))
+        .returning();
+    });
     return result;
   }
 

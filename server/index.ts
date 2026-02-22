@@ -19,6 +19,12 @@ app.set('trust proxy', 1);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true })); // Changed to true for form parsing
 
+// Require SESSION_SECRET in production
+if (process.env.NODE_ENV === 'production' && !process.env.SESSION_SECRET) {
+  console.error('FATAL: SESSION_SECRET environment variable must be set in production');
+  process.exit(1);
+}
+
 // Set up PostgreSQL-backed session store
 const PgSession = connectPgSimple(session);
 app.use(session({
@@ -27,7 +33,7 @@ app.use(session({
     tableName: 'sessions', // Managed by connect-pg-simple
     createTableIfMissing: true // Allow connect-pg-simple to manage the sessions table
   }),
-  secret: process.env.SESSION_SECRET || 'research-profile-admin-secret-key',
+  secret: process.env.SESSION_SECRET || 'dev-only-insecure-key',
   resave: false,
   saveUninitialized: false,
   proxy: true,
@@ -77,7 +83,7 @@ app.use((req, res, next) => {
     const message = err.message || "Internal Server Error";
 
     res.status(status).json({ message });
-    throw err;
+    console.error('Unhandled route error:', err);
   });
 
   // importantly only setup vite in development and after
