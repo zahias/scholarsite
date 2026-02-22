@@ -66,16 +66,16 @@ async function syncTenant(tenantId: string, tenantName: string, openalexId: stri
 
   try {
     console.log(`[SyncScheduler] Starting sync for tenant: ${tenantName} (${openalexId})`);
-    
+
     await openalexService.syncResearcherData(openalexId);
-    
+
     const profile = await storage.getResearcherProfileByTenant(tenantId);
     if (profile) {
       await storage.updateResearcherProfile(profile.id, {
         lastSyncedAt: new Date()
       });
     }
-    
+
     await storage.updateTenant(tenantId, {
       lastSyncAt: new Date()
     });
@@ -95,18 +95,18 @@ async function syncTenant(tenantId: string, tenantName: string, openalexId: stri
 
 export async function runScheduledSync(): Promise<{ synced: number; skipped: number; errors: number }> {
   console.log('[SyncScheduler] Starting scheduled sync check...');
-  
+
   const stats = { synced: 0, skipped: 0, errors: 0 };
 
   try {
     const allTenants = await storage.getAllTenants();
-    const activeTenants = allTenants.filter(t => t.status === 'active');
+    const activeTenants = allTenants.filter((t: any) => t.status === 'active');
 
     console.log(`[SyncScheduler] Found ${activeTenants.length} active tenants to check`);
 
     for (const tenant of activeTenants) {
       const profile = await storage.getResearcherProfileByTenant(tenant.id);
-      
+
       if (!profile || !profile.openalexId) {
         const skipLog: SyncLog = {
           tenantId: tenant.id,
@@ -171,7 +171,7 @@ export function startSyncScheduler(intervalHours: number = 1): void {
   }
 
   const intervalMs = intervalHours * 60 * 60 * 1000;
-  
+
   console.log(`[SyncScheduler] Starting scheduler with ${intervalHours} hour interval`);
 
   setTimeout(() => {

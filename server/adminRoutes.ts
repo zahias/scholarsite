@@ -4,6 +4,9 @@ import { storage } from "./storage";
 import { isAdmin, isAuthenticated } from "./auth";
 import { z } from "zod";
 import type { UserRole } from "@shared/schema";
+import { db } from "./db";
+import { users, tenants } from "@shared/schema";
+import { sql } from "drizzle-orm";
 
 const router = Router();
 
@@ -43,7 +46,7 @@ router.patch("/users/:id", isAuthenticated, isAdmin, async (req: Request, res: R
     });
 
     const validatedData = updateSchema.parse(req.body);
-    
+
     if (req.params.id === req.session.userId && validatedData.role && validatedData.role !== "admin") {
       return res.status(400).json({ message: "Cannot demote yourself" });
     }
@@ -166,17 +169,19 @@ router.post("/users", isAuthenticated, isAdmin, async (req: Request, res: Respon
 
 router.get("/stats", isAuthenticated, isAdmin, async (req: Request, res: Response) => {
   try {
-    const allUsers = await storage.getAllUsers();
-    const admins = allUsers.filter(u => u.role === "admin");
-    const researchers = allUsers.filter(u => u.role === "researcher");
-    const activeUsers = allUsers.filter(u => u.isActive);
-    
+    const statsQuery = await db.select({
+      totalUsers: sql<number>`count(*)`,
+      adminCount: sql<number>`count(*) filter (where ${users.role} = 'admin')`,
+      researcherCount: sql<number>`count(*) filter (where ${users.role} = 'researcher')`,
+      activeUserCount: sql<number>`count(*) filter (where ${users.isActive} = true)`,
+    }).from(users);
+
     return res.json({
       stats: {
-        totalUsers: allUsers.length,
-        adminCount: admins.length,
-        researcherCount: researchers.length,
-        activeUserCount: activeUsers.length,
+        totalUsers: Number(statsQuery[0].totalUsers) || 0,
+        adminCount: Number(statsQuery[0].adminCount) || 0,
+        researcherCount: Number(statsQuery[0].researcherCount) || 0,
+        activeUserCount: Number(statsQuery[0].activeUserCount) || 0,
       },
     });
   } catch (error) {
@@ -188,72 +193,63 @@ router.get("/stats", isAuthenticated, isAdmin, async (req: Request, res: Respons
 // Comprehensive analytics endpoint
 router.get("/analytics", isAuthenticated, isAdmin, async (req: Request, res: Response) => {
   try {
-    const [allUsers, allTenants] = await Promise.all([
-      storage.getAllUsers(),
-      storage.getAllTenants(),
+    const [userStatsList, tenantStatsList] = await Promise.all([
+      db.select({
+        total: sql<number>`count(*)`,
+        admin: sql<number>`count(*) filter (where ${users.role} = 'admin')`,
+        researcher: sql<number>`count(*) filter (where ${users.role} = 'researcher')`,
+        active: sql<number>`count(*) filter (where ${users.isActive} = true)`,
+        newThisMonth: sql<number>`count(*) filter (where ${users.createdAt} >= now() - interval '30 days')`,
+      }).from(users),
+
+      db.select({
+        total: sql<number>`count(*)`,
+        active: sql<number>`count(*) filter (where ${tenants.status} = 'active')`,
+        pending: sql<number>`count(*) filter (where ${tenants.status} = 'pending')`,
+        suspended: sql<number>`count(*) filter (where ${tenants.status} = 'suspended')`,
+        cancelled: sql<number>`count(*) filter (where ${tenants.status} = 'cancelled')`,
+        starter: sql<number>`count(*) filter (where ${tenants.plan} = 'starter')`,
+        professional: sql<number>`count(*) filter (where ${tenants.plan} = 'professional')`,
+        institution: sql<number>`count(*) filter (where ${tenants.plan} = 'institution')`,
+        newThisMonth: sql<number>`count(*) filter (where ${tenants.createdAt} >= now() - interval '30 days')`,
+      }).from(tenants),
     ]);
 
-    // User breakdown
-    const usersByRole = {
-      admin: allUsers.filter(u => u.role === "admin").length,
-      researcher: allUsers.filter(u => u.role === "researcher").length,
-    };
-
-    const activeUsers = allUsers.filter(u => u.isActive).length;
-    const inactiveUsers = allUsers.length - activeUsers;
-
-    // Tenant breakdown
-    const tenantsByStatus = {
-      active: allTenants.filter(t => t.status === "active").length,
-      pending: allTenants.filter(t => t.status === "pending").length,
-      suspended: allTenants.filter(t => t.status === "suspended").length,
-      cancelled: allTenants.filter(t => t.status === "cancelled").length,
-    };
-
-    const tenantsByPlan = {
-      starter: allTenants.filter(t => t.plan === "starter").length,
-      professional: allTenants.filter(t => t.plan === "professional").length,
-      institution: allTenants.filter(t => t.plan === "institution").length,
-    };
-
-    // Calculate growth - users/tenants created in last 30 days
-    const thirtyDaysAgo = new Date();
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-    
-    const newUsersThisMonth = allUsers.filter(u => 
-      u.createdAt && new Date(u.createdAt) >= thirtyDaysAgo
-    ).length;
-
-    const newTenantsThisMonth = allTenants.filter(t => 
-      t.createdAt && new Date(t.createdAt) >= thirtyDaysAgo
-    ).length;
-
-    // Tenants with OpenAlex connected
-    const tenantsWithOpenAlex = allTenants.filter(t => {
-      // This would need to check the profile, but we don't have that data here
-      return true; // Placeholder
-    }).length;
+    const userStats = userStatsList[0];
+    const tenantStats = tenantStatsList[0];
 
     return res.json({
       analytics: {
         users: {
-          total: allUsers.length,
-          byRole: usersByRole,
-          active: activeUsers,
-          inactive: inactiveUsers,
-          newThisMonth: newUsersThisMonth,
+          total: Number(userStats.total) || 0,
+          byRole: {
+            admin: Number(userStats.admin) || 0,
+            researcher: Number(userStats.researcher) || 0,
+          },
+          active: Number(userStats.active) || 0,
+          inactive: (Number(userStats.total) || 0) - (Number(userStats.active) || 0),
+          newThisMonth: Number(userStats.newThisMonth) || 0,
         },
         tenants: {
-          total: allTenants.length,
-          byStatus: tenantsByStatus,
-          byPlan: tenantsByPlan,
-          newThisMonth: newTenantsThisMonth,
+          total: Number(tenantStats.total) || 0,
+          byStatus: {
+            active: Number(tenantStats.active) || 0,
+            pending: Number(tenantStats.pending) || 0,
+            suspended: Number(tenantStats.suspended) || 0,
+            cancelled: Number(tenantStats.cancelled) || 0,
+          },
+          byPlan: {
+            starter: Number(tenantStats.starter) || 0,
+            professional: Number(tenantStats.professional) || 0,
+            institution: Number(tenantStats.institution) || 0,
+          },
+          newThisMonth: Number(tenantStats.newThisMonth) || 0,
         },
         overview: {
-          totalUsers: allUsers.length,
-          totalTenants: allTenants.length,
-          activeTenants: tenantsByStatus.active,
-          activeUsers: activeUsers,
+          totalUsers: Number(userStats.total) || 0,
+          totalTenants: Number(tenantStats.total) || 0,
+          activeTenants: Number(tenantStats.active) || 0,
+          activeUsers: Number(userStats.active) || 0,
         },
       },
     });

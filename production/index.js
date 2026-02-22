@@ -188,7 +188,9 @@ var publications = pgTable("publications", {
   // Highlighted publications shown prominently
   pdfUrl: varchar("pdf_url")
   // URL to uploaded PDF file
-});
+}, (table) => ({
+  uniqueOpenalexWork: unique().on(table.openalexId, table.workId)
+}));
 var affiliations = pgTable("affiliations", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   openalexId: varchar("openalex_id").notNull(),
@@ -408,7 +410,7 @@ if (!process.env.DATABASE_URL) {
 }
 
 // server/storage.ts
-import { eq, desc, and, inArray, asc, gte, lte } from "drizzle-orm";
+import { eq, desc, and, inArray, asc, sql as sql2, gte, lte } from "drizzle-orm";
 import crypto from "crypto";
 function generateUUID() {
   return crypto.randomUUID();
@@ -688,25 +690,27 @@ var DatabaseStorage = class {
   }
   async upsertPublications(pubs) {
     if (pubs.length === 0) return;
-    const openalexId = pubs[0].openalexId;
-    const existing = await db.select({ workId: publications.workId, isFeatured: publications.isFeatured, pdfUrl: publications.pdfUrl }).from(publications).where(eq(publications.openalexId, openalexId));
-    const preservedData = /* @__PURE__ */ new Map();
-    for (const pub of existing) {
-      if (pub.isFeatured || pub.pdfUrl) {
-        preservedData.set(pub.workId, { isFeatured: pub.isFeatured, pdfUrl: pub.pdfUrl });
+    const pubsWithIds = pubs.map((pub) => ({
+      ...pub,
+      id: generateUUID()
+    }));
+    await db.insert(publications).values(pubsWithIds).onConflictDoUpdate({
+      target: [publications.openalexId, publications.workId],
+      set: {
+        title: sql2`EXCLUDED.title`,
+        authorNames: sql2`EXCLUDED.author_names`,
+        journal: sql2`EXCLUDED.journal`,
+        publicationYear: sql2`EXCLUDED.publication_year`,
+        citationCount: sql2`EXCLUDED.citation_count`,
+        topics: sql2`EXCLUDED.topics`,
+        doi: sql2`EXCLUDED.doi`,
+        isOpenAccess: sql2`EXCLUDED.is_open_access`,
+        publicationType: sql2`EXCLUDED.publication_type`,
+        isReviewArticle: sql2`EXCLUDED.is_review_article`
+        // Note: isFeatured and pdfUrl are DELIBERATELY omitted from the SET list,
+        // so if the row exists, the curated feature data is safely preserved!
       }
-    }
-    await db.delete(publications).where(eq(publications.openalexId, openalexId));
-    const pubsWithIds = pubs.map((pub) => {
-      const preserved = preservedData.get(pub.workId);
-      return {
-        ...pub,
-        id: generateUUID(),
-        ...preserved?.isFeatured ? { isFeatured: preserved.isFeatured } : {},
-        ...preserved?.pdfUrl ? { pdfUrl: preserved.pdfUrl } : {}
-      };
     });
-    await db.insert(publications).values(pubsWithIds);
   }
   async updatePublicationFeatured(publicationId, isFeatured) {
     const [result] = await db.update(publications).set({ isFeatured }).where(eq(publications.id, publicationId)).returning();
@@ -1736,6 +1740,7 @@ var authRouter = router;
 import { Router as Router2 } from "express";
 import bcrypt2 from "bcryptjs";
 import { z as z3 } from "zod";
+import { sql as sql3 } from "drizzle-orm";
 var router2 = Router2();
 router2.get("/users", isAuthenticated, isAdmin, async (req, res) => {
   try {
@@ -1874,16 +1879,18 @@ router2.post("/users", isAuthenticated, isAdmin, async (req, res) => {
 });
 router2.get("/stats", isAuthenticated, isAdmin, async (req, res) => {
   try {
-    const allUsers = await storage.getAllUsers();
-    const admins = allUsers.filter((u) => u.role === "admin");
-    const researchers = allUsers.filter((u) => u.role === "researcher");
-    const activeUsers = allUsers.filter((u) => u.isActive);
+    const statsQuery = await db.select({
+      totalUsers: sql3`count(*)`,
+      adminCount: sql3`count(*) filter (where ${users.role} = 'admin')`,
+      researcherCount: sql3`count(*) filter (where ${users.role} = 'researcher')`,
+      activeUserCount: sql3`count(*) filter (where ${users.isActive} = true)`
+    }).from(users);
     return res.json({
       stats: {
-        totalUsers: allUsers.length,
-        adminCount: admins.length,
-        researcherCount: researchers.length,
-        activeUserCount: activeUsers.length
+        totalUsers: Number(statsQuery[0].totalUsers) || 0,
+        adminCount: Number(statsQuery[0].adminCount) || 0,
+        researcherCount: Number(statsQuery[0].researcherCount) || 0,
+        activeUserCount: Number(statsQuery[0].activeUserCount) || 0
       }
     });
   } catch (error) {
@@ -1893,58 +1900,60 @@ router2.get("/stats", isAuthenticated, isAdmin, async (req, res) => {
 });
 router2.get("/analytics", isAuthenticated, isAdmin, async (req, res) => {
   try {
-    const [allUsers, allTenants] = await Promise.all([
-      storage.getAllUsers(),
-      storage.getAllTenants()
+    const [userStatsList, tenantStatsList] = await Promise.all([
+      db.select({
+        total: sql3`count(*)`,
+        admin: sql3`count(*) filter (where ${users.role} = 'admin')`,
+        researcher: sql3`count(*) filter (where ${users.role} = 'researcher')`,
+        active: sql3`count(*) filter (where ${users.isActive} = true)`,
+        newThisMonth: sql3`count(*) filter (where ${users.createdAt} >= now() - interval '30 days')`
+      }).from(users),
+      db.select({
+        total: sql3`count(*)`,
+        active: sql3`count(*) filter (where ${tenants.status} = 'active')`,
+        pending: sql3`count(*) filter (where ${tenants.status} = 'pending')`,
+        suspended: sql3`count(*) filter (where ${tenants.status} = 'suspended')`,
+        cancelled: sql3`count(*) filter (where ${tenants.status} = 'cancelled')`,
+        starter: sql3`count(*) filter (where ${tenants.plan} = 'starter')`,
+        professional: sql3`count(*) filter (where ${tenants.plan} = 'professional')`,
+        institution: sql3`count(*) filter (where ${tenants.plan} = 'institution')`,
+        newThisMonth: sql3`count(*) filter (where ${tenants.createdAt} >= now() - interval '30 days')`
+      }).from(tenants)
     ]);
-    const usersByRole = {
-      admin: allUsers.filter((u) => u.role === "admin").length,
-      researcher: allUsers.filter((u) => u.role === "researcher").length
-    };
-    const activeUsers = allUsers.filter((u) => u.isActive).length;
-    const inactiveUsers = allUsers.length - activeUsers;
-    const tenantsByStatus = {
-      active: allTenants.filter((t) => t.status === "active").length,
-      pending: allTenants.filter((t) => t.status === "pending").length,
-      suspended: allTenants.filter((t) => t.status === "suspended").length,
-      cancelled: allTenants.filter((t) => t.status === "cancelled").length
-    };
-    const tenantsByPlan = {
-      starter: allTenants.filter((t) => t.plan === "starter").length,
-      professional: allTenants.filter((t) => t.plan === "professional").length,
-      institution: allTenants.filter((t) => t.plan === "institution").length
-    };
-    const thirtyDaysAgo = /* @__PURE__ */ new Date();
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-    const newUsersThisMonth = allUsers.filter(
-      (u) => u.createdAt && new Date(u.createdAt) >= thirtyDaysAgo
-    ).length;
-    const newTenantsThisMonth = allTenants.filter(
-      (t) => t.createdAt && new Date(t.createdAt) >= thirtyDaysAgo
-    ).length;
-    const tenantsWithOpenAlex = allTenants.filter((t) => {
-      return true;
-    }).length;
+    const userStats = userStatsList[0];
+    const tenantStats = tenantStatsList[0];
     return res.json({
       analytics: {
         users: {
-          total: allUsers.length,
-          byRole: usersByRole,
-          active: activeUsers,
-          inactive: inactiveUsers,
-          newThisMonth: newUsersThisMonth
+          total: Number(userStats.total) || 0,
+          byRole: {
+            admin: Number(userStats.admin) || 0,
+            researcher: Number(userStats.researcher) || 0
+          },
+          active: Number(userStats.active) || 0,
+          inactive: (Number(userStats.total) || 0) - (Number(userStats.active) || 0),
+          newThisMonth: Number(userStats.newThisMonth) || 0
         },
         tenants: {
-          total: allTenants.length,
-          byStatus: tenantsByStatus,
-          byPlan: tenantsByPlan,
-          newThisMonth: newTenantsThisMonth
+          total: Number(tenantStats.total) || 0,
+          byStatus: {
+            active: Number(tenantStats.active) || 0,
+            pending: Number(tenantStats.pending) || 0,
+            suspended: Number(tenantStats.suspended) || 0,
+            cancelled: Number(tenantStats.cancelled) || 0
+          },
+          byPlan: {
+            starter: Number(tenantStats.starter) || 0,
+            professional: Number(tenantStats.professional) || 0,
+            institution: Number(tenantStats.institution) || 0
+          },
+          newThisMonth: Number(tenantStats.newThisMonth) || 0
         },
         overview: {
-          totalUsers: allUsers.length,
-          totalTenants: allTenants.length,
-          activeTenants: tenantsByStatus.active,
-          activeUsers
+          totalUsers: Number(userStats.total) || 0,
+          totalTenants: Number(tenantStats.total) || 0,
+          activeTenants: Number(tenantStats.active) || 0,
+          activeUsers: Number(userStats.active) || 0
         }
       }
     });
@@ -2965,9 +2974,11 @@ router4.post("/sections", isAuthenticated2, async (req, res) => {
     });
     res.json({ section });
   } catch (error) {
-    console.error("Error creating profile section:", error?.message || error);
-    console.error("Error stack:", error?.stack);
-    res.status(500).json({ message: "Failed to create profile section", error: error?.message });
+    const errorMsg = error instanceof Error ? error.message : "Unknown error";
+    const errorStack = error instanceof Error ? error.stack : void 0;
+    console.error("Error creating profile section:", errorMsg);
+    console.error("Error stack:", errorStack);
+    res.status(500).json({ message: "Failed to create profile section", error: errorMsg });
   }
 });
 router4.patch("/sections/:sectionId", isAuthenticated2, async (req, res) => {
@@ -3768,7 +3779,8 @@ async function registerRoutes(app2) {
       console.log(`\u{1F4CA} Total SSE connections: ${sseConnections.size}`);
       const heartbeat = setInterval(() => {
         try {
-          if (!res.destroyed && !res.finished) {
+          const socketHealthy = req.socket && !req.socket.destroyed && req.socket.writable;
+          if (!res.destroyed && !res.finished && socketHealthy) {
             res.write(`data: ${JSON.stringify({ type: "heartbeat", timestamp: (/* @__PURE__ */ new Date()).toISOString() })}
 
 `);
@@ -3776,6 +3788,9 @@ async function registerRoutes(app2) {
             console.log("\u{1F9F9} Cleaning up dead SSE connection");
             clearInterval(heartbeat);
             sseConnections.delete(connection);
+            if (req.socket && !req.socket.destroyed) {
+              req.socket.destroy();
+            }
           }
         } catch (error) {
           console.error("\u274C SSE heartbeat error:", error);
@@ -4194,7 +4209,7 @@ async function registerRoutes(app2) {
       res.json(data);
     } catch (error) {
       console.error("Error fetching OpenAlex author:", error);
-      if (error instanceof Error && error.message.includes("404")) {
+      if (error instanceof Error && (error instanceof Error ? error.message : "Unknown error").includes("404")) {
         return res.status(404).json({ message: "Researcher not found in OpenAlex" });
       }
       res.status(500).json({ message: "Failed to fetch author data" });
@@ -4416,9 +4431,9 @@ async function registerRoutes(app2) {
         message: "Inquiry submitted successfully"
       });
     } catch (error) {
-      const errorMsg = error.message || String(error);
+      const errorMsg = (error instanceof Error ? error.message : "Unknown error") || String(error);
       console.log(`[Contact] Error processing contact form: ${errorMsg}`);
-      console.log(`[Contact] Error code: ${error.code || "N/A"}`);
+      console.log(`[Contact] Error code: ${error?.code || "N/A"}`);
       console.log(`[Contact] Full error: ${JSON.stringify(error, Object.getOwnPropertyNames(error))}`);
       let userMessage = "Failed to process inquiry";
       if (errorMsg.includes("Invalid login") || errorMsg.includes("authentication")) {
@@ -4560,7 +4575,7 @@ async function registerRoutes(app2) {
     } catch (error) {
       console.error("Error uploading CV:", error);
       res.status(500).json({
-        message: error instanceof Error ? error.message : "Failed to upload CV"
+        message: error instanceof Error ? error instanceof Error ? error.message : "Unknown error" : "Failed to upload CV"
       });
     }
   });
@@ -4613,7 +4628,7 @@ async function registerRoutes(app2) {
     } catch (error) {
       console.error("Error uploading profile image:", error);
       res.status(500).json({
-        message: error instanceof Error ? error.message : "Failed to upload profile image"
+        message: error instanceof Error ? error instanceof Error ? error.message : "Unknown error" : "Failed to upload profile image"
       });
     }
   });

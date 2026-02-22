@@ -6,7 +6,7 @@ const GA4_MEASUREMENT_ID = import.meta.env.VITE_GA4_MEASUREMENT_ID || '';
 declare global {
   interface Window {
     dataLayer: any[];
-    gtag: (...args: any[]) => void;
+    gtag?: (...args: any[]) => void;
   }
 }
 
@@ -25,7 +25,7 @@ export function initGA4() {
 
   // Initialize dataLayer
   window.dataLayer = window.dataLayer || [];
-  window.gtag = function() {
+  window.gtag = function () {
     window.dataLayer.push(arguments);
   };
   window.gtag('js', new Date());
@@ -38,7 +38,7 @@ export function initGA4() {
 // Track page view
 export function trackPageView(path: string, title?: string) {
   if (!window.gtag) return;
-  
+
   window.gtag('event', 'page_view', {
     page_path: path,
     page_title: title || document.title,
@@ -48,11 +48,11 @@ export function trackPageView(path: string, title?: string) {
 
 // Track custom events
 export function trackEvent(
-  eventName: string, 
+  eventName: string,
   params?: Record<string, any>
 ) {
   if (!window.gtag) return;
-  
+
   window.gtag('event', eventName, params);
 }
 
@@ -66,7 +66,7 @@ export function trackProfileView(openalexId: string, researcherName: string) {
 
 // Track profile interaction
 export function trackProfileClick(
-  openalexId: string, 
+  openalexId: string,
   clickType: 'publication' | 'cv' | 'linkedin' | 'email' | 'twitter' | 'website' | 'orcid' | 'share'
 ) {
   trackEvent('profile_click', {

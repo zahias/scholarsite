@@ -55,7 +55,7 @@ function adminAuthMiddleware(req: Request, res: Response, next: NextFunction) {
   const clientIP = req.ip || req.connection.remoteAddress;
   const isLocalhost = clientIP === '127.0.0.1' || clientIP === '::1' || clientIP === '::ffff:127.0.0.1';
   const isPrivateNetwork = clientIP?.startsWith('192.168.') || clientIP?.startsWith('10.') || clientIP?.startsWith('172.');
-  
+
   if (!isLocalhost && !isPrivateNetwork && process.env.NODE_ENV === 'production') {
     console.warn(`Admin access denied from non-local IP ${clientIP} to ${req.path}`);
     return res.status(403).json({ message: 'Admin endpoints restricted to local access' });
@@ -121,22 +121,22 @@ const adminRateLimit = (() => {
   const requests = new Map<string, { count: number; resetTime: number }>();
   const WINDOW_MS = 15 * 60 * 1000; // 15 minutes
   const MAX_REQUESTS = 100; // per window
-  
+
   return (req: Request, res: Response, next: NextFunction) => {
     const clientIP = req.ip || 'unknown';
     const now = Date.now();
-    
+
     const clientData = requests.get(clientIP);
     if (!clientData || now > clientData.resetTime) {
       requests.set(clientIP, { count: 1, resetTime: now + WINDOW_MS });
       return next();
     }
-    
+
     if (clientData.count >= MAX_REQUESTS) {
       console.warn(`Admin rate limit exceeded for IP ${clientIP}`);
       return res.status(429).json({ message: 'Rate limit exceeded for admin operations' });
     }
-    
+
     clientData.count++;
     next();
   };
@@ -179,10 +179,10 @@ function escapeHtmlAttribute(unsafe: string | undefined | null): string {
 
 function validateAndSanitizeUrl(url: string | undefined | null): string {
   if (!url) return '#';
-  
+
   // Remove any potentially dangerous characters
   const sanitized = String(url).replace(/[<>"']/g, '');
-  
+
   // Only allow http, https, and relative URLs
   try {
     const urlObj = new URL(sanitized, 'https://example.com');
@@ -195,7 +195,7 @@ function validateAndSanitizeUrl(url: string | undefined | null): string {
       return sanitized;
     }
   }
-  
+
   // Default to safe fallback
   return '#';
 }
@@ -204,7 +204,7 @@ function validateAndSanitizeUrl(url: string | undefined | null): string {
 // Static HTML template for exported researcher profiles
 function generateStaticHTML(data: any): string {
   const { profile, researcher, topics, publications, affiliations, exportedAt, exportUrl } = data;
-  
+
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -372,10 +372,10 @@ function generateStaticHTML(data: any): string {
 function broadcastResearcherUpdate(openalexId: string, updateType: 'profile' | 'sync' | 'create') {
   // Emit to event listeners
   updateEmitter.emit('researcher-update', { openalexId, updateType, timestamp: new Date().toISOString() });
-  
+
   // Send SSE to connected clients
   const message = JSON.stringify({ openalexId, updateType, timestamp: new Date().toISOString() });
-  
+
   for (const connection of Array.from(sseConnections)) {
     try {
       connection.res.write(`data: ${message}\n\n`);
@@ -432,7 +432,7 @@ function generateBibTeX(publications: Publication[]): string {
     const year = pub.publicationYear || '';
     const journal = pub.journal || '';
     const doi = pub.doi || '';
-    
+
     return `@${bibtexType}{${key},
   author = {${authors}},
   title = {${title}},
@@ -455,24 +455,24 @@ function generateRIS(publications: Publication[]): string {
       'letter': 'JOUR',
       'editorial': 'JOUR',
     };
-    
+
     const type = typeMap[pub.publicationType?.toLowerCase() || ''] || 'GEN';
     const authors = (pub.authorNames || '').split(',').map(a => a.trim()).filter(a => a);
-    
+
     let ris = `TY  - ${type}\n`;
-    
+
     authors.forEach(author => {
       ris += `AU  - ${author}\n`;
     });
-    
+
     if (pub.title) ris += `TI  - ${pub.title}\n`;
     if (pub.journal) ris += `JO  - ${pub.journal}\n`;
     if (pub.publicationYear) ris += `PY  - ${pub.publicationYear}\n`;
     if (pub.doi) ris += `DO  - ${pub.doi}\n`;
     if (pub.doi) ris += `UR  - https://doi.org/${pub.doi}\n`;
-    
+
     ris += `ER  - \n`;
-    
+
     return ris;
   }).join('\n');
 }
@@ -492,7 +492,7 @@ function generateCSV(publications: Publication[]): string {
       escapeCSV(Array.isArray(pub.topics) ? pub.topics.join('; ') : '')
     ].join(',');
   });
-  
+
   return [headers.join(','), ...rows].join('\n');
 }
 
@@ -511,10 +511,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Authentication routes
   app.use("/api/auth", authRouter);
-  
+
   // Admin routes for user management
   app.use("/api/admin", adminRouter);
-  
+
   // Tenant management routes (admin only)
   app.use("/api/admin", tenantRouter);
 
@@ -527,7 +527,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Server-Sent Events endpoint for real-time updates
   app.get('/api/events', (req, res) => {
     console.log('📡 New SSE connection request from:', req.ip);
-    
+
     try {
       // Set proper SSE headers - minimal approach
       res.writeHead(200, {
@@ -549,12 +549,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Keep connection alive with heartbeat  
       const heartbeat = setInterval(() => {
         try {
-          if (!res.destroyed && !res.finished) {
+          // Check socket health for aggressive stale-connection pruning
+          const socketHealthy = req.socket && !req.socket.destroyed && req.socket.writable;
+
+          if (!res.destroyed && !res.finished && socketHealthy) {
             res.write(`data: ${JSON.stringify({ type: 'heartbeat', timestamp: new Date().toISOString() })}\n\n`);
           } else {
             console.log('🧹 Cleaning up dead SSE connection');
             clearInterval(heartbeat);
             sseConnections.delete(connection);
+            if (req.socket && !req.socket.destroyed) {
+              req.socket.destroy();
+            }
           }
         } catch (error) {
           console.error('❌ SSE heartbeat error:', error);
@@ -607,10 +613,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { openalexId } = req.params;
       const { url } = req.query;
-      
+
       // Use provided URL or construct default profile URL
       const qrUrl = url || `${req.protocol}://${req.get('host')}/researcher/${openalexId}`;
-      
+
       // Generate QR code
       const QRCode = (await import('qrcode')).default;
       const qrCodeDataUrl = await QRCode.toDataURL(qrUrl as string, {
@@ -621,11 +627,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           light: '#FFFFFF'
         }
       });
-      
+
       // Return as PNG image
       const base64Data = qrCodeDataUrl.replace(/^data:image\/png;base64,/, '');
       const buffer = Buffer.from(base64Data, 'base64');
-      
+
       res.setHeader('Content-Type', 'image/png');
       res.setHeader('Content-Length', buffer.length);
       res.send(buffer);
@@ -640,7 +646,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const tenant = (req as any).tenant;
       const isMarketingSite = (req as any).isMarketingSite;
-      
+
       if (isMarketingSite || !tenant) {
         return res.json({
           isTenantSite: false,
@@ -648,10 +654,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           tenant: null
         });
       }
-      
+
       // Get the researcher profile for this tenant
       const profile = await storage.getResearcherProfileByTenant(tenant.id);
-      
+
       return res.json({
         isTenantSite: true,
         isMarketingSite: false,
@@ -679,15 +685,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/profile', async (req, res) => {
     try {
       const tenant = (req as any).tenant;
-      
+
       if (!tenant) {
         return res.status(404).json({ message: "No tenant found for this domain" });
       }
 
       const profile = await storage.getResearcherProfileByTenant(tenant.id);
-      
+
       if (!profile || !profile.openalexId) {
-        return res.status(404).json({ 
+        return res.status(404).json({
           message: "Profile not configured",
           tenantName: tenant.name,
           tenantStatus: tenant.status
@@ -720,7 +726,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         topics: researchTopics,
         publications: sortedPublications,
         affiliations,
-        profileSections: profileSections.filter(s => s.isVisible),
+        profileSections: profileSections.filter((s: any) => s.isVisible),
         lastSynced: profile.lastSyncedAt,
         tenant: {
           name: tenant.name,
@@ -741,10 +747,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { openalexId } = req.params;
       const preview = req.query.preview === 'true';
-      
+
       // Get researcher profile (if public)
       const profile = await storage.getResearcherProfileByOpenalexId(openalexId);
-      
+
       // If profile exists and is public, use cached data
       if (profile && profile.isPublic) {
         const researcherData = await storage.getOpenalexData(openalexId, 'researcher');
@@ -773,17 +779,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
           topics: researchTopics,
           publications: sortedPublications,
           affiliations,
-          profileSections: profileSections.filter(s => s.isVisible),
+          profileSections: profileSections.filter((s: any) => s.isVisible),
           lastSynced: profile.lastSyncedAt,
           isPreview: false
         });
       }
-      
+
       // If no profile exists, fetch directly from OpenAlex for preview
       try {
         const researcher = await openalexService.getResearcher(openalexId);
         const works = await openalexService.getResearcherWorks(openalexId);
-        
+
         // Extract topics from researcher data
         const topics = (researcher.topics || []).slice(0, 10).map((topic: any) => ({
           displayName: topic.display_name,
@@ -791,13 +797,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
           field: topic.field?.display_name || null,
           domain: topic.domain?.display_name || null
         }));
-        
+
         // Extract affiliations from researcher data
         const affiliations = (researcher.affiliations || []).slice(0, 5).map((aff: any) => ({
           institutionName: aff.institution?.display_name || 'Unknown Institution',
           years: aff.years || []
         }));
-        
+
         // Helper function to strip MathML and other XML/HTML markup from titles
         const normalizeTitle = (title: string | null | undefined): string => {
           if (!title) return 'Untitled';
@@ -829,11 +835,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           publicationType: work.type || 'article',
           openAccessUrl: work.open_access?.oa_url || null
         }));
-        
+
         // Get institution info for the profile
         const institution = researcher.last_known_institutions?.[0];
         const orcid = researcher.orcid || null;
-        
+
         // Generate a realistic title based on publication count
         const getAcademicTitle = (worksCount: number): string => {
           if (worksCount > 500) return 'Distinguished Professor';
@@ -843,7 +849,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           if (worksCount > 20) return 'Research Scientist';
           return 'Researcher';
         };
-        
+
         // Create a virtual profile for preview - leave customizable fields empty for placeholders
         const previewProfile = {
           displayName: researcher.display_name,
@@ -915,17 +921,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         userId: systemUser.id
       });
       const profile = await storage.upsertResearcherProfile(profileData);
-      
+
       // Broadcast update to connected clients
       if (profile.openalexId) {
         broadcastResearcherUpdate(profile.openalexId, 'create');
-        
+
         // Trigger initial data sync from OpenAlex (non-blocking)
         openalexService.syncResearcherData(profile.openalexId).catch(error => {
           console.error(`Failed to sync OpenAlex data for ${profile.openalexId}:`, error);
         });
       }
-      
+
       res.json(profile);
     } catch (error) {
       console.error("Error creating researcher profile:", error);
@@ -945,23 +951,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
     try {
       const { openalexId } = req.params;
-      
+
       // Find profile by OpenAlex ID
       const profile = await storage.getResearcherProfileByOpenalexId(openalexId);
       if (!profile) {
         return res.status(404).json({ message: "Researcher profile not found" });
       }
-      
+
       const updates = updateResearcherProfileSchema.parse({
         ...req.body,
         id: profile.id
       });
-      
+
       const updatedProfile = await storage.updateResearcherProfile(profile.id, updates);
-      
+
       // Broadcast update to connected clients
       broadcastResearcherUpdate(openalexId, 'profile');
-      
+
       res.json(updatedProfile);
     } catch (error) {
       console.error("Error updating researcher profile:", error);
@@ -982,7 +988,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { openalexId } = req.params;
       const profile = await storage.getResearcherProfileByOpenalexId(openalexId);
-      
+
       if (!profile) {
         return res.status(404).json({ message: "Researcher profile not found" });
       }
@@ -1003,7 +1009,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { openalexId } = req.params;
       const profile = await storage.getResearcherProfileByOpenalexId(openalexId);
-      
+
       if (!profile) {
         return res.status(404).json({ message: "Researcher profile not found" });
       }
@@ -1011,7 +1017,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (profile.openalexId) {
         await openalexService.syncResearcherData(profile.openalexId);
       }
-      
+
       // Update last synced timestamp
       await storage.updateResearcherProfile(profile.id, {
         lastSyncedAt: new Date()
@@ -1036,7 +1042,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { openalexId } = req.params;
       const profile = await storage.getResearcherProfileByOpenalexId(openalexId);
-      
+
       if (!profile) {
         return res.status(404).json({ message: "Researcher profile not found" });
       }
@@ -1056,11 +1062,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     app.post('/api/test/broadcast/:openalexId', (req, res) => {
       const { openalexId } = req.params;
       console.log(`🧪 Test broadcast triggered for researcher: ${openalexId}`);
-      
+
       // Broadcast test update
       broadcastResearcherUpdate(openalexId, 'profile');
-      
-      res.json({ 
+
+      res.json({
         message: `Test broadcast sent for researcher ${openalexId}`,
         connectionsNotified: sseConnections.size,
         timestamp: new Date().toISOString()
@@ -1088,7 +1094,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(data);
     } catch (error) {
       console.error("Error fetching OpenAlex author:", error);
-      if (error instanceof Error && error.message.includes('404')) {
+      if (error instanceof Error && (error instanceof Error ? error.message : "Unknown error").includes('404')) {
         return res.status(404).json({ message: "Researcher not found in OpenAlex" });
       }
       res.status(500).json({ message: "Failed to fetch author data" });
@@ -1108,13 +1114,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const response = await fetch(
         `https://api.openalex.org/authors?search=${encodeURIComponent(query)}&sort=works_count:desc&per_page=10`
       );
-      
+
       if (!response.ok) {
         throw new Error(`OpenAlex API error: ${response.status}`);
       }
-      
+
       const data = await response.json() as { results: any[] };
-      
+
       // Transform results to a simpler format
       const results = data.results.map((author: any) => ({
         id: author.id.replace('https://openalex.org/', ''),
@@ -1123,7 +1129,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         works_count: author.works_count || 0,
         cited_by_count: author.cited_by_count || 0,
       }));
-      
+
       res.json({ results });
     } catch (error) {
       console.error("Error searching OpenAlex authors:", error);
@@ -1137,7 +1143,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { fullName, email, institution, role, planInterest, researchField, openalexId, estimatedProfiles, biography, preferredTheme } = req.body;
       console.log("[Contact] Form data:", { fullName, email, planInterest });
-      
+
       if (!fullName || !email || !planInterest || !biography) {
         console.log("[Contact] Missing required fields");
         return res.status(400).json({ message: "Missing required fields" });
@@ -1147,7 +1153,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!process.env.SMTP_PASSWORD) {
         console.log("[Contact] SMTP_PASSWORD environment variable not configured");
         console.log("[Contact] Available env vars:", Object.keys(process.env).filter(k => !k.includes('npm') && !k.includes('PATH')).join(', '));
-        return res.status(500).json({ 
+        return res.status(500).json({
           message: "Email service not configured. Please add SMTP_PASSWORD to environment variables in A2 Hosting cPanel.",
           hint: "In cPanel Node.js Selector, add environment variable: SMTP_PASSWORD=your_email_password"
         });
@@ -1159,9 +1165,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const smtpHost = process.env.SMTP_HOST || "localhost";
       const smtpPort = parseInt(process.env.SMTP_PORT || "465", 10);
       const smtpUser = process.env.SMTP_USER || "info@scholar.name";
-      
+
       console.log(`[Contact] SMTP Config: host=${smtpHost}, port=${smtpPort}, user=${smtpUser}`);
-      
+
       const transporter = nodemailer.createTransport({
         host: smtpHost,
         port: smtpPort,
@@ -1212,7 +1218,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log(`[Contact] SMTP connection verification failed: ${errorMsg}`);
         console.log(`[Contact] Error code: ${verifyError.code || 'N/A'}`);
         console.log(`[Contact] Error command: ${verifyError.command || 'N/A'}`);
-        
+
         // Provide helpful error message based on common issues
         let userMessage = "Email service connection failed";
         if (errorMsg.includes("Invalid login") || errorMsg.includes("authentication")) {
@@ -1222,8 +1228,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         } else if (errorMsg.includes("ETIMEDOUT")) {
           userMessage = "Email server connection timed out. Please check SMTP settings.";
         }
-        
-        return res.status(500).json({ 
+
+        return res.status(500).json({
           message: userMessage,
           error: process.env.NODE_ENV === 'development' ? errorMsg : undefined
         });
@@ -1346,16 +1352,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log(`[Contact] Auto-reply sent to user: ${userEmail.messageId}`);
       console.log(`[Contact] User response: ${JSON.stringify(userEmail)}`);
 
-      res.json({ 
-        success: true, 
-        message: "Inquiry submitted successfully" 
+      res.json({
+        success: true,
+        message: "Inquiry submitted successfully"
       });
-    } catch (error: any) {
-      const errorMsg = error.message || String(error);
+    } catch (error: unknown) {
+      const errorMsg = (error instanceof Error ? error.message : "Unknown error") || String(error);
       console.log(`[Contact] Error processing contact form: ${errorMsg}`);
-      console.log(`[Contact] Error code: ${error.code || 'N/A'}`);
-      console.log(`[Contact] Full error: ${JSON.stringify(error, Object.getOwnPropertyNames(error))}`);
-      
+      console.log(`[Contact] Error code: ${(error as any)?.code || 'N/A'}`);
+      console.log(`[Contact] Full error: ${JSON.stringify(error, Object.getOwnPropertyNames(error as any))}`);
+
       // Provide more helpful error messages
       let userMessage = "Failed to process inquiry";
       if (errorMsg.includes("Invalid login") || errorMsg.includes("authentication")) {
@@ -1363,8 +1369,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } else if (errorMsg.includes("ECONNREFUSED") || errorMsg.includes("ENOTFOUND")) {
         userMessage = "Cannot connect to email server. Please check SMTP settings.";
       }
-      
-      res.status(500).json({ 
+
+      res.status(500).json({
         message: userMessage,
         error: process.env.NODE_ENV === 'development' ? errorMsg : undefined
       });
@@ -1376,21 +1382,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { openalexId } = req.params;
       const format = (req.query.format as string) || 'bibtex';
-      
+
       // Get researcher profile - allow if public OR if accessed from tenant domain
       const profile = await storage.getResearcherProfileByOpenalexId(openalexId);
       const tenant = (req as any).tenant;
-      
+
       // Allow access if: profile is public OR request comes from a tenant site with matching profile
       const isAuthorized = profile && (profile.isPublic || (tenant && profile.tenantId === tenant.id));
-      
+
       if (!isAuthorized) {
         return res.status(404).json({ message: "Researcher not found or not public" });
       }
 
       // Get all publications
       const publications = await storage.getPublications(openalexId);
-      
+
       if (publications.length === 0) {
         return res.status(404).json({ message: "No publications found" });
       }
@@ -1438,7 +1444,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/researcher/:openalexId/export', async (req, res) => {
     try {
       const { openalexId } = req.params;
-      
+
       // Get researcher profile (must be public)
       const profile = await storage.getResearcherProfileByOpenalexId(openalexId);
       if (!profile || !profile.isPublic) {
@@ -1464,7 +1470,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Generate static HTML
       const staticHTML = generateStaticHTML(exportData);
-      
+
       // Set headers for file download
       res.setHeader('Content-Type', 'text/html');
       res.setHeader('Content-Disposition', `attachment; filename="${profile.displayName || 'researcher'}-profile.html"`);
@@ -1500,7 +1506,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const { openalexId } = req.params;
       const profile = await storage.getResearcherProfileByOpenalexId(openalexId);
-      
+
       if (!profile) {
         return res.status(404).json({ message: 'Researcher profile not found' });
       }
@@ -1510,15 +1516,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!storageBucketId) {
         return res.status(500).json({ message: 'Object storage not configured' });
       }
-      
+
       const objectStorage = new ObjectStorageClient({ bucketId: storageBucketId });
-      
+
       // Generate unique filename for public directory
       const filename = `public/cv/${openalexId}-cv-${Date.now()}.pdf`;
 
       // Upload file using Replit Object Storage
       const uploadResult = await objectStorage.uploadFromBytes(filename, req.file.buffer);
-      
+
       if (!uploadResult.ok) {
         console.error('Object storage upload error:', uploadResult.error);
         return res.status(500).json({ message: 'Failed to upload file to storage' });
@@ -1537,14 +1543,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Broadcast update to connected clients
       broadcastResearcherUpdate(openalexId, 'profile');
 
-      res.json({ 
+      res.json({
         message: 'CV uploaded successfully',
         cvUrl: cvUrl,
       });
     } catch (error) {
       console.error('Error uploading CV:', error);
-      res.status(500).json({ 
-        message: error instanceof Error ? error.message : 'Failed to upload CV',
+      res.status(500).json({
+        message: error instanceof Error ? (error instanceof Error ? error.message : "Unknown error") : 'Failed to upload CV',
       });
     }
   });
@@ -1574,7 +1580,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const { openalexId } = req.params;
       const profile = await storage.getResearcherProfileByOpenalexId(openalexId);
-      
+
       if (!profile) {
         return res.status(404).json({ message: 'Researcher profile not found' });
       }
@@ -1584,16 +1590,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!storageBucketId) {
         return res.status(500).json({ message: 'Object storage not configured' });
       }
-      
+
       const objectStorage = new ObjectStorageClient({ bucketId: storageBucketId });
-      
+
       // Generate unique filename for public directory with proper extension
       const fileExtension = req.file.mimetype.split('/')[1];
       const filename = `public/profile-images/${openalexId}-profile-${Date.now()}.${fileExtension}`;
 
       // Upload file using Replit Object Storage
       const uploadResult = await objectStorage.uploadFromBytes(filename, req.file.buffer);
-      
+
       if (!uploadResult.ok) {
         console.error('Object storage upload error:', uploadResult.error);
         return res.status(500).json({ message: 'Failed to upload file to storage' });
@@ -1612,14 +1618,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Broadcast update to connected clients
       broadcastResearcherUpdate(openalexId, 'profile');
 
-      res.json({ 
+      res.json({
         message: 'Profile image uploaded successfully',
         profileImageUrl: profileImageUrl,
       });
     } catch (error) {
       console.error('Error uploading profile image:', error);
-      res.status(500).json({ 
-        message: error instanceof Error ? error.message : 'Failed to upload profile image',
+      res.status(500).json({
+        message: error instanceof Error ? (error instanceof Error ? error.message : "Unknown error") : 'Failed to upload profile image',
       });
     }
   });
@@ -1628,7 +1634,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/settings', async (req, res) => {
     try {
       const settings = await storage.getAllSettings();
-      const settingsMap = settings.reduce((acc, setting) => {
+      const settingsMap = settings.reduce((acc: any, setting: any) => {
         acc[setting.settingKey] = setting.settingValue;
         return acc;
       }, {} as Record<string, string>);
@@ -1643,13 +1649,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.put('/api/admin/settings', adminRateLimit, adminSessionAuthMiddleware, async (req, res) => {
     try {
       const settings = req.body;
-      
+
       for (const [key, value] of Object.entries(settings)) {
         if (typeof value === 'string') {
           await storage.upsertSetting(key, value);
         }
       }
-      
+
       res.json({ message: 'Settings updated successfully' });
     } catch (error) {
       console.error('Error updating settings:', error);
@@ -1803,16 +1809,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { id } = req.params;
       const { tenantIds } = req.body; // Optional array of tenant IDs, if empty applies to all
-      
+
       const theme = await storage.getTheme(id);
       if (!theme) {
         return res.status(404).json({ message: 'Theme not found' });
       }
-      
+
       const result = await storage.bulkApplyThemeToTenants(id, tenantIds);
-      res.json({ 
+      res.json({
         message: `Theme "${theme.name}" applied successfully`,
-        updated: result.updated 
+        updated: result.updated
       });
     } catch (error) {
       console.error('Error applying theme to tenants:', error);
@@ -1823,19 +1829,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // ========================================
   // Analytics Routes
   // ========================================
-  
+
   // Track analytics event (public - for profile pages)
   app.post('/api/analytics/track', async (req, res) => {
     try {
       const { openalexId, eventType, eventTarget, visitorId, referrer, userAgent, country, city } = req.body;
-      
+
       if (!openalexId || !eventType) {
         return res.status(400).json({ message: 'openalexId and eventType are required' });
       }
-      
+
       // Get profileId if it exists
       const profile = await storage.getResearcherProfileByOpenalexId(openalexId);
-      
+
       const event = await storage.trackAnalyticsEvent({
         profileId: profile?.id || null,
         openalexId,
@@ -1847,32 +1853,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
         country: country || null,
         city: city || null,
       });
-      
+
       res.json({ success: true, eventId: event.id });
     } catch (error) {
       console.error('Error tracking analytics event:', error);
       res.status(500).json({ message: 'Failed to track event' });
     }
   });
-  
+
   // Get analytics summary for a profile (requires authentication)
   app.get('/api/analytics/:openalexId', async (req, res) => {
     try {
       const { openalexId } = req.params;
       const days = parseInt(req.query.days as string) || 30;
-      
+
       // Check if user is authenticated and owns this profile or is admin
       const session = req.session as any;
       if (!session?.userId) {
         return res.status(401).json({ message: 'Authentication required' });
       }
-      
+
       // Get user and check ownership or admin
       const user = await storage.getUser(session.userId);
       if (!user) {
         return res.status(401).json({ message: 'User not found' });
       }
-      
+
       // Allow admin or profile owner
       if (user.role !== 'admin') {
         const profile = await storage.getResearcherProfileByOpenalexId(openalexId);
@@ -1880,7 +1886,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(403).json({ message: 'Access denied' });
         }
       }
-      
+
       const summary = await storage.getAnalyticsSummary(openalexId, days);
       res.json(summary);
     } catch (error) {
@@ -1893,11 +1899,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/chat-message', async (req, res) => {
     try {
       const { name, email, message, page } = req.body;
-      
+
       if (!email || !message) {
         return res.status(400).json({ message: 'Email and message are required' });
       }
-      
+
       // Send email notification to admin
       const transporter = nodemailer.createTransport({
         host: process.env.SMTP_HOST || 'smtp.gmail.com',
@@ -1908,9 +1914,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           pass: process.env.SMTP_PASS,
         },
       });
-      
+
       const adminEmail = process.env.ADMIN_EMAIL || process.env.SMTP_USER;
-      
+
       if (adminEmail && process.env.SMTP_USER && process.env.SMTP_PASS) {
         await transporter.sendMail({
           from: process.env.SMTP_FROM || process.env.SMTP_USER,
@@ -1928,17 +1934,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
           replyTo: email,
         });
       }
-      
-      res.json({ 
-        success: true, 
-        message: 'Message received! We\'ll get back to you soon.' 
+
+      res.json({
+        success: true,
+        message: 'Message received! We\'ll get back to you soon.'
       });
     } catch (error) {
       console.error('Error handling chat message:', error);
       // Still return success to user even if email fails
-      res.json({ 
-        success: true, 
-        message: 'Message received! We\'ll get back to you soon.' 
+      res.json({
+        success: true,
+        message: 'Message received! We\'ll get back to you soon.'
       });
     }
   });
@@ -1947,7 +1953,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/report-issue', async (req, res) => {
     try {
       const { openalexId, issueType, email, description } = req.body;
-      
+
       if (!openalexId || !issueType || !email || !description) {
         return res.status(400).json({ message: 'All fields are required' });
       }
@@ -1959,7 +1965,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         'wrong_affiliation': 'Wrong affiliation',
         'other': 'Other issue',
       };
-      
+
       // Send email notification to admin
       const transporter = nodemailer.createTransport({
         host: process.env.SMTP_HOST || 'smtp.gmail.com',
@@ -1970,9 +1976,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           pass: process.env.SMTP_PASS,
         },
       });
-      
+
       const adminEmail = process.env.ADMIN_EMAIL || process.env.SMTP_USER;
-      
+
       if (adminEmail && process.env.SMTP_USER && process.env.SMTP_PASS) {
         await transporter.sendMail({
           from: process.env.SMTP_FROM || process.env.SMTP_USER,
@@ -2015,10 +2021,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           replyTo: email,
         });
       }
-      
-      res.json({ 
-        success: true, 
-        message: 'Report submitted successfully' 
+
+      res.json({
+        success: true,
+        message: 'Report submitted successfully'
       });
     } catch (error) {
       console.error('Error handling issue report:', error);

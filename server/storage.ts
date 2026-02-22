@@ -71,7 +71,7 @@ export interface IStorage {
   updateTenant(id: string, updates: Partial<Tenant>): Promise<Tenant | undefined>;
   deleteTenant(id: string): Promise<void>;
   updateTenantProfile(tenantId: string, updates: Partial<ResearcherProfile>): Promise<ResearcherProfile | undefined>;
-  
+
   // Domain operations
   getDomain(id: string): Promise<Domain | undefined>;
   getDomainByHostname(hostname: string): Promise<Domain | undefined>;
@@ -79,7 +79,7 @@ export interface IStorage {
   createDomain(domain: InsertDomain): Promise<Domain>;
   updateDomain(id: string, updates: Partial<Domain>): Promise<Domain | undefined>;
   deleteDomain(id: string): Promise<void>;
-  
+
   // User operations
   getUser(id: string): Promise<User | undefined>;
   getUserByEmail(email: string): Promise<User | undefined>;
@@ -90,7 +90,7 @@ export interface IStorage {
   deleteUser(id: string): Promise<void>;
   getAllUsers(): Promise<SafeUser[]>;
   getUsersByRole(role: UserRole): Promise<SafeUser[]>;
-  
+
   // Researcher profile operations
   getResearcherProfileByTenant(tenantId: string): Promise<ResearcherProfile | undefined>;
   getResearcherProfileByOpenalexId(openalexId: string): Promise<ResearcherProfile | undefined>;
@@ -98,15 +98,15 @@ export interface IStorage {
   upsertResearcherProfile(profile: InsertResearcherProfile): Promise<ResearcherProfile>;
   updateResearcherProfile(id: string, updates: Partial<ResearcherProfile>): Promise<ResearcherProfile>;
   deleteResearcherProfile(openalexId: string): Promise<void>;
-  
+
   // OpenAlex data cache operations
   getOpenalexData(openalexId: string, dataType: string): Promise<OpenalexData | undefined>;
   upsertOpenalexData(data: InsertOpenalexData): Promise<OpenalexData>;
-  
+
   // Research topics operations
   getResearchTopics(openalexId: string): Promise<ResearchTopic[]>;
   upsertResearchTopics(topics: InsertResearchTopic[]): Promise<void>;
-  
+
   // Publications operations
   getPublicationById(id: string): Promise<Publication | undefined>;
   getPublications(openalexId: string, limit?: number): Promise<Publication[]>;
@@ -114,11 +114,11 @@ export interface IStorage {
   upsertPublications(publications: InsertPublication[]): Promise<void>;
   updatePublicationFeatured(publicationId: string, isFeatured: boolean): Promise<Publication | undefined>;
   updatePublicationPdf(publicationId: string, pdfUrl: string | null): Promise<Publication | undefined>;
-  
+
   // Affiliations operations
   getAffiliations(openalexId: string): Promise<Affiliation[]>;
   upsertAffiliations(affiliations: InsertAffiliation[]): Promise<void>;
-  
+
   // Profile sections operations
   getProfileSectionById(id: string): Promise<ProfileSection | undefined>;
   getProfileSections(profileId: string): Promise<ProfileSection[]>;
@@ -126,17 +126,17 @@ export interface IStorage {
   updateProfileSection(id: string, updates: Partial<ProfileSection>): Promise<ProfileSection | undefined>;
   deleteProfileSection(id: string): Promise<void>;
   reorderProfileSections(sectionIds: string[]): Promise<void>;
-  
+
   // Sync logs operations
   getSyncLogs(profileId: string): Promise<SyncLog[]>;
   createSyncLog(log: InsertSyncLog): Promise<SyncLog>;
   updateSyncLog(id: string, updates: Partial<SyncLog>): Promise<SyncLog | undefined>;
-  
+
   // Site settings operations
   getSetting(key: string): Promise<SiteSetting | undefined>;
   getAllSettings(): Promise<SiteSetting[]>;
   upsertSetting(key: string, value: string): Promise<SiteSetting>;
-  
+
   // Theme operations
   getTheme(id: string): Promise<Theme | undefined>;
   getThemeByName(name: string): Promise<Theme | undefined>;
@@ -149,7 +149,7 @@ export interface IStorage {
   setDefaultTheme(id: string): Promise<Theme | undefined>;
   bulkApplyThemeToTenants(themeId: string, tenantIds?: string[]): Promise<{ updated: number }>;
   getTenantsWithThemeInfo(): Promise<Array<{ id: string; name: string; currentThemeId: string | null; currentThemeName: string | null }>>;
-  
+
   // Analytics operations
   trackAnalyticsEvent(event: InsertProfileAnalytics): Promise<ProfileAnalytics>;
   getAnalyticsByOpenalexId(openalexId: string, startDate?: Date, endDate?: Date): Promise<ProfileAnalytics[]>;
@@ -196,7 +196,7 @@ export class DatabaseStorage implements IStorage {
 
   async deleteTenant(id: string): Promise<void> {
     // Delete in order: domains, users, profiles, then tenant
-    await db.transaction(async (tx) => {
+    await db.transaction(async (tx: any) => {
       // Get the profile to delete related OpenAlex data
       const [profile] = await tx.select().from(researcherProfiles).where(eq(researcherProfiles.tenantId, id));
       if (profile && profile.openalexId) {
@@ -232,7 +232,7 @@ export class DatabaseStorage implements IStorage {
 
   async updateTenantProfile(tenantId: string, updates: Partial<ResearcherProfile>): Promise<ResearcherProfile | undefined> {
     let profile = await this.getResearcherProfileByTenant(tenantId);
-    
+
     if (!profile) {
       const [newProfile] = await db
         .insert(researcherProfiles)
@@ -260,7 +260,7 @@ export class DatabaseStorage implements IStorage {
       })
       .where(eq(researcherProfiles.tenantId, tenantId))
       .returning();
-    
+
     return updatedProfile;
   }
 
@@ -472,7 +472,7 @@ export class DatabaseStorage implements IStorage {
 
   async deleteResearcherProfile(openalexId: string): Promise<void> {
     // Use transaction to ensure all deletes complete atomically
-    await db.transaction(async (tx) => {
+    await db.transaction(async (tx: any) => {
       // Delete all related data for this researcher
       await tx.delete(openalexData).where(eq(openalexData.openalexId, openalexId));
       await tx.delete(researchTopics).where(eq(researchTopics.openalexId, openalexId));
@@ -526,12 +526,12 @@ export class DatabaseStorage implements IStorage {
 
   async upsertResearchTopics(topics: InsertResearchTopic[]): Promise<void> {
     if (topics.length === 0) return;
-    
+
     // Delete existing topics for this researcher
     await db
       .delete(researchTopics)
       .where(eq(researchTopics.openalexId, topics[0].openalexId));
-    
+
     // Insert new topics with generated IDs
     const topicsWithIds = topics.map(topic => ({
       ...topic,
@@ -547,12 +547,12 @@ export class DatabaseStorage implements IStorage {
       .from(publications)
       .where(eq(publications.openalexId, openalexId))
       .orderBy(desc(publications.publicationYear), desc(publications.citationCount));
-    
+
     // Only apply limit if explicitly provided
     if (limit !== undefined) {
       return await query.limit(limit);
     }
-    
+
     return await query;
   }
 
@@ -574,38 +574,35 @@ export class DatabaseStorage implements IStorage {
 
   async upsertPublications(pubs: InsertPublication[]): Promise<void> {
     if (pubs.length === 0) return;
-    
-    const openalexId = pubs[0].openalexId;
-    
+
+    // Insert new publications with generated IDs
+    const pubsWithIds = pubs.map(pub => ({
+      ...pub,
+      id: generateUUID(),
+    }));
+
     // H2: Preserve user-curated data (isFeatured, pdfUrl) across syncs
-    const existing = await db
-      .select({ workId: publications.workId, isFeatured: publications.isFeatured, pdfUrl: publications.pdfUrl })
-      .from(publications)
-      .where(eq(publications.openalexId, openalexId));
-    
-    const preservedData = new Map<string, { isFeatured: boolean | null; pdfUrl: string | null }>();
-    for (const pub of existing) {
-      if (pub.isFeatured || pub.pdfUrl) {
-        preservedData.set(pub.workId, { isFeatured: pub.isFeatured, pdfUrl: pub.pdfUrl });
-      }
-    }
-    
-    // Delete existing publications for this researcher
-    await db
-      .delete(publications)
-      .where(eq(publications.openalexId, openalexId));
-    
-    // Insert new publications with generated IDs, restoring preserved data
-    const pubsWithIds = pubs.map(pub => {
-      const preserved = preservedData.get(pub.workId);
-      return {
-        ...pub,
-        id: generateUUID(),
-        ...(preserved?.isFeatured ? { isFeatured: preserved.isFeatured } : {}),
-        ...(preserved?.pdfUrl ? { pdfUrl: preserved.pdfUrl } : {}),
-      };
-    });
-    await db.insert(publications).values(pubsWithIds);
+    // Phase 3: Optimize bulk merge by leveraging Drizzle 'ON CONFLICT DO UPDATE'
+    // This allows the Postgres engine to handle preservation without allocating NodeJS memory mapping.
+    await db.insert(publications)
+      .values(pubsWithIds)
+      .onConflictDoUpdate({
+        target: [publications.openalexId, publications.workId],
+        set: {
+          title: sql`EXCLUDED.title`,
+          authorNames: sql`EXCLUDED.author_names`,
+          journal: sql`EXCLUDED.journal`,
+          publicationYear: sql`EXCLUDED.publication_year`,
+          citationCount: sql`EXCLUDED.citation_count`,
+          topics: sql`EXCLUDED.topics`,
+          doi: sql`EXCLUDED.doi`,
+          isOpenAccess: sql`EXCLUDED.is_open_access`,
+          publicationType: sql`EXCLUDED.publication_type`,
+          isReviewArticle: sql`EXCLUDED.is_review_article`,
+          // Note: isFeatured and pdfUrl are DELIBERATELY omitted from the SET list,
+          // so if the row exists, the curated feature data is safely preserved!
+        }
+      });
   }
 
   async updatePublicationFeatured(publicationId: string, isFeatured: boolean): Promise<Publication | undefined> {
@@ -637,12 +634,12 @@ export class DatabaseStorage implements IStorage {
 
   async upsertAffiliations(affs: InsertAffiliation[]): Promise<void> {
     if (affs.length === 0) return;
-    
+
     // Delete existing affiliations for this researcher
     await db
       .delete(affiliations)
       .where(eq(affiliations.openalexId, affs[0].openalexId));
-    
+
     // Insert new affiliations with generated IDs
     const affsWithIds = affs.map(aff => ({
       ...aff,
@@ -693,7 +690,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async reorderProfileSections(sectionIds: string[]): Promise<void> {
-    await db.transaction(async (tx) => {
+    await db.transaction(async (tx: any) => {
       for (let i = 0; i < sectionIds.length; i++) {
         await tx
           .update(profileSections)
@@ -818,7 +815,7 @@ export class DatabaseStorage implements IStorage {
 
   async setDefaultTheme(id: string): Promise<Theme | undefined> {
     // H5: Use transaction to prevent race condition between unset and set
-    const [result] = await db.transaction(async (tx) => {
+    const [result] = await db.transaction(async (tx: any) => {
       // First, unset any existing default theme
       await tx.update(themes).set({ isDefault: false }).where(eq(themes.isDefault, true));
       // Then set the new default
@@ -835,11 +832,11 @@ export class DatabaseStorage implements IStorage {
     let query = db
       .update(tenants)
       .set({ selectedThemeId: themeId, updatedAt: new Date() });
-    
+
     if (tenantIds && tenantIds.length > 0) {
       query = query.where(inArray(tenants.id, tenantIds)) as typeof query;
     }
-    
+
     const result = await query;
     return { updated: (result as any).rowCount || 0 };
   }
@@ -855,7 +852,7 @@ export class DatabaseStorage implements IStorage {
       .from(tenants)
       .leftJoin(themes, eq(tenants.selectedThemeId, themes.id))
       .orderBy(tenants.name);
-    
+
     return results;
   }
 
@@ -946,7 +943,7 @@ export class DatabaseStorage implements IStorage {
     const conditions = [eq(profileAnalytics.openalexId, openalexId)];
     if (startDate) conditions.push(gte(profileAnalytics.createdAt, startDate));
     if (endDate) conditions.push(lte(profileAnalytics.createdAt, endDate));
-    
+
     return await db.select().from(profileAnalytics)
       .where(and(...conditions))
       .orderBy(desc(profileAnalytics.createdAt));
@@ -964,16 +961,16 @@ export class DatabaseStorage implements IStorage {
   }> {
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - days);
-    
+
     const events = await this.getAnalyticsByOpenalexId(openalexId, startDate);
-    
+
     // Calculate totals
     const totalViews = events.filter(e => e.eventType === 'view').length;
     const uniqueVisitors = new Set(events.filter(e => e.eventType === 'view').map(e => e.visitorId)).size;
     const totalClicks = events.filter(e => e.eventType === 'click').length;
     const totalShares = events.filter(e => e.eventType === 'share').length;
     const totalDownloads = events.filter(e => e.eventType === 'download').length;
-    
+
     // Group views by day
     const viewsByDayMap = new Map<string, { views: number; visitors: Set<string> }>();
     events.filter(e => e.eventType === 'view').forEach(e => {
@@ -985,11 +982,11 @@ export class DatabaseStorage implements IStorage {
       day.views++;
       if (e.visitorId) day.visitors.add(e.visitorId);
     });
-    
+
     const viewsByDay = Array.from(viewsByDayMap.entries())
       .map(([date, data]) => ({ date, views: data.views, uniqueVisitors: data.visitors.size }))
       .sort((a, b) => a.date.localeCompare(b.date));
-    
+
     // Top referrers
     const referrerMap = new Map<string, number>();
     events.filter(e => e.referrer).forEach(e => {
@@ -1000,7 +997,7 @@ export class DatabaseStorage implements IStorage {
       .map(([referrer, count]) => ({ referrer, count }))
       .sort((a, b) => b.count - a.count)
       .slice(0, 10);
-    
+
     // Clicks by target
     const clickMap = new Map<string, number>();
     events.filter(e => e.eventType === 'click' && e.eventTarget).forEach(e => {
@@ -1010,7 +1007,7 @@ export class DatabaseStorage implements IStorage {
     const clicksByTarget = Array.from(clickMap.entries())
       .map(([target, count]) => ({ target, count }))
       .sort((a, b) => b.count - a.count);
-    
+
     return {
       totalViews,
       uniqueVisitors,
@@ -1028,18 +1025,18 @@ export class DatabaseStorage implements IStorage {
     startOfDay.setHours(0, 0, 0, 0);
     const endOfDay = new Date(date);
     endOfDay.setHours(23, 59, 59, 999);
-    
+
     const events = await this.getAnalyticsByOpenalexId(openalexId, startOfDay, endOfDay);
-    
+
     const views = events.filter(e => e.eventType === 'view').length;
     const uniqueVisitors = new Set(events.filter(e => e.eventType === 'view').map(e => e.visitorId)).size;
     const clicks = events.filter(e => e.eventType === 'click').length;
     const shares = events.filter(e => e.eventType === 'share').length;
     const downloads = events.filter(e => e.eventType === 'download').length;
-    
+
     // Get profileId from first event if exists
     const profileId = events[0]?.profileId || null;
-    
+
     await db.insert(profileAnalyticsDaily).values({
       id: generateUUID(),
       profileId,

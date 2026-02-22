@@ -140,13 +140,13 @@ const createTenantUserSchema = z.object({
 router.get("/tenants", isAuthenticated, isAdmin, async (req: Request, res: Response) => {
   try {
     const allTenants = await storage.getAllTenants();
-    
+
     const tenantsWithDetails = await Promise.all(
-      allTenants.map(async (tenant) => {
+      allTenants.map(async (tenant: any) => {
         const domainsList = await storage.getDomainsByTenant(tenant.id);
         const usersList = await storage.getUsersByTenant(tenant.id);
         const profile = await storage.getResearcherProfileByTenant(tenant.id);
-        
+
         return {
           ...tenant,
           domains: domainsList,

@@ -147,7 +147,9 @@ export const publications = pgTable("publications", {
   isReviewArticle: boolean("is_review_article").default(false),
   isFeatured: boolean("is_featured").default(false), // Highlighted publications shown prominently
   pdfUrl: varchar("pdf_url"), // URL to uploaded PDF file
-});
+}, (table) => ({
+  uniqueOpenalexWork: unique().on(table.openalexId, table.workId),
+}));
 
 // Affiliations cache
 export const affiliations = pgTable("affiliations", {

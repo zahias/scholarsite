@@ -16,10 +16,10 @@ async function saveFileLocally(filename: string, buffer: Buffer): Promise<string
   const publicDir = path.join(process.cwd(), 'public');
   const fullPath = path.join(publicDir, filename);
   const dir = path.dirname(fullPath);
-  
+
   await fs.mkdir(dir, { recursive: true });
   await fs.writeFile(fullPath, buffer);
-  
+
   return `/${filename}`;
 }
 
@@ -60,7 +60,7 @@ router.get("/my-tenant", isAuthenticated, async (req: Request, res: Response) =>
     if (!userId) {
       return res.status(401).json({ message: "Not authenticated" });
     }
-    
+
     const user = await storage.getUser(userId);
     if (!user || !user.tenantId) {
       return res.status(404).json({ message: "No tenant associated with this user" });
@@ -72,7 +72,7 @@ router.get("/my-tenant", isAuthenticated, async (req: Request, res: Response) =>
     }
 
     res.json({ tenant });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error getting tenant:", error);
     res.status(500).json({ message: "Failed to get tenant" });
   }
@@ -104,7 +104,7 @@ router.patch("/profile", isAuthenticated, async (req: Request, res: Response) =>
     if (!userId) {
       return res.status(401).json({ message: "Not authenticated" });
     }
-    
+
     const user = await storage.getUser(userId);
     if (!user || !user.tenantId) {
       return res.status(404).json({ message: "No tenant associated with this user" });
@@ -112,15 +112,15 @@ router.patch("/profile", isAuthenticated, async (req: Request, res: Response) =>
 
     const validation = updateProfileSchema.safeParse(req.body);
     if (!validation.success) {
-      return res.status(400).json({ 
-        message: "Validation error", 
-        errors: validation.error.errors 
+      return res.status(400).json({
+        message: "Validation error",
+        errors: validation.error.errors
       });
     }
 
     const profile = await storage.updateTenantProfile(user.tenantId, validation.data);
     res.json({ profile });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error updating profile:", error);
     res.status(500).json({ message: "Failed to update profile" });
   }
@@ -132,7 +132,7 @@ router.post("/sync", isAuthenticated, async (req: Request, res: Response) => {
     if (!userId) {
       return res.status(401).json({ message: "Not authenticated" });
     }
-    
+
     const user = await storage.getUser(userId);
     if (!user || !user.tenantId) {
       return res.status(404).json({ message: "No tenant associated with this user" });
@@ -152,7 +152,7 @@ router.post("/sync", isAuthenticated, async (req: Request, res: Response) => {
     });
 
     res.json({ profile, message: "Sync completed - your data has been refreshed from OpenAlex" });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error syncing profile:", error);
     res.status(500).json({ message: "Failed to sync profile" });
   }
@@ -168,7 +168,7 @@ router.post("/upload-photo", isAuthenticated, uploadImage.single('photo'), async
     if (!req.file) {
       return res.status(400).json({ message: "No file uploaded" });
     }
-    
+
     const user = await storage.getUser(userId);
     if (!user || !user.tenantId) {
       return res.status(404).json({ message: "No tenant associated with this user" });
@@ -190,7 +190,7 @@ router.post("/upload-photo", isAuthenticated, uploadImage.single('photo'), async
       const objectFilename = `public/profile-images/${user.tenantId}-profile-${Date.now()}.${fileExtension}`;
 
       const uploadResult = await objectStorage.uploadFromBytes(objectFilename, req.file.buffer);
-      
+
       if (!uploadResult.ok) {
         console.error('Object storage upload error:', uploadResult.error);
         return res.status(500).json({ message: "Failed to upload file to storage" });
@@ -207,11 +207,11 @@ router.post("/upload-photo", isAuthenticated, uploadImage.single('photo'), async
       profileImageUrl: profileImageUrl,
     });
 
-    res.json({ 
+    res.json({
       message: "Profile photo uploaded successfully",
       profileImageUrl: profileImageUrl,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error uploading profile photo:", error);
     res.status(500).json({ message: "Failed to upload profile photo" });
   }
@@ -243,7 +243,7 @@ router.post("/upload-cv", isAuthenticated, uploadDocument.single('cv'), async (r
     if (!req.file) {
       return res.status(400).json({ message: "No file uploaded" });
     }
-    
+
     const user = await storage.getUser(userId);
     if (!user || !user.tenantId) {
       return res.status(404).json({ message: "No tenant associated with this user" });
@@ -272,7 +272,7 @@ router.post("/upload-cv", isAuthenticated, uploadDocument.single('cv'), async (r
       const objectFilename = `public/cv-documents/${user.tenantId}-cv-${Date.now()}.${fileExtension}`;
 
       const uploadResult = await objectStorage.uploadFromBytes(objectFilename, req.file.buffer);
-      
+
       if (!uploadResult.ok) {
         console.error('Object storage upload error:', uploadResult.error);
         return res.status(500).json({ message: "Failed to upload file to storage" });
@@ -289,11 +289,11 @@ router.post("/upload-cv", isAuthenticated, uploadDocument.single('cv'), async (r
       cvUrl: cvUrl,
     });
 
-    res.json({ 
+    res.json({
       message: "CV uploaded successfully",
       cvUrl: cvUrl,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error uploading CV:", error);
     res.status(500).json({ message: "Failed to upload CV" });
   }
@@ -306,7 +306,7 @@ router.delete("/cv", isAuthenticated, async (req: Request, res: Response) => {
     if (!userId) {
       return res.status(401).json({ message: "Not authenticated" });
     }
-    
+
     const user = await storage.getUser(userId);
     if (!user || !user.tenantId) {
       return res.status(404).json({ message: "No tenant associated with this user" });
@@ -317,7 +317,7 @@ router.delete("/cv", isAuthenticated, async (req: Request, res: Response) => {
     });
 
     res.json({ message: "CV removed successfully" });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error removing CV:", error);
     res.status(500).json({ message: "Failed to remove CV" });
   }
@@ -334,7 +334,7 @@ router.get("/publications", isAuthenticated, async (req: Request, res: Response)
     if (!userId) {
       return res.status(401).json({ message: "Not authenticated" });
     }
-    
+
     const user = await storage.getUser(userId);
     if (!user || !user.tenantId) {
       return res.status(404).json({ message: "No tenant associated with this user" });
@@ -347,7 +347,7 @@ router.get("/publications", isAuthenticated, async (req: Request, res: Response)
 
     const publications = await storage.getPublicationsByOpenalexId(tenant.profile.openalexId);
     res.json({ publications });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error getting publications:", error);
     res.status(500).json({ message: "Failed to get publications" });
   }
@@ -360,7 +360,7 @@ router.patch("/publications/:publicationId/feature", isAuthenticated, async (req
     if (!userId) {
       return res.status(401).json({ message: "Not authenticated" });
     }
-    
+
     const user = await storage.getUser(userId);
     if (!user || !user.tenantId) {
       return res.status(404).json({ message: "No tenant associated with this user" });
@@ -382,7 +382,7 @@ router.patch("/publications/:publicationId/feature", isAuthenticated, async (req
 
     const publication = await storage.updatePublicationFeatured(publicationId, isFeatured);
     res.json({ publication });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error updating publication featured status:", error);
     res.status(500).json({ message: "Failed to update publication" });
   }
@@ -403,7 +403,7 @@ router.post("/publications/:publicationId/upload-pdf", isAuthenticated, uploadDo
     if (req.file.mimetype !== 'application/pdf') {
       return res.status(400).json({ message: "Only PDF files are allowed" });
     }
-    
+
     const user = await storage.getUser(userId);
     if (!user || !user.tenantId) {
       return res.status(404).json({ message: "No tenant associated with this user" });
@@ -428,7 +428,7 @@ router.post("/publications/:publicationId/upload-pdf", isAuthenticated, uploadDo
       const objectFilename = `public/publication-pdfs/${user.tenantId}-${publicationId}-${Date.now()}.pdf`;
 
       const uploadResult = await objectStorage.uploadFromBytes(objectFilename, req.file.buffer);
-      
+
       if (!uploadResult.ok) {
         console.error('Object storage upload error:', uploadResult.error);
         return res.status(500).json({ message: "Failed to upload file to storage" });
@@ -443,11 +443,11 @@ router.post("/publications/:publicationId/upload-pdf", isAuthenticated, uploadDo
 
     const publication = await storage.updatePublicationPdf(publicationId, pdfUrl);
 
-    res.json({ 
+    res.json({
       message: "PDF uploaded successfully",
       publication,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error uploading publication PDF:", error);
     res.status(500).json({ message: "Failed to upload PDF" });
   }
@@ -460,7 +460,7 @@ router.delete("/publications/:publicationId/pdf", isAuthenticated, async (req: R
     if (!userId) {
       return res.status(401).json({ message: "Not authenticated" });
     }
-    
+
     const user = await storage.getUser(userId);
     if (!user || !user.tenantId) {
       return res.status(404).json({ message: "No tenant associated with this user" });
@@ -478,7 +478,7 @@ router.delete("/publications/:publicationId/pdf", isAuthenticated, async (req: R
     const publication = await storage.updatePublicationPdf(publicationId, null);
 
     res.json({ message: "PDF removed successfully", publication });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error removing publication PDF:", error);
     res.status(500).json({ message: "Failed to remove PDF" });
   }
@@ -495,7 +495,7 @@ router.get("/sections", isAuthenticated, async (req: Request, res: Response) => 
     if (!userId) {
       return res.status(401).json({ message: "Not authenticated" });
     }
-    
+
     const user = await storage.getUser(userId);
     if (!user || !user.tenantId) {
       return res.status(404).json({ message: "No tenant associated with this user" });
@@ -508,7 +508,7 @@ router.get("/sections", isAuthenticated, async (req: Request, res: Response) => 
 
     const sections = await storage.getProfileSections(profile.id);
     res.json({ sections });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error getting profile sections:", error);
     res.status(500).json({ message: "Failed to get profile sections" });
   }
@@ -521,7 +521,7 @@ router.post("/sections", isAuthenticated, async (req: Request, res: Response) =>
     if (!userId) {
       return res.status(401).json({ message: "Not authenticated" });
     }
-    
+
     const user = await storage.getUser(userId);
     if (!user || !user.tenantId) {
       return res.status(404).json({ message: "No tenant associated with this user" });
@@ -548,10 +548,12 @@ router.post("/sections", isAuthenticated, async (req: Request, res: Response) =>
     });
 
     res.json({ section });
-  } catch (error: any) {
-    console.error("Error creating profile section:", error?.message || error);
-    console.error("Error stack:", error?.stack);
-    res.status(500).json({ message: "Failed to create profile section", error: error?.message });
+  } catch (error: unknown) {
+    const errorMsg = error instanceof Error ? error.message : "Unknown error";
+    const errorStack = error instanceof Error ? error.stack : undefined;
+    console.error("Error creating profile section:", errorMsg);
+    console.error("Error stack:", errorStack);
+    res.status(500).json({ message: "Failed to create profile section", error: errorMsg });
   }
 });
 
@@ -562,7 +564,7 @@ router.patch("/sections/:sectionId", isAuthenticated, async (req: Request, res: 
     if (!userId) {
       return res.status(401).json({ message: "Not authenticated" });
     }
-    
+
     const user = await storage.getUser(userId);
     if (!user || !user.tenantId) {
       return res.status(404).json({ message: "No tenant associated with this user" });
@@ -592,7 +594,7 @@ router.patch("/sections/:sectionId", isAuthenticated, async (req: Request, res: 
     });
 
     res.json({ section });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error updating profile section:", error);
     res.status(500).json({ message: "Failed to update profile section" });
   }
@@ -605,7 +607,7 @@ router.delete("/sections/:sectionId", isAuthenticated, async (req: Request, res:
     if (!userId) {
       return res.status(401).json({ message: "Not authenticated" });
     }
-    
+
     const user = await storage.getUser(userId);
     if (!user || !user.tenantId) {
       return res.status(404).json({ message: "No tenant associated with this user" });
@@ -627,7 +629,7 @@ router.delete("/sections/:sectionId", isAuthenticated, async (req: Request, res:
     await storage.deleteProfileSection(sectionId);
 
     res.json({ message: "Section deleted successfully" });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error deleting profile section:", error);
     res.status(500).json({ message: "Failed to delete profile section" });
   }
@@ -640,7 +642,7 @@ router.post("/sections/reorder", isAuthenticated, async (req: Request, res: Resp
     if (!userId) {
       return res.status(401).json({ message: "Not authenticated" });
     }
-    
+
     const user = await storage.getUser(userId);
     if (!user || !user.tenantId) {
       return res.status(404).json({ message: "No tenant associated with this user" });
@@ -659,7 +661,7 @@ router.post("/sections/reorder", isAuthenticated, async (req: Request, res: Resp
 
     // C2: Verify all sections belong to this user's profile
     const userSections = await storage.getProfileSections(profile.id);
-    const userSectionIds = new Set(userSections.map(s => s.id));
+    const userSectionIds = new Set(userSections.map((s: any) => s.id));
     const unauthorized = sectionIds.filter((id: string) => !userSectionIds.has(id));
     if (unauthorized.length > 0) {
       return res.status(403).json({ message: "Not authorized to reorder these sections" });
@@ -668,7 +670,7 @@ router.post("/sections/reorder", isAuthenticated, async (req: Request, res: Resp
     await storage.reorderProfileSections(sectionIds);
 
     res.json({ message: "Sections reordered successfully" });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error reordering sections:", error);
     res.status(500).json({ message: "Failed to reorder sections" });
   }
@@ -685,7 +687,7 @@ router.get("/sync-logs", isAuthenticated, async (req: Request, res: Response) =>
     if (!userId) {
       return res.status(401).json({ message: "Not authenticated" });
     }
-    
+
     const user = await storage.getUser(userId);
     if (!user || !user.tenantId) {
       return res.status(404).json({ message: "No tenant associated with this user" });
@@ -698,7 +700,7 @@ router.get("/sync-logs", isAuthenticated, async (req: Request, res: Response) =>
 
     const logs = await storage.getSyncLogs(profile.id);
     res.json({ logs });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error getting sync logs:", error);
     res.status(500).json({ message: "Failed to get sync logs" });
   }
