@@ -1,4 +1,8 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+#!/usr/bin/env python3
+"""Write the fully rewritten ResearcherDashboard.tsx with all audit fixes."""
+import os
+
+content = r'''import { useState, useEffect, useRef, useCallback } from "react";
 import { useLocation } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
@@ -2372,3 +2376,13 @@ export default function ResearcherDashboard() {
     </div>
   );
 }
+'''
+
+target = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)),
+    'client', 'src', 'pages', 'ResearcherDashboard.tsx'
+)
+with open(target, 'w', encoding='utf-8') as f:
+    f.write(content)
+
+print(f"Written {os.path.getsize(target)} bytes ({sum(1 for _ in content.splitlines())} lines) to {target}")
