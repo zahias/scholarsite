@@ -4,7 +4,7 @@ import session from "express-session";
 import connectPgSimple from "connect-pg-simple";
 import { registerRoutes } from "./routes";
 import { serveStatic, log } from "./static";
-import { startSyncScheduler } from "./services/syncScheduler";
+import { startSyncScheduler, stopSyncScheduler } from "./services/syncScheduler";
 import { pool } from "./db";
 
 const app = express();
@@ -91,4 +91,21 @@ app.use((req, res, next) => {
     startSyncScheduler(1);
     log('Sync scheduler started - checking tenants hourly');
   });
-})();
+
+  // Graceful shutdown
+  const shutdown = (signal: string) => {
+    log(`${signal} received — shutting down gracefully`);
+    stopSyncScheduler();
+    server.close(() => {
+      pool?.end?.();
+      log('HTTP server closed');
+      process.exit(0);
+    });
+    setTimeout(() => process.exit(1), 10_000).unref();
+  };
+  process.on('SIGTERM', () => shutdown('SIGTERM'));
+  process.on('SIGINT', () => shutdown('SIGINT'));
+})().catch((err) => {
+  console.error('Fatal startup error:', err);
+  process.exit(1);
+});

@@ -18,7 +18,15 @@ if (!process.env.DATABASE_URL) {
 
   pool = new Pool({ 
     connectionString: connectionString,
-    ssl: isNeonDatabase ? { rejectUnauthorized: false } : false
+    ssl: isNeonDatabase ? { rejectUnauthorized: false } : false,
+    max: 20,
+    idleTimeoutMillis: 30_000,
+    connectionTimeoutMillis: 5_000,
+  });
+
+  // Prevent unhandled pool errors from crashing the process
+  pool.on('error', (err: Error) => {
+    console.error('Unexpected PostgreSQL pool error:', err.message);
   });
 
   db = drizzle(pool, { schema });

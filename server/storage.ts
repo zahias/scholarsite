@@ -527,17 +527,19 @@ export class DatabaseStorage implements IStorage {
   async upsertResearchTopics(topics: InsertResearchTopic[]): Promise<void> {
     if (topics.length === 0) return;
 
-    // Delete existing topics for this researcher
-    await db
-      .delete(researchTopics)
-      .where(eq(researchTopics.openalexId, topics[0].openalexId));
+    await db.transaction(async (tx) => {
+      // Delete existing topics for this researcher
+      await tx
+        .delete(researchTopics)
+        .where(eq(researchTopics.openalexId, topics[0].openalexId));
 
-    // Insert new topics with generated IDs
-    const topicsWithIds = topics.map(topic => ({
-      ...topic,
-      id: generateUUID(),
-    }));
-    await db.insert(researchTopics).values(topicsWithIds);
+      // Insert new topics with generated IDs
+      const topicsWithIds = topics.map(topic => ({
+        ...topic,
+        id: generateUUID(),
+      }));
+      await tx.insert(researchTopics).values(topicsWithIds);
+    });
   }
 
   // Publications operations
@@ -635,17 +637,19 @@ export class DatabaseStorage implements IStorage {
   async upsertAffiliations(affs: InsertAffiliation[]): Promise<void> {
     if (affs.length === 0) return;
 
-    // Delete existing affiliations for this researcher
-    await db
-      .delete(affiliations)
-      .where(eq(affiliations.openalexId, affs[0].openalexId));
+    await db.transaction(async (tx) => {
+      // Delete existing affiliations for this researcher
+      await tx
+        .delete(affiliations)
+        .where(eq(affiliations.openalexId, affs[0].openalexId));
 
-    // Insert new affiliations with generated IDs
-    const affsWithIds = affs.map(aff => ({
-      ...aff,
-      id: generateUUID(),
-    }));
-    await db.insert(affiliations).values(affsWithIds);
+      // Insert new affiliations with generated IDs
+      const affsWithIds = affs.map(aff => ({
+        ...aff,
+        id: generateUUID(),
+      }));
+      await tx.insert(affiliations).values(affsWithIds);
+    });
   }
 
   // Profile sections operations
@@ -1112,4 +1116,4 @@ class MemoryStorage {
   async getDefaultTheme() { return undefined; }
 }
 
-export const storage: any = process.env.DATABASE_URL ? new DatabaseStorage() : new MemoryStorage();
+export const storage: IStorage = process.env.DATABASE_URL ? new DatabaseStorage() : new MemoryStorage();

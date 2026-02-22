@@ -54,7 +54,7 @@ function adminAuthMiddleware(req: Request, res: Response, next: NextFunction) {
   // Optional: IP restriction (allow localhost and private networks)
   const clientIP = req.ip || req.connection.remoteAddress;
   const isLocalhost = clientIP === '127.0.0.1' || clientIP === '::1' || clientIP === '::ffff:127.0.0.1';
-  const isPrivateNetwork = clientIP?.startsWith('192.168.') || clientIP?.startsWith('10.') || clientIP?.startsWith('172.');
+  const isPrivateNetwork = clientIP?.startsWith('192.168.') || clientIP?.startsWith('10.') || (clientIP ? /^(?:::ffff:)?172\.(1[6-9]|2\d|3[01])\./.test(clientIP) : false);
 
   if (!isLocalhost && !isPrivateNetwork && process.env.NODE_ENV === 'production') {
     console.warn(`Admin access denied from non-local IP ${clientIP} to ${req.path}`);
@@ -92,8 +92,8 @@ function adminSessionAuthMiddleware(req: Request, res: Response, next: NextFunct
     }
   }
 
-  // Not authenticated - this will be handled by route to show login form
-  return next();
+  // Not authenticated - return 401
+  return res.status(401).json({ message: 'Authentication required' });
 }
 
 // Helper function to check if request is authenticated
@@ -122,6 +122,14 @@ const adminRateLimit = (() => {
   const WINDOW_MS = 15 * 60 * 1000; // 15 minutes
   const MAX_REQUESTS = 100; // per window
 
+  // Periodic cleanup to prevent memory leak
+  setInterval(() => {
+    const now = Date.now();
+    for (const [ip, data] of requests) {
+      if (now > data.resetTime) requests.delete(ip);
+    }
+  }, 60 * 60 * 1000); // cleanup every hour
+
   return (req: Request, res: Response, next: NextFunction) => {
     const clientIP = req.ip || 'unknown';
     const now = Date.now();
@@ -135,6 +143,40 @@ const adminRateLimit = (() => {
     if (clientData.count >= MAX_REQUESTS) {
       console.warn(`Admin rate limit exceeded for IP ${clientIP}`);
       return res.status(429).json({ message: 'Rate limit exceeded for admin operations' });
+    }
+
+    clientData.count++;
+    next();
+  };
+})();
+
+// Rate limiting for public write endpoints (contact, chat, report, analytics)
+const publicWriteRateLimit = (() => {
+  const requests = new Map<string, { count: number; resetTime: number }>();
+  const WINDOW_MS = 15 * 60 * 1000; // 15 minutes
+  const MAX_REQUESTS = 20; // per window per IP
+
+  // Periodic cleanup to prevent memory leak
+  setInterval(() => {
+    const now = Date.now();
+    for (const [ip, data] of requests) {
+      if (now > data.resetTime) requests.delete(ip);
+    }
+  }, 60 * 60 * 1000); // cleanup every hour
+
+  return (req: Request, res: Response, next: NextFunction) => {
+    const clientIP = req.ip || 'unknown';
+    const now = Date.now();
+
+    const clientData = requests.get(clientIP);
+    if (!clientData || now > clientData.resetTime) {
+      requests.set(clientIP, { count: 1, resetTime: now + WINDOW_MS });
+      return next();
+    }
+
+    if (clientData.count >= MAX_REQUESTS) {
+      console.warn(`Public write rate limit exceeded for IP ${clientIP} on ${req.path}`);
+      return res.status(429).json({ message: 'Too many requests. Please try again later.' });
     }
 
     clientData.count++;
@@ -530,11 +572,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
     try {
       // Set proper SSE headers - minimal approach
+      const origin = req.headers.origin || req.headers.host || '';
       res.writeHead(200, {
         'Content-Type': 'text/event-stream',
         'Cache-Control': 'no-cache',
         'Connection': 'keep-alive',
-        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Origin': origin,
+        'Access-Control-Allow-Credentials': 'true',
       });
 
       // Send initial connection message immediately
@@ -1137,8 +1181,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Health check endpoint (public, for monitoring)
+  app.get('/api/health', async (_req, res) => {
+    try {
+      // Quick DB check via storage layer
+      const tenants = await storage.getAllTenants();
+      res.json({ status: 'ok', timestamp: new Date().toISOString(), tenants: tenants.length });
+    } catch (error) {
+      res.status(503).json({ status: 'error', message: 'Database unreachable' });
+    }
+  });
+
   // Contact form submission (public)
-  app.post('/api/contact', async (req, res) => {
+  app.post('/api/contact', publicWriteRateLimit, async (req, res) => {
     console.log("[Contact] Received contact form submission");
     try {
       const { fullName, email, institution, role, planInterest, researchField, openalexId, estimatedProfiles, biography, preferredTheme } = req.body;
@@ -1831,7 +1886,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // ========================================
 
   // Track analytics event (public - for profile pages)
-  app.post('/api/analytics/track', async (req, res) => {
+  app.post('/api/analytics/track', publicWriteRateLimit, async (req, res) => {
     try {
       const { openalexId, eventType, eventTarget, visitorId, referrer, userAgent, country, city } = req.body;
 
@@ -1896,7 +1951,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Chat message endpoint (for built-in chat widget)
-  app.post('/api/chat-message', async (req, res) => {
+  app.post('/api/chat-message', publicWriteRateLimit, async (req, res) => {
     try {
       const { name, email, message, page } = req.body;
 
@@ -1921,13 +1976,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         await transporter.sendMail({
           from: process.env.SMTP_FROM || process.env.SMTP_USER,
           to: adminEmail,
-          subject: `[Scholar.name Chat] New message from ${name || email}`,
+          subject: `[Scholar.name Chat] New message from ${escapeHtml(name || email)}`,
           html: `
             <h2>New Chat Message</h2>
-            <p><strong>From:</strong> ${name || 'Anonymous'} (${email})</p>
-            <p><strong>Page:</strong> ${page || 'Unknown'}</p>
+            <p><strong>From:</strong> ${escapeHtml(name || 'Anonymous')} (${escapeHtml(email)})</p>
+            <p><strong>Page:</strong> ${escapeHtml(page || 'Unknown')}</p>
             <p><strong>Message:</strong></p>
-            <p>${message.replace(/\n/g, '<br>')}</p>
+            <p>${escapeHtml(message).replace(/\n/g, '<br>')}</p>
             <hr>
             <p style="color: #666; font-size: 12px;">This message was sent via the Scholar.name chat widget.</p>
           `,
@@ -1950,7 +2005,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Report Issue endpoint (for profile data issues)
-  app.post('/api/report-issue', async (req, res) => {
+  app.post('/api/report-issue', publicWriteRateLimit, async (req, res) => {
     try {
       const { openalexId, issueType, email, description } = req.body;
 
@@ -1989,12 +2044,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
             <table style="border-collapse: collapse; width: 100%; max-width: 600px;">
               <tr>
                 <td style="padding: 8px; border: 1px solid #ddd; background: #f9f9f9;"><strong>Issue Type</strong></td>
-                <td style="padding: 8px; border: 1px solid #ddd;">${issueTypeLabels[issueType] || issueType}</td>
+                <td style="padding: 8px; border: 1px solid #ddd;">${escapeHtml(issueTypeLabels[issueType] || issueType)}</td>
               </tr>
               <tr>
                 <td style="padding: 8px; border: 1px solid #ddd; background: #f9f9f9;"><strong>OpenAlex ID</strong></td>
                 <td style="padding: 8px; border: 1px solid #ddd;">
-                  <a href="https://openalex.org/authors/${openalexId}">${openalexId}</a>
+                  <a href="https://openalex.org/authors/${escapeHtmlAttribute(openalexId)}">${escapeHtml(openalexId)}</a>
                 </td>
               </tr>
               <tr>
@@ -2005,16 +2060,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
               </tr>
               <tr>
                 <td style="padding: 8px; border: 1px solid #ddd; background: #f9f9f9;"><strong>Reporter Email</strong></td>
-                <td style="padding: 8px; border: 1px solid #ddd;">${email}</td>
+                <td style="padding: 8px; border: 1px solid #ddd;">${escapeHtml(email)}</td>
               </tr>
               <tr>
                 <td style="padding: 8px; border: 1px solid #ddd; background: #f9f9f9;"><strong>Description</strong></td>
-                <td style="padding: 8px; border: 1px solid #ddd;">${description.replace(/\n/g, '<br>')}</td>
+                <td style="padding: 8px; border: 1px solid #ddd;">${escapeHtml(description).replace(/\n/g, '<br>')}</td>
               </tr>
             </table>
             <hr style="margin: 20px 0;">
             <p style="color: #666; font-size: 12px;">
-              Respond to this user at ${email}. If the issue is with source data, 
+              Respond to this user at ${escapeHtml(email)}. If the issue is with source data, 
               guide them to submit a correction to OpenAlex.
             </p>
           `,

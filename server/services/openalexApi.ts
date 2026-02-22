@@ -117,7 +117,7 @@ export class OpenAlexService {
     const cleanId = openalexId.startsWith('A') ? openalexId : `A${openalexId}`;
     const url = `${this.baseUrl}/people/${cleanId}`;
     
-    const response = await fetch(url);
+    const response = await fetch(url, { signal: AbortSignal.timeout(30_000) });
     if (!response.ok) {
       throw new Error(`OpenAlex API error: ${response.status} ${response.statusText}`);
     }
@@ -137,7 +137,7 @@ export class OpenAlexService {
     while (hasMoreResults) {
       const url = `${this.baseUrl}/works?filter=author.id:${cleanId}&per-page=${perPage}&page=${page}&sort=cited_by_count:desc`;
       
-      const response = await fetch(url);
+      const response = await fetch(url, { signal: AbortSignal.timeout(30_000) });
       if (!response.ok) {
         throw new Error(`OpenAlex API error: ${response.status} ${response.statusText}`);
       }

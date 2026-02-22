@@ -122,6 +122,7 @@ export class MontyPayService {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(payload),
+        signal: AbortSignal.timeout(15_000),
       });
 
       const data = await response.json();

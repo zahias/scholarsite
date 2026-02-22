@@ -404,7 +404,13 @@ if (!process.env.DATABASE_URL) {
   console.log(`Database connection initialized (SSL ${isNeonDatabase ? "enabled" : "disabled"})`);
   pool = new Pool({
     connectionString,
-    ssl: isNeonDatabase ? { rejectUnauthorized: false } : false
+    ssl: isNeonDatabase ? { rejectUnauthorized: false } : false,
+    max: 20,
+    idleTimeoutMillis: 3e4,
+    connectionTimeoutMillis: 5e3
+  });
+  pool.on("error", (err) => {
+    console.error("Unexpected PostgreSQL pool error:", err.message);
   });
   db = drizzle(pool, { schema: schema_exports });
 }
@@ -666,12 +672,14 @@ var DatabaseStorage = class {
   }
   async upsertResearchTopics(topics) {
     if (topics.length === 0) return;
-    await db.delete(researchTopics).where(eq(researchTopics.openalexId, topics[0].openalexId));
-    const topicsWithIds = topics.map((topic) => ({
-      ...topic,
-      id: generateUUID()
-    }));
-    await db.insert(researchTopics).values(topicsWithIds);
+    await db.transaction(async (tx) => {
+      await tx.delete(researchTopics).where(eq(researchTopics.openalexId, topics[0].openalexId));
+      const topicsWithIds = topics.map((topic) => ({
+        ...topic,
+        id: generateUUID()
+      }));
+      await tx.insert(researchTopics).values(topicsWithIds);
+    });
   }
   // Publications operations
   async getPublications(openalexId, limit) {
@@ -726,12 +734,14 @@ var DatabaseStorage = class {
   }
   async upsertAffiliations(affs) {
     if (affs.length === 0) return;
-    await db.delete(affiliations).where(eq(affiliations.openalexId, affs[0].openalexId));
-    const affsWithIds = affs.map((aff) => ({
-      ...aff,
-      id: generateUUID()
-    }));
-    await db.insert(affiliations).values(affsWithIds);
+    await db.transaction(async (tx) => {
+      await tx.delete(affiliations).where(eq(affiliations.openalexId, affs[0].openalexId));
+      const affsWithIds = affs.map((aff) => ({
+        ...aff,
+        id: generateUUID()
+      }));
+      await tx.insert(affiliations).values(affsWithIds);
+    });
   }
   // Profile sections operations
   async getProfileSectionById(id) {
@@ -1074,7 +1084,7 @@ var OpenAlexService = class {
   async getResearcher(openalexId) {
     const cleanId = openalexId.startsWith("A") ? openalexId : `A${openalexId}`;
     const url = `${this.baseUrl}/people/${cleanId}`;
-    const response = await fetch2(url);
+    const response = await fetch2(url, { signal: AbortSignal.timeout(3e4) });
     if (!response.ok) {
       throw new Error(`OpenAlex API error: ${response.status} ${response.statusText}`);
     }
@@ -1089,7 +1099,7 @@ var OpenAlexService = class {
     let hasMoreResults = true;
     while (hasMoreResults) {
       const url = `${this.baseUrl}/works?filter=author.id:${cleanId}&per-page=${perPage}&page=${page}&sort=cited_by_count:desc`;
-      const response = await fetch2(url);
+      const response = await fetch2(url, { signal: AbortSignal.timeout(3e4) });
       if (!response.ok) {
         throw new Error(`OpenAlex API error: ${response.status} ${response.statusText}`);
       }
@@ -2107,6 +2117,13 @@ function startSyncScheduler(intervalHours = 1) {
     runScheduledSync();
   }, intervalMs);
   console.log("[SyncScheduler] Scheduler started");
+}
+function stopSyncScheduler() {
+  if (schedulerInterval) {
+    clearInterval(schedulerInterval);
+    schedulerInterval = null;
+    console.log("[SyncScheduler] Scheduler stopped");
+  }
 }
 async function forceSyncTenant(tenantId) {
   const tenant = await storage.getTenant(tenantId);
@@ -3164,7 +3181,8 @@ var MontyPayService = class {
         headers: {
           "Content-Type": "application/json"
         },
-        body: JSON.stringify(payload)
+        body: JSON.stringify(payload),
+        signal: AbortSignal.timeout(15e3)
       });
       const data = await response.json();
       if (!response.ok) {
@@ -3412,7 +3430,7 @@ function adminSessionAuthMiddleware(req, res, next) {
       return next();
     }
   }
-  return next();
+  return res.status(401).json({ message: "Authentication required" });
 }
 function isAuthenticated3(req) {
   const adminToken = process.env.ADMIN_API_TOKEN;
@@ -3431,6 +3449,12 @@ var adminRateLimit = (() => {
   const requests = /* @__PURE__ */ new Map();
   const WINDOW_MS = 15 * 60 * 1e3;
   const MAX_REQUESTS = 100;
+  setInterval(() => {
+    const now = Date.now();
+    for (const [ip, data] of requests) {
+      if (now > data.resetTime) requests.delete(ip);
+    }
+  }, 60 * 60 * 1e3);
   return (req, res, next) => {
     const clientIP = req.ip || "unknown";
     const now = Date.now();
@@ -3442,6 +3466,32 @@ var adminRateLimit = (() => {
     if (clientData.count >= MAX_REQUESTS) {
       console.warn(`Admin rate limit exceeded for IP ${clientIP}`);
       return res.status(429).json({ message: "Rate limit exceeded for admin operations" });
+    }
+    clientData.count++;
+    next();
+  };
+})();
+var publicWriteRateLimit = (() => {
+  const requests = /* @__PURE__ */ new Map();
+  const WINDOW_MS = 15 * 60 * 1e3;
+  const MAX_REQUESTS = 20;
+  setInterval(() => {
+    const now = Date.now();
+    for (const [ip, data] of requests) {
+      if (now > data.resetTime) requests.delete(ip);
+    }
+  }, 60 * 60 * 1e3);
+  return (req, res, next) => {
+    const clientIP = req.ip || "unknown";
+    const now = Date.now();
+    const clientData = requests.get(clientIP);
+    if (!clientData || now > clientData.resetTime) {
+      requests.set(clientIP, { count: 1, resetTime: now + WINDOW_MS });
+      return next();
+    }
+    if (clientData.count >= MAX_REQUESTS) {
+      console.warn(`Public write rate limit exceeded for IP ${clientIP} on ${req.path}`);
+      return res.status(429).json({ message: "Too many requests. Please try again later." });
     }
     clientData.count++;
     next();
@@ -3764,11 +3814,13 @@ async function registerRoutes(app2) {
   app2.get("/api/events", (req, res) => {
     console.log("\u{1F4E1} New SSE connection request from:", req.ip);
     try {
+      const origin = req.headers.origin || req.headers.host || "";
       res.writeHead(200, {
         "Content-Type": "text/event-stream",
         "Cache-Control": "no-cache",
         "Connection": "keep-alive",
-        "Access-Control-Allow-Origin": "*"
+        "Access-Control-Allow-Origin": origin,
+        "Access-Control-Allow-Credentials": "true"
       });
       res.write(`data: ${JSON.stringify({ type: "connected", timestamp: (/* @__PURE__ */ new Date()).toISOString() })}
 
@@ -4241,7 +4293,15 @@ async function registerRoutes(app2) {
       res.status(500).json({ message: "Failed to search authors" });
     }
   });
-  app2.post("/api/contact", async (req, res) => {
+  app2.get("/api/health", async (_req, res) => {
+    try {
+      const tenants2 = await storage.getAllTenants();
+      res.json({ status: "ok", timestamp: (/* @__PURE__ */ new Date()).toISOString(), tenants: tenants2.length });
+    } catch (error) {
+      res.status(503).json({ status: "error", message: "Database unreachable" });
+    }
+  });
+  app2.post("/api/contact", publicWriteRateLimit, async (req, res) => {
     console.log("[Contact] Received contact form submission");
     try {
       const { fullName, email, institution, role, planInterest, researchField, openalexId, estimatedProfiles, biography, preferredTheme } = req.body;
@@ -4798,7 +4858,7 @@ async function registerRoutes(app2) {
       res.status(500).json({ message: "Failed to apply theme" });
     }
   });
-  app2.post("/api/analytics/track", async (req, res) => {
+  app2.post("/api/analytics/track", publicWriteRateLimit, async (req, res) => {
     try {
       const { openalexId, eventType, eventTarget, visitorId, referrer, userAgent, country, city } = req.body;
       if (!openalexId || !eventType) {
@@ -4847,7 +4907,7 @@ async function registerRoutes(app2) {
       res.status(500).json({ message: "Failed to fetch analytics" });
     }
   });
-  app2.post("/api/chat-message", async (req, res) => {
+  app2.post("/api/chat-message", publicWriteRateLimit, async (req, res) => {
     try {
       const { name, email, message, page } = req.body;
       if (!email || !message) {
@@ -4867,13 +4927,13 @@ async function registerRoutes(app2) {
         await transporter.sendMail({
           from: process.env.SMTP_FROM || process.env.SMTP_USER,
           to: adminEmail,
-          subject: `[Scholar.name Chat] New message from ${name || email}`,
+          subject: `[Scholar.name Chat] New message from ${escapeHtml(name || email)}`,
           html: `
             <h2>New Chat Message</h2>
-            <p><strong>From:</strong> ${name || "Anonymous"} (${email})</p>
-            <p><strong>Page:</strong> ${page || "Unknown"}</p>
+            <p><strong>From:</strong> ${escapeHtml(name || "Anonymous")} (${escapeHtml(email)})</p>
+            <p><strong>Page:</strong> ${escapeHtml(page || "Unknown")}</p>
             <p><strong>Message:</strong></p>
-            <p>${message.replace(/\n/g, "<br>")}</p>
+            <p>${escapeHtml(message).replace(/\n/g, "<br>")}</p>
             <hr>
             <p style="color: #666; font-size: 12px;">This message was sent via the Scholar.name chat widget.</p>
           `,
@@ -4892,7 +4952,7 @@ async function registerRoutes(app2) {
       });
     }
   });
-  app2.post("/api/report-issue", async (req, res) => {
+  app2.post("/api/report-issue", publicWriteRateLimit, async (req, res) => {
     try {
       const { openalexId, issueType, email, description } = req.body;
       if (!openalexId || !issueType || !email || !description) {
@@ -4925,12 +4985,12 @@ async function registerRoutes(app2) {
             <table style="border-collapse: collapse; width: 100%; max-width: 600px;">
               <tr>
                 <td style="padding: 8px; border: 1px solid #ddd; background: #f9f9f9;"><strong>Issue Type</strong></td>
-                <td style="padding: 8px; border: 1px solid #ddd;">${issueTypeLabels[issueType] || issueType}</td>
+                <td style="padding: 8px; border: 1px solid #ddd;">${escapeHtml(issueTypeLabels[issueType] || issueType)}</td>
               </tr>
               <tr>
                 <td style="padding: 8px; border: 1px solid #ddd; background: #f9f9f9;"><strong>OpenAlex ID</strong></td>
                 <td style="padding: 8px; border: 1px solid #ddd;">
-                  <a href="https://openalex.org/authors/${openalexId}">${openalexId}</a>
+                  <a href="https://openalex.org/authors/${escapeHtmlAttribute(openalexId)}">${escapeHtml(openalexId)}</a>
                 </td>
               </tr>
               <tr>
@@ -4941,16 +5001,16 @@ async function registerRoutes(app2) {
               </tr>
               <tr>
                 <td style="padding: 8px; border: 1px solid #ddd; background: #f9f9f9;"><strong>Reporter Email</strong></td>
-                <td style="padding: 8px; border: 1px solid #ddd;">${email}</td>
+                <td style="padding: 8px; border: 1px solid #ddd;">${escapeHtml(email)}</td>
               </tr>
               <tr>
                 <td style="padding: 8px; border: 1px solid #ddd; background: #f9f9f9;"><strong>Description</strong></td>
-                <td style="padding: 8px; border: 1px solid #ddd;">${description.replace(/\n/g, "<br>")}</td>
+                <td style="padding: 8px; border: 1px solid #ddd;">${escapeHtml(description).replace(/\n/g, "<br>")}</td>
               </tr>
             </table>
             <hr style="margin: 20px 0;">
             <p style="color: #666; font-size: 12px;">
-              Respond to this user at ${email}. If the issue is with source data, 
+              Respond to this user at ${escapeHtml(email)}. If the issue is with source data, 
               guide them to submit a correction to OpenAlex.
             </p>
           `,
@@ -5075,4 +5135,19 @@ app.use((req, res, next) => {
     startSyncScheduler(1);
     log("Sync scheduler started - checking tenants hourly");
   });
-})();
+  const shutdown = (signal) => {
+    log(`${signal} received \u2014 shutting down gracefully`);
+    stopSyncScheduler();
+    server.close(() => {
+      pool?.end?.();
+      log("HTTP server closed");
+      process.exit(0);
+    });
+    setTimeout(() => process.exit(1), 1e4).unref();
+  };
+  process.on("SIGTERM", () => shutdown("SIGTERM"));
+  process.on("SIGINT", () => shutdown("SIGINT"));
+})().catch((err) => {
+  console.error("Fatal startup error:", err);
+  process.exit(1);
+});
