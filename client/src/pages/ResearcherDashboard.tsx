@@ -45,6 +45,7 @@ import {
   Eye,
   EyeOff,
   Lock,
+  Loader2,
   Trash2,
   Star,
   GripVertical,
@@ -153,6 +154,18 @@ interface OpenAlexAuthor {
   topics?: Array<{ display_name: string }>;
 }
 
+interface AuthorSearchResult {
+  id: string;
+  display_name: string;
+  hint: string;
+  works_count: number;
+  cited_by_count: number;
+}
+
+interface SearchResponse {
+  results: AuthorSearchResult[];
+}
+
 // ───── Consolidated profile form state ─────
 
 interface ProfileFormState {
@@ -197,6 +210,13 @@ export default function ResearcherDashboard() {
   const [isSaving, setIsSaving] = useState(false);
   const [activeTab, setActiveTab] = useState("profile");
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // OpenAlex author search state
+  const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedQuery, setDebouncedQuery] = useState("");
+  const [showResults, setShowResults] = useState(false);
+  const [selectedAuthor, setSelectedAuthor] = useState<AuthorSearchResult | null>(null);
+  const searchRef = useRef<HTMLDivElement>(null);
   const cvInputRef = useRef<HTMLInputElement>(null);
   const [isPublic, setIsPublic] = useState(true);
   const [selectedThemeId, setSelectedThemeId] = useState<string | null>(null);
@@ -286,6 +306,42 @@ export default function ResearcherDashboard() {
     }
   }, [tenantData]);
 
+  // ───── OpenAlex name search ─────
+
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedQuery(searchQuery), 300);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
+        setShowResults(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const { data: searchResults, isLoading: isSearching } = useQuery<SearchResponse>({
+    queryKey: ["/api/openalex/autocomplete", debouncedQuery],
+    queryFn: async () => {
+      const response = await fetch(
+        `/api/openalex/autocomplete?q=${encodeURIComponent(debouncedQuery)}`
+      );
+      if (!response.ok) throw new Error("Search failed");
+      return response.json();
+    },
+    enabled: debouncedQuery.length >= 2,
+  });
+
+  const handleSelectAuthor = useCallback((author: AuthorSearchResult) => {
+    setSelectedAuthor(author);
+    setOpenalexIdInput(author.id);
+    setSearchQuery("");
+    setShowResults(false);
+  }, []);
+
   // ───── Mutations ─────
 
   const logoutMutation = useMutation({
@@ -356,29 +412,32 @@ export default function ResearcherDashboard() {
     },
   });
 
-  const verifyOpenAlexMutation = useMutation({
-    mutationFn: async (openalexId: string) => {
-      const response = await fetch(
-        `https://api.openalex.org/authors/${openalexId}`,
+  const connectOpenAlexMutation = useMutation({
+    mutationFn: async (authorId: string) => {
+      const response = await apiRequest(
+        "PATCH",
+        "/api/researcher/profile",
+        { openalexId: authorId },
       );
-      if (!response.ok) throw new Error("Author not found in OpenAlex");
       return response.json();
     },
-    onSuccess: async (data) => {
+    onSuccess: () => {
       toast({
-        title: "Author Found!",
-        description: `${data.display_name} with ${data.works_count} publications`,
+        title: "Profile Connected!",
+        description: "Your OpenAlex profile has been linked. Syncing publications...",
       });
-      await updateProfileMutation.mutateAsync({
-        openalexId: openalexIdInput,
+      setSelectedAuthor(null);
+      queryClient.invalidateQueries({
+        queryKey: ["/api/researcher/my-tenant"],
       });
       refetchAuthor();
+      // Auto-trigger a sync after connecting
+      syncMutation.mutate();
     },
-    onError: () => {
+    onError: (error: Error) => {
       toast({
-        title: "Not Found",
-        description:
-          "Could not find this author in OpenAlex. Check the ID.",
+        title: "Connection Failed",
+        description: error.message,
         variant: "destructive",
       });
     },
@@ -884,51 +943,103 @@ export default function ResearcherDashboard() {
                 Connect Your OpenAlex Profile
               </CardTitle>
               <CardDescription className="text-orange-700">
-                Enter your OpenAlex author ID to automatically import your
-                publications, metrics, and research topics.
+                Search for your name to find and connect your OpenAlex author
+                profile. This will import your publications, citations, and
+                research topics automatically.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="flex gap-2">
-                <div className="flex-1">
-                  <Label htmlFor="openalex-connect" className="sr-only">
-                    OpenAlex Author ID
-                  </Label>
+              {/* Name search */}
+              <div className="relative" ref={searchRef}>
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-orange-400 w-4 h-4" />
                   <Input
-                    id="openalex-connect"
-                    value={openalexIdInput}
-                    onChange={(e) => setOpenalexIdInput(e.target.value)}
-                    placeholder="e.g., A5023888391"
-                    data-testid="input-openalex-id"
+                    type="text"
+                    placeholder="Search by name..."
+                    value={searchQuery}
+                    onChange={(e) => {
+                      setSearchQuery(e.target.value);
+                      setShowResults(true);
+                      setSelectedAuthor(null);
+                    }}
+                    onFocus={() => setShowResults(true)}
+                    className="pl-10"
+                    data-testid="input-openalex-search"
                   />
                 </div>
-                <Button
-                  onClick={() =>
-                    verifyOpenAlexMutation.mutate(openalexIdInput)
-                  }
-                  disabled={
-                    !openalexIdInput ||
-                    verifyOpenAlexMutation.isPending
-                  }
-                  className="bg-orange-500 hover:bg-orange-600"
-                  data-testid="button-verify-openalex"
-                >
-                  {verifyOpenAlexMutation.isPending
-                    ? "Checking..."
-                    : "Connect"}
-                </Button>
+
+                {/* Dropdown results */}
+                {showResults && debouncedQuery.length >= 2 && (
+                  <div className="absolute z-50 w-full mt-1 bg-card border rounded-lg shadow-lg max-h-64 overflow-y-auto">
+                    {isSearching ? (
+                      <div className="p-4 flex items-center justify-center gap-2 text-sm text-muted-foreground">
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        Searching...
+                      </div>
+                    ) : searchResults?.results?.length ? (
+                      searchResults.results.map((author) => (
+                        <button
+                          key={author.id}
+                          className="w-full text-left px-4 py-3 hover:bg-muted/50 transition-colors border-b last:border-b-0"
+                          onClick={() => handleSelectAuthor(author)}
+                        >
+                          <p className="font-medium text-sm">{author.display_name}</p>
+                          <p className="text-xs text-muted-foreground truncate">{author.hint}</p>
+                          <p className="text-xs text-muted-foreground mt-0.5">
+                            {author.works_count.toLocaleString()} works &middot;{" "}
+                            {author.cited_by_count.toLocaleString()} citations
+                          </p>
+                        </button>
+                      ))
+                    ) : (
+                      <div className="p-4 text-sm text-muted-foreground text-center">
+                        No researchers found for &ldquo;{debouncedQuery}&rdquo;
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
-              <p className="text-sm text-orange-600">
-                Find your ID by searching your name on{" "}
-                <a
-                  href="https://openalex.org/authors"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="underline"
-                >
-                  OpenAlex Authors
-                </a>
-              </p>
+
+              {/* Selected author card */}
+              {selectedAuthor && (
+                <div className="border rounded-lg p-4 bg-white">
+                  <div className="flex items-start gap-3">
+                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                      <BookOpen className="w-5 h-5 text-primary" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold">{selectedAuthor.display_name}</p>
+                      <p className="text-sm text-muted-foreground truncate">{selectedAuthor.hint}</p>
+                      <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
+                        <span>{selectedAuthor.works_count.toLocaleString()} works</span>
+                        <span>{selectedAuthor.cited_by_count.toLocaleString()} citations</span>
+                      </div>
+                    </div>
+                    <Button
+                      onClick={() => connectOpenAlexMutation.mutate(selectedAuthor.id)}
+                      disabled={connectOpenAlexMutation.isPending}
+                      className="bg-orange-500 hover:bg-orange-600 flex-shrink-0"
+                      data-testid="button-connect-openalex"
+                    >
+                      {connectOpenAlexMutation.isPending ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Connecting...
+                        </>
+                      ) : (
+                        "Connect"
+                      )}
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              {!selectedAuthor && (
+                <p className="text-sm text-orange-600">
+                  Type your name above to search OpenAlex&apos;s database of
+                  researchers and their publications.
+                </p>
+              )}
             </CardContent>
           </Card>
         ) : (
@@ -2218,35 +2329,14 @@ export default function ResearcherDashboard() {
                 <Separator />
 
                 <div className="space-y-2">
-                  <Label htmlFor="settings-openalex-id">
-                    OpenAlex ID
-                  </Label>
-                  <div className="flex gap-2">
-                    <Input
-                      id="settings-openalex-id"
-                      value={openalexIdInput}
-                      onChange={(e) =>
-                        setOpenalexIdInput(e.target.value)
-                      }
-                      placeholder="e.g., A5023888391"
-                      className="flex-1"
-                      data-testid="input-change-openalex-id"
-                    />
-                    <Button
-                      variant="outline"
-                      onClick={() =>
-                        verifyOpenAlexMutation.mutate(
-                          openalexIdInput,
-                        )
-                      }
-                      disabled={
-                        !openalexIdInput ||
-                        verifyOpenAlexMutation.isPending
-                      }
-                      data-testid="button-update-openalex"
-                    >
-                      Update
-                    </Button>
+                  <Label>OpenAlex ID</Label>
+                  <div className="flex items-center gap-2 p-3 bg-slate-50 rounded-lg">
+                    <Badge variant="outline" className="font-mono text-xs">
+                      {profile?.openalexId || "Not connected"}
+                    </Badge>
+                    <span className="text-sm text-muted-foreground">
+                      To change your OpenAlex profile, contact support
+                    </span>
                   </div>
                 </div>
               </CardContent>
