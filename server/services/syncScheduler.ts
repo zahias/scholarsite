@@ -174,9 +174,10 @@ export function startSyncScheduler(intervalHours: number = 1): void {
 
   console.log(`[SyncScheduler] Starting scheduler with ${intervalHours} hour interval`);
 
+  // Delay first run by 5 minutes to let the server fully settle after startup
   setTimeout(() => {
     runScheduledSync();
-  }, 60000);
+  }, 5 * 60 * 1000);
 
   schedulerInterval = setInterval(() => {
     runScheduledSync();

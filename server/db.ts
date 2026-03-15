@@ -19,8 +19,8 @@ if (!process.env.DATABASE_URL) {
   pool = new Pool({ 
     connectionString: connectionString,
     ssl: isNeonDatabase ? { rejectUnauthorized: false } : false,
-    max: 20,
-    idleTimeoutMillis: 30_000,
+    max: 3,
+    idleTimeoutMillis: 10_000,
     connectionTimeoutMillis: 5_000,
   });
 

@@ -405,8 +405,8 @@ if (!process.env.DATABASE_URL) {
   pool = new Pool({
     connectionString,
     ssl: isNeonDatabase ? { rejectUnauthorized: false } : false,
-    max: 20,
-    idleTimeoutMillis: 3e4,
+    max: 3,
+    idleTimeoutMillis: 1e4,
     connectionTimeoutMillis: 5e3
   });
   pool.on("error", (err) => {
@@ -2133,7 +2133,7 @@ function startSyncScheduler(intervalHours = 1) {
   console.log(`[SyncScheduler] Starting scheduler with ${intervalHours} hour interval`);
   setTimeout(() => {
     runScheduledSync();
-  }, 6e4);
+  }, 5 * 60 * 1e3);
   schedulerInterval = setInterval(() => {
     runScheduledSync();
   }, intervalMs);
@@ -5341,6 +5341,13 @@ app.use((req, res, next) => {
   };
   process.on("SIGTERM", () => shutdown("SIGTERM"));
   process.on("SIGINT", () => shutdown("SIGINT"));
+  process.on("unhandledRejection", (reason) => {
+    console.error("Unhandled promise rejection:", reason);
+  });
+  process.on("uncaughtException", (err) => {
+    console.error("Uncaught exception:", err);
+    process.exit(1);
+  });
 })().catch((err) => {
   console.error("Fatal startup error:", err);
   process.exit(1);
