@@ -79,7 +79,7 @@ export default function FeaturesPage() {
     <div className="min-h-screen bg-background flex flex-col">
       <SEO
         title="Features — Scholar.name"
-        description="Auto-syncing publications, citation analytics, customizable themes, collaboration maps, and more. See everything Scholar.name offers researchers."
+        description="Auto-syncing publications, citation analytics, customizable themes, and more. See everything Scholar.name offers researchers."
         url="https://scholar.name/features"
         type="website"
       />

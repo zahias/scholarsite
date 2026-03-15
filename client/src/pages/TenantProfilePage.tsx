@@ -1,5 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import Navigation from "@/components/Navigation";
+import { ProfileThemeProvider } from "@/context/ThemeContext";
+import ResearchPassport from "@/components/ResearchPassport";
 import StatsOverview from "@/components/StatsOverview";
 import PublicationAnalytics from "@/components/PublicationAnalytics";
 import ResearchTopics from "@/components/ResearchTopics";
@@ -46,6 +48,7 @@ export default function TenantProfilePage() {
     lastSynced: string;
     tenant: any;
     isPreview?: boolean;
+    profileSections?: Array<{ id: string; title: string; content: string; sectionType: string; isVisible: boolean; sortOrder: number }>;
   } | null>({
     queryKey: ['/api/profile'],
     retry: false,
@@ -128,7 +131,12 @@ export default function TenantProfilePage() {
     );
   }
 
+  const visibleSections = (profileData?.profileSections ?? [])
+    .filter((s) => s.isVisible)
+    .sort((a, b) => a.sortOrder - b.sortOrder);
+
   return (
+    <ProfileThemeProvider initialThemeId={profile?.selectedThemeId ?? null}>
     <div className="min-h-screen bg-background pb-20 md:pb-0" data-testid="page-tenant-profile">
       <SEO 
         title={seoTitle}
@@ -139,7 +147,10 @@ export default function TenantProfilePage() {
         type="profile"
         structuredData={structuredData || undefined}
       />
-      <Navigation researcherName={profile?.displayName || researcher?.display_name || 'Researcher'} />
+      <Navigation
+        researcherName={profile?.displayName || researcher?.display_name || 'Researcher'}
+        sections={visibleSections.map((s) => ({ id: s.id, title: s.title }))}
+      />
       
       {/* Compact Hero Section */}
       <section id="overview" className="hero-banner-compact py-6 md:py-10 relative">
@@ -345,6 +356,38 @@ export default function TenantProfilePage() {
         <Publications openalexId={openalexId} inline />
       </CollapsibleSection>
 
+      {/* Custom Sections */}
+      {visibleSections.map((section) => (
+        <CollapsibleSection
+          key={section.id}
+          id={section.id}
+          title={section.title}
+          icon={<FileText className="w-5 h-5 md:w-6 md:h-6" />}
+          defaultOpen={true}
+          mobileDefaultOpen={false}
+          className="bg-muted"
+        >
+          <div className="px-6 pb-6 whitespace-pre-wrap text-sm text-foreground leading-relaxed">
+            {section.content}
+          </div>
+        </CollapsibleSection>
+      ))}
+
+      {/* Research Passport — Pro plan only */}
+      {tenant?.plan === 'professional' && openalexId && (
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <ResearchPassport
+            openalexId={openalexId}
+            name={profile?.displayName || researcher?.display_name || ''}
+            title={profile?.title}
+            institution={profile?.currentAffiliation || researcher?.last_known_institutions?.[0]?.display_name}
+            publicationCount={researcher?.works_count || 0}
+            citationCount={researcher?.cited_by_count || 0}
+            profileUrl={typeof window !== 'undefined' ? window.location.href : ''}
+          />
+        </div>
+      )}
+
       <footer className="bg-gradient-to-br from-card to-muted/20 border-t border-border py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
@@ -366,5 +409,6 @@ export default function TenantProfilePage() {
 
       <MobileBottomNav />
     </div>
+    </ProfileThemeProvider>
   );
 }

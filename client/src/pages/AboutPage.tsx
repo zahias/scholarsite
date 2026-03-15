@@ -217,7 +217,7 @@ export default function AboutPage() {
               </CardHeader>
               <CardContent>
                 <p className="text-muted-foreground mb-2">
-                  Available via the chat widget in the bottom-right corner of the page.
+                  Use the contact form on our <a href="/contact" className="text-primary hover:underline">Contact page</a> and we’ll get back to you promptly.
                 </p>
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <Clock className="w-4 h-4" />

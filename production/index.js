@@ -895,14 +895,39 @@ var DatabaseStorage = class {
   async provisionTenantFromPayment(paymentId) {
     const [payment] = await db.select().from(payments).where(eq(payments.id, paymentId));
     if (!payment || payment.status !== "completed") return void 0;
-    const tenantName = payment.customerName.split(" ")[0].toLowerCase() + "-portfolio";
-    const subdomain = tenantName.replace(/[^a-z0-9-]/g, "");
+    const existingUser = await this.getUserByEmail(payment.customerEmail);
+    if (existingUser?.tenantId) {
+      const subscriptionEnd2 = /* @__PURE__ */ new Date();
+      if (payment.billingPeriod === "yearly") {
+        subscriptionEnd2.setFullYear(subscriptionEnd2.getFullYear() + 1);
+      } else {
+        subscriptionEnd2.setMonth(subscriptionEnd2.getMonth() + 1);
+      }
+      const updatedTenant = await this.updateTenant(existingUser.tenantId, {
+        plan: payment.plan,
+        status: "active",
+        subscriptionStartDate: /* @__PURE__ */ new Date(),
+        subscriptionEndDate: subscriptionEnd2
+      });
+      await db.update(payments).set({ tenantId: existingUser.tenantId }).where(eq(payments.id, paymentId));
+      return updatedTenant;
+    }
+    const firstWord = payment.customerName.split(" ")[0].toLowerCase().replace(/[^a-z0-9]/g, "");
+    const uniqueSuffix = crypto.randomBytes(3).toString("hex");
+    const subdomain = `${firstWord}-${uniqueSuffix}`.substring(0, 40);
+    const subscriptionEnd = /* @__PURE__ */ new Date();
+    if (payment.billingPeriod === "yearly") {
+      subscriptionEnd.setFullYear(subscriptionEnd.getFullYear() + 1);
+    } else {
+      subscriptionEnd.setMonth(subscriptionEnd.getMonth() + 1);
+    }
     const tenant = await this.createTenant({
       name: payment.customerName,
       plan: payment.plan,
       status: "active",
       contactEmail: payment.customerEmail,
-      subscriptionStartDate: /* @__PURE__ */ new Date()
+      subscriptionStartDate: /* @__PURE__ */ new Date(),
+      subscriptionEndDate: subscriptionEnd
     });
     await db.update(payments).set({ tenantId: tenant.id }).where(eq(payments.id, paymentId));
     await this.createDomain({
@@ -1575,19 +1600,6 @@ router.post("/register", async (req, res) => {
       lastName: validatedData.lastName,
       role: "researcher"
     });
-    if (validatedData.openalexId) {
-      try {
-        await storage.upsertResearcherProfile({
-          userId: user.id,
-          openalexId: validatedData.openalexId,
-          displayName: `${validatedData.firstName} ${validatedData.lastName}`,
-          currentAffiliation: validatedData.affiliation || null,
-          isPublic: false
-        });
-      } catch (profileError) {
-        console.error("Failed to create researcher profile during registration:", profileError);
-      }
-    }
     req.session.regenerate((err) => {
       if (err) {
         console.error("Session regeneration error:", err);
@@ -1970,6 +1982,15 @@ router2.get("/analytics", isAuthenticated, isAdmin, async (req, res) => {
   } catch (error) {
     console.error("Get analytics error:", error);
     return res.status(500).json({ message: "Failed to get analytics" });
+  }
+});
+router2.get("/payments", isAuthenticated, isAdmin, async (req, res) => {
+  try {
+    const payments2 = await storage.getAllPayments();
+    return res.json({ payments: payments2 });
+  } catch (error) {
+    console.error("Get payments error:", error);
+    return res.status(500).json({ message: "Failed to get payments" });
   }
 });
 var adminRouter = router2;
@@ -2599,13 +2620,7 @@ var uploadImage = multer({
     }
   }
 });
-function isAuthenticated2(req, res, next) {
-  if (!req.session?.userId) {
-    return res.status(401).json({ message: "Not authenticated" });
-  }
-  next();
-}
-router4.get("/my-tenant", isAuthenticated2, async (req, res) => {
+router4.get("/my-tenant", isAuthenticated, async (req, res) => {
   try {
     const userId = req.session?.userId;
     if (!userId) {
@@ -2644,7 +2659,7 @@ var updateProfileSchema = z5.object({
   cvUrl: z5.string().nullable().optional(),
   selectedThemeId: z5.string().nullable().optional()
 });
-router4.patch("/profile", isAuthenticated2, async (req, res) => {
+router4.patch("/profile", isAuthenticated, async (req, res) => {
   try {
     const userId = req.session?.userId;
     if (!userId) {
@@ -2668,7 +2683,7 @@ router4.patch("/profile", isAuthenticated2, async (req, res) => {
     res.status(500).json({ message: "Failed to update profile" });
   }
 });
-router4.post("/sync", isAuthenticated2, async (req, res) => {
+router4.post("/sync", isAuthenticated, async (req, res) => {
   try {
     const userId = req.session?.userId;
     if (!userId) {
@@ -2682,17 +2697,47 @@ router4.post("/sync", isAuthenticated2, async (req, res) => {
     if (!tenant?.profile?.openalexId) {
       return res.status(400).json({ message: "No OpenAlex ID configured" });
     }
-    await openalexService2.syncResearcherData(tenant.profile.openalexId);
-    const profile = await storage.updateTenantProfile(user.tenantId, {
-      lastSyncedAt: /* @__PURE__ */ new Date()
+    const dbProfile = await storage.getResearcherProfileByTenant(user.tenantId);
+    if (!dbProfile) {
+      return res.status(404).json({ message: "Profile not found" });
+    }
+    const syncLog = await storage.createSyncLog({
+      tenantId: user.tenantId,
+      profileId: dbProfile.id,
+      syncType: "full",
+      status: "in_progress"
     });
-    res.json({ profile, message: "Sync completed - your data has been refreshed from OpenAlex" });
+    try {
+      const timeoutPromise = new Promise(
+        (_, reject) => setTimeout(() => reject(new Error("Sync timed out after 45 seconds")), 45e3)
+      );
+      await Promise.race([
+        openalexService2.syncResearcherData(tenant.profile.openalexId),
+        timeoutPromise
+      ]);
+      await storage.updateSyncLog(syncLog.id, {
+        status: "completed",
+        completedAt: /* @__PURE__ */ new Date()
+      });
+      const profile = await storage.updateTenantProfile(user.tenantId, {
+        lastSyncedAt: /* @__PURE__ */ new Date()
+      });
+      res.json({ profile, message: "Sync completed - your data has been refreshed from OpenAlex" });
+    } catch (syncError) {
+      const errorMsg = syncError instanceof Error ? syncError.message : "Unknown sync error";
+      await storage.updateSyncLog(syncLog.id, {
+        status: "failed",
+        completedAt: /* @__PURE__ */ new Date(),
+        errorMessage: errorMsg
+      });
+      throw syncError;
+    }
   } catch (error) {
     console.error("Error syncing profile:", error);
     res.status(500).json({ message: "Failed to sync profile" });
   }
 });
-router4.post("/upload-photo", isAuthenticated2, uploadImage.single("photo"), async (req, res) => {
+router4.post("/upload-photo", isAuthenticated, uploadImage.single("photo"), async (req, res) => {
   try {
     const userId = req.session?.userId;
     if (!userId) {
@@ -2753,7 +2798,7 @@ var uploadDocument = multer({
     }
   }
 });
-router4.post("/upload-cv", isAuthenticated2, uploadDocument.single("cv"), async (req, res) => {
+router4.post("/upload-cv", isAuthenticated, uploadDocument.single("cv"), async (req, res) => {
   try {
     const userId = req.session?.userId;
     if (!userId) {
@@ -2804,7 +2849,7 @@ router4.post("/upload-cv", isAuthenticated2, uploadDocument.single("cv"), async 
     res.status(500).json({ message: "Failed to upload CV" });
   }
 });
-router4.delete("/cv", isAuthenticated2, async (req, res) => {
+router4.delete("/cv", isAuthenticated, async (req, res) => {
   try {
     const userId = req.session?.userId;
     if (!userId) {
@@ -2823,7 +2868,7 @@ router4.delete("/cv", isAuthenticated2, async (req, res) => {
     res.status(500).json({ message: "Failed to remove CV" });
   }
 });
-router4.get("/publications", isAuthenticated2, async (req, res) => {
+router4.get("/publications", isAuthenticated, async (req, res) => {
   try {
     const userId = req.session?.userId;
     if (!userId) {
@@ -2844,7 +2889,7 @@ router4.get("/publications", isAuthenticated2, async (req, res) => {
     res.status(500).json({ message: "Failed to get publications" });
   }
 });
-router4.patch("/publications/:publicationId/feature", isAuthenticated2, async (req, res) => {
+router4.patch("/publications/:publicationId/feature", isAuthenticated, async (req, res) => {
   try {
     const userId = req.session?.userId;
     if (!userId) {
@@ -2871,7 +2916,7 @@ router4.patch("/publications/:publicationId/feature", isAuthenticated2, async (r
     res.status(500).json({ message: "Failed to update publication" });
   }
 });
-router4.post("/publications/:publicationId/upload-pdf", isAuthenticated2, uploadDocument.single("pdf"), async (req, res) => {
+router4.post("/publications/:publicationId/upload-pdf", isAuthenticated, uploadDocument.single("pdf"), async (req, res) => {
   try {
     const userId = req.session?.userId;
     if (!userId) {
@@ -2919,7 +2964,7 @@ router4.post("/publications/:publicationId/upload-pdf", isAuthenticated2, upload
     res.status(500).json({ message: "Failed to upload PDF" });
   }
 });
-router4.delete("/publications/:publicationId/pdf", isAuthenticated2, async (req, res) => {
+router4.delete("/publications/:publicationId/pdf", isAuthenticated, async (req, res) => {
   try {
     const userId = req.session?.userId;
     if (!userId) {
@@ -2942,7 +2987,7 @@ router4.delete("/publications/:publicationId/pdf", isAuthenticated2, async (req,
     res.status(500).json({ message: "Failed to remove PDF" });
   }
 });
-router4.get("/sections", isAuthenticated2, async (req, res) => {
+router4.get("/sections", isAuthenticated, async (req, res) => {
   try {
     const userId = req.session?.userId;
     if (!userId) {
@@ -2963,7 +3008,7 @@ router4.get("/sections", isAuthenticated2, async (req, res) => {
     res.status(500).json({ message: "Failed to get profile sections" });
   }
 });
-router4.post("/sections", isAuthenticated2, async (req, res) => {
+router4.post("/sections", isAuthenticated, async (req, res) => {
   try {
     const userId = req.session?.userId;
     if (!userId) {
@@ -2998,7 +3043,7 @@ router4.post("/sections", isAuthenticated2, async (req, res) => {
     res.status(500).json({ message: "Failed to create profile section", error: errorMsg });
   }
 });
-router4.patch("/sections/:sectionId", isAuthenticated2, async (req, res) => {
+router4.patch("/sections/:sectionId", isAuthenticated, async (req, res) => {
   try {
     const userId = req.session?.userId;
     if (!userId) {
@@ -3031,7 +3076,7 @@ router4.patch("/sections/:sectionId", isAuthenticated2, async (req, res) => {
     res.status(500).json({ message: "Failed to update profile section" });
   }
 });
-router4.delete("/sections/:sectionId", isAuthenticated2, async (req, res) => {
+router4.delete("/sections/:sectionId", isAuthenticated, async (req, res) => {
   try {
     const userId = req.session?.userId;
     if (!userId) {
@@ -3057,7 +3102,7 @@ router4.delete("/sections/:sectionId", isAuthenticated2, async (req, res) => {
     res.status(500).json({ message: "Failed to delete profile section" });
   }
 });
-router4.post("/sections/reorder", isAuthenticated2, async (req, res) => {
+router4.post("/sections/reorder", isAuthenticated, async (req, res) => {
   try {
     const userId = req.session?.userId;
     if (!userId) {
@@ -3088,7 +3133,7 @@ router4.post("/sections/reorder", isAuthenticated2, async (req, res) => {
     res.status(500).json({ message: "Failed to reorder sections" });
   }
 });
-router4.get("/sync-logs", isAuthenticated2, async (req, res) => {
+router4.get("/sync-logs", isAuthenticated, async (req, res) => {
   try {
     const userId = req.session?.userId;
     if (!userId) {
@@ -3213,6 +3258,7 @@ var montyPayService = new MontyPayService();
 
 // server/checkoutRoutes.ts
 import crypto3 from "crypto";
+import nodemailer from "nodemailer";
 var router5 = Router5();
 var PRICING = {
   starter: { monthly: 9.99, yearly: 95.88 },
@@ -3222,6 +3268,39 @@ function generateOrderNumber() {
   const timestamp2 = Date.now().toString(36);
   const random = crypto3.randomBytes(4).toString("hex");
   return `SN-${timestamp2}-${random}`.toUpperCase();
+}
+async function sendWelcomeEmail(email, name, _tenantId) {
+  if (!process.env.SMTP_PASSWORD) return;
+  const smtpHost = process.env.SMTP_HOST || "mail.scholar.name";
+  const smtpPort = parseInt(process.env.SMTP_PORT || "587", 10);
+  const smtpUser = process.env.SMTP_USER || "noreply@scholar.name";
+  const transporter = nodemailer.createTransport({
+    host: smtpHost,
+    port: smtpPort,
+    secure: smtpPort === 465,
+    auth: { user: smtpUser, pass: process.env.SMTP_PASSWORD },
+    tls: { rejectUnauthorized: false }
+  });
+  const firstName = name.split(" ")[0];
+  await transporter.sendMail({
+    from: `"Scholar.name" <${smtpUser}>`,
+    to: email,
+    subject: "Welcome to Scholar.name \u2014 your portfolio is active!",
+    text: [
+      `Hi ${firstName},`,
+      "",
+      "Your Scholar.name portfolio is now active. Log in to your dashboard to:",
+      "  \u2022 Update your profile and bio",
+      "  \u2022 Feature your best publications",
+      "  \u2022 Track visitor analytics",
+      "",
+      "Log in at: https://scholar.name/dashboard/login",
+      "",
+      "Questions? Reply to this email.",
+      "",
+      "The Scholar.name team"
+    ].join("\n")
+  });
 }
 router5.post("/create-session", async (req, res) => {
   try {
@@ -3333,6 +3412,9 @@ router5.post("/webhook", async (req, res) => {
       } else {
         const tenant = await storage.provisionTenantFromPayment(payment.id);
         console.log(`Tenant provisioned for payment ${orderNumber}:`, tenant?.id);
+        if (tenant) {
+          sendWelcomeEmail(payment.customerEmail, payment.customerName, tenant.id).catch((err) => console.error("Welcome email failed:", err));
+        }
       }
     } else if (status === "DECLINE" || status === "ERROR") {
       await storage.updatePaymentStatus(orderNumber, "failed", transactionId);
@@ -3408,7 +3490,7 @@ async function tenantResolver(req, res, next) {
 
 // server/routes.ts
 import fetch3 from "node-fetch";
-import nodemailer from "nodemailer";
+import nodemailer2 from "nodemailer";
 var updateEmitter = new EventEmitter();
 var sseConnections = /* @__PURE__ */ new Set();
 function adminSessionAuthMiddleware(req, res, next) {
@@ -3432,7 +3514,7 @@ function adminSessionAuthMiddleware(req, res, next) {
   }
   return res.status(401).json({ message: "Authentication required" });
 }
-function isAuthenticated3(req) {
+function isAuthenticated2(req) {
   const adminToken = process.env.ADMIN_API_TOKEN;
   if (!adminToken) return false;
   if (req.session?.isAdmin) {
@@ -4115,7 +4197,7 @@ async function registerRoutes(app2) {
     }
   });
   app2.post("/api/admin/researcher/profile", adminRateLimit, adminSessionAuthMiddleware, async (req, res) => {
-    if (!isAuthenticated3(req)) {
+    if (!isAuthenticated2(req)) {
       return res.status(401).json({ message: "Authentication required" });
     }
     try {
@@ -4151,7 +4233,7 @@ async function registerRoutes(app2) {
     }
   });
   app2.put("/api/admin/researcher/profile/:openalexId", adminRateLimit, adminSessionAuthMiddleware, async (req, res) => {
-    if (!isAuthenticated3(req)) {
+    if (!isAuthenticated2(req)) {
       return res.status(401).json({ message: "Authentication required" });
     }
     try {
@@ -4177,7 +4259,7 @@ async function registerRoutes(app2) {
     }
   });
   app2.get("/api/admin/researcher/profile/:openalexId", adminRateLimit, adminSessionAuthMiddleware, async (req, res) => {
-    if (!isAuthenticated3(req)) {
+    if (!isAuthenticated2(req)) {
       return res.status(401).json({ message: "Authentication required" });
     }
     try {
@@ -4193,7 +4275,7 @@ async function registerRoutes(app2) {
     }
   });
   app2.post("/api/admin/researcher/:openalexId/sync", adminRateLimit, adminSessionAuthMiddleware, async (req, res) => {
-    if (!isAuthenticated3(req)) {
+    if (!isAuthenticated2(req)) {
       return res.status(401).json({ message: "Authentication required" });
     }
     try {
@@ -4216,7 +4298,7 @@ async function registerRoutes(app2) {
     }
   });
   app2.delete("/api/admin/researcher/:openalexId", adminRateLimit, adminSessionAuthMiddleware, async (req, res) => {
-    if (!isAuthenticated3(req)) {
+    if (!isAuthenticated2(req)) {
       return res.status(401).json({ message: "Authentication required" });
     }
     try {
@@ -4323,7 +4405,7 @@ async function registerRoutes(app2) {
       const smtpPort = parseInt(process.env.SMTP_PORT || "465", 10);
       const smtpUser = process.env.SMTP_USER || "info@scholar.name";
       console.log(`[Contact] SMTP Config: host=${smtpHost}, port=${smtpPort}, user=${smtpUser}`);
-      const transporter = nodemailer.createTransport({
+      const transporter = nodemailer2.createTransport({
         host: smtpHost,
         port: smtpPort,
         secure: smtpPort === 465,
@@ -4334,9 +4416,7 @@ async function registerRoutes(app2) {
         },
         tls: {
           rejectUnauthorized: false
-        },
-        debug: true,
-        logger: true
+        }
       });
       console.log("[Contact] Transporter created, verifying connection...");
       const emailContent = [
@@ -4913,7 +4993,7 @@ async function registerRoutes(app2) {
       if (!email || !message) {
         return res.status(400).json({ message: "Email and message are required" });
       }
-      const transporter = nodemailer.createTransport({
+      const transporter = nodemailer2.createTransport({
         host: process.env.SMTP_HOST || "smtp.gmail.com",
         port: parseInt(process.env.SMTP_PORT || "587"),
         secure: process.env.SMTP_SECURE === "true",
@@ -4965,7 +5045,7 @@ async function registerRoutes(app2) {
         "wrong_affiliation": "Wrong affiliation",
         "other": "Other issue"
       };
-      const transporter = nodemailer.createTransport({
+      const transporter = nodemailer2.createTransport({
         host: process.env.SMTP_HOST || "smtp.gmail.com",
         port: parseInt(process.env.SMTP_PORT || "587"),
         secure: process.env.SMTP_SECURE === "true",
@@ -5070,11 +5150,124 @@ function serveStatic(app2) {
   });
 }
 
+// server/services/themeSeed.ts
+var DEFAULT_THEMES = [
+  {
+    name: "Deep Navy",
+    description: "Classic academic blue",
+    sortOrder: 1,
+    config: {
+      colors: {
+        primary: "#1e3a5f",
+        primaryDark: "#0f2240",
+        accent: "#F2994A",
+        background: "#FFFFFF",
+        surface: "#F8FAFC",
+        text: "#1E293B",
+        textMuted: "#64748B"
+      }
+    },
+    isActive: true,
+    isDefault: true
+  },
+  {
+    name: "Forest Scholar",
+    description: "Natural green tones",
+    sortOrder: 2,
+    config: {
+      colors: {
+        primary: "#2d6a4f",
+        primaryDark: "#1b4332",
+        accent: "#95d5b2",
+        background: "#FFFFFF",
+        surface: "#f0fdf4",
+        text: "#1a2e1a",
+        textMuted: "#4a7c59"
+      }
+    },
+    isActive: true,
+    isDefault: false
+  },
+  {
+    name: "Crimson",
+    description: "Bold academic red",
+    sortOrder: 3,
+    config: {
+      colors: {
+        primary: "#8b1a1a",
+        primaryDark: "#5c0f0f",
+        accent: "#e07b7b",
+        background: "#FFFFFF",
+        surface: "#fff5f5",
+        text: "#1a0a0a",
+        textMuted: "#6b3636"
+      }
+    },
+    isActive: true,
+    isDefault: false
+  },
+  {
+    name: "Slate Pro",
+    description: "Modern dark slate",
+    sortOrder: 4,
+    config: {
+      colors: {
+        primary: "#374151",
+        primaryDark: "#1f2937",
+        accent: "#6366f1",
+        background: "#FFFFFF",
+        surface: "#f9fafb",
+        text: "#111827",
+        textMuted: "#6b7280"
+      }
+    },
+    isActive: true,
+    isDefault: false
+  },
+  {
+    name: "Warm Amber",
+    description: "Warm earth tones",
+    sortOrder: 5,
+    config: {
+      colors: {
+        primary: "#92400e",
+        primaryDark: "#78350f",
+        accent: "#f59e0b",
+        background: "#FFFFFF",
+        surface: "#fffbeb",
+        text: "#1c0a00",
+        textMuted: "#92400e"
+      }
+    },
+    isActive: true,
+    isDefault: false
+  }
+];
+async function seedThemesIfEmpty() {
+  try {
+    const existing = await storage.getActiveThemes();
+    if (existing.length > 0) return;
+    for (const theme of DEFAULT_THEMES) {
+      await storage.createTheme(theme);
+    }
+    console.log("[themeSeed] Seeded 5 default themes");
+  } catch (err) {
+    console.error("[themeSeed] Failed to seed themes:", err);
+  }
+}
+
 // server/index-production.ts
 var app = express2();
 app.set("trust proxy", 1);
 app.use(express2.json());
 app.use(express2.urlencoded({ extended: true }));
+app.use((_req, res, next) => {
+  res.setHeader("X-Frame-Options", "SAMEORIGIN");
+  res.setHeader("X-Content-Type-Options", "nosniff");
+  res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
+  res.setHeader("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
+  next();
+});
 if (!process.env.SESSION_SECRET) {
   console.error("\u26A0\uFE0F  WARNING: SESSION_SECRET not set \u2014 using insecure fallback. Set SESSION_SECRET env var ASAP!");
 }
@@ -5122,6 +5315,7 @@ app.use((req, res, next) => {
 });
 (async () => {
   const server = await registerRoutes(app);
+  await seedThemesIfEmpty();
   app.use((err, _req, res, _next) => {
     const status = err.status || err.statusCode || 500;
     const message = err.message || "Internal Server Error";

@@ -241,9 +241,15 @@ export default function ResearcherDashboard() {
 
   const { data: tenantData, isLoading: tenantLoading } = useQuery<{
     tenant: TenantData;
-  }>({
+  } | null>({
     queryKey: ["/api/researcher/my-tenant"],
     enabled: !!userData?.user,
+    queryFn: async () => {
+      const res = await fetch("/api/researcher/my-tenant", { credentials: "include" });
+      if (res.status === 401 || res.status === 404) return null;
+      if (!res.ok) throw new Error(`${res.status}`);
+      return res.json();
+    },
   });
 
   const {
@@ -881,6 +887,30 @@ export default function ResearcherDashboard() {
   if (!userData?.user) {
     navigate("/dashboard/login");
     return null;
+  }
+
+  if (!tenantLoading && !tenantData?.tenant) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex flex-col items-center justify-center p-8">
+        <div className="max-w-md w-full text-center space-y-6">
+          <div className="w-16 h-16 bg-primary rounded-2xl flex items-center justify-center mx-auto">
+            <BookOpen className="w-8 h-8 text-white" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold text-foreground">Activate your portfolio</h1>
+            <p className="text-muted-foreground mt-2">
+              Choose a plan to publish your Scholar.name portfolio and start showcasing your research.
+            </p>
+          </div>
+          <a
+            href="/pricing"
+            className="inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-6 py-3 text-sm font-semibold text-white hover:bg-primary/90 transition-colors"
+          >
+            View plans &amp; pricing
+          </a>
+        </div>
+      </div>
+    );
   }
 
   const tenant = tenantData?.tenant;

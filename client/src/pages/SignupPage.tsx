@@ -133,7 +133,7 @@ export default function SignupPage() {
       setIsSuccess(true);
       toast({
         title: "Account created!",
-        description: "Welcome to Scholar.name. Redirecting to your dashboard\u2026",
+        description: "Your 14-day free trial is active. Redirecting to your dashboard…",
       });
       setTimeout(() => navigate("/dashboard"), 1500);
     },

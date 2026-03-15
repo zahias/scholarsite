@@ -35,7 +35,6 @@ const plans = [
       "Everything in Starter",
       "Custom domain (yourname.com)",
       "Research Passport download",
-      "Collaboration Map",
       "Weekly data sync",
       "Priority support",
     ],
@@ -55,7 +54,7 @@ export default function PricingPage() {
     <div className="min-h-screen bg-background flex flex-col">
       <SEO
         title="Pricing — Scholar.name"
-        description="Simple, transparent pricing for professional research portfolios. Start with a 14-day free trial — no credit card required."
+        description="Simple, transparent pricing for professional research portfolios."
         url="https://scholar.name/pricing"
         type="website"
       />
@@ -72,7 +71,7 @@ export default function PricingPage() {
               Simple, Transparent Pricing
             </h1>
             <p className="text-lg text-white/80 max-w-2xl mx-auto">
-              Start with a 14-day free trial. No credit card required.
+              Choose a plan and your portfolio goes live in minutes.
             </p>
           </div>
         </section>
@@ -136,7 +135,7 @@ export default function PricingPage() {
                         navigate(`/signup?plan=${plan.name.toLowerCase()}`);
                       }}
                     >
-                      Start Free Trial
+                      Get Started
                     </Button>
                   </CardContent>
                 </Card>
@@ -145,7 +144,6 @@ export default function PricingPage() {
 
             {/* Comparison note */}
             <p className="text-center text-sm text-muted-foreground mt-10 max-w-lg mx-auto">
-              Both plans include a 14-day free trial with full access.
               Cancel anytime — your profile stays active until the billing period ends.
             </p>
           </div>

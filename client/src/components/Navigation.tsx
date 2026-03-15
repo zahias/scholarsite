@@ -3,17 +3,29 @@ import { useEffect, useState } from "react";
 
 interface NavigationProps {
   researcherName?: string;
+  sections?: Array<{ id: string; title: string }>;
 }
 
-export default function Navigation({ researcherName = 'Researcher' }: NavigationProps) {
+export default function Navigation({ researcherName = 'Researcher', sections }: NavigationProps) {
   const [activeSection, setActiveSection] = useState('overview');
+
+  const baseNavItems = [
+    { id: 'overview', label: 'Overview' },
+    { id: 'insights', label: 'Insights' },
+    { id: 'publications', label: 'Publications' },
+  ];
+
+  const navItems = [
+    ...baseNavItems,
+    ...(sections || []).map((s) => ({ id: s.id, label: s.title })),
+  ];
 
   useEffect(() => {
     const handleScroll = () => {
-      const sections = ['overview', 'insights', 'publications'];
+      const sectionIds = navItems.map((item) => item.id);
       const scrollPosition = window.scrollY + window.innerHeight / 3; // Trigger earlier for better UX
 
-      for (const sectionId of sections) {
+      for (const sectionId of sectionIds) {
         const element = document.getElementById(sectionId);
         if (element) {
           const { offsetTop, offsetHeight } = element;
@@ -28,7 +40,7 @@ export default function Navigation({ researcherName = 'Researcher' }: Navigation
     window.addEventListener('scroll', handleScroll);
     handleScroll(); // Initial check
     return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+  }, [navItems]);
 
   const scrollToSection = (sectionId: string) => {
     const element = document.getElementById(sectionId);
@@ -36,12 +48,6 @@ export default function Navigation({ researcherName = 'Researcher' }: Navigation
       element.scrollIntoView({ behavior: 'smooth' });
     }
   };
-
-  const navItems = [
-    { id: 'overview', label: 'Overview' },
-    { id: 'insights', label: 'Insights' },
-    { id: 'publications', label: 'Publications' },
-  ];
 
   return (
     <nav className="sticky top-0 z-50 bg-white dark:bg-slate-900 backdrop-blur-sm border-b border-slate-200 dark:border-slate-800 shadow-sm" aria-label="Profile navigation">

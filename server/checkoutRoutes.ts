@@ -3,6 +3,7 @@ import { montyPayService } from './services/montypay';
 import { checkoutSessionSchema } from '@shared/schema';
 import { storage } from './storage';
 import crypto from 'crypto';
+import nodemailer from 'nodemailer';
 
 const router = Router();
 
@@ -15,6 +16,42 @@ function generateOrderNumber(): string {
   const timestamp = Date.now().toString(36);
   const random = crypto.randomBytes(4).toString('hex');
   return `SN-${timestamp}-${random}`.toUpperCase();
+}
+
+async function sendWelcomeEmail(email: string, name: string, _tenantId: string): Promise<void> {
+  if (!process.env.SMTP_PASSWORD) return;
+  const smtpHost = process.env.SMTP_HOST || 'mail.scholar.name';
+  const smtpPort = parseInt(process.env.SMTP_PORT || '587', 10);
+  const smtpUser = process.env.SMTP_USER || 'noreply@scholar.name';
+
+  const transporter = nodemailer.createTransport({
+    host: smtpHost,
+    port: smtpPort,
+    secure: smtpPort === 465,
+    auth: { user: smtpUser, pass: process.env.SMTP_PASSWORD },
+    tls: { rejectUnauthorized: false },
+  });
+
+  const firstName = name.split(' ')[0];
+  await transporter.sendMail({
+    from: `"Scholar.name" <${smtpUser}>`,
+    to: email,
+    subject: 'Welcome to Scholar.name — your portfolio is active!',
+    text: [
+      `Hi ${firstName},`,
+      '',
+      'Your Scholar.name portfolio is now active. Log in to your dashboard to:',
+      '  • Update your profile and bio',
+      '  • Feature your best publications',
+      '  • Track visitor analytics',
+      '',
+      'Log in at: https://scholar.name/dashboard/login',
+      '',
+      'Questions? Reply to this email.',
+      '',
+      'The Scholar.name team',
+    ].join('\n'),
+  });
 }
 
 router.post('/create-session', async (req: Request, res: Response) => {
@@ -148,6 +185,10 @@ router.post('/webhook', async (req: Request, res: Response) => {
       } else {
         const tenant = await storage.provisionTenantFromPayment(payment.id);
         console.log(`Tenant provisioned for payment ${orderNumber}:`, tenant?.id);
+        if (tenant) {
+          sendWelcomeEmail(payment.customerEmail, payment.customerName, tenant.id)
+            .catch((err) => console.error('Welcome email failed:', err));
+        }
       }
     } else if (status === 'DECLINE' || status === 'ERROR') {
       await storage.updatePaymentStatus(orderNumber, 'failed', transactionId);

@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { z } from "zod";
+import { isAuthenticated } from "./auth";
 import multer from "multer";
 import { Client as ObjectStorageClient } from "@replit/object-storage";
 import { storage } from "./storage";
@@ -46,13 +47,6 @@ const uploadImage = multer({
     }
   },
 });
-
-function isAuthenticated(req: Request, res: Response, next: Function) {
-  if (!req.session?.userId) {
-    return res.status(401).json({ message: "Not authenticated" });
-  }
-  next();
-}
 
 router.get("/my-tenant", isAuthenticated, async (req: Request, res: Response) => {
   try {
@@ -143,15 +137,48 @@ router.post("/sync", isAuthenticated, async (req: Request, res: Response) => {
       return res.status(400).json({ message: "No OpenAlex ID configured" });
     }
 
-    // Actually fetch data from OpenAlex and cache it
-    await openalexService.syncResearcherData(tenant.profile.openalexId);
+    const dbProfile = await storage.getResearcherProfileByTenant(user.tenantId);
+    if (!dbProfile) {
+      return res.status(404).json({ message: "Profile not found" });
+    }
 
-    // Update the last synced timestamp
-    const profile = await storage.updateTenantProfile(user.tenantId, {
-      lastSyncedAt: new Date(),
+    // Create a sync log entry before starting
+    const syncLog = await storage.createSyncLog({
+      tenantId: user.tenantId,
+      profileId: dbProfile.id,
+      syncType: "full",
+      status: "in_progress",
     });
 
-    res.json({ profile, message: "Sync completed - your data has been refreshed from OpenAlex" });
+    try {
+      const timeoutPromise = new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error("Sync timed out after 45 seconds")), 45_000),
+      );
+      await Promise.race([
+        openalexService.syncResearcherData(tenant.profile.openalexId),
+        timeoutPromise,
+      ]);
+
+      await storage.updateSyncLog(syncLog.id, {
+        status: "completed",
+        completedAt: new Date(),
+      });
+
+      // Update the last synced timestamp
+      const profile = await storage.updateTenantProfile(user.tenantId, {
+        lastSyncedAt: new Date(),
+      });
+
+      res.json({ profile, message: "Sync completed - your data has been refreshed from OpenAlex" });
+    } catch (syncError: unknown) {
+      const errorMsg = syncError instanceof Error ? syncError.message : "Unknown sync error";
+      await storage.updateSyncLog(syncLog.id, {
+        status: "failed",
+        completedAt: new Date(),
+        errorMessage: errorMsg,
+      });
+      throw syncError;
+    }
   } catch (error: unknown) {
     console.error("Error syncing profile:", error);
     res.status(500).json({ message: "Failed to sync profile" });

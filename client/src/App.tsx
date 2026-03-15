@@ -7,6 +7,7 @@ import ErrorBoundary from "@/components/ErrorBoundary";
 import { lazy, Suspense } from "react";
 import { Loader2 } from "lucide-react";
 import { AnalyticsProvider } from "@/lib/analytics";
+import ChatWidget from "@/components/ChatWidget";
 
 // Eagerly loaded (landing-critical)
 import LandingPage from "@/pages/LandingPage";
@@ -124,6 +125,7 @@ function App() {
           <ErrorBoundary>
             <Suspense fallback={<PageFallback />}>
               <Toaster />
+              <ChatWidget />
               <Router />
             </Suspense>
           </ErrorBoundary>

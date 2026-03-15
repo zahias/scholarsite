@@ -72,11 +72,7 @@ const faqs = [
     answer:
       "Cancel anytime. Your profile stays active until the billing period ends, then becomes private (not deleted). Reactivate anytime.",
   },
-  {
-    question: "Is there a free trial?",
-    answer:
-      "Yes \u2014 14 days free, no credit card required. Set up your profile, customize everything, and only pay if you keep it public.",
-  },
+
 ];
 
 const features = [
@@ -126,7 +122,6 @@ const pricingPlans = [
       "Everything in Starter",
       "Custom domain (yourname.com)",
       "Research Passport download",
-      "Collaboration Map",
       "Weekly data sync",
       "Priority support",
     ],
@@ -578,7 +573,7 @@ export default function LandingPage() {
                 Simple, Transparent Pricing
               </h2>
               <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-6">
-                Start with a 14-day free trial. No credit card required.
+                Choose a plan and your portfolio goes live in minutes.
               </p>
 
               <div className="flex items-center justify-center gap-3 mb-8">
@@ -675,7 +670,7 @@ export default function LandingPage() {
                         navigate("/signup?plan=" + plan.name.toLowerCase());
                       }}
                     >
-                      {plan.highlighted ? "Start Free Trial" : "Get Started"}
+                      {plan.highlighted ? "Get Started" : "Get Started"}
                     </Button>
                   </CardContent>
                 </Card>
@@ -789,8 +784,7 @@ export default function LandingPage() {
             </h2>
             <p className="text-white/70 text-lg mb-8 max-w-xl mx-auto">
               Join researchers who&rsquo;ve replaced outdated faculty pages with
-              a living, breathing portfolio. 14 days free &mdash; no credit
-              card.
+              a living, breathing portfolio.
             </p>
             <Button
               size="lg"
@@ -802,7 +796,7 @@ export default function LandingPage() {
               data-testid="button-final-cta"
             >
               <Sparkles className="w-4 h-4 mr-2" />
-              Start Your Free Trial
+              Start Building Your Portfolio
             </Button>
           </div>
         </section>

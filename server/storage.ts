@@ -164,6 +164,9 @@ export interface IStorage {
     clicksByTarget: Array<{ target: string; count: number }>;
   }>;
   aggregateDailyAnalytics(openalexId: string, date: string): Promise<void>;
+
+  // Payment operations
+  getAllPayments(): Promise<Payment[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -907,8 +910,36 @@ export class DatabaseStorage implements IStorage {
     const [payment] = await db.select().from(payments).where(eq(payments.id, paymentId));
     if (!payment || payment.status !== 'completed') return undefined;
 
-    const tenantName = payment.customerName.split(' ')[0].toLowerCase() + '-portfolio';
-    const subdomain = tenantName.replace(/[^a-z0-9-]/g, '');
+    // If a user with this email already exists, upgrade their existing trial tenant
+    const existingUser = await this.getUserByEmail(payment.customerEmail);
+    if (existingUser?.tenantId) {
+      const subscriptionEnd = new Date();
+      if (payment.billingPeriod === 'yearly') {
+        subscriptionEnd.setFullYear(subscriptionEnd.getFullYear() + 1);
+      } else {
+        subscriptionEnd.setMonth(subscriptionEnd.getMonth() + 1);
+      }
+      const updatedTenant = await this.updateTenant(existingUser.tenantId, {
+        plan: payment.plan as 'starter' | 'professional',
+        status: 'active',
+        subscriptionStartDate: new Date(),
+        subscriptionEndDate: subscriptionEnd,
+      });
+      await db.update(payments).set({ tenantId: existingUser.tenantId }).where(eq(payments.id, paymentId));
+      return updatedTenant;
+    }
+
+    // No existing tenant — create a fresh one from payment
+    const firstWord = payment.customerName.split(' ')[0].toLowerCase().replace(/[^a-z0-9]/g, '');
+    const uniqueSuffix = crypto.randomBytes(3).toString('hex');
+    const subdomain = `${firstWord}-${uniqueSuffix}`.substring(0, 40);
+
+    const subscriptionEnd = new Date();
+    if (payment.billingPeriod === 'yearly') {
+      subscriptionEnd.setFullYear(subscriptionEnd.getFullYear() + 1);
+    } else {
+      subscriptionEnd.setMonth(subscriptionEnd.getMonth() + 1);
+    }
 
     const tenant = await this.createTenant({
       name: payment.customerName,
@@ -916,6 +947,7 @@ export class DatabaseStorage implements IStorage {
       status: 'active',
       contactEmail: payment.customerEmail,
       subscriptionStartDate: new Date(),
+      subscriptionEndDate: subscriptionEnd,
     });
 
     await db.update(payments).set({ tenantId: tenant.id }).where(eq(payments.id, paymentId));

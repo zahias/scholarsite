@@ -33,11 +33,6 @@ const faqs = [
       "Cancel anytime. Your profile stays active until the billing period ends, then becomes private (not deleted). Reactivate anytime.",
   },
   {
-    question: "Is there a free trial?",
-    answer:
-      "Yes — 14 days free, no credit card required. Set up your profile, customize everything, and only pay if you keep it public.",
-  },
-  {
     question: "How does the auto-sync work?",
     answer:
       "We periodically query OpenAlex for your author record. When new publications appear, they're automatically added to your portfolio — no action needed on your part.",
@@ -45,7 +40,7 @@ const faqs = [
   {
     question: "Can I share my profile before paying?",
     answer:
-      "During your free trial the profile is fully public. After the trial ends, it becomes private until you subscribe. Your data is never deleted.",
+      "Choose a plan on the pricing page and your portfolio goes live immediately after payment. Your data is never deleted if you cancel.",
   },
 ];
 

@@ -259,4 +259,14 @@ router.get("/analytics", isAuthenticated, isAdmin, async (req: Request, res: Res
   }
 });
 
+router.get("/payments", isAuthenticated, isAdmin, async (req: Request, res: Response) => {
+  try {
+    const payments = await storage.getAllPayments();
+    return res.json({ payments });
+  } catch (error) {
+    console.error("Get payments error:", error);
+    return res.status(500).json({ message: "Failed to get payments" });
+  }
+});
+
 export const adminRouter = router;

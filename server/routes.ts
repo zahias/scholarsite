@@ -1234,8 +1234,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         tls: {
           rejectUnauthorized: false
         },
-        debug: true,
-        logger: true,
       });
       console.log("[Contact] Transporter created, verifying connection...");
 
