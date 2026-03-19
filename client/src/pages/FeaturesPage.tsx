@@ -102,17 +102,17 @@ export default function FeaturesPage() {
         </section>
 
         {/* Feature grid */}
-        <section className="py-16 lg:py-24 bg-muted/30">
+        <section className="py-16 lg:py-24 bg-surface-container-low">
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {features.map((f, i) => (
                 <Card
                   key={i}
-                  className="group border bg-white shadow-sm hover:shadow-lg hover:border-primary/20 transition-all duration-300"
+                  className="group hover:ambient-shadow transition-all duration-300"
                 >
                   <CardHeader className="pb-2">
-                    <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-4 group-hover:scale-105 transition-transform">
-                      <f.icon className="w-6 h-6 text-primary" />
+                    <div className="w-12 h-12 rounded-xl bg-primary-container/10 flex items-center justify-center mb-4 group-hover:scale-105 transition-transform">
+                      <f.icon className="w-6 h-6 text-primary-container" />
                     </div>
                     <CardTitle className="text-lg">{f.title}</CardTitle>
                   </CardHeader>
@@ -128,18 +128,19 @@ export default function FeaturesPage() {
         </section>
 
         {/* CTA */}
-        <section className="py-16 lg:py-20 bg-white">
+        <section className="py-16 lg:py-20 hero-gradient">
           <div className="max-w-2xl mx-auto px-4 text-center">
-            <h2 className="text-2xl sm:text-3xl font-bold mb-4">
+            <h2 className="text-2xl sm:text-3xl font-bold mb-4 text-white">
               Ready to build your portfolio?
             </h2>
-            <p className="text-muted-foreground mb-8">
-              14-day free trial. No credit card required.
+            <p className="text-white/70 mb-8">
+              No credit card required.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <Button
+                variant="primary-cta"
                 size="lg"
-                className="btn-premium px-8"
+                className="px-8"
                 onClick={() => {
                   window.scrollTo(0, 0);
                   navigate("/signup");
@@ -149,7 +150,7 @@ export default function FeaturesPage() {
                 Create Your Portfolio
               </Button>
               <Button
-                variant="outline"
+                variant="ghost-light"
                 size="lg"
                 onClick={() => {
                   window.scrollTo(0, 0);

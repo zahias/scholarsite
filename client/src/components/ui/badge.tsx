@@ -15,6 +15,13 @@ const badgeVariants = cva(
         destructive:
           "border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/80",
         outline: "text-foreground",
+        // Scholarly Curator variants
+        citation:
+          "border-transparent bg-primary-fixed text-on-primary-fixed font-bold tracking-[0.05em] uppercase text-[10px]",
+        "scholarly-label":
+          "border-transparent bg-surface-container-high text-on-surface-variant font-semibold tracking-[0.05em] uppercase text-[10px]",
+        gold:
+          "border-transparent bg-secondary-container text-on-secondary-container font-semibold",
       },
     },
     defaultVariants: {

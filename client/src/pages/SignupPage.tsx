@@ -180,7 +180,7 @@ export default function SignupPage() {
         return (
           <div key={s} className="flex items-center gap-2">
             <div
-              className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold transition-colors ${isDone ? "bg-green-600 text-white" : isActive ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}
+              className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold transition-colors ${isDone ? "bg-green-600 text-white" : isActive ? "bg-primary-container text-white" : "bg-surface-container-high text-on-surface-variant"}`}
             >
               {isDone ? <CheckCircle className="w-4 h-4" /> : s}
             </div>
@@ -249,8 +249,8 @@ export default function SignupPage() {
         {step === 1 && (
           <Card>
             <CardHeader className="text-center">
-              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
-                <User className="w-6 h-6 text-primary" />
+              <div className="w-12 h-12 rounded-full bg-primary-container/10 flex items-center justify-center mx-auto mb-4">
+                <User className="w-6 h-6 text-primary-container" />
               </div>
               <CardTitle className="text-2xl">Create your account</CardTitle>
               <CardDescription>
@@ -365,7 +365,7 @@ export default function SignupPage() {
                     )}
                   />
 
-                  <Button type="submit" className="w-full btn-premium py-6">
+                  <Button type="submit" variant="primary-cta" className="w-full py-6">
                     Continue
                     <ArrowRight className="w-4 h-4 ml-2" />
                   </Button>
@@ -373,11 +373,11 @@ export default function SignupPage() {
               </Form>
             </CardContent>
             <CardFooter className="flex flex-col gap-4 text-center">
-              <p className="text-xs text-muted-foreground">
+              <p className="text-xs text-on-surface-variant">
                 By continuing, you agree to our{" "}
-                <a href="/terms" className="text-primary hover:underline">Terms</a>
+                <a href="/terms" className="text-primary-container hover:underline">Terms</a>
                 {" "}and{" "}
-                <a href="/privacy" className="text-primary hover:underline">Privacy Policy</a>.
+                <a href="/privacy" className="text-primary-container hover:underline">Privacy Policy</a>.
               </p>
             </CardFooter>
           </Card>
@@ -387,8 +387,8 @@ export default function SignupPage() {
         {step === 2 && (
           <Card>
             <CardHeader className="text-center">
-              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
-                <Search className="w-6 h-6 text-primary" />
+              <div className="w-12 h-12 rounded-full bg-primary-container/10 flex items-center justify-center mx-auto mb-4">
+                <Search className="w-6 h-6 text-primary-container" />
               </div>
               <CardTitle className="text-2xl">Find your research profile</CardTitle>
               <CardDescription>
@@ -448,10 +448,10 @@ export default function SignupPage() {
 
               {/* Selected author card */}
               {selectedAuthor && (
-                <div className="border rounded-lg p-4 bg-muted/30">
+                <div className="rounded-xl p-4 bg-surface-container-low ghost-border">
                   <div className="flex items-start gap-3">
-                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                      <BookOpen className="w-5 h-5 text-primary" />
+                    <div className="w-10 h-10 rounded-full bg-primary-container/10 flex items-center justify-center flex-shrink-0">
+                      <BookOpen className="w-5 h-5 text-primary-container" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="font-semibold">{selectedAuthor.display_name}</p>
@@ -477,7 +477,8 @@ export default function SignupPage() {
               {/* Actions */}
               <div className="space-y-3">
                 <Button
-                  className="w-full btn-premium py-6"
+                  variant="primary-cta"
+                  className="w-full py-6"
                   onClick={handleStep2Next}
                   disabled={signupMutation.isPending}
                 >
@@ -510,9 +511,9 @@ export default function SignupPage() {
         )}
 
         {/* Bottom link to login */}
-        <p className="text-center text-sm text-muted-foreground mt-6">
+        <p className="text-center text-sm text-on-surface-variant mt-6">
           Already have an account?{" "}
-          <a href="/login" className="text-primary hover:underline font-medium">
+          <a href="/login" className="text-primary-container hover:underline font-medium">
             Log in
           </a>
         </p>

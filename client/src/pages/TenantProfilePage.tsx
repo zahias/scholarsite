@@ -258,13 +258,13 @@ export default function TenantProfilePage() {
 
       {/* About Section - Bio, CV, OpenAlex link */}
       {(profile?.bio || profile?.cvUrl || openalexId) && (
-        <section className="py-6 md:py-10 bg-muted/50 border-b border-border">
+        <section className="py-6 md:py-10 bg-surface-container-low">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex flex-col md:flex-row gap-6 md:gap-10">
               {/* Bio */}
               {profile?.bio && (
                 <div className="flex-1">
-                  <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-2">About</h2>
+                  <h2 className="label-tag mb-2">About</h2>
                   <p className="text-sm md:text-base text-foreground leading-relaxed" data-testid="text-bio">
                     {profile.bio}
                   </p>
@@ -278,7 +278,7 @@ export default function TenantProfilePage() {
                     href={profile.cvUrl} 
                     target="_blank" 
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 text-sm text-primary hover:text-primary/80 transition-colors"
+                    className="inline-flex items-center gap-2 text-sm text-primary-container hover:text-primary-container/80 transition-colors"
                     data-testid="link-cv"
                   >
                     <Download className="w-4 h-4" />
@@ -290,7 +290,7 @@ export default function TenantProfilePage() {
                     href={`https://openalex.org/authors/${openalexId}`} 
                     target="_blank" 
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 text-sm text-primary hover:text-primary/80 transition-colors"
+                    className="inline-flex items-center gap-2 text-sm text-primary-container hover:text-primary-container/80 transition-colors"
                     data-testid="link-openalex"
                   >
                     <ExternalLink className="w-4 h-4" />
@@ -388,10 +388,10 @@ export default function TenantProfilePage() {
         </div>
       )}
 
-      <footer className="bg-gradient-to-br from-card to-muted/20 border-t border-border py-8">
+      <footer className="bg-primary-container py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-            <p className="text-muted-foreground/70 text-sm">
+            <p className="text-white/60 text-sm">
               © {new Date().getFullYear()} {tenant?.name || 'Scholar.name'}. Powered by Scholar.name.
             </p>
             {profileData?.lastSynced && (

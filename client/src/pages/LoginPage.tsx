@@ -98,8 +98,8 @@ export default function LoginPage() {
 
         <Card>
           <CardHeader className="text-center">
-            <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
-              <LogIn className="w-6 h-6 text-primary" />
+            <div className="w-12 h-12 rounded-full bg-primary-container/10 flex items-center justify-center mx-auto mb-4">
+              <LogIn className="w-6 h-6 text-primary-container" />
             </div>
             <CardTitle className="text-2xl">Welcome back</CardTitle>
             <CardDescription>
@@ -135,7 +135,7 @@ export default function LoginPage() {
                     <FormItem>
                       <div className="flex items-center justify-between">
                         <FormLabel>Password</FormLabel>
-                        <a href="/forgot-password" className="text-xs text-primary hover:underline">
+                        <a href="/forgot-password" className="text-xs text-primary-container hover:underline">
                           Forgot password?
                         </a>
                       </div>
@@ -164,7 +164,8 @@ export default function LoginPage() {
 
                 <Button
                   type="submit"
-                  className="w-full btn-premium py-6"
+                  variant="primary-cta"
+                  className="w-full py-6"
                   disabled={loginMutation.isPending}
                 >
                   {loginMutation.isPending ? (
@@ -198,9 +199,9 @@ export default function LoginPage() {
           </CardFooter>
         </Card>
 
-        <p className="text-center text-sm text-muted-foreground mt-6">
+        <p className="text-center text-sm text-on-surface-variant mt-6">
           Need help?{" "}
-          <a href="/contact" className="text-primary hover:underline">
+          <a href="/contact" className="text-primary-container hover:underline">
             Contact support
           </a>
         </p>

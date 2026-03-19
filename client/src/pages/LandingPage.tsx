@@ -260,7 +260,7 @@ export default function LandingPage() {
                 className="text-4xl sm:text-5xl lg:text-7xl font-serif font-bold tracking-tight mb-6 sm:mb-8 text-white leading-tight"
               >
                 Your research, one link,{" "}
-                <span className="text-[var(--theme-accent)]">
+                <span className="text-secondary-container">
                   always up to date
                 </span>
               </h1>
@@ -271,8 +271,9 @@ export default function LandingPage() {
 
               <div className="flex flex-col items-center gap-3 mb-6 sm:mb-8">
                 <Button
+                  variant="primary-cta"
                   size="lg"
-                  className="btn-premium px-8 py-3 text-base font-semibold shadow-lg hover:shadow-xl transition-all"
+                  className="px-8 py-3 text-base"
                   onClick={() => {
                     window.scrollTo(0, 0);
                     navigate("/signup");
@@ -413,7 +414,7 @@ export default function LandingPage() {
 
         {/* ═══════ Trust Bar ═══════ */}
         <section
-          className="py-4 sm:py-6 bg-gradient-to-r from-slate-50 to-white border-b"
+          className="py-4 sm:py-6 bg-surface-container-low"
           aria-label="Trust indicators"
         >
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -447,7 +448,7 @@ export default function LandingPage() {
 
         {/* ═══════ Social Proof (C2: replaces institutional logos) ═══════ */}
         <section
-          className="py-6 sm:py-8 bg-white border-b"
+          className="py-6 sm:py-8 bg-surface-container-lowest"
           aria-label="Data source"
         >
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
@@ -468,7 +469,7 @@ export default function LandingPage() {
         </section>
 
         {/* ═══════ Features ═══════ */}
-        <section id="features" className="py-24 sm:py-32 bg-muted/30">
+        <section id="features" className="py-24 sm:py-32 bg-surface-container-low">
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-8 sm:mb-12">
               <h2 className="text-3xl sm:text-4xl lg:text-5xl font-serif font-bold text-midnight mb-4 sm:mb-6">
@@ -482,13 +483,13 @@ export default function LandingPage() {
               {features.map((feature, index) => (
                 <Card
                   key={index}
-                  className="group border bg-white shadow-sm hover:shadow-lg hover:border-primary/20 transition-all duration-300"
+                  className="group hover:ambient-shadow transition-all duration-300"
                 >
                   <CardHeader className="pb-2">
-                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center mb-4 group-hover:scale-105 transition-transform">
-                      <feature.icon className="w-6 h-6 text-primary" />
+                    <div className="w-12 h-12 rounded-xl bg-primary-container/10 flex items-center justify-center mb-4 group-hover:scale-105 transition-transform">
+                      <feature.icon className="w-6 h-6 text-primary-container" />
                     </div>
-                    <CardTitle className="text-xl font-serif text-midnight">
+                    <CardTitle className="text-xl font-headline text-primary-container">
                       {feature.title}
                     </CardTitle>
                   </CardHeader>
@@ -504,7 +505,7 @@ export default function LandingPage() {
         </section>
 
         {/* ═══════ Use Cases (M1: Lucide icons instead of emoji) ═══════ */}
-        <section id="use-cases" className="py-24 sm:py-32 bg-white">
+        <section id="use-cases" className="py-24 sm:py-32 bg-surface-container-lowest">
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-8 sm:mb-12">
               <h2 className="text-3xl sm:text-4xl lg:text-5xl font-serif font-bold text-midnight mb-4 sm:mb-6">
@@ -517,12 +518,12 @@ export default function LandingPage() {
             </div>
 
             <div className="grid sm:grid-cols-3 gap-6 max-w-4xl mx-auto">
-              <Card className="border bg-gradient-to-br from-primary/5 to-white hover:shadow-md transition-shadow">
+              <Card className="hover:ambient-shadow transition-shadow">
                 <CardContent className="p-6">
-                  <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center mb-3">
-                    <Mail className="w-5 h-5 text-primary" />
+                  <div className="w-10 h-10 rounded-lg bg-primary-container/10 flex items-center justify-center mb-3">
+                    <Mail className="w-5 h-5 text-primary-container" />
                   </div>
-                  <h3 className="font-serif font-bold text-xl text-midnight mb-2">
+                  <h3 className="font-headline font-bold text-xl text-primary-container mb-2">
                     Email Signature
                   </h3>
                   <p className="text-sm text-muted-foreground">
@@ -532,12 +533,12 @@ export default function LandingPage() {
                 </CardContent>
               </Card>
 
-              <Card className="border bg-gradient-to-br from-primary/5 to-white hover:shadow-md transition-shadow">
+              <Card className="hover:ambient-shadow transition-shadow">
                 <CardContent className="p-6">
-                  <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center mb-3">
-                    <FileText className="w-5 h-5 text-primary" />
+                  <div className="w-10 h-10 rounded-lg bg-primary-container/10 flex items-center justify-center mb-3">
+                    <FileText className="w-5 h-5 text-primary-container" />
                   </div>
-                  <h3 className="font-serif font-bold text-xl text-midnight mb-2">
+                  <h3 className="font-headline font-bold text-xl text-primary-container mb-2">
                     Grant Applications
                   </h3>
                   <p className="text-sm text-muted-foreground">
@@ -547,12 +548,12 @@ export default function LandingPage() {
                 </CardContent>
               </Card>
 
-              <Card className="border bg-gradient-to-br from-primary/5 to-white hover:shadow-md transition-shadow">
+              <Card className="hover:ambient-shadow transition-shadow">
                 <CardContent className="p-6">
-                  <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center mb-3">
-                    <Handshake className="w-5 h-5 text-primary" />
+                  <div className="w-10 h-10 rounded-lg bg-primary-container/10 flex items-center justify-center mb-3">
+                    <Handshake className="w-5 h-5 text-primary-container" />
                   </div>
-                  <h3 className="font-serif font-bold text-xl text-midnight mb-2">
+                  <h3 className="font-headline font-bold text-xl text-primary-container mb-2">
                     Collaboration
                   </h3>
                   <p className="text-sm text-muted-foreground">
@@ -566,7 +567,7 @@ export default function LandingPage() {
         </section>
 
         {/* ═══════ Pricing ═══════ */}
-        <section id="pricing" className="py-24 sm:py-32 bg-muted/30">
+        <section id="pricing" className="py-24 sm:py-32 bg-surface-container-low">
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-8 sm:mb-12">
               <h2 className="text-3xl sm:text-4xl lg:text-5xl font-serif font-bold text-midnight mb-4 sm:mb-6">
@@ -618,14 +619,14 @@ export default function LandingPage() {
                   className={
                     "relative " +
                     (plan.highlighted
-                      ? "border-2 border-primary shadow-lg"
-                      : "border bg-white")
+                      ? "border-2 border-secondary-container ambient-shadow"
+                      : "")
                   }
                   data-testid={"card-pricing-" + plan.name.toLowerCase()}
                 >
                   {plan.highlighted && (
                     <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                      <Badge className="bg-primary text-primary-foreground">
+                      <Badge variant="gold">
                         Most Popular
                       </Badge>
                     </div>
@@ -661,7 +662,7 @@ export default function LandingPage() {
                     </ul>
                     <Button
                       className="w-full"
-                      variant={plan.highlighted ? "default" : "outline"}
+                      variant={plan.highlighted ? "primary-cta" : "nav-cta"}
                       data-testid={
                         "button-select-" + plan.name.toLowerCase()
                       }
@@ -670,7 +671,7 @@ export default function LandingPage() {
                         navigate("/signup?plan=" + plan.name.toLowerCase());
                       }}
                     >
-                      {plan.highlighted ? "Get Started" : "Get Started"}
+                      Get Started
                     </Button>
                   </CardContent>
                 </Card>
@@ -680,7 +681,7 @@ export default function LandingPage() {
         </section>
 
         {/* ═══════ FAQ (C4+H3+H4: ARIA, animated, white bg) ═══════ */}
-        <section id="faq" className="py-24 sm:py-32 bg-white">
+        <section id="faq" className="py-24 sm:py-32 bg-surface-container-lowest">
           <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-8 sm:mb-12">
               <h2 className="text-3xl sm:text-4xl lg:text-5xl font-serif font-bold text-midnight mb-4 sm:mb-6">
@@ -700,10 +701,10 @@ export default function LandingPage() {
                   <div
                     key={index}
                     className={
-                      "bg-muted/20 rounded-lg shadow-sm border overflow-hidden transition-all " +
+                      "bg-surface-container-low rounded-xl overflow-hidden transition-all ghost-border " +
                       (isOpen
-                        ? "border-l-4 border-l-primary"
-                        : "border-border")
+                        ? "border-l-4 border-l-secondary-container"
+                        : "")
                     }
                   >
                     <button
@@ -712,7 +713,7 @@ export default function LandingPage() {
                       aria-controls={panelId}
                       className={
                         "w-full px-6 py-5 text-left flex items-center justify-between gap-4 " +
-                        (isOpen ? "bg-primary/5" : "hover:bg-muted/50")
+                        (isOpen ? "bg-surface-container" : "hover:bg-surface-container")
                       }
                       onClick={() => setOpenFaq(isOpen ? null : index)}
                       data-testid={"faq-question-" + index}
@@ -724,8 +725,8 @@ export default function LandingPage() {
                         className={
                           "w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 transition-all duration-200 " +
                           (isOpen
-                            ? "bg-primary/10 text-primary rotate-180"
-                            : "bg-muted text-muted-foreground")
+                            ? "bg-secondary-container/10 text-primary-container rotate-180"
+                            : "bg-surface-container-high text-on-surface-variant")
                         }
                       >
                         <ChevronDown className="w-4 h-4" />
@@ -741,7 +742,7 @@ export default function LandingPage() {
                       }}
                     >
                       <div className="overflow-hidden">
-                        <div className="px-6 pb-5 bg-primary/5">
+                        <div className="px-6 pb-5 bg-surface-container">
                           <p className="text-muted-foreground leading-relaxed">
                             {faq.answer}
                           </p>
@@ -772,7 +773,7 @@ export default function LandingPage() {
 
         {/* ═══════ Final CTA (C3) ═══════ */}
         <section
-          className="py-20 sm:py-24 bg-midnight text-white"
+          className="py-20 sm:py-24 hero-gradient text-white"
           aria-labelledby="final-cta-heading"
         >
           <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
@@ -787,8 +788,9 @@ export default function LandingPage() {
               a living, breathing portfolio.
             </p>
             <Button
+              variant="primary-cta"
               size="lg"
-              className="btn-premium px-10 py-4 text-base font-semibold"
+              className="px-10"
               onClick={() => {
                 window.scrollTo(0, 0);
                 navigate("/signup");

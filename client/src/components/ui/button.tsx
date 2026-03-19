@@ -18,6 +18,13 @@ const buttonVariants = cva(
           "bg-secondary text-secondary-foreground hover:bg-secondary/80",
         ghost: "hover:bg-accent hover:text-accent-foreground",
         link: "text-primary underline-offset-4 hover:underline",
+        // Scholarly Curator variants
+        "primary-cta":
+          "bg-secondary-container text-on-secondary-container font-semibold hover:brightness-105 active:brightness-95 transition-all",
+        "nav-cta":
+          "bg-primary-container text-white font-semibold hover:brightness-110 active:brightness-95 transition-all",
+        "ghost-light":
+          "bg-white/10 text-white border border-white/25 backdrop-blur-sm hover:bg-white/20 transition-all",
       },
       size: {
         default: "h-10 px-4 py-2",

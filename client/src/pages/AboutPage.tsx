@@ -21,15 +21,15 @@ export default function AboutPage() {
         url="https://scholar.name/about"
       />
       
-      <nav className="sticky top-0 z-50 nav-premium">
+      <nav className="sticky top-0 z-50 glass-nav">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">
             <Link href="/" className="flex items-center">
-              <BookOpen className="h-7 w-7 text-white mr-2" />
-              <span className="text-lg font-semibold text-white">Scholar.name</span>
+              <BookOpen className="h-7 w-7 text-primary-container mr-2" />
+              <span className="text-lg font-semibold text-on-surface font-headline">Scholar.name</span>
             </Link>
             <div className="flex items-center gap-4">
-              <Link href="/contact" className="text-white/80 hover:text-white text-sm">
+              <Link href="/contact" className="text-on-surface-variant hover:text-primary-container text-sm font-medium transition-colors">
                 Contact
               </Link>
             </div>
@@ -49,7 +49,7 @@ export default function AboutPage() {
 
         {/* Mission Section */}
         <section className="mb-16">
-          <Badge className="mb-4 bg-primary/10 text-primary">Our Mission</Badge>
+          <Badge variant="scholarly-label" className="mb-4">Our Mission</Badge>
           <h1 className="text-3xl sm:text-4xl font-bold mb-6">
             Helping Researchers Showcase Their Work
           </h1>
@@ -236,16 +236,16 @@ export default function AboutPage() {
         </section>
 
         {/* CTA */}
-        <section className="text-center py-12 px-6 bg-gradient-to-br from-primary/5 to-background rounded-2xl border">
-          <h2 className="text-2xl font-bold mb-4">Ready to Create Your Portfolio?</h2>
-          <p className="text-muted-foreground mb-6 max-w-md mx-auto">
+        <section className="text-center py-12 px-6 hero-gradient rounded-2xl">
+          <h2 className="text-2xl font-bold mb-4 text-white">Ready to Create Your Portfolio?</h2>
+          <p className="text-white/70 mb-6 max-w-md mx-auto">
             Join researchers from leading institutions who trust Scholar.name to showcase their work.
           </p>
           <div className="flex flex-wrap justify-center gap-3">
-            <Button size="lg" onClick={() => navigate("/signup")}>
+            <Button variant="primary-cta" size="lg" onClick={() => navigate("/signup")}>
               Create Free Account
             </Button>
-            <Button size="lg" variant="outline" onClick={() => navigate("/")}>
+            <Button variant="ghost-light" size="lg" onClick={() => navigate("/")}>
               Learn More
             </Button>
           </div>

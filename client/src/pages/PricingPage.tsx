@@ -98,11 +98,11 @@ export default function PricingPage() {
               {plans.map((plan, i) => (
                 <Card
                   key={i}
-                  className={`relative ${plan.highlighted ? "border-2 border-primary shadow-lg" : "border bg-white"}`}
+                  className={`relative ${plan.highlighted ? "border-2 border-secondary-container ambient-shadow" : ""}`}
                 >
                   {plan.highlighted && (
                     <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                      <Badge className="bg-primary text-primary-foreground">Most Popular</Badge>
+                      <Badge variant="gold">Most Popular</Badge>
                     </div>
                   )}
                   <CardHeader className="text-center pb-2 pt-8">
@@ -129,7 +129,7 @@ export default function PricingPage() {
                     </ul>
                     <Button
                       className="w-full"
-                      variant={plan.highlighted ? "default" : "outline"}
+                      variant={plan.highlighted ? "primary-cta" : "nav-cta"}
                       onClick={() => {
                         window.scrollTo(0, 0);
                         navigate(`/signup?plan=${plan.name.toLowerCase()}`);

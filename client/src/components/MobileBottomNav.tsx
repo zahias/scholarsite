@@ -40,7 +40,7 @@ export default function MobileBottomNav() {
   ];
 
   return (
-    <nav aria-label="Profile sections" className="md:hidden fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-lg border-t border-border z-50" style={{ paddingBottom: 'max(env(safe-area-inset-bottom), 12px)' }}>
+    <nav aria-label="Profile sections" className="md:hidden fixed bottom-0 left-0 right-0 bg-surface-container-lowest/95 backdrop-blur-lg z-50" style={{ paddingBottom: 'max(env(safe-area-inset-bottom), 12px)', borderTop: '1px solid rgba(196, 198, 206, 0.15)' }}>
       <div className="grid grid-cols-4 gap-1 px-3 py-2">
         {navItems.map((item) => {
           const Icon = item.icon;
@@ -52,8 +52,8 @@ export default function MobileBottomNav() {
               onClick={() => scrollToSection(item.id)}
               className={`flex flex-col items-center justify-center gap-1 min-h-[52px] py-2 px-2 rounded-xl transition-colors active:scale-95 ${
                 isActive 
-                  ? 'text-primary bg-primary/10' 
-                  : 'text-muted-foreground hover:text-foreground active:bg-muted/50'
+                  ? 'text-primary-container bg-primary-container/10' 
+                  : 'text-on-surface-variant hover:text-on-surface active:bg-surface-container-high'
               }`}
               data-testid={`nav-mobile-${item.id}`}
             >

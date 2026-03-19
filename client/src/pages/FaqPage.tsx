@@ -100,8 +100,8 @@ export default function FaqPage() {
               {faqs.map((faq, index) => (
                 <div
                   key={index}
-                  className={`bg-white rounded-lg shadow-sm border overflow-hidden transition-all ${
-                    openIndex === index ? "border-l-4 border-l-primary" : "border-border"
+                  className={`bg-surface-container-low rounded-xl ghost-border overflow-hidden transition-all ${
+                    openIndex === index ? "border-l-4 border-l-secondary-container" : ""
                   }`}
                 >
                   <button
@@ -109,7 +109,7 @@ export default function FaqPage() {
                     aria-expanded={openIndex === index}
                     aria-controls={`faq-panel-${index}`}
                     className={`w-full px-6 py-5 text-left flex items-center justify-between gap-4 ${
-                      openIndex === index ? "bg-primary/5" : "hover:bg-muted/50"
+                      openIndex === index ? "bg-surface-container" : "hover:bg-surface-container"
                     }`}
                     onClick={() => setOpenIndex(openIndex === index ? null : index)}
                   >
@@ -117,8 +117,8 @@ export default function FaqPage() {
                     <div
                       className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 transition-colors ${
                         openIndex === index
-                          ? "bg-primary/10 text-primary"
-                          : "bg-muted text-muted-foreground"
+                          ? "bg-secondary-container/10 text-primary-container"
+                          : "bg-surface-container-high text-on-surface-variant"
                       }`}
                     >
                       {openIndex === index ? (
@@ -133,7 +133,7 @@ export default function FaqPage() {
                       id={`faq-panel-${index}`}
                       role="region"
                       aria-labelledby={`faq-heading-${index}`}
-                      className="px-6 pb-5 bg-primary/5"
+                      className="px-6 pb-5 bg-surface-container"
                     >
                       <p className="text-muted-foreground leading-relaxed">{faq.answer}</p>
                     </div>
@@ -157,8 +157,8 @@ export default function FaqPage() {
                   Contact Us
                 </Button>
                 <Button
+                  variant="primary-cta"
                   size="lg"
-                  className="btn-premium"
                   onClick={() => {
                     window.scrollTo(0, 0);
                     navigate("/signup");

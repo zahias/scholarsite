@@ -27,24 +27,24 @@ export default function GlobalNav({
     return (
       <>
       <a href="#main-content" className="skip-link">Skip to main content</a>
-      <nav className="sticky top-0 z-50 nav-premium" aria-label="Main navigation">
+      <nav className="sticky top-0 z-50 glass-nav" aria-label="Main navigation">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             {/* Logo */}
             <Link href="/" onClick={handleNavClick} className="flex items-center cursor-pointer" data-testid="link-logo">
-                <BookOpen className="h-7 w-7 text-white mr-2" />
-                <span className="text-lg font-semibold text-white">Scholar.name</span>
+                <BookOpen className="h-7 w-7 text-primary-container mr-2" />
+                <span className="text-lg font-semibold text-on-surface font-headline">Scholar.name</span>
             </Link>
 
             {/* Desktop Navigation */}
             <div className="hidden md:flex items-center gap-6">
-              <button onClick={() => { handleNavClick(); navigate("/features"); }} className="nav-link text-sm" data-testid="link-features">
+              <button onClick={() => { handleNavClick(); navigate("/features"); }} className="text-sm text-on-surface-variant hover:text-primary-container font-medium transition-colors" data-testid="link-features">
                 Features
               </button>
-              <button onClick={() => { handleNavClick(); navigate("/pricing"); }} className="nav-link text-sm" data-testid="link-pricing">
+              <button onClick={() => { handleNavClick(); navigate("/pricing"); }} className="text-sm text-on-surface-variant hover:text-primary-container font-medium transition-colors" data-testid="link-pricing">
                 Pricing
               </button>
-              <button onClick={() => { handleNavClick(); navigate("/faq"); }} className="nav-link text-sm" data-testid="link-faq">
+              <button onClick={() => { handleNavClick(); navigate("/faq"); }} className="text-sm text-on-surface-variant hover:text-primary-container font-medium transition-colors" data-testid="link-faq">
                 FAQ
               </button>
 
@@ -52,7 +52,7 @@ export default function GlobalNav({
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="text-white/80 hover:text-white hover:bg-white/10"
+                  className="text-on-surface-variant hover:text-primary-container hover:bg-primary-container/5"
                   data-testid="link-login"
                   onClick={() => {
                     handleNavClick();
@@ -66,8 +66,8 @@ export default function GlobalNav({
 
               {!hideSignup && (
                 <Button
+                  variant="primary-cta"
                   size="sm"
-                  className="btn-premium text-sm"
                   data-testid="button-get-started-nav"
                   onClick={() => {
                     handleNavClick();
@@ -81,7 +81,7 @@ export default function GlobalNav({
 
             {/* Mobile Menu Button */}
             <button
-              className="md:hidden text-white"
+              className="md:hidden text-on-surface-variant hover:text-primary-container"
               onClick={() => setMobileOpen(!mobileOpen)}
               aria-label="Toggle menu"
               aria-expanded={mobileOpen}
@@ -96,21 +96,21 @@ export default function GlobalNav({
           </div>
 
           {/* Mobile Navigation */}
-          <div id="mobile-nav-menu" className={`md:hidden overflow-hidden transition-all duration-200 ease-in-out ${mobileOpen ? 'max-h-96 opacity-100 pb-4' : 'max-h-0 opacity-0'} space-y-2 border-t border-white/10`}>
+          <div id="mobile-nav-menu" className={`md:hidden overflow-hidden transition-all duration-200 ease-in-out ${mobileOpen ? 'max-h-96 opacity-100 pb-4' : 'max-h-0 opacity-0'} space-y-2 border-t border-outline-variant/20`}>
               <button
-                className="nav-link block py-2 text-sm"
+                className="block py-2 text-sm text-on-surface-variant hover:text-primary-container font-medium transition-colors"
                 onClick={() => { handleNavClick(); navigate("/features"); }}
               >
                 Features
               </button>
               <button
-                className="nav-link block py-2 text-sm"
+                className="block py-2 text-sm text-on-surface-variant hover:text-primary-container font-medium transition-colors"
                 onClick={() => { handleNavClick(); navigate("/pricing"); }}
               >
                 Pricing
               </button>
               <button
-                className="nav-link block py-2 text-sm"
+                className="block py-2 text-sm text-on-surface-variant hover:text-primary-container font-medium transition-colors"
                 onClick={() => { handleNavClick(); navigate("/faq"); }}
               >
                 FAQ
@@ -118,7 +118,7 @@ export default function GlobalNav({
               {!hideLogin && (
                 <Button
                   variant="ghost"
-                  className="w-full justify-start text-white/80 hover:text-white"
+                  className="w-full justify-start text-on-surface-variant hover:text-primary-container"
                   onClick={() => {
                     handleNavClick();
                     navigate("/login");
@@ -129,7 +129,8 @@ export default function GlobalNav({
               )}
               {!hideSignup && (
                 <Button
-                  className="w-full btn-premium"
+                  variant="primary-cta"
+                  className="w-full"
                   onClick={() => {
                     handleNavClick();
                     navigate("/signup");
@@ -148,17 +149,18 @@ export default function GlobalNav({
   // App authenticated nav (minimal)
   if (mode === "app") {
     return (
-      <nav className="sticky top-0 z-40 bg-white border-b border-border" aria-label="App navigation">
+      <nav className="sticky top-0 z-40 glass-nav" aria-label="App navigation">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-14">
             <Link href="/dashboard" onClick={handleNavClick} className="flex items-center cursor-pointer" data-testid="link-app-logo">
-                <BookOpen className="h-5 w-5 text-primary mr-2" />
-                <span className="font-semibold text-foreground">Scholar.name</span>
+                <BookOpen className="h-5 w-5 text-primary-container mr-2" />
+                <span className="font-semibold text-on-surface font-headline">Scholar.name</span>
             </Link>
             <div className="flex items-center gap-2">
               <Button
                 variant="ghost"
                 size="sm"
+                className="text-on-surface-variant hover:text-primary-container"
                 onClick={() => {
                   handleNavClick();
                   navigate("/dashboard");
@@ -176,17 +178,17 @@ export default function GlobalNav({
   // Auth pages nav (minimal)
   if (mode === "auth") {
     return (
-      <nav className="sticky top-0 z-40 bg-white border-b border-border" aria-label="Authentication navigation">
+      <nav className="sticky top-0 z-40 glass-nav" aria-label="Authentication navigation">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-14">
             <Link href="/" onClick={handleNavClick} className="flex items-center cursor-pointer" data-testid="link-auth-logo">
-                <BookOpen className="h-5 w-5 text-primary mr-2" />
-                <span className="font-semibold text-foreground">Scholar.name</span>
+                <BookOpen className="h-5 w-5 text-primary-container mr-2" />
+                <span className="font-semibold text-on-surface font-headline">Scholar.name</span>
             </Link>
             <Button
               variant="ghost"
               size="sm"
-              className="text-muted-foreground hover:text-foreground"
+              className="text-on-surface-variant hover:text-primary-container"
               onClick={() => { handleNavClick(); navigate("/"); }}
             >
               ← Back to Home
