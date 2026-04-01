@@ -14,12 +14,23 @@ export default function GlobalNav({
   hideLogin = false,
   hideSignup = false,
 }: GlobalNavProps) {
-  const [, navigate] = useLocation();
+  const [location, navigate] = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const handleNavClick = () => {
     window.scrollTo(0, 0);
     setMobileOpen(false);
+  };
+
+  const scrollToSection = (id: string) => {
+    setMobileOpen(false);
+    if (location === "/") {
+      document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
+    } else {
+      navigate(`/#${id}`);
+      // After navigation lands, scroll to the section
+      setTimeout(() => document.getElementById(id)?.scrollIntoView({ behavior: "smooth" }), 100);
+    }
   };
 
   // Landing site nav
@@ -38,13 +49,13 @@ export default function GlobalNav({
 
             {/* Desktop Navigation */}
             <div className="hidden md:flex items-center gap-6">
-              <button onClick={() => { handleNavClick(); navigate("/features"); }} className="text-sm text-on-surface-variant hover:text-primary-container font-medium transition-colors" data-testid="link-features">
+              <button onClick={() => scrollToSection("features")} className="text-sm text-on-surface-variant hover:text-primary-container font-medium transition-colors" data-testid="link-features">
                 Features
               </button>
-              <button onClick={() => { handleNavClick(); navigate("/pricing"); }} className="text-sm text-on-surface-variant hover:text-primary-container font-medium transition-colors" data-testid="link-pricing">
+              <button onClick={() => scrollToSection("pricing")} className="text-sm text-on-surface-variant hover:text-primary-container font-medium transition-colors" data-testid="link-pricing">
                 Pricing
               </button>
-              <button onClick={() => { handleNavClick(); navigate("/faq"); }} className="text-sm text-on-surface-variant hover:text-primary-container font-medium transition-colors" data-testid="link-faq">
+              <button onClick={() => scrollToSection("faq")} className="text-sm text-on-surface-variant hover:text-primary-container font-medium transition-colors" data-testid="link-faq">
                 FAQ
               </button>
 
@@ -99,19 +110,19 @@ export default function GlobalNav({
           <div id="mobile-nav-menu" className={`md:hidden overflow-hidden transition-all duration-200 ease-in-out ${mobileOpen ? 'max-h-96 opacity-100 pb-4' : 'max-h-0 opacity-0'} space-y-2 border-t border-outline-variant/20`}>
               <button
                 className="block py-2 text-sm text-on-surface-variant hover:text-primary-container font-medium transition-colors"
-                onClick={() => { handleNavClick(); navigate("/features"); }}
+                onClick={() => scrollToSection("features")}
               >
                 Features
               </button>
               <button
                 className="block py-2 text-sm text-on-surface-variant hover:text-primary-container font-medium transition-colors"
-                onClick={() => { handleNavClick(); navigate("/pricing"); }}
+                onClick={() => scrollToSection("pricing")}
               >
                 Pricing
               </button>
               <button
                 className="block py-2 text-sm text-on-surface-variant hover:text-primary-container font-medium transition-colors"
-                onClick={() => { handleNavClick(); navigate("/faq"); }}
+                onClick={() => scrollToSection("faq")}
               >
                 FAQ
               </button>
