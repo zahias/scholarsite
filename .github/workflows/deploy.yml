@@ -16,7 +16,7 @@ jobs:
           username: ${{ secrets.A2_USER }}
           key: ${{ secrets.A2_KEY }}
           port: 7822
-          request_pty: true
+          request_pty: false
           script: |
             set -e
             echo "🚀 Connecting to A2..."
