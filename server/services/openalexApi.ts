@@ -131,9 +131,10 @@ export class OpenAlexService {
     let page = 1;
     let totalCount = 0;
     const perPage = 200; // OpenAlex max per page
+    const MAX_PUBS = 500; // Cap to avoid blocking the server for prolific researchers
     let hasMoreResults = true;
     
-    // Fetch all pages using page-based pagination
+    // Fetch pages up to MAX_PUBS (sorted by citation count desc so most impactful work is kept)
     while (hasMoreResults) {
       const url = `${this.baseUrl}/works?filter=author.id:${cleanId}&per-page=${perPage}&page=${page}&sort=cited_by_count:desc`;
       
@@ -146,12 +147,17 @@ export class OpenAlexService {
       allResults = allResults.concat(data.results);
       totalCount = data.meta.count;
       
-      console.log(`Fetched ${allResults.length} of ${totalCount} publications for ${cleanId} (page ${page})`);
+      console.log(`Fetched ${allResults.length} of ${Math.min(totalCount, MAX_PUBS)} publications for ${cleanId} (page ${page})`);
       
       page++;
       
-      // Continue until we have all results or no more results returned
-      hasMoreResults = allResults.length < totalCount && data.results.length > 0;
+      // Stop when we reach the cap, exhaust results, or get no more data
+      hasMoreResults = allResults.length < Math.min(totalCount, MAX_PUBS) && data.results.length > 0;
+      
+      // Brief pause between pages to reduce server load
+      if (hasMoreResults) {
+        await new Promise(resolve => setTimeout(resolve, 500));
+      }
     }
     
     return {

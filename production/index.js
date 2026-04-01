@@ -1121,6 +1121,7 @@ var OpenAlexService = class {
     let page = 1;
     let totalCount = 0;
     const perPage = 200;
+    const MAX_PUBS = 500;
     let hasMoreResults = true;
     while (hasMoreResults) {
       const url = `${this.baseUrl}/works?filter=author.id:${cleanId}&per-page=${perPage}&page=${page}&sort=cited_by_count:desc`;
@@ -1131,9 +1132,12 @@ var OpenAlexService = class {
       const data = await response.json();
       allResults = allResults.concat(data.results);
       totalCount = data.meta.count;
-      console.log(`Fetched ${allResults.length} of ${totalCount} publications for ${cleanId} (page ${page})`);
+      console.log(`Fetched ${allResults.length} of ${Math.min(totalCount, MAX_PUBS)} publications for ${cleanId} (page ${page})`);
       page++;
-      hasMoreResults = allResults.length < totalCount && data.results.length > 0;
+      hasMoreResults = allResults.length < Math.min(totalCount, MAX_PUBS) && data.results.length > 0;
+      if (hasMoreResults) {
+        await new Promise((resolve) => setTimeout(resolve, 500));
+      }
     }
     return {
       results: allResults,
@@ -2004,6 +2008,7 @@ import bcrypt3 from "bcryptjs";
 var openalexService = new OpenAlexService();
 var syncLogs2 = [];
 var MAX_LOGS = 100;
+var isSyncRunning = false;
 function addSyncLog(log2) {
   syncLogs2.unshift(log2);
   if (syncLogs2.length > MAX_LOGS) {
@@ -2068,7 +2073,12 @@ async function syncTenant(tenantId, tenantName, openalexId, syncFrequency) {
   return log2;
 }
 async function runScheduledSync() {
+  if (isSyncRunning) {
+    console.log("[SyncScheduler] Sync already running, skipping this tick");
+    return { synced: 0, skipped: 0, errors: 0 };
+  }
   console.log("[SyncScheduler] Starting scheduled sync check...");
+  isSyncRunning = true;
   const stats = { synced: 0, skipped: 0, errors: 0 };
   try {
     const allTenants = await storage.getAllTenants();
@@ -2115,11 +2125,13 @@ async function runScheduledSync() {
       } else {
         stats.errors++;
       }
-      await new Promise((resolve) => setTimeout(resolve, 2e3));
+      await new Promise((resolve) => setTimeout(resolve, 1e4));
     }
     console.log(`[SyncScheduler] Sync check complete. Synced: ${stats.synced}, Skipped: ${stats.skipped}, Errors: ${stats.errors}`);
   } catch (error) {
     console.error("[SyncScheduler] Error running scheduled sync:", error);
+  } finally {
+    isSyncRunning = false;
   }
   return stats;
 }
@@ -3786,7 +3798,7 @@ function cleanupSSEConnections() {
     }
   }
 }
-setInterval(cleanupSSEConnections, 3e4);
+setInterval(cleanupSSEConnections, 12e4);
 function generateBibTeX(publications2) {
   const bibtexTypeMap = {
     "article": "article",
@@ -3931,7 +3943,7 @@ async function registerRoutes(app2) {
           clearInterval(heartbeat);
           sseConnections.delete(connection);
         }
-      }, 15e3);
+      }, 6e4);
       req.on("close", () => {
         console.log("\u{1F50C} SSE client disconnected");
         clearInterval(heartbeat);
@@ -5326,8 +5338,8 @@ app.use((req, res, next) => {
   const port = parseInt(process.env.PORT || "5000", 10);
   server.listen(port, () => {
     log(`serving on port ${port}`);
-    startSyncScheduler(1);
-    log("Sync scheduler started - checking tenants hourly");
+    startSyncScheduler(6);
+    log("Sync scheduler started - checking tenants every 6 hours");
   });
   const shutdown = (signal) => {
     log(`${signal} received \u2014 shutting down gracefully`);

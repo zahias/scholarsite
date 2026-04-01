@@ -438,7 +438,7 @@ function cleanupSSEConnections() {
 }
 
 // Clean up connections every 30 seconds
-setInterval(cleanupSSEConnections, 30000);
+setInterval(cleanupSSEConnections, 120000); // Cleanup every 2 min (heartbeat already prunes dead connections)
 
 // Bibliography export format generators
 function generateBibTeX(publications: Publication[]): string {
@@ -611,7 +611,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           clearInterval(heartbeat);
           sseConnections.delete(connection);
         }
-      }, 15000); // More frequent heartbeat
+      }, 60000); // Heartbeat every 60s to reduce per-connection setInterval load
 
       // Handle client disconnect
       req.on('close', () => {

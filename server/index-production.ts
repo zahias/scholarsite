@@ -100,8 +100,8 @@ app.use((req, res, next) => {
   server.listen(port, () => {
     log(`serving on port ${port}`);
     
-    startSyncScheduler(1);
-    log('Sync scheduler started - checking tenants hourly');
+    startSyncScheduler(6); // Every 6h; tenant frequency (daily/weekly/monthly) governs actual syncs
+    log('Sync scheduler started - checking tenants every 6 hours');
   });
 
   // Graceful shutdown

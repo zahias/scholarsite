@@ -16,6 +16,7 @@ interface SyncLog {
 
 const syncLogs: SyncLog[] = [];
 const MAX_LOGS = 100;
+let isSyncRunning = false;
 
 function addSyncLog(log: SyncLog) {
   syncLogs.unshift(log);
@@ -94,7 +95,13 @@ async function syncTenant(tenantId: string, tenantName: string, openalexId: stri
 }
 
 export async function runScheduledSync(): Promise<{ synced: number; skipped: number; errors: number }> {
+  if (isSyncRunning) {
+    console.log('[SyncScheduler] Sync already running, skipping this tick');
+    return { synced: 0, skipped: 0, errors: 0 };
+  }
+
   console.log('[SyncScheduler] Starting scheduled sync check...');
+  isSyncRunning = true;
 
   const stats = { synced: 0, skipped: 0, errors: 0 };
 
@@ -151,12 +158,14 @@ export async function runScheduledSync(): Promise<{ synced: number; skipped: num
         stats.errors++;
       }
 
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      await new Promise(resolve => setTimeout(resolve, 10000)); // 10s between tenants to reduce server load
     }
 
     console.log(`[SyncScheduler] Sync check complete. Synced: ${stats.synced}, Skipped: ${stats.skipped}, Errors: ${stats.errors}`);
   } catch (error) {
     console.error('[SyncScheduler] Error running scheduled sync:', error);
+  } finally {
+    isSyncRunning = false;
   }
 
   return stats;
