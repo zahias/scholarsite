@@ -260,7 +260,7 @@ export default function LandingPage() {
                 className="text-4xl sm:text-5xl lg:text-7xl font-serif font-bold tracking-tight mb-6 sm:mb-8 text-white leading-tight"
               >
                 Your research, one link,{" "}
-                <span className="text-secondary-container">
+                <span className="text-secondary-container italic font-serif">
                   always up to date
                 </span>
               </h1>

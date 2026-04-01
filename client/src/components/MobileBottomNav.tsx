@@ -52,7 +52,7 @@ export default function MobileBottomNav() {
               onClick={() => scrollToSection(item.id)}
               className={`flex flex-col items-center justify-center gap-1 min-h-[52px] py-2 px-2 rounded-xl transition-colors active:scale-95 ${
                 isActive 
-                  ? 'text-primary-container bg-primary-container/10' 
+                  ? 'bg-warm text-midnight font-semibold' 
                   : 'text-on-surface-variant hover:text-on-surface active:bg-surface-container-high'
               }`}
               data-testid={`nav-mobile-${item.id}`}

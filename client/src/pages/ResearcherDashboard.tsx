@@ -964,6 +964,60 @@ export default function ResearcherDashboard() {
       </header>
 
       <main className="flex-1 max-w-5xl mx-auto w-full px-4 py-8 space-y-8">
+        {/* ═══════ Personalized Greeting ═══════ */}
+        <div>
+          <h2 className="text-display-sm font-serif text-on-surface leading-tight">
+            Welcome back,{" "}
+            <span className="italic text-secondary-container">
+              {profile?.lastName
+                ? `Dr. ${profile.lastName}.`
+                : `${userData.user.firstName}.`}
+            </span>
+          </h2>
+          <p className="mt-2 text-sm text-on-surface-variant">
+            {authorData?.cited_by_count
+              ? `Your portfolio has ${authorData.cited_by_count.toLocaleString()} total citations across ${authorData.works_count?.toLocaleString() || "your"} publications.`
+              : "Your research portfolio is ready to grow."}
+          </p>
+        </div>
+
+        {/* ═══════ Profile Completion Card ═══════ */}
+        {(() => {
+          const steps = [
+            { done: !!profile?.openalexId, label: "Connect OpenAlex", href: "#openalex" },
+            { done: !!(profile as any)?.bio, label: "Write your bio", href: "#profile" },
+            { done: !!(profile as any)?.photoUrl, label: "Upload a photo", href: "#profile" },
+            { done: !!(tenant?.domains && tenant.domains.length > 1), label: "Add a custom domain", href: "/dashboard/domains" },
+          ];
+          const score = Math.round((steps.filter((s) => s.done).length / steps.length) * 100);
+          const nextStep = steps.find((s) => !s.done);
+          return (
+            <div className="bg-surface-container-lowest rounded-2xl p-5 shadow-sm">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-label-md uppercase tracking-widest text-on-surface-variant">Profile Completion</span>
+                <span className="text-lg font-bold font-serif text-on-surface">{score}%</span>
+              </div>
+              <div className="w-full h-2 rounded-full bg-surface-container-high overflow-hidden mb-3">
+                <div
+                  className="h-full rounded-full bg-warm transition-all duration-500"
+                  style={{ width: `${score}%` }}
+                />
+              </div>
+              {score < 100 && nextStep && (
+                <p className="text-sm text-on-surface-variant">
+                  <a href={nextStep.href} className="text-primary-container font-medium hover:underline">
+                    {nextStep.label}
+                  </a>{" "}
+                  to reach {Math.min(score + 25, 100)}%
+                </p>
+              )}
+              {score === 100 && (
+                <p className="text-sm text-secondary-container font-medium">Your profile is complete ✓</p>
+              )}
+            </div>
+          );
+        })()}
+
         {/* OpenAlex Connection Card */}
         {!profile?.openalexId ? (
           <Card className="border-orange-200 bg-orange-50">

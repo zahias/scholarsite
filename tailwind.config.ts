@@ -76,7 +76,7 @@ export default {
         oxford: '#142850',
         platinum: '#E4E9F7',
         sage: '#7AA874',
-        warm: '#F2994A',
+        warm: '#FFC72E',
         chart: {
           "1": "var(--chart-1)",
           "2": "var(--chart-2)",

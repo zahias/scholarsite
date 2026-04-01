@@ -241,7 +241,7 @@ export default function Publications({ openalexId, inline = false }: Publication
             {featuredPublications.slice(0, 3).map((pub: any, index: number) => (
               <Card
                 key={pub.id}
-                className="bg-white/80 dark:bg-midnight/40 backdrop-blur-xl border-l-4 border-l-warm border-platinum dark:border-white/20 shadow-lg hover:-translate-y-1 hover:shadow-2xl transition-all"
+                className="bg-white/80 dark:bg-midnight/40 backdrop-blur-xl shadow-sm hover:-translate-y-1 hover:shadow-lg transition-all"
                 data-testid={`card-featured-${index}`}
               >
                 <CardContent className="p-4">
@@ -420,11 +420,11 @@ export default function Publications({ openalexId, inline = false }: Publication
           }}
         />
       ) : (
-        <div className="space-y-6">
+        <div className="space-y-8">
           {displayedPublications.map((publication: any, index: number) => (
             <Card
               key={publication.id}
-              className={`bg-white/70 dark:bg-midnight/30 backdrop-blur-xl shadow-lg border-platinum dark:border-white/20 hover:-translate-y-1 hover:shadow-2xl transition-all ${publication.isFeatured ? 'border-l-4 border-l-warm' : 'border-l-4 border-l-sage'}`}
+              className="bg-white/70 dark:bg-midnight/30 backdrop-blur-xl shadow-sm hover:-translate-y-1 hover:shadow-lg transition-all"
               data-testid={`card-publication-${index}`}
             >
               <CardContent className="p-6">
@@ -457,12 +457,6 @@ export default function Publications({ openalexId, inline = false }: Publication
                           {publication.publicationYear}
                         </span>
                       )}
-                      <div className="flex items-center">
-                        <Quote className="w-3.5 h-3.5 text-accent mr-1" />
-                        <span className="text-sm font-medium text-accent" data-testid={`text-publication-citations-${index}`}>
-                          {publication.citationCount} citations
-                        </span>
-                      </div>
                     </div>
                     {publication.topics && publication.topics.length > 0 && (
                       <div className="flex flex-wrap gap-2">
@@ -475,6 +469,10 @@ export default function Publications({ openalexId, inline = false }: Publication
                     )}
                   </div>
                   <div className="mt-4 lg:mt-0 lg:ml-6 flex flex-col items-end space-y-2">
+                    <div className="text-right mb-3" data-testid={`text-publication-citations-${index}`}>
+                      <p className="text-2xl font-bold font-serif text-midnight dark:text-white leading-none">{(publication.citationCount || 0).toLocaleString()}</p>
+                      <p className="text-[10px] uppercase tracking-widest text-muted-foreground mt-1">Citations</p>
+                    </div>
                     {publication.pdfUrl && (
                       <a
                         href={publication.pdfUrl}
