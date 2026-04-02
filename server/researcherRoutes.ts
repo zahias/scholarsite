@@ -55,8 +55,25 @@ router.get("/my-tenant", isAuthenticated, async (req: Request, res: Response) =>
       return res.status(401).json({ message: "Not authenticated" });
     }
 
-    const user = await storage.getUser(userId);
-    if (!user || !user.tenantId) {
+    let user = await storage.getUser(userId);
+    if (!user) {
+      return res.status(404).json({ message: "No tenant associated with this user" });
+    }
+
+    // Self-healing: if tenantId is missing, check whether a completed payment with
+    // the user's email already provisioned a tenant and link them back together.
+    if (!user.tenantId) {
+      const userPayments = await storage.getPaymentsByEmail(user.email);
+      const completedWithTenant = userPayments.find(
+        (p) => p.status === "completed" && p.tenantId
+      );
+      if (completedWithTenant?.tenantId) {
+        await storage.updateUser(user.id, { tenantId: completedWithTenant.tenantId });
+        user = (await storage.getUser(userId))!;
+      }
+    }
+
+    if (!user.tenantId) {
       return res.status(404).json({ message: "No tenant associated with this user" });
     }
 

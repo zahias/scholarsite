@@ -167,6 +167,7 @@ export interface IStorage {
 
   // Payment operations
   getAllPayments(): Promise<Payment[]>;
+  getPaymentsByEmail(email: string): Promise<Payment[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -959,6 +960,11 @@ export class DatabaseStorage implements IStorage {
       isSubdomain: true,
     });
 
+    // Link the tenant to the existing user account if one matches the payment email
+    if (existingUser) {
+      await this.updateUser(existingUser.id, { tenantId: tenant.id });
+    }
+
     return tenant;
   }
 
@@ -1146,6 +1152,8 @@ class MemoryStorage {
   async upsertSetting(_k: string, _v: string) { return undefined; }
   async getAllThemes() { return []; }
   async getDefaultTheme() { return undefined; }
+  async getPaymentsByEmail(_email: string) { return []; }
+  async getAllPayments() { return []; }
 }
 
 export const storage: IStorage = process.env.DATABASE_URL ? new DatabaseStorage() : new MemoryStorage();
