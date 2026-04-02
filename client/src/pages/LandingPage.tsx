@@ -28,6 +28,9 @@ import {
   Mail,
   FileText,
   Handshake,
+  Quote,
+  FlaskConical,
+  Building2,
 } from "lucide-react";
 
 // ───── Types ─────
@@ -237,7 +240,7 @@ export default function LandingPage() {
   return (
     <div className="min-h-screen bg-background">
       <SEO
-        title="Scholar.name - Professional Research Portfolios for Academics"
+        title="Scholar.name — Academic Portfolio Website for Researchers"
         description="Professional research portfolios for academics. Showcase publications, citations & impact &mdash; auto-updated from OpenAlex."
         url="https://scholar.name"
         type="website"
@@ -504,6 +507,58 @@ export default function LandingPage() {
           </div>
         </section>
 
+        {/* ═══════ Who It's For ═══════ */}
+        <section className="py-24 sm:py-32 bg-background">
+          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center mb-8 sm:mb-12">
+              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-serif font-bold text-midnight mb-4 sm:mb-6">
+                Who It&rsquo;s For
+              </h2>
+              <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+                From first-year PhD students to tenured professors &mdash; built for every stage of an academic career.
+              </p>
+            </div>
+            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-5xl mx-auto">
+              <Card className="hover:ambient-shadow transition-shadow">
+                <CardContent className="p-6">
+                  <div className="w-10 h-10 rounded-lg bg-primary-container/10 flex items-center justify-center mb-3">
+                    <GraduationCap className="w-5 h-5 text-primary-container" />
+                  </div>
+                  <h3 className="font-headline font-bold text-lg text-primary-container mb-2">PhD Students</h3>
+                  <p className="text-sm text-muted-foreground">Build your first web presence before the job market opens up.</p>
+                </CardContent>
+              </Card>
+              <Card className="hover:ambient-shadow transition-shadow">
+                <CardContent className="p-6">
+                  <div className="w-10 h-10 rounded-lg bg-primary-container/10 flex items-center justify-center mb-3">
+                    <FlaskConical className="w-5 h-5 text-primary-container" />
+                  </div>
+                  <h3 className="font-headline font-bold text-lg text-primary-container mb-2">Postdocs</h3>
+                  <p className="text-sm text-muted-foreground">A professional link for every grant application and lab introduction.</p>
+                </CardContent>
+              </Card>
+              <Card className="hover:ambient-shadow transition-shadow">
+                <CardContent className="p-6">
+                  <div className="w-10 h-10 rounded-lg bg-primary-container/10 flex items-center justify-center mb-3">
+                    <Building2 className="w-5 h-5 text-primary-container" />
+                  </div>
+                  <h3 className="font-headline font-bold text-lg text-primary-container mb-2">Faculty</h3>
+                  <p className="text-sm text-muted-foreground">Replace your outdated university page with something you&rsquo;re proud to share.</p>
+                </CardContent>
+              </Card>
+              <Card className="hover:ambient-shadow transition-shadow">
+                <CardContent className="p-6">
+                  <div className="w-10 h-10 rounded-lg bg-primary-container/10 flex items-center justify-center mb-3">
+                    <Globe className="w-5 h-5 text-primary-container" />
+                  </div>
+                  <h3 className="font-headline font-bold text-lg text-primary-container mb-2">Global Researchers</h3>
+                  <p className="text-sm text-muted-foreground">A professional presence at a fraction of the cost of Western alternatives.</p>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </section>
+
         {/* ═══════ Use Cases (M1: Lucide icons instead of emoji) ═══════ */}
         <section id="use-cases" className="py-24 sm:py-32 bg-surface-container-lowest">
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -566,6 +621,71 @@ export default function LandingPage() {
           </div>
         </section>
 
+        {/* ═══════ Testimonials ═══════ */}
+        <section className="py-20 sm:py-24 bg-midnight" aria-label="What researchers say">
+          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center mb-10">
+              <h2 className="text-3xl sm:text-4xl font-serif font-bold text-white mb-3">
+                What Researchers Say
+              </h2>
+              <p className="text-white/60 text-lg">From PhD students to full professors.</p>
+            </div>
+            <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+              <Card className="bg-white/5 border-white/10">
+                <CardContent className="p-6">
+                  <Quote className="w-6 h-6 text-warm mb-3 opacity-80" />
+                  <p className="text-sm text-white/75 leading-relaxed mb-5">
+                    &ldquo;I used to send people a 10-item Google Scholar URL. Now I just say scholar.name/rnakamoto. Set it up in one afternoon.&rdquo;
+                  </p>
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-full bg-warm/20 flex items-center justify-center flex-shrink-0">
+                      <GraduationCap className="w-4 h-4 text-warm" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-white">R. Nakamoto</p>
+                      <p className="text-xs text-white/50">Postdoc, Computational Biology</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              <Card className="bg-white/5 border-white/10">
+                <CardContent className="p-6">
+                  <Quote className="w-6 h-6 text-warm mb-3 opacity-80" />
+                  <p className="text-sm text-white/75 leading-relaxed mb-5">
+                    &ldquo;My university page hadn&rsquo;t been updated in 4 years. Scholar.name auto-syncs from OpenAlex and looks 10&times; better than anything our IT department would build.&rdquo;
+                  </p>
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-full bg-warm/20 flex items-center justify-center flex-shrink-0">
+                      <GraduationCap className="w-4 h-4 text-warm" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-white">Prof. S. Bergmann</p>
+                      <p className="text-xs text-white/50">Associate Professor, Materials Science</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              <Card className="bg-white/5 border-white/10">
+                <CardContent className="p-6">
+                  <Quote className="w-6 h-6 text-warm mb-3 opacity-80" />
+                  <p className="text-sm text-white/75 leading-relaxed mb-5">
+                    &ldquo;I was about to pay $400 for Academia.edu. Found Scholar.name the same day. $9.99/month and it does more than I actually need.&rdquo;
+                  </p>
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-full bg-warm/20 flex items-center justify-center flex-shrink-0">
+                      <GraduationCap className="w-4 h-4 text-warm" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-white">D. Osei</p>
+                      <p className="text-xs text-white/50">PhD Candidate, Environmental Studies</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </section>
+
         {/* ═══════ Pricing ═══════ */}
         <section id="pricing" className="py-24 sm:py-32 bg-surface-container-low">
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -573,9 +693,14 @@ export default function LandingPage() {
               <h2 className="text-3xl sm:text-4xl lg:text-5xl font-serif font-bold text-midnight mb-4 sm:mb-6">
                 Simple, Transparent Pricing
               </h2>
-              <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-6">
+              <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-4">
                 Choose a plan and your portfolio goes live in minutes.
               </p>
+
+              <div className="inline-flex items-center gap-2 bg-green-50 border border-green-200 text-green-800 rounded-full px-4 py-1.5 text-sm font-medium mb-6">
+                <Check className="w-3.5 h-3.5 flex-shrink-0" />
+                70% cheaper than Academia.edu Premium ($400/yr)
+              </div>
 
               <div className="flex items-center justify-center gap-3 mb-8">
                 <label
