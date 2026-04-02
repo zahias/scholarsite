@@ -71,6 +71,15 @@ export default function GlobalFooter({ mode = "landing" }: GlobalFooterProps) {
                       FAQ
                     </button>
                   </li>
+                  <li>
+                    <button
+                      onClick={() => { handleNavClick(); navigate("/blog"); }}
+                      className="hover:text-white transition-colors"
+                      data-testid="link-footer-blog"
+                    >
+                      Blog
+                    </button>
+                  </li>
                 </ul>
               </div>
 

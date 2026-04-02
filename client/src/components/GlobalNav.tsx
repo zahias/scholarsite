@@ -58,6 +58,9 @@ export default function GlobalNav({
               <button onClick={() => scrollToSection("faq")} className="text-sm text-on-surface-variant hover:text-primary-container font-medium transition-colors" data-testid="link-faq">
                 FAQ
               </button>
+              <button onClick={() => { handleNavClick(); navigate("/blog"); }} className="text-sm text-on-surface-variant hover:text-primary-container font-medium transition-colors" data-testid="link-blog">
+                Blog
+              </button>
 
               {!hideLogin && (
                 <Button
@@ -125,6 +128,12 @@ export default function GlobalNav({
                 onClick={() => scrollToSection("faq")}
               >
                 FAQ
+              </button>
+              <button
+                className="block py-2 text-sm text-on-surface-variant hover:text-primary-container font-medium transition-colors"
+                onClick={() => { handleNavClick(); navigate("/blog"); }}
+              >
+                Blog
               </button>
               {!hideLogin && (
                 <Button

@@ -36,6 +36,12 @@ const CheckoutSuccessPage = lazy(() => import("@/pages/CheckoutSuccessPage"));
 const CheckoutCancelPage = lazy(() => import("@/pages/CheckoutCancelPage"));
 const SignupPage = lazy(() => import("@/pages/SignupPage"));
 const LoginPage = lazy(() => import("@/pages/LoginPage"));
+const BlogIndex = lazy(() => import("@/pages/BlogIndex"));
+const BlogGoogleScholarVs = lazy(() => import("@/pages/blog/GoogleScholarVsScholarName"));
+const BlogHIndex = lazy(() => import("@/pages/blog/WhatIsHIndex"));
+const BlogAcademicPortfolio = lazy(() => import("@/pages/blog/HowToCreateAcademicPortfolio"));
+const BlogWebsiteBuilders = lazy(() => import("@/pages/blog/BestWebsiteBuildersResearchers"));
+const BlogCvVsPortfolio = lazy(() => import("@/pages/blog/AcademicCvVsResearchPortfolio"));
 
 interface SiteContext {
   isTenantSite: boolean;
@@ -103,6 +109,12 @@ function Router() {
       <Route path="/checkout" component={CheckoutPage} />
       <Route path="/checkout/success" component={CheckoutSuccessPage} />
       <Route path="/checkout/cancel" component={CheckoutCancelPage} />
+      <Route path="/blog" component={BlogIndex} />
+      <Route path="/blog/google-scholar-vs-scholar-name" component={BlogGoogleScholarVs} />
+      <Route path="/blog/what-is-h-index" component={BlogHIndex} />
+      <Route path="/blog/how-to-create-academic-portfolio" component={BlogAcademicPortfolio} />
+      <Route path="/blog/best-website-builders-researchers" component={BlogWebsiteBuilders} />
+      <Route path="/blog/academic-cv-vs-research-portfolio" component={BlogCvVsPortfolio} />
       <Route component={NotFound} />
     </Switch>
   );
