@@ -936,6 +936,9 @@ var DatabaseStorage = class {
       isPrimary: true,
       isSubdomain: true
     });
+    if (existingUser) {
+      await this.updateUser(existingUser.id, { tenantId: tenant.id });
+    }
     return tenant;
   }
   async getAllPayments() {
@@ -1098,6 +1101,12 @@ var MemoryStorage = class {
   }
   async getDefaultTheme() {
     return void 0;
+  }
+  async getPaymentsByEmail(_email) {
+    return [];
+  }
+  async getAllPayments() {
+    return [];
   }
 };
 var storage = process.env.DATABASE_URL ? new DatabaseStorage() : new MemoryStorage();
@@ -2638,8 +2647,21 @@ router4.get("/my-tenant", isAuthenticated, async (req, res) => {
     if (!userId) {
       return res.status(401).json({ message: "Not authenticated" });
     }
-    const user = await storage.getUser(userId);
-    if (!user || !user.tenantId) {
+    let user = await storage.getUser(userId);
+    if (!user) {
+      return res.status(404).json({ message: "No tenant associated with this user" });
+    }
+    if (!user.tenantId) {
+      const userPayments = await storage.getPaymentsByEmail(user.email);
+      const completedWithTenant = userPayments.find(
+        (p) => p.status === "completed" && p.tenantId
+      );
+      if (completedWithTenant?.tenantId) {
+        await storage.updateUser(user.id, { tenantId: completedWithTenant.tenantId });
+        user = await storage.getUser(userId);
+      }
+    }
+    if (!user.tenantId) {
       return res.status(404).json({ message: "No tenant associated with this user" });
     }
     const tenant = await storage.getTenantWithDetails(user.tenantId);
