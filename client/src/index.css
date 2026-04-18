@@ -1012,3 +1012,123 @@
   filter: brightness(1.12);
   transform: translateY(-1px);
 }
+
+/* ── Landing Page Redesign helpers ── */
+.landing-hero-grid {
+  background:
+    radial-gradient(ellipse at 78% 22%, rgba(255,199,46,.18), transparent 55%),
+    radial-gradient(ellipse at 22% 82%, rgba(30,58,95,.35), transparent 50%),
+    linear-gradient(rgba(255,255,255,.028) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.028) 1px, transparent 1px);
+  background-size: auto, auto, 48px 48px, 48px 48px;
+}
+.dash-grid {
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(255,199,46,.08), transparent 60%),
+    linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px);
+  background-size: auto, 48px 48px, 48px 48px;
+}
+.eyebrow {
+  font-size: 11px;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: #75777E;
+  font-weight: 600;
+}
+.faq-open {
+  border-left: 4px solid #FFC72E;
+}
+.faq-chev-open {
+  transform: rotate(180deg);
+  background: rgba(255,199,46,.2);
+  color: #6F5400;
+}
+
+/* ── Observatory: Legal pages ─────────────────────────────── */
+.legal-hero-grid {
+  background:
+    radial-gradient(ellipse at 70% 0%, rgba(255,199,46,.12), transparent 55%),
+    repeating-linear-gradient(0deg, rgba(255,255,255,.03) 0 1px, transparent 1px 52px);
+}
+
+/* ── Observatory: Blog post body ──────────────────────────── */
+.post-lede::first-letter {
+  font-family: 'Newsreader', serif;
+  font-size: 4.2em;
+  line-height: .82;
+  float: left;
+  margin: .06em .12em 0 0;
+  color: #0B1F3A;
+  font-weight: 500;
+}
+.post-callout {
+  background: #0B1F3A;
+  color: #fff;
+  border-radius: 14px;
+  padding: 28px 32px;
+  margin: 32px 0;
+  position: relative;
+  overflow: hidden;
+}
+.post-callout::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 85% 0%, rgba(255,199,46,.18), transparent 60%);
+  pointer-events: none;
+}
+.post-body blockquote {
+  border-left: 4px solid #FFC72E;
+  margin: 28px 0;
+  padding: 4px 0 4px 24px;
+  font-family: 'Newsreader', serif;
+  font-style: italic;
+  font-size: 1.2em;
+  color: #0B1F3A;
+  line-height: 1.5;
+}
+
+/* ── Observatory: Profile page ────────────────────────────── */
+.profile-banner-fade::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 80px;
+  background: linear-gradient(transparent, #fff);
+}
+
+/* ── Observatory: Auth pages ──────────────────────────────── */
+.auth-backdrop {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.auth-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 12px;
+  color: #75777E;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  margin: 16px 0;
+}
+.auth-divider::before,
+.auth-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: rgba(11,31,58,.1);
+}
+
+/* ── Observatory: Signup two-column ───────────────────────── */
+.signup-benefits-grid {
+  background:
+    radial-gradient(ellipse at 70% 0%, rgba(255,199,46,.15), transparent 55%),
+    repeating-linear-gradient(0deg, rgba(255,255,255,.03) 0 1px, transparent 1px 52px);
+  background-color: #0B1F3A;
+}

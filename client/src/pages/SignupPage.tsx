@@ -4,25 +4,11 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
-import GlobalNav from "@/components/GlobalNav";
-import GlobalFooter from "@/components/GlobalFooter";
 import SEO from "@/components/SEO";
 import {
-  ArrowLeft,
-  ArrowRight,
-  CheckCircle,
-  Eye,
-  EyeOff,
-  Loader2,
-  Search,
-  User,
-  BookOpen,
-  ExternalLink,
+  ArrowLeft, ArrowRight, CheckCircle, Eye, EyeOff, Loader2, Search, BookOpen, ExternalLink,
 } from "lucide-react";
 
 // -- Schemas --
@@ -48,39 +34,109 @@ interface SearchResponse {
   results: AuthorSearchResult[];
 }
 
+function passwordStrength(pwd: string): number {
+  if (!pwd) return 0;
+  let score = 0;
+  if (pwd.length >= 8) score++;
+  if (pwd.length >= 12) score++;
+  if (/[A-Z]/.test(pwd) && /[a-z]/.test(pwd)) score++;
+  if (/\d/.test(pwd)) score++;
+  if (/[^A-Za-z0-9]/.test(pwd)) score++;
+  return Math.min(3, Math.round((score / 5) * 3));
+}
+
+const STRENGTH_COLORS = ["#E4E9F7", "#B33A3A", "#B87A0A", "#2F6D3A"];
+const STRENGTH_LABELS = ["", "Weak", "Fair", "Strong"];
+
+// Benefits panel for right column
+function BenefitsPanel() {
+  return (
+    <div className="signup-benefits-grid" style={{ borderRadius: "0 16px 16px 0", overflow: "hidden", display: "flex", flexDirection: "column", justifyContent: "space-between", padding: "48px 40px" }}>
+      {/* Mini profile preview */}
+      <div>
+        <div style={{ background: "rgba(255,255,255,.06)", border: "1px solid rgba(255,255,255,.1)", borderRadius: 14, padding: "20px 22px", marginBottom: 36 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 14 }}>
+            <div style={{ width: 44, height: 44, borderRadius: "50%", background: "linear-gradient(135deg, #FFC72E, #FFB700)", display: "grid", placeItems: "center" }}>
+              <span style={{ fontFamily: "'Newsreader', serif", fontSize: 18, color: "#0B1F3A", fontWeight: 700, fontStyle: "italic" }}>J</span>
+            </div>
+            <div>
+              <div style={{ color: "#fff", fontWeight: 600, fontSize: 14 }}>Jane Smith, PhD</div>
+              <div style={{ color: "rgba(255,255,255,.55)", fontSize: 12 }}>scholar.name/janesmith</div>
+            </div>
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, marginBottom: 12 }}>
+            {[["142", "h-index"], ["412", "papers"], ["189k", "citations"]].map(([val, label]) => (
+              <div key={label} style={{ background: "rgba(255,255,255,.08)", borderRadius: 8, padding: "8px 10px", textAlign: "center" }}>
+                <div style={{ fontFamily: "'Newsreader', serif", fontSize: 18, color: "#FFC72E", fontWeight: 600, lineHeight: 1 }}>{val}</div>
+                <div style={{ fontSize: 10, color: "rgba(255,255,255,.5)", textTransform: "uppercase", letterSpacing: ".1em", marginTop: 2 }}>{label}</div>
+              </div>
+            ))}
+          </div>
+          <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+            {["CRISPR", "Gene Editing", "Biochemistry"].map((t) => (
+              <span key={t} style={{ fontSize: 10.5, background: "rgba(255,199,46,.15)", color: "#FFC72E", padding: "3px 8px", borderRadius: 999, border: "1px solid rgba(255,199,46,.25)" }}>{t}</span>
+            ))}
+          </div>
+        </div>
+
+        {/* Benefits list */}
+        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+          {[
+            ["Auto-sync publications", "Linked to OpenAlex — 250M+ works, updated automatically."],
+            ["Institutional credibility", "A URL like scholar.name/you signals professionalism."],
+            ["Citation analytics", "Track your h-index, i10, and citation trends over time."],
+            ["Free forever", "No credit card required. Paid plans unlock more."],
+          ].map(([title, desc]) => (
+            <div key={title as string} style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
+              <div style={{ width: 22, height: 22, borderRadius: "50%", background: "rgba(255,199,46,.15)", border: "1px solid rgba(255,199,46,.3)", display: "grid", placeItems: "center", flexShrink: 0, marginTop: 1 }}>
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#FFC72E" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+              </div>
+              <div>
+                <div style={{ fontSize: 13.5, color: "#fff", fontWeight: 600, marginBottom: 2 }}>{title}</div>
+                <div style={{ fontSize: 12.5, color: "rgba(255,255,255,.55)", lineHeight: 1.5 }}>{desc}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Blockquote */}
+      <blockquote style={{ marginTop: 36, padding: "16px 20px", borderLeft: "3px solid rgba(255,199,46,.4)", background: "rgba(255,255,255,.04)", borderRadius: "0 8px 8px 0" }}>
+        <p style={{ fontFamily: "'Newsreader', serif", fontStyle: "italic", fontSize: 15, color: "rgba(255,255,255,.85)", lineHeight: 1.55, margin: "0 0 8px" }}>
+          "Set it up in five minutes, and now it's the first thing I send to collaborators."
+        </p>
+        <cite style={{ fontSize: 12, color: "rgba(255,255,255,.45)", fontStyle: "normal" }}>— A. Researcher, MIT</cite>
+      </blockquote>
+    </div>
+  );
+}
+
 // -- Component --
 export default function SignupPage() {
   const [, navigate] = useLocation();
   const { toast } = useToast();
 
-  // Wizard state
   const [step, setStep] = useState(1);
   const totalSteps = 3;
 
-  // Step 1 state
   const [showPassword, setShowPassword] = useState(false);
-
-  // Step 2 state (find your profile)
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
   const [showResults, setShowResults] = useState(false);
   const [selectedAuthor, setSelectedAuthor] = useState<AuthorSearchResult | null>(null);
+  const [isSuccess, setIsSuccess] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
 
-  // Step 3 state (success)
-  const [isSuccess, setIsSuccess] = useState(false);
+  useEffect(() => { window.scrollTo(0, 0); }, []);
 
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, []);
-
-  // -- Step 1 form --
   const form = useForm<Step1Data>({
     resolver: zodResolver(step1Schema),
     defaultValues: { firstName: "", lastName: "", email: "", password: "", affiliation: "" },
   });
 
-  // -- Step 2 search --
+  const passwordValue = form.watch("password") ?? "";
+  const strengthLevel = passwordStrength(passwordValue);
+
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedQuery(searchQuery), 300);
     return () => clearTimeout(timer);
@@ -99,28 +155,22 @@ export default function SignupPage() {
   const { data: searchResults, isLoading: isSearching } = useQuery<SearchResponse>({
     queryKey: ["/api/openalex/autocomplete", debouncedQuery],
     queryFn: async () => {
-      const response = await fetch(
-        `/api/openalex/autocomplete?q=${encodeURIComponent(debouncedQuery)}`
-      );
+      const response = await fetch(`/api/openalex/autocomplete?q=${encodeURIComponent(debouncedQuery)}`);
       if (!response.ok) throw new Error("Search failed");
       return response.json();
     },
     enabled: debouncedQuery.length >= 2,
   });
 
-  // -- Registration mutation --
   const signupMutation = useMutation({
     mutationFn: async (data: Step1Data & { openalexId?: string }) => {
       const response = await fetch("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          firstName: data.firstName,
-          lastName: data.lastName,
-          email: data.email,
-          password: data.password,
-          openalexId: data.openalexId,
-          affiliation: data.affiliation,
+          firstName: data.firstName, lastName: data.lastName,
+          email: data.email, password: data.password,
+          openalexId: data.openalexId, affiliation: data.affiliation,
         }),
       });
       if (!response.ok) {
@@ -131,22 +181,14 @@ export default function SignupPage() {
     },
     onSuccess: () => {
       setIsSuccess(true);
-      toast({
-        title: "Account created!",
-        description: "Your 14-day free trial is active. Redirecting to your dashboard…",
-      });
+      toast({ title: "Account created!", description: "Your 14-day free trial is active. Redirecting to your dashboard…" });
       setTimeout(() => navigate("/dashboard"), 1500);
     },
     onError: (error: Error) => {
-      toast({
-        title: "Signup failed",
-        description: error.message,
-        variant: "destructive",
-      });
+      toast({ title: "Signup failed", description: error.message, variant: "destructive" });
     },
   });
 
-  // -- Step navigation --
   const handleStep1Next = async () => {
     const valid = await form.trigger();
     if (valid) {
@@ -159,10 +201,7 @@ export default function SignupPage() {
 
   const handleStep2Next = () => {
     const formData = form.getValues();
-    signupMutation.mutate({
-      ...formData,
-      openalexId: selectedAuthor?.id || undefined,
-    });
+    signupMutation.mutate({ ...formData, openalexId: selectedAuthor?.id || undefined });
   };
 
   const handleSelectAuthor = (author: AuthorSearchResult) => {
@@ -170,356 +209,270 @@ export default function SignupPage() {
     setShowResults(false);
   };
 
-  // -- Progress bar --
-  const ProgressBar = () => (
-    <div className="flex items-center justify-center gap-2 mb-8">
+  // Success state
+  if (isSuccess) {
+    return (
+      <div style={{ minHeight: "100vh", background: "#F0F4F8", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 24 }}>
+        <div style={{ background: "#fff", borderRadius: 16, border: "1px solid rgba(11,31,58,.08)", padding: "48px 36px", maxWidth: 400, width: "100%", textAlign: "center", boxShadow: "0 24px 60px -20px rgba(11,31,58,.14)" }}>
+          <div style={{ width: 64, height: 64, borderRadius: "50%", background: "#DDF2E4", display: "grid", placeItems: "center", margin: "0 auto 20px" }}>
+            <CheckCircle size={32} style={{ color: "#2F6D3A" }} />
+          </div>
+          <h1 style={{ fontFamily: "'Newsreader', serif", fontSize: 26, fontWeight: 500, color: "#0B1F3A", margin: "0 0 10px" }}>Welcome to Scholar.name!</h1>
+          <p style={{ color: "#44474D", fontSize: 14, margin: "0 0 24px", lineHeight: 1.55 }}>Your account has been created. Redirecting to your dashboard...</p>
+          <Loader2 size={24} style={{ animation: "spin 1s linear infinite", color: "#0B1F3A", margin: "0 auto" }} />
+        </div>
+      </div>
+    );
+  }
+
+  // Step progress dots
+  const ProgressDots = () => (
+    <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 28 }}>
       {Array.from({ length: totalSteps }, (_, i) => {
         const s = i + 1;
-        const isActive = s === step;
-        const isDone = s < step || isSuccess;
+        const done = s < step;
+        const active = s === step;
         return (
-          <div key={s} className="flex items-center gap-2">
-            <div
-              className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold transition-colors ${isDone ? "bg-green-600 text-white" : isActive ? "bg-primary-container text-white" : "bg-surface-container-high text-on-surface-variant"}`}
-            >
-              {isDone ? <CheckCircle className="w-4 h-4" /> : s}
+          <div key={s} style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            <div style={{ width: 28, height: 28, borderRadius: "50%", display: "grid", placeItems: "center", fontSize: 11, fontWeight: 700, background: done ? "#2F6D3A" : active ? "#0B1F3A" : "#E4E9F7", color: done || active ? "#fff" : "#75777E", transition: "all .2s" }}>
+              {done ? <CheckCircle size={14} /> : s}
             </div>
-            {s < totalSteps && (
-              <div className={`w-10 h-0.5 ${s < step || isSuccess ? "bg-green-600" : "bg-muted"}`} />
-            )}
+            {s < totalSteps && <div style={{ width: 28, height: 2, background: done ? "#2F6D3A" : "#E4E9F7", borderRadius: 1 }} />}
           </div>
         );
       })}
     </div>
   );
 
-  // -- Success state (Step 3) --
-  if (isSuccess) {
-    return (
-      <div className="min-h-screen bg-background flex flex-col">
-        <GlobalNav mode="auth" />
-        <div className="flex-1 max-w-md mx-auto w-full px-4 py-16">
-          <ProgressBar />
-          <Card>
-            <CardContent className="pt-12 pb-12 text-center">
-              <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-6">
-                <CheckCircle className="w-8 h-8 text-green-600" />
-              </div>
-              <h1 className="text-2xl font-bold mb-4">Welcome to Scholar.name!</h1>
-              <p className="text-muted-foreground mb-6">
-                Your account has been created. Redirecting to your dashboard...
-              </p>
-              <Loader2 className="w-6 h-6 animate-spin mx-auto text-primary" />
-            </CardContent>
-          </Card>
-        </div>
-        <GlobalFooter mode="landing" />
-      </div>
-    );
-  }
+  const inputStyle: React.CSSProperties = {
+    width: "100%", padding: "10px 12px", fontSize: 14.5, fontFamily: "inherit",
+    color: "#171C1F", background: "#fff", border: "1px solid rgba(11,31,58,.14)",
+    borderRadius: 8, outline: "none", boxSizing: "border-box",
+  };
 
-  // -- Main render --
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", background: "#F0F4F8" }}>
       <SEO
         title="Sign Up — Scholar.name"
         description="Create your free academic portfolio on Scholar.name. Showcase publications, citations, and career milestones."
         url="https://scholar.name/signup"
         type="website"
       />
-      <GlobalNav mode="auth" />
 
-      <div className="flex-1 max-w-md mx-auto w-full px-4 py-12">
-        {/* Back button */}
-        <Button
-          variant="ghost"
-          className="mb-4"
-          onClick={() => {
-            if (step === 1) navigate("/");
-            else setStep(step - 1);
-          }}
-        >
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          {step === 1 ? "Back to Home" : "Back"}
-        </Button>
+      {/* Auth nav */}
+      <nav style={{ background: "rgba(255,255,255,.9)", backdropFilter: "blur(14px)", borderBottom: "1px solid rgba(11,31,58,.08)", position: "sticky", top: 0, zIndex: 50 }}>
+        <div style={{ maxWidth: 1200, margin: "0 auto", padding: "10px 32px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <a href="/" style={{ display: "flex", alignItems: "center", gap: 10, fontFamily: "'Newsreader', serif", fontSize: 18, fontWeight: 600, color: "#0B1F3A", textDecoration: "none" }}>
+            <span style={{ width: 26, height: 26, borderRadius: 8, background: "#0B1F3A", color: "#FFC72E", display: "grid", placeItems: "center", fontFamily: "'Newsreader', serif", fontSize: 14, fontWeight: 700, fontStyle: "italic" }}>S</span>
+            Scholar.name
+          </a>
+          <span style={{ fontSize: 13.5, color: "#44474D" }}>
+            Already a member?{" "}
+            <a href="/login" style={{ color: "#0B1F3A", fontWeight: 600, textDecoration: "underline", textDecorationColor: "#FFC72E", textUnderlineOffset: 2 }}>Sign in</a>
+          </span>
+        </div>
+      </nav>
 
-        <ProgressBar />
+      {/* Main two-column grid */}
+      <div style={{ flex: 1, display: "flex", alignItems: "stretch", justifyContent: "center" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "1.15fr 1fr", width: "100%", maxWidth: 1040, margin: "32px auto", borderRadius: 16, overflow: "hidden", boxShadow: "0 24px 60px -20px rgba(11,31,58,.18)", border: "1px solid rgba(11,31,58,.08)" }}
+          className="signup-grid">
+          <style>{`
+            @media (max-width: 860px) { .signup-grid { grid-template-columns: 1fr !important; margin: 16px !important; } .signup-panel-right { display: none !important; } }
+          `}</style>
 
-        {/* Step 1: Credentials */}
-        {step === 1 && (
-          <Card>
-            <CardHeader className="text-center">
-              <div className="w-12 h-12 rounded-full bg-primary-container/10 flex items-center justify-center mx-auto mb-4">
-                <User className="w-6 h-6 text-primary-container" />
-              </div>
-              <CardTitle className="text-2xl">Create your account</CardTitle>
-              <CardDescription>
-                Step 1 of {totalSteps} &mdash; your login details
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Form {...form}>
-                <form
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    handleStep1Next();
-                  }}
-                  className="space-y-4"
-                >
-                  <div className="grid grid-cols-2 gap-4">
-                    <FormField
-                      control={form.control}
-                      name="firstName"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>First name</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Jane" autoComplete="given-name" {...field} />
-                          </FormControl>
+          {/* LEFT: Form panel */}
+          <div style={{ background: "#fff", padding: "44px 48px" }}>
+            {/* Back button */}
+            <button onClick={() => step === 1 ? navigate("/") : setStep(step - 1)}
+              style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 13, color: "#44474D", background: "none", border: "none", cursor: "pointer", padding: 0, marginBottom: 24, fontFamily: "inherit" }}>
+              <ArrowLeft size={14} />
+              {step === 1 ? "Back to Home" : "Back"}
+            </button>
+
+            <ProgressDots />
+
+            {/* Step 1: Credentials */}
+            {step === 1 && (
+              <>
+                <h1 style={{ fontFamily: "'Newsreader', serif", fontSize: 26, fontWeight: 500, color: "#0B1F3A", margin: "0 0 6px", letterSpacing: "-0.015em" }}>Create your account</h1>
+                <p style={{ fontSize: 14, color: "#44474D", margin: "0 0 28px", lineHeight: 1.5 }}>Step 1 of {totalSteps} — your login details</p>
+
+                {/* OAuth buttons */}
+                <button type="button" disabled style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 10, padding: "10px 16px", borderRadius: 8, border: "1px solid rgba(11,31,58,.14)", background: "#fff", fontSize: 14, fontWeight: 500, color: "#0B1F3A", cursor: "not-allowed", opacity: .65, marginBottom: 10, fontFamily: "inherit" }}>
+                  <span style={{ width: 18, height: 18, borderRadius: 3, background: "#3EB750", color: "#fff", display: "grid", placeItems: "center", fontSize: 11, fontWeight: 800, fontStyle: "italic", flexShrink: 0 }}>iD</span>
+                  Continue with ORCID
+                </button>
+                <button type="button" disabled style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 10, padding: "10px 16px", borderRadius: 8, border: "1px solid rgba(11,31,58,.14)", background: "#fff", fontSize: 14, fontWeight: 500, color: "#0B1F3A", cursor: "not-allowed", opacity: .65, marginBottom: 0, fontFamily: "inherit" }}>
+                  <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+                  Continue with Google
+                </button>
+
+                <div className="auth-divider">or</div>
+
+                <Form {...form}>
+                  <form onSubmit={(e) => { e.preventDefault(); handleStep1Next(); }} style={{ display: "flex", flexDirection: "column", gap: 13 }}>
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                      <FormField control={form.control} name="firstName" render={({ field }) => (
+                        <FormItem style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                          <FormLabel style={{ fontSize: 13, color: "#0B1F3A", fontWeight: 500 }}>First name</FormLabel>
+                          <FormControl><input placeholder="Jane" autoComplete="given-name" style={inputStyle} {...field} /></FormControl>
                           <FormMessage />
                         </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="lastName"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Last name</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Smith" autoComplete="family-name" {...field} />
-                          </FormControl>
+                      )} />
+                      <FormField control={form.control} name="lastName" render={({ field }) => (
+                        <FormItem style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                          <FormLabel style={{ fontSize: 13, color: "#0B1F3A", fontWeight: 500 }}>Last name</FormLabel>
+                          <FormControl><input placeholder="Smith" autoComplete="family-name" style={inputStyle} {...field} /></FormControl>
                           <FormMessage />
                         </FormItem>
-                      )}
-                    />
-                  </div>
+                      )} />
+                    </div>
 
-                  <FormField
-                    control={form.control}
-                    name="email"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Email</FormLabel>
-                        <FormControl>
-                          <Input
-                            type="email"
-                            placeholder="jane.smith@university.edu"
-                            autoComplete="email"
-                            {...field}
-                          />
-                        </FormControl>
+                    <FormField control={form.control} name="email" render={({ field }) => (
+                      <FormItem style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                        <FormLabel style={{ fontSize: 13, color: "#0B1F3A", fontWeight: 500 }}>Email</FormLabel>
+                        <FormControl><input type="email" placeholder="jane.smith@university.edu" autoComplete="email" style={inputStyle} {...field} /></FormControl>
                         <FormMessage />
                       </FormItem>
-                    )}
-                  />
+                    )} />
 
-                  <FormField
-                    control={form.control}
-                    name="password"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Password</FormLabel>
+                    <FormField control={form.control} name="password" render={({ field }) => (
+                      <FormItem style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                        <FormLabel style={{ fontSize: 13, color: "#0B1F3A", fontWeight: 500 }}>Password</FormLabel>
                         <FormControl>
-                          <div className="relative">
-                            <Input
-                              type={showPassword ? "text" : "password"}
-                              placeholder="Enter your password"
-                              autoComplete="new-password"
-                              {...field}
-                            />
-                            <button
-                              type="button"
-                              aria-label={showPassword ? "Hide password" : "Show password"}
-                              onClick={() => setShowPassword(!showPassword)}
-                              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                            >
-                              {showPassword ? (
-                                <EyeOff className="w-4 h-4" />
-                              ) : (
-                                <Eye className="w-4 h-4" />
-                              )}
+                          <div style={{ position: "relative" }}>
+                            <input type={showPassword ? "text" : "password"} placeholder="Min. 8 characters" autoComplete="new-password" style={{ ...inputStyle, paddingRight: 40 }} {...field} />
+                            <button type="button" aria-label={showPassword ? "Hide" : "Show"} onClick={() => setShowPassword(!showPassword)}
+                              style={{ position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "#75777E", padding: 2 }}>
+                              {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
                             </button>
                           </div>
                         </FormControl>
+                        {/* Password strength meter */}
+                        {passwordValue && (
+                          <div style={{ display: "flex", gap: 4, marginTop: 2 }}>
+                            {[1, 2, 3].map((i) => (
+                              <div key={i} style={{ flex: 1, height: 3, borderRadius: 2, background: i <= strengthLevel ? STRENGTH_COLORS[strengthLevel] : "#E4E9F7", transition: "background .2s" }} />
+                            ))}
+                            <span style={{ fontSize: 11, color: STRENGTH_COLORS[strengthLevel], fontWeight: 600, marginLeft: 4, lineHeight: "12px" }}>{STRENGTH_LABELS[strengthLevel]}</span>
+                          </div>
+                        )}
                         <FormMessage />
                       </FormItem>
-                    )}
-                  />
+                    )} />
 
-                  <FormField
-                    control={form.control}
-                    name="affiliation"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Affiliation <span className="text-muted-foreground font-normal">(optional)</span></FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder="e.g., MIT, Stanford University"
-                            autoComplete="organization"
-                            {...field}
-                          />
-                        </FormControl>
+                    <FormField control={form.control} name="affiliation" render={({ field }) => (
+                      <FormItem style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                        <FormLabel style={{ fontSize: 13, color: "#0B1F3A", fontWeight: 500 }}>
+                          Affiliation <span style={{ color: "#75777E", fontWeight: 400 }}>(optional)</span>
+                        </FormLabel>
+                        <FormControl><input placeholder="e.g., MIT, Stanford University" autoComplete="organization" style={inputStyle} {...field} /></FormControl>
                         <FormMessage />
                       </FormItem>
-                    )}
-                  />
+                    )} />
 
-                  <Button type="submit" variant="primary-cta" className="w-full py-6">
-                    Continue
-                    <ArrowRight className="w-4 h-4 ml-2" />
-                  </Button>
-                </form>
-              </Form>
-            </CardContent>
-            <CardFooter className="flex flex-col gap-4 text-center">
-              <p className="text-xs text-on-surface-variant">
-                By continuing, you agree to our{" "}
-                <a href="/terms" className="text-primary-container hover:underline">Terms</a>
-                {" "}and{" "}
-                <a href="/privacy" className="text-primary-container hover:underline">Privacy Policy</a>.
-              </p>
-            </CardFooter>
-          </Card>
-        )}
+                    <p style={{ fontSize: 11.5, color: "#75777E", margin: "4px 0" }}>
+                      By continuing you agree to our{" "}
+                      <a href="/terms" style={{ color: "#0B1F3A", textDecorationColor: "#FFC72E", textDecoration: "underline" }}>Terms</a>
+                      {" "}and{" "}
+                      <a href="/privacy" style={{ color: "#0B1F3A", textDecorationColor: "#FFC72E", textDecoration: "underline" }}>Privacy Policy</a>.
+                    </p>
 
-        {/* Step 2: Find Your Profile */}
-        {step === 2 && (
-          <Card>
-            <CardHeader className="text-center">
-              <div className="w-12 h-12 rounded-full bg-primary-container/10 flex items-center justify-center mx-auto mb-4">
-                <Search className="w-6 h-6 text-primary-container" />
-              </div>
-              <CardTitle className="text-2xl">Find your research profile</CardTitle>
-              <CardDescription>
-                Step 2 of {totalSteps} &mdash; link your OpenAlex publications (optional)
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              {/* Search box */}
-              <div className="relative" ref={searchRef}>
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground w-4 h-4" />
-                  <Input
-                    type="text"
-                    placeholder="Search by name..."
-                    value={searchQuery}
-                    onChange={(e) => {
-                      setSearchQuery(e.target.value);
-                      setShowResults(true);
-                      setSelectedAuthor(null);
-                    }}
-                    onFocus={() => setShowResults(true)}
-                    className="pl-10"
-                  />
-                </div>
+                    <button type="submit" style={{ width: "100%", padding: "12px 20px", background: "#0B1F3A", color: "#fff", borderRadius: 8, fontSize: 14, fontWeight: 600, fontFamily: "inherit", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+                      Continue <ArrowRight size={15} />
+                    </button>
+                  </form>
+                </Form>
+              </>
+            )}
 
-                {/* Dropdown results */}
-                {showResults && debouncedQuery.length >= 2 && (
-                  <div className="absolute z-50 w-full mt-1 bg-card border rounded-lg shadow-lg max-h-64 overflow-y-auto">
-                    {isSearching ? (
-                      <div className="p-4 flex items-center justify-center gap-2 text-sm text-muted-foreground">
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                        Searching...
-                      </div>
-                    ) : searchResults?.results?.length ? (
-                      searchResults.results.map((author) => (
-                        <button
-                          key={author.id}
-                          className="w-full text-left px-4 py-3 hover:bg-muted/50 transition-colors border-b last:border-b-0"
-                          onClick={() => handleSelectAuthor(author)}
-                        >
-                          <p className="font-medium text-sm">{author.display_name}</p>
-                          <p className="text-xs text-muted-foreground truncate">{author.hint}</p>
-                          <p className="text-xs text-muted-foreground mt-0.5">
-                            {author.works_count.toLocaleString()} works &middot;{" "}
-                            {author.cited_by_count.toLocaleString()} citations
-                          </p>
-                        </button>
-                      ))
-                    ) : (
-                      <div className="p-4 text-sm text-muted-foreground text-center">
-                        No researchers found for &ldquo;{debouncedQuery}&rdquo;
-                      </div>
-                    )}
+            {/* Step 2: Find your profile */}
+            {step === 2 && (
+              <>
+                <h1 style={{ fontFamily: "'Newsreader', serif", fontSize: 26, fontWeight: 500, color: "#0B1F3A", margin: "0 0 6px", letterSpacing: "-0.015em" }}>Find your research profile</h1>
+                <p style={{ fontSize: 14, color: "#44474D", margin: "0 0 28px", lineHeight: 1.5 }}>Step 2 of {totalSteps} — link your OpenAlex publications (optional)</p>
+
+                {/* Search box */}
+                <div style={{ position: "relative", marginBottom: 20 }} ref={searchRef}>
+                  <div style={{ position: "relative" }}>
+                    <Search size={15} style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: "#75777E" }} />
+                    <input type="text" placeholder="Search by name..." value={searchQuery}
+                      onChange={(e) => { setSearchQuery(e.target.value); setShowResults(true); setSelectedAuthor(null); }}
+                      onFocus={() => setShowResults(true)}
+                      style={{ ...inputStyle, paddingLeft: 36 }} />
                   </div>
-                )}
-              </div>
-
-              {/* Selected author card */}
-              {selectedAuthor && (
-                <div className="rounded-xl p-4 bg-surface-container-low ghost-border">
-                  <div className="flex items-start gap-3">
-                    <div className="w-10 h-10 rounded-full bg-primary-container/10 flex items-center justify-center flex-shrink-0">
-                      <BookOpen className="w-5 h-5 text-primary-container" />
+                  {showResults && debouncedQuery.length >= 2 && (
+                    <div style={{ position: "absolute", zIndex: 50, width: "100%", marginTop: 4, background: "#fff", border: "1px solid rgba(11,31,58,.12)", borderRadius: 10, boxShadow: "0 12px 30px -8px rgba(11,31,58,.2)", maxHeight: 256, overflowY: "auto" }}>
+                      {isSearching ? (
+                        <div style={{ padding: 16, display: "flex", alignItems: "center", justifyContent: "center", gap: 8, fontSize: 13.5, color: "#44474D" }}>
+                          <Loader2 size={15} style={{ animation: "spin 1s linear infinite" }} /> Searching...
+                        </div>
+                      ) : searchResults?.results?.length ? (
+                        searchResults.results.map((author) => (
+                          <button key={author.id} onClick={() => handleSelectAuthor(author)}
+                            style={{ width: "100%", textAlign: "left", padding: "11px 16px", background: "none", border: "none", borderBottom: "1px solid rgba(11,31,58,.06)", cursor: "pointer", fontFamily: "inherit", transition: "background .12s" }}
+                            onMouseEnter={(e) => (e.currentTarget.style.background = "#F0F4F8")}
+                            onMouseLeave={(e) => (e.currentTarget.style.background = "none")}>
+                            <div style={{ fontWeight: 600, fontSize: 13.5, color: "#0B1F3A" }}>{author.display_name}</div>
+                            <div style={{ fontSize: 12, color: "#75777E", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{author.hint}</div>
+                            <div style={{ fontSize: 12, color: "#75777E", marginTop: 2 }}>
+                              {author.works_count.toLocaleString()} works · {author.cited_by_count.toLocaleString()} citations
+                            </div>
+                          </button>
+                        ))
+                      ) : (
+                        <div style={{ padding: 16, fontSize: 13.5, color: "#75777E", textAlign: "center" }}>No researchers found for "{debouncedQuery}"</div>
+                      )}
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-semibold">{selectedAuthor.display_name}</p>
-                      <p className="text-sm text-muted-foreground truncate">{selectedAuthor.hint}</p>
-                      <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
-                        <span>{selectedAuthor.works_count.toLocaleString()} works</span>
-                        <span>{selectedAuthor.cited_by_count.toLocaleString()} citations</span>
-                      </div>
-                    </div>
-                    <a
-                      href={`/researcher/${selectedAuthor.id}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-primary hover:text-primary/80 flex-shrink-0"
-                      title="Preview profile"
-                    >
-                      <ExternalLink className="w-4 h-4" />
-                    </a>
-                  </div>
-                </div>
-              )}
-
-              {/* Actions */}
-              <div className="space-y-3">
-                <Button
-                  variant="primary-cta"
-                  className="w-full py-6"
-                  onClick={handleStep2Next}
-                  disabled={signupMutation.isPending}
-                >
-                  {signupMutation.isPending ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Creating account...
-                    </>
-                  ) : (
-                    <>
-                      Create Your Portfolio
-                      <ArrowRight className="w-4 h-4 ml-2" />
-                    </>
                   )}
-                </Button>
+                </div>
 
-                {!selectedAuthor && (
-                  <button
-                    type="button"
-                    className="w-full text-sm text-muted-foreground hover:text-foreground transition-colors"
-                    onClick={handleStep2Next}
-                    disabled={signupMutation.isPending}
-                  >
-                    Skip &mdash; I'll add this later
-                  </button>
+                {/* Selected author card */}
+                {selectedAuthor && (
+                  <div style={{ borderRadius: 12, padding: "16px 18px", background: "#F0F4F8", border: "1px solid rgba(11,31,58,.08)", marginBottom: 20 }}>
+                    <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
+                      <div style={{ width: 40, height: 40, borderRadius: "50%", background: "rgba(11,31,58,.08)", display: "grid", placeItems: "center", flexShrink: 0 }}>
+                        <BookOpen size={18} style={{ color: "#0B1F3A" }} />
+                      </div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontWeight: 600, fontSize: 14, color: "#0B1F3A" }}>{selectedAuthor.display_name}</div>
+                        <div style={{ fontSize: 12, color: "#75777E", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{selectedAuthor.hint}</div>
+                        <div style={{ fontSize: 12, color: "#75777E", marginTop: 3 }}>
+                          {selectedAuthor.works_count.toLocaleString()} works · {selectedAuthor.cited_by_count.toLocaleString()} citations
+                        </div>
+                      </div>
+                      <a href={`/researcher/${selectedAuthor.id}`} target="_blank" rel="noopener noreferrer" title="Preview profile"
+                        style={{ color: "#0B1F3A", flexShrink: 0, display: "grid", placeItems: "center" }}>
+                        <ExternalLink size={15} />
+                      </a>
+                    </div>
+                  </div>
                 )}
-              </div>
-            </CardContent>
-          </Card>
-        )}
 
-        {/* Bottom link to login */}
-        <p className="text-center text-sm text-on-surface-variant mt-6">
-          Already have an account?{" "}
-          <a href="/login" className="text-primary-container hover:underline font-medium">
-            Log in
-          </a>
-        </p>
+                {/* Actions */}
+                <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                  <button onClick={handleStep2Next} disabled={signupMutation.isPending}
+                    style={{ width: "100%", padding: "12px 20px", background: signupMutation.isPending ? "#9AA3B2" : "#0B1F3A", color: "#fff", borderRadius: 8, fontSize: 14, fontWeight: 600, fontFamily: "inherit", border: "none", cursor: signupMutation.isPending ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+                    {signupMutation.isPending ? <><Loader2 size={15} style={{ animation: "spin 1s linear infinite" }} /> Creating account...</> : <>Create Your Portfolio <ArrowRight size={15} /></>}
+                  </button>
+                  {!selectedAuthor && (
+                    <button type="button" onClick={handleStep2Next} disabled={signupMutation.isPending}
+                      style={{ background: "none", border: "none", fontSize: 13, color: "#75777E", cursor: "pointer", fontFamily: "inherit", padding: "8px 0", textAlign: "center" }}>
+                      Skip — I'll add this later
+                    </button>
+                  )}
+                </div>
+              </>
+            )}
+          </div>
+
+          {/* RIGHT: Benefits panel */}
+          <div className="signup-panel-right">
+            <BenefitsPanel />
+          </div>
+        </div>
       </div>
-
-      <GlobalFooter mode="landing" />
     </div>
   );
 }
