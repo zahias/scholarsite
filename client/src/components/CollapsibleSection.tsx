@@ -25,7 +25,6 @@ export default function CollapsibleSection({
 }: CollapsibleSectionProps) {
   const [isOpen, setIsOpen] = useState(defaultOpen);
 
-  // Handle different defaults for mobile vs desktop
   useEffect(() => {
     if (mobileDefaultOpen !== undefined && window.innerWidth < 768) {
       setIsOpen(mobileDefaultOpen);
@@ -33,41 +32,56 @@ export default function CollapsibleSection({
   }, [mobileDefaultOpen]);
 
   return (
-    <section id={id} className={cn("py-6 md:py-12 scroll-mt-20", className)}>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Collapsible Header — h2 contains button for proper semantics */}
-        <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mb-4 md:mb-8">
-          <button
-            onClick={() => setIsOpen(!isOpen)}
-            className="w-full flex items-center justify-between gap-4 group cursor-pointer hover:opacity-80 transition-opacity text-left"
-            aria-expanded={isOpen}
-            aria-controls={`${id}-content`}
-          >
-            <div className="flex items-center gap-3">
-              {icon && <span className="text-primary">{icon}</span>}
-              <span>{title}</span>
-              {badge}
-            </div>
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <span className="text-xs sm:text-sm hidden sm:inline font-normal">
-                {isOpen ? "Collapse" : "Expand"}
-              </span>
-              {isOpen ? (
-                <ChevronUp className="w-5 h-5 transition-transform" />
-              ) : (
-                <ChevronDown className="w-5 h-5 transition-transform" />
-              )}
-            </div>
-          </button>
-        </h2>
+    <section
+      id={id}
+      className={cn("scroll-mt-20", className)}
+      style={{ marginTop: 16, background: "#fff", borderRadius: 14, border: "1px solid rgba(11,31,58,.08)", overflow: "hidden" }}
+    >
+      {/* Header */}
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-full text-left"
+        aria-expanded={isOpen}
+        aria-controls={`${id}-content`}
+        style={{
+          display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12,
+          padding: "18px 24px", background: "none", border: "none",
+          borderBottom: isOpen ? "1px solid rgba(11,31,58,.06)" : "none",
+          cursor: "pointer", fontFamily: "inherit", transition: "background .15s",
+        }}
+        onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "#F8F9FA"; }}
+        onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "none"; }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          {icon && (
+            <span style={{ color: "#FFC72E", display: "flex", alignItems: "center" }}>{icon}</span>
+          )}
+          <span style={{ fontFamily: "'Newsreader', serif", fontSize: "clamp(17px,2vw,21px)", fontWeight: 500, color: "#0B1F3A", letterSpacing: "-0.01em" }}>
+            {title}
+          </span>
+          {badge}
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: 6, color: "#75777E", flexShrink: 0 }}>
+          <span style={{ fontSize: 12, fontWeight: 500 }} className="hidden sm:inline">
+            {isOpen ? "Collapse" : "Expand"}
+          </span>
+          {isOpen
+            ? <ChevronUp size={16} style={{ transition: "transform .2s" }} />
+            : <ChevronDown size={16} style={{ transition: "transform .2s" }} />}
+        </div>
+      </button>
 
-        {/* Collapsible Content — CSS grid animation for smooth expand/collapse */}
+      {/* Collapsible content — CSS grid animation */}
+      <div
+        id={`${id}-content`}
+        className="grid transition-all duration-300 ease-in-out"
+        style={{ gridTemplateRows: isOpen ? "1fr" : "0fr" }}
+      >
         <div
-          id={`${id}-content`}
-          className="grid transition-all duration-300 ease-in-out"
-          style={{ gridTemplateRows: isOpen ? '1fr' : '0fr' }}
+          className="overflow-hidden"
+          style={{ opacity: isOpen ? 1 : 0, transition: "opacity 200ms ease-in-out" }}
         >
-          <div className={cn("overflow-hidden", isOpen ? "opacity-100" : "opacity-0")} style={{ transition: 'opacity 200ms ease-in-out' }}>
+          <div style={{ padding: "20px 24px" }}>
             {children}
           </div>
         </div>
