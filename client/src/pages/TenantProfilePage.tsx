@@ -10,6 +10,7 @@ import SEO from "@/components/SEO";
 import MobileBottomNav from "@/components/MobileBottomNav";
 import CollapsibleSection from "@/components/CollapsibleSection";
 import ProfilePageShell from "@/components/ProfilePageShell";
+import ProfileSections from "@/components/ProfileSections";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useMemo } from "react";
@@ -180,16 +181,7 @@ export default function TenantProfilePage() {
             <Publications openalexId={openalexId} inline />
           </CollapsibleSection>
 
-          {visibleSections.map((section) => (
-            <CollapsibleSection
-              key={section.id} id={section.id} title={section.title}
-              icon={<FileText size={18} />}
-              defaultOpen={true} mobileDefaultOpen={false}>
-              <div className="whitespace-pre-wrap text-sm text-foreground leading-relaxed">
-                {section.content}
-              </div>
-            </CollapsibleSection>
-          ))}
+          <ProfileSections sections={visibleSections} />
         </div>
 
         {/* Footer */}
