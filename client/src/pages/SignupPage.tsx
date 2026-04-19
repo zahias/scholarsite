@@ -180,6 +180,16 @@ export default function SignupPage() {
       return response.json();
     },
     onSuccess: () => {
+      // Persist selected OpenAlex author so dashboard can pre-fill the connect card
+      if (selectedAuthor) {
+        localStorage.setItem('pendingOpenalexConnect', JSON.stringify({
+          id: selectedAuthor.id,
+          display_name: selectedAuthor.display_name,
+          hint: selectedAuthor.hint,
+          works_count: selectedAuthor.works_count,
+          cited_by_count: selectedAuthor.cited_by_count,
+        }));
+      }
       setIsSuccess(true);
       toast({ title: "Account created!", description: "Your 14-day free trial is active. Redirecting to your dashboard…" });
       setTimeout(() => navigate("/dashboard"), 1500);

@@ -36,6 +36,9 @@ const CheckoutSuccessPage = lazy(() => import("@/pages/CheckoutSuccessPage"));
 const CheckoutCancelPage = lazy(() => import("@/pages/CheckoutCancelPage"));
 const SignupPage = lazy(() => import("@/pages/SignupPage"));
 const LoginPage = lazy(() => import("@/pages/LoginPage"));
+const ForgotPasswordPage = lazy(() => import("@/pages/ForgotPasswordPage"));
+const ResetPasswordPage = lazy(() => import("@/pages/ResetPasswordPage"));
+const VerifyEmailPage = lazy(() => import("@/pages/VerifyEmailPage"));
 const BlogIndex = lazy(() => import("@/pages/BlogIndex"));
 const BlogGoogleScholarVs = lazy(() => import("@/pages/blog/GoogleScholarVsScholarName"));
 const BlogHIndex = lazy(() => import("@/pages/blog/WhatIsHIndex"));
@@ -99,6 +102,9 @@ function Router() {
       <Route path="/researcher/:id" component={ResearcherProfile} />
       <Route path="/signup" component={SignupPage} />
       <Route path="/login" component={LoginPage} />
+      <Route path="/forgot-password" component={ForgotPasswordPage} />
+      <Route path="/reset-password" component={ResetPasswordPage} />
+      <Route path="/verify-email" component={VerifyEmailPage} />
       <Route path="/admin/login" component={AdminLogin} />
       <Route path="/admin" component={AdminDashboard} />
       <Route path="/admin/themes" component={AdminThemes} />

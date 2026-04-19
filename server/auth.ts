@@ -1,10 +1,77 @@
 import { Router, Request, Response, NextFunction } from "express";
 import bcrypt from "bcryptjs";
+import crypto from "crypto";
+import nodemailer from "nodemailer";
 import { storage } from "./storage";
-import { registerUserSchema, loginUserSchema, type SafeUser, type UserRole } from "@shared/schema";
+import { registerUserSchema, loginUserSchema, forgotPasswordSchema, resetPasswordSchema, type SafeUser, type UserRole } from "@shared/schema";
 import { z } from "zod";
 
 const router = Router();
+
+// ─── Email helper ───────────────────────────────────────────────────────────
+
+function createTransporter() {
+  if (!process.env.SMTP_PASSWORD) return null;
+  return nodemailer.createTransport({
+    host: process.env.SMTP_HOST || "mail.scholar.name",
+    port: parseInt(process.env.SMTP_PORT || "587", 10),
+    secure: parseInt(process.env.SMTP_PORT || "587", 10) === 465,
+    auth: {
+      user: process.env.SMTP_USER || "noreply@scholar.name",
+      pass: process.env.SMTP_PASSWORD,
+    },
+    tls: { rejectUnauthorized: false },
+  });
+}
+
+async function sendEmail(to: string, subject: string, text: string): Promise<void> {
+  const transporter = createTransporter();
+  if (!transporter) return;
+  const from = `"Scholar.name" <${process.env.SMTP_USER || "noreply@scholar.name"}>`;
+  await transporter.sendMail({ from, to, subject, text });
+}
+
+async function sendSignupEmail(email: string, firstName: string, verificationToken: string): Promise<void> {
+  const baseUrl = process.env.BASE_URL || "https://scholar.name";
+  const verifyUrl = `${baseUrl}/verify-email?token=${verificationToken}`;
+  await sendEmail(
+    email,
+    "Welcome to Scholar.name — please verify your email",
+    [
+      `Hi ${firstName},`,
+      "",
+      "Welcome to Scholar.name! Please verify your email address:",
+      verifyUrl,
+      "",
+      "This link expires in 24 hours. If you didn't sign up, you can ignore this email.",
+      "",
+      "Once verified, log in to connect your OpenAlex profile and publish your portfolio.",
+      "",
+      "Log in at: https://scholar.name/dashboard/login",
+      "",
+      "The Scholar.name team",
+    ].join("\n"),
+  );
+}
+
+async function sendPasswordResetEmail(email: string, firstName: string, resetToken: string): Promise<void> {
+  const baseUrl = process.env.BASE_URL || "https://scholar.name";
+  const resetUrl = `${baseUrl}/reset-password?token=${resetToken}`;
+  await sendEmail(
+    email,
+    "Reset your Scholar.name password",
+    [
+      `Hi ${firstName},`,
+      "",
+      "You requested a password reset. Click the link below to set a new password:",
+      resetUrl,
+      "",
+      "This link expires in 1 hour. If you did not request a reset, you can ignore this email.",
+      "",
+      "The Scholar.name team",
+    ].join("\n"),
+  );
+}
 
 declare module "express-session" {
   interface SessionData {
@@ -55,13 +122,23 @@ router.post("/register", async (req: Request, res: Response) => {
 
     const passwordHash = await bcrypt.hash(validatedData.password, 12);
 
+    const verificationToken = crypto.randomBytes(32).toString("hex");
+    const verificationExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24h
+
     const user = await storage.createUser({
       email: validatedData.email,
       passwordHash,
       firstName: validatedData.firstName,
       lastName: validatedData.lastName,
       role: "researcher",
+      emailVerificationToken: verificationToken,
+      emailVerificationExpiresAt: verificationExpiry,
     });
+
+    // Send welcome/verification email asynchronously (non-blocking)
+    sendSignupEmail(validatedData.email, validatedData.firstName, verificationToken).catch((err) =>
+      console.error("[auth] Failed to send signup email:", err)
+    );
 
     req.session.regenerate((err) => {
       if (err) {
@@ -241,6 +318,110 @@ router.patch("/password", isAuthenticated, async (req: Request, res: Response) =
     }
     console.error("Password update error:", error);
     return res.status(500).json({ message: "Failed to update password" });
+  }
+});
+
+// ─── Forgot password ────────────────────────────────────────────────────────
+
+router.post("/forgot-password", async (req: Request, res: Response) => {
+  try {
+    const { email } = forgotPasswordSchema.parse(req.body);
+    const user = await storage.getUserByEmail(email);
+
+    // Always respond 200 to prevent email enumeration
+    if (!user || !user.isActive) {
+      return res.json({ message: "If that email is registered, a reset link has been sent." });
+    }
+
+    const token = crypto.randomBytes(32).toString("hex");
+    const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+
+    await storage.createPasswordResetToken(user.id, token, expiresAt);
+
+    sendPasswordResetEmail(email, user.firstName || "there", token).catch((err) =>
+      console.error("[auth] Failed to send password reset email:", err)
+    );
+
+    return res.json({ message: "If that email is registered, a reset link has been sent." });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ message: "Invalid email address" });
+    }
+    console.error("Forgot password error:", error);
+    return res.status(500).json({ message: "Failed to process request" });
+  }
+});
+
+// ─── Reset password ──────────────────────────────────────────────────────────
+
+router.post("/reset-password", async (req: Request, res: Response) => {
+  try {
+    const { token, newPassword } = resetPasswordSchema.parse(req.body);
+
+    const resetToken = await storage.getPasswordResetToken(token);
+    if (!resetToken) {
+      return res.status(400).json({ message: "Invalid or expired reset link." });
+    }
+    if (resetToken.usedAt) {
+      return res.status(400).json({ message: "This reset link has already been used." });
+    }
+    if (new Date() > resetToken.expiresAt) {
+      return res.status(400).json({ message: "This reset link has expired. Please request a new one." });
+    }
+
+    const newPasswordHash = await bcrypt.hash(newPassword, 12);
+    await storage.updateUser(resetToken.userId, { passwordHash: newPasswordHash });
+    await storage.markPasswordResetTokenUsed(token);
+
+    return res.json({ message: "Password updated successfully. You can now log in." });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ message: "Validation error", errors: error.errors });
+    }
+    console.error("Reset password error:", error);
+    return res.status(500).json({ message: "Failed to reset password" });
+  }
+});
+
+// ─── Send/resend verification email ─────────────────────────────────────────
+
+router.post("/send-verification", isAuthenticated, async (req: Request, res: Response) => {
+  try {
+    const user = await storage.getUser(req.session.userId!);
+    if (!user) return res.status(404).json({ message: "User not found" });
+    if (user.emailVerifiedAt) return res.json({ message: "Email already verified." });
+
+    const token = crypto.randomBytes(32).toString("hex");
+    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
+    await storage.setEmailVerificationToken(user.id, token, expiresAt);
+
+    sendSignupEmail(user.email, user.firstName || "there", token).catch((err) =>
+      console.error("[auth] Failed to send verification email:", err)
+    );
+
+    return res.json({ message: "Verification email sent." });
+  } catch (error) {
+    console.error("Send verification error:", error);
+    return res.status(500).json({ message: "Failed to send verification email" });
+  }
+});
+
+// ─── Verify email ────────────────────────────────────────────────────────────
+
+router.get("/verify-email", async (req: Request, res: Response) => {
+  try {
+    const token = req.query.token as string;
+    if (!token) return res.status(400).json({ message: "Missing token" });
+
+    const user = await storage.verifyEmailWithToken(token);
+    if (!user) {
+      return res.status(400).json({ message: "Invalid or expired verification link." });
+    }
+
+    return res.json({ message: "Email verified successfully." });
+  } catch (error) {
+    console.error("Verify email error:", error);
+    return res.status(500).json({ message: "Failed to verify email" });
   }
 });
 

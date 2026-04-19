@@ -5,6 +5,7 @@ import connectPgSimple from "connect-pg-simple";
 import { registerRoutes } from "./routes";
 import { serveStatic, log } from "./static";
 import { startSyncScheduler, stopSyncScheduler } from "./services/syncScheduler";
+import { runMigrations } from "./runMigrations";
 import { seedThemesIfEmpty } from "./services/themeSeed";
 import { pool } from "./db";
 
@@ -80,6 +81,7 @@ app.use((req, res, next) => {
 });
 
 (async () => {
+  await runMigrations();
   const server = await registerRoutes(app);
 
   await seedThemesIfEmpty();
