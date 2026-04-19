@@ -2154,10 +2154,11 @@ function startSyncScheduler(intervalHours = 1) {
   console.log(`[SyncScheduler] Starting scheduler with ${intervalHours} hour interval`);
   setTimeout(() => {
     runScheduledSync();
-  }, 5 * 60 * 1e3);
+  }, 5 * 60 * 1e3).unref();
   schedulerInterval = setInterval(() => {
     runScheduledSync();
   }, intervalMs);
+  schedulerInterval.unref();
   console.log("[SyncScheduler] Scheduler started");
 }
 function stopSyncScheduler() {
@@ -5360,8 +5361,8 @@ app.use((req, res, next) => {
   const port = parseInt(process.env.PORT || "5000", 10);
   server.listen(port, () => {
     log(`serving on port ${port}`);
-    startSyncScheduler(6);
-    log("Sync scheduler started - checking tenants every 6 hours");
+    startSyncScheduler(24);
+    log("Sync scheduler started - checking tenants every 24 hours");
   });
   const shutdown = (signal) => {
     log(`${signal} received \u2014 shutting down gracefully`);
