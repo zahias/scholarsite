@@ -5361,8 +5361,8 @@ app.use((req, res, next) => {
   const port = parseInt(process.env.PORT || "5000", 10);
   server.listen(port, () => {
     log(`serving on port ${port}`);
-    startSyncScheduler(24);
-    log("Sync scheduler started - checking tenants every 24 hours");
+    startSyncScheduler(72);
+    log("Sync scheduler started - checking tenants every 72 hours");
   });
   const shutdown = (signal) => {
     log(`${signal} received \u2014 shutting down gracefully`);
