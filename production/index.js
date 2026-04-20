@@ -1777,14 +1777,14 @@ router.post("/register", async (req, res) => {
     storage.createTrialTenant(user.id, validatedData.firstName, validatedData.lastName || "", validatedData.email).catch(
       (err) => console.error("[auth] Failed to create trial tenant:", err)
     );
-    req.session.regenerate((err) => {
+    req.session.userId = user.id;
+    req.session.userRole = user.role;
+    req.session.isAuthenticated = true;
+    req.session.save((err) => {
       if (err) {
-        console.error("Session regeneration error:", err);
+        console.error("Session save error after register:", err);
         return res.status(500).json({ message: "Registration failed" });
       }
-      req.session.userId = user.id;
-      req.session.userRole = user.role;
-      req.session.isAuthenticated = true;
       return res.status(201).json({
         message: "Registration successful",
         user: toSafeUser(user)
