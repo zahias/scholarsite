@@ -84,6 +84,8 @@ var tenants = pgTable("tenants", {
   logoUrl: varchar("logo_url"),
   selectedThemeId: varchar("selected_theme_id"),
   // Reference to themes table
+  // Trial
+  trialEndsAt: timestamp("trial_ends_at"),
   // Contact
   contactEmail: varchar("contact_email"),
   notes: text("notes"),
@@ -924,6 +926,32 @@ var DatabaseStorage = class {
     }).where(eq(users.id, user.id)).returning();
     return updated;
   }
+  async createTrialTenant(userId, firstName, lastName, email) {
+    const base = `${firstName.toLowerCase().replace(/[^a-z0-9]/g, "")}${lastName ? `-${lastName.toLowerCase().replace(/[^a-z0-9]/g, "")}` : ""}`;
+    const uniqueSuffix = crypto.randomBytes(3).toString("hex");
+    const subdomain = `${base || "researcher"}-${uniqueSuffix}`.substring(0, 40);
+    const trialEndsAt = new Date(Date.now() + 14 * 24 * 60 * 60 * 1e3);
+    const tenant = await this.createTenant({
+      name: `${firstName} ${lastName}`.trim(),
+      plan: "free",
+      status: "active",
+      contactEmail: email,
+      trialEndsAt
+    });
+    await this.createDomain({
+      tenantId: tenant.id,
+      hostname: `${subdomain}.scholar.name`,
+      isPrimary: true,
+      isSubdomain: true
+    });
+    await this.updateTenantProfile(tenant.id, {
+      tenantId: tenant.id,
+      displayName: `${firstName} ${lastName}`.trim(),
+      isPublic: true
+    });
+    await this.updateUser(userId, { tenantId: tenant.id });
+    return tenant;
+  }
   async updatePaymentStatus(orderNumber, status, transactionId) {
     const updates = { status };
     if (transactionId) {
@@ -1169,6 +1197,9 @@ var MemoryStorage = class {
   }
   async verifyEmailWithToken(_token) {
     return void 0;
+  }
+  async createTrialTenant(_userId, _firstName, _lastName, _email) {
+    return {};
   }
 };
 var storage = process.env.DATABASE_URL ? new DatabaseStorage() : new MemoryStorage();
@@ -1742,6 +1773,9 @@ router.post("/register", async (req, res) => {
     });
     sendSignupEmail(validatedData.email, validatedData.firstName, verificationToken).catch(
       (err) => console.error("[auth] Failed to send signup email:", err)
+    );
+    storage.createTrialTenant(user.id, validatedData.firstName, validatedData.lastName || "", validatedData.email).catch(
+      (err) => console.error("[auth] Failed to create trial tenant:", err)
     );
     req.session.regenerate((err) => {
       if (err) {
@@ -5393,38 +5427,6 @@ function serveStatic(app2) {
   });
 }
 
-// server/runMigrations.ts
-async function runMigrations() {
-  if (!pool) {
-    console.log("[migrations] No DB connection \u2014 skipping migrations.");
-    return;
-  }
-  const client = await pool.connect();
-  try {
-    console.log("[migrations] Running schema migrations\u2026");
-    await client.query(`
-      CREATE TABLE IF NOT EXISTS "password_reset_tokens" (
-        "id" varchar PRIMARY KEY DEFAULT gen_random_uuid(),
-        "user_id" varchar NOT NULL REFERENCES "users"("id") ON DELETE CASCADE,
-        "token" varchar(64) UNIQUE NOT NULL,
-        "expires_at" timestamp NOT NULL,
-        "used_at" timestamp,
-        "created_at" timestamp DEFAULT now()
-      );
-    `);
-    await client.query(`CREATE INDEX IF NOT EXISTS "prt_token_idx" ON "password_reset_tokens"("token");`);
-    await client.query(`CREATE INDEX IF NOT EXISTS "prt_user_idx" ON "password_reset_tokens"("user_id");`);
-    await client.query(`ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "email_verified_at" timestamp;`);
-    await client.query(`ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "email_verification_token" varchar(64);`);
-    await client.query(`ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "email_verification_expires_at" timestamp;`);
-    console.log("[migrations] Schema migrations complete.");
-  } catch (err) {
-    console.error("[migrations] Migration error:", err);
-  } finally {
-    client.release();
-  }
-}
-
 // server/services/themeSeed.ts
 var DEFAULT_THEMES = [
   {
@@ -5589,7 +5591,6 @@ app.use((req, res, next) => {
   next();
 });
 (async () => {
-  await runMigrations();
   const server = await registerRoutes(app);
   await seedThemesIfEmpty();
   app.use((err, _req, res, _next) => {

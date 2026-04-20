@@ -5,44 +5,7 @@ import SEO from "@/components/SEO";
 import GlobalNav from "@/components/GlobalNav";
 import GlobalFooter from "@/components/GlobalFooter";
 import { ChevronDown, ChevronUp, Sparkles } from "lucide-react";
-
-const faqs = [
-  {
-    question: "Where does the publication data come from?",
-    answer:
-      "All publication data comes from OpenAlex, a free and open index of 250M+ scholarly works. Your profile syncs automatically. You can report issues directly from your profile.",
-  },
-  {
-    question: "How accurate is the publication matching?",
-    answer:
-      "OpenAlex uses advanced algorithms, but no system is perfect for common names. You can see all attributed publications and report any that don't belong to you.",
-  },
-  {
-    question: "Can I edit my publications?",
-    answer:
-      "You control your bio, photo, themes, and featured works. The publication list comes from OpenAlex — we'll guide you through requesting corrections if needed.",
-  },
-  {
-    question: "Can I use my own domain?",
-    answer:
-      "Yes! Pro plan includes custom domains (yourname.com). Starter uses yourname.scholar.name. Both are professional and memorable.",
-  },
-  {
-    question: "What happens if I cancel?",
-    answer:
-      "Cancel anytime. Your profile stays active until the billing period ends, then becomes private (not deleted). Reactivate anytime.",
-  },
-  {
-    question: "How does the auto-sync work?",
-    answer:
-      "We periodically query OpenAlex for your author record. When new publications appear, they're automatically added to your portfolio — no action needed on your part.",
-  },
-  {
-    question: "Can I share my profile before paying?",
-    answer:
-      "Choose a plan on the pricing page and your portfolio goes live immediately after payment. Your data is never deleted if you cancel.",
-  },
-];
+import { faqs } from "@/data/faqData";
 
 // Structured data for Google rich snippets
 const faqSchema = {

@@ -289,10 +289,11 @@ export default function SignupPage() {
           className="signup-grid">
           <style>{`
             @media (max-width: 860px) { .signup-grid { grid-template-columns: 1fr !important; margin: 16px !important; } .signup-panel-right { display: none !important; } }
+            @media (max-width: 520px) { .signup-form-left { padding: 24px 20px !important; } }
           `}</style>
 
           {/* LEFT: Form panel */}
-          <div style={{ background: "#fff", padding: "44px 48px" }}>
+          <div className="signup-form-left" style={{ background: "#fff", padding: "44px 48px" }}>
             {/* Back button */}
             <button onClick={() => step === 1 ? navigate("/") : setStep(step - 1)}
               style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 13, color: "#44474D", background: "none", border: "none", cursor: "pointer", padding: 0, marginBottom: 24, fontFamily: "inherit" }}>

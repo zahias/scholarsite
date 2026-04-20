@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useLocation, Link } from "wouter";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -8,21 +8,18 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Label } from "@/components/ui/label";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Send, Building2, User, Sparkles } from "lucide-react";
+import { ArrowLeft, Send, Building2, Users, ArrowRight } from "lucide-react";
 import GlobalNav from "@/components/GlobalNav";
 import SEO from "@/components/SEO";
-import type { Theme, ThemeConfig } from "@shared/schema";
 
 const contactFormSchema = z.object({
   fullName: z.string().min(2, "Name must be at least 2 characters"),
   email: z.string().email("Please enter a valid email address"),
-  planInterest: z.string().min(1, "Please select a plan"),
-  message: z.string().optional(),
+  institutionName: z.string().min(2, "Institution name is required"),
+  teamSize: z.string().min(1, "Please indicate team size"),
+  message: z.string().min(10, "Please describe your needs (at least 10 characters)"),
 });
 
 type ContactFormData = z.infer<typeof contactFormSchema>;
@@ -31,36 +28,28 @@ export default function ContactPage() {
   const [, navigate] = useLocation();
   const { toast } = useToast();
   const [isSubmitted, setIsSubmitted] = useState(false);
-  
+
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
-
-  const urlParams = new URLSearchParams(window.location.search);
-  const preselectedPlan = urlParams.get('plan') || '';
-
-  const { data: themes = [] } = useQuery<Theme[]>({
-    queryKey: ['/api/themes'],
-  });
 
   const form = useForm<ContactFormData>({
     resolver: zodResolver(contactFormSchema),
     defaultValues: {
       fullName: "",
       email: "",
-      planInterest: preselectedPlan || "trial",
+      institutionName: "",
+      teamSize: "",
       message: "",
     },
   });
-
-  const selectedPlan = form.watch("planInterest");
 
   const submitMutation = useMutation({
     mutationFn: async (data: ContactFormData) => {
       const response = await fetch("/api/contact", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
+        body: JSON.stringify({ ...data, planInterest: "institution" }),
       });
       if (!response.ok) throw new Error("Failed to submit inquiry");
       return response.json();
@@ -95,7 +84,7 @@ export default function ContactPage() {
           type="website"
         />
         <GlobalNav mode="landing" hideSignup hideLogin />
-        
+
         <div className="max-w-2xl mx-auto px-4 py-20" aria-live="polite">
           <Card>
             <CardContent className="pt-12 pb-12 text-center">
@@ -104,7 +93,7 @@ export default function ContactPage() {
               </div>
               <h1 className="text-3xl font-bold mb-4">Thank You!</h1>
               <p className="text-muted-foreground mb-8 max-w-md mx-auto">
-                Your inquiry has been submitted successfully. Our team will review your request and get back to you within 1-2 business days.
+                Your inquiry has been submitted. Our team will review it and get back to you within 1-2 business days.
               </p>
               <Button onClick={() => navigate("/")} data-testid="button-back-home">
                 <ArrowLeft className="w-4 h-4 mr-2" />
@@ -120,17 +109,17 @@ export default function ContactPage() {
   return (
     <div className="min-h-screen bg-background">
       <SEO
-        title="Get Started — Scholar.name"
-        description="Contact us to set up your professional research portfolio website."
+        title="Enterprise & Institutions — Scholar.name"
+        description="Bring Scholar.name to your entire department or institution. Contact us for group and enterprise pricing."
         url="https://scholar.name/contact"
         type="website"
       />
       <GlobalNav mode="landing" hideSignup hideLogin />
 
-      <div className="max-w-4xl mx-auto px-4 py-12">
-        <Button 
-          variant="ghost" 
-          className="mb-6" 
+      <div className="max-w-3xl mx-auto px-4 py-12">
+        <Button
+          variant="ghost"
+          className="mb-6"
           onClick={() => navigate("/")}
           data-testid="button-back-landing"
         >
@@ -138,18 +127,48 @@ export default function ContactPage() {
           Back to Home
         </Button>
 
-        <div className="text-center mb-10">
-          <h1 className="text-3xl sm:text-4xl font-bold mb-4">Get Started with Scholar.name</h1>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Tell us about your needs and we'll help you create the perfect research portfolio website.
+        {/* Individual signup nudge */}
+        <div className="flex items-center gap-3 mb-8 p-4 rounded-xl bg-blue-50 border border-blue-100">
+          <ArrowRight className="w-5 h-5 text-blue-500 flex-shrink-0" />
+          <p className="text-sm text-blue-800">
+            <strong>Signing up as an individual researcher?</strong>{" "}
+            <Link href="/signup" className="underline font-medium hover:text-blue-900">
+              Create your portfolio directly →
+            </Link>
           </p>
+        </div>
+
+        <div className="text-center mb-10">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 mb-4 rounded-full border border-primary/20 bg-primary/5 text-sm text-primary font-medium">
+            <Building2 className="w-4 h-4" />
+            Enterprise &amp; Institutions
+          </div>
+          <h1 className="text-3xl sm:text-4xl font-bold mb-4">Bring Scholar.name to your institution</h1>
+          <p className="text-lg text-muted-foreground max-w-xl mx-auto">
+            Streamline research visibility for your entire department. Custom onboarding, group pricing, and dedicated support.
+          </p>
+        </div>
+
+        {/* Benefits grid */}
+        <div className="grid sm:grid-cols-3 gap-4 mb-10">
+          {[
+            { icon: Users, title: "Group onboarding", desc: "We help migrate your department's profiles" },
+            { icon: Building2, title: "Custom branding", desc: "Match your institution's visual identity" },
+            { icon: Send, title: "Dedicated support", desc: "Priority email and phone support" },
+          ].map((b) => (
+            <div key={b.title} className="p-4 rounded-xl bg-slate-50 border border-slate-100 text-center">
+              <b.icon className="w-6 h-6 mx-auto mb-2 text-primary" />
+              <p className="font-semibold text-sm">{b.title}</p>
+              <p className="text-xs text-muted-foreground mt-1">{b.desc}</p>
+            </div>
+          ))}
         </div>
 
         <Card>
           <CardHeader>
-            <CardTitle>Get Started</CardTitle>
+            <CardTitle>Tell us about your institution</CardTitle>
             <CardDescription>
-              Fill out this quick form and we'll set up your portfolio within 24 hours.
+              We'll follow up within 1-2 business days with pricing and next steps.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -161,15 +180,9 @@ export default function ContactPage() {
                     name="fullName"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel htmlFor="fullName">Full Name *</FormLabel>
+                        <FormLabel htmlFor="fullName">Your Name *</FormLabel>
                         <FormControl>
-                          <Input
-                            id="fullName"
-                            autoComplete="name"
-                            placeholder="Dr. Jane Smith"
-                            {...field}
-                            data-testid="input-name"
-                          />
+                          <Input id="fullName" autoComplete="name" placeholder="Dr. Jane Smith" {...field} data-testid="input-name" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -180,16 +193,38 @@ export default function ContactPage() {
                     name="email"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel htmlFor="email">Email Address *</FormLabel>
+                        <FormLabel htmlFor="email">Work Email *</FormLabel>
                         <FormControl>
-                          <Input
-                            id="email"
-                            autoComplete="email"
-                            placeholder="jane.smith@university.edu"
-                            type="email"
-                            {...field}
-                            data-testid="input-email"
-                          />
+                          <Input id="email" autoComplete="email" placeholder="jane@university.edu" type="email" {...field} data-testid="input-email" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <div className="grid md:grid-cols-2 gap-6">
+                  <FormField
+                    control={form.control}
+                    name="institutionName"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel htmlFor="institutionName">Institution / Department *</FormLabel>
+                        <FormControl>
+                          <Input id="institutionName" placeholder="MIT Department of Biology" {...field} data-testid="input-institution" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="teamSize"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel htmlFor="teamSize">Number of researchers *</FormLabel>
+                        <FormControl>
+                          <Input id="teamSize" placeholder="e.g. 25" {...field} data-testid="input-team-size" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -199,82 +234,15 @@ export default function ContactPage() {
 
                 <FormField
                   control={form.control}
-                  name="planInterest"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Which plan interests you? *</FormLabel>
-                      <FormControl>
-                        <RadioGroup
-                          onValueChange={field.onChange}
-                          defaultValue={field.value}
-                          className="grid sm:grid-cols-3 gap-4"
-                        >
-                          <div className="relative">
-                            <RadioGroupItem
-                              value="trial"
-                              id="trial"
-                              className="peer sr-only"
-                              data-testid="radio-trial"
-                            />
-                            <Label
-                              htmlFor="trial"
-                              className="flex flex-col items-center justify-center rounded-lg border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary cursor-pointer"
-                            >
-                              <Sparkles className="mb-2 h-6 w-6 text-primary" />
-                              <span className="font-semibold">Free Trial</span>
-                              <span className="text-sm text-muted-foreground">14 days free</span>
-                            </Label>
-                          </div>
-                          <div className="relative">
-                            <RadioGroupItem
-                              value="starter"
-                              id="starter"
-                              className="peer sr-only"
-                              data-testid="radio-starter"
-                            />
-                            <Label
-                              htmlFor="starter"
-                              className="flex flex-col items-center justify-center rounded-lg border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary cursor-pointer"
-                            >
-                              <User className="mb-2 h-6 w-6" />
-                              <span className="font-semibold">Starter</span>
-                              <span className="text-sm text-muted-foreground">$9.99/month</span>
-                            </Label>
-                          </div>
-                          <div className="relative">
-                            <RadioGroupItem
-                              value="professional"
-                              id="professional"
-                              className="peer sr-only"
-                              data-testid="radio-professional"
-                            />
-                            <Label
-                              htmlFor="professional"
-                              className="flex flex-col items-center justify-center rounded-lg border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary cursor-pointer"
-                            >
-                              <Building2 className="mb-2 h-6 w-6" />
-                              <span className="font-semibold">Pro</span>
-                              <span className="text-sm text-muted-foreground">$19.99/month</span>
-                            </Label>
-                          </div>
-                        </RadioGroup>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
                   name="message"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel htmlFor="message">Anything else we should know? (optional)</FormLabel>
+                      <FormLabel htmlFor="message">Tell us about your needs *</FormLabel>
                       <FormControl>
                         <Textarea
                           id="message"
-                          placeholder="Tell us about yourself, your OpenAlex ID, or any questions..."
-                          className="min-h-[80px]"
+                          placeholder="Describe your use case, integration needs, timeline, or any questions..."
+                          className="min-h-[100px]"
                           {...field}
                           data-testid="textarea-message"
                         />
@@ -284,13 +252,13 @@ export default function ContactPage() {
                   )}
                 />
 
-                <Button 
-                  type="submit" 
-                  className="w-full btn-premium py-6"
+                <Button
+                  type="submit"
+                  className="w-full py-6"
                   disabled={submitMutation.isPending}
                   data-testid="button-submit-inquiry"
                 >
-                  {submitMutation.isPending ? "Setting up your portfolio..." : "Start My Free Trial"}
+                  {submitMutation.isPending ? "Sending…" : "Send Inquiry"}
                 </Button>
               </form>
             </Form>

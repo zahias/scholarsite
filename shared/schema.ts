@@ -39,6 +39,8 @@ export const tenants = pgTable("tenants", {
   accentColor: varchar("accent_color").default('#F2994A'),
   logoUrl: varchar("logo_url"),
   selectedThemeId: varchar("selected_theme_id"), // Reference to themes table
+  // Trial
+  trialEndsAt: timestamp("trial_ends_at"),
   // Contact
   contactEmail: varchar("contact_email"),
   notes: text("notes"), // Admin notes about this tenant

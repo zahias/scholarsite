@@ -26,6 +26,7 @@ import {
   Handshake,
   ArrowRight,
 } from "lucide-react";
+import { faqs } from "@/data/faqData";
 
 // ───── Types ─────
 interface AuthorSearchResult {
@@ -40,34 +41,6 @@ interface SearchResponse {
 }
 
 // ───── Static data ─────
-const faqs = [
-  {
-    question: "Where does the publication data come from?",
-    answer:
-      "All publication data comes from OpenAlex, a free and open index of 250\u202fM+ scholarly works. Your profile syncs automatically. You can report issues directly from your profile.",
-  },
-  {
-    question: "How accurate is the publication matching?",
-    answer:
-      "OpenAlex uses advanced algorithms, but no system is perfect for common names. You can see all attributed publications and report any that don\u2019t belong to you.",
-  },
-  {
-    question: "Can I edit my publications?",
-    answer:
-      "You control your bio, photo, themes, and featured works. The publication list comes from OpenAlex \u2014 we\u2019ll guide you through requesting corrections if needed.",
-  },
-  {
-    question: "Can I use my own domain?",
-    answer:
-      "Yes! Pro plan includes custom domains (yourname.com). Starter uses yourname.scholar.name. Both are professional and memorable.",
-  },
-  {
-    question: "What happens if I cancel?",
-    answer:
-      "Cancel anytime. Your profile stays active until the billing period ends, then becomes private (not deleted). Reactivate anytime.",
-  },
-];
-
 const features = [
   {
     icon: RefreshCw,
@@ -127,27 +100,6 @@ const useCases = [
     icon: Handshake,
     title: "Collaboration",
     desc: "Potential co-authors see your research areas and top papers instantly.",
-  },
-];
-
-const testimonials = [
-  {
-    quote:
-      "I used to send people a 10-item Google Scholar URL. Now I just say scholar.name/rnakamoto. Set it up in one afternoon.",
-    name: "R. Nakamoto",
-    role: "Postdoc, Computational Biology",
-  },
-  {
-    quote:
-      "My university page hadn\u2019t been updated in 4 years. Scholar.name auto-syncs from OpenAlex and looks 10\u00d7 better than anything our IT department would build.",
-    name: "Prof. S. Bergmann",
-    role: "Associate Professor, Materials Science",
-  },
-  {
-    quote:
-      "I was about to pay $400 for Academia.edu. Found Scholar.name the same day. $9.99/month and it does more than I actually need.",
-    name: "D. Osei",
-    role: "PhD Candidate, Environmental Studies",
   },
 ];
 
@@ -301,8 +253,8 @@ export default function LandingPage() {
           style={{
             background: "linear-gradient(135deg,#081529 0%,#0B1F3A 45%,#17345b 100%)",
             color: "#fff",
-            padding: "110px 0 120px",
-            minHeight: "640px",
+            padding: "clamp(60px,10vh,110px) 0 clamp(70px,10vh,120px)",
+            minHeight: "clamp(520px,70vh,640px)",
           }}
           aria-labelledby="hero-heading"
         >
@@ -812,50 +764,6 @@ export default function LandingPage() {
                   </div>
                   <h3 className="font-serif font-medium text-[#0B1F3A] mb-2" style={{ fontSize: 20, lineHeight: 1.25 }}>{u.title}</h3>
                   <p className="text-[14px] text-gray-600 leading-snug">{u.desc}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* ═══════ TESTIMONIALS ═══════ */}
-        <section className="py-24 bg-[#0B1F3A]" aria-label="What researchers say">
-          <div className="max-w-[1200px] mx-auto px-8">
-            <div className="text-center mb-14 max-w-[720px] mx-auto">
-              <div className="eyebrow mb-3.5" style={{ color: "#FFC72E" }}>What researchers say</div>
-              <h2
-                className="font-serif font-medium text-white"
-                style={{ fontSize: "clamp(32px,3.6vw,48px)", lineHeight: 1.08, letterSpacing: "-0.015em" }}
-              >
-                From PhD students to full professors.
-              </h2>
-            </div>
-            <div className="grid sm:grid-cols-3 gap-6 max-w-[1100px] mx-auto">
-              {testimonials.map((t) => (
-                <div
-                  key={t.name}
-                  className="rounded-[14px] p-7 flex flex-col"
-                  style={{ background: "rgba(255,255,255,.04)", border: "1px solid rgba(255,255,255,.08)" }}
-                >
-                  {/* Quote icon */}
-                  <svg className="mb-3.5 opacity-85" style={{ width: 22, height: 22, color: "#FFC72E", fill: "#FFC72E" }} viewBox="0 0 24 24" aria-hidden="true">
-                    <path d="M3 21c3 0 7-1 7-8V5a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h4M14 21c3 0 7-1 7-8V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h4"/>
-                  </svg>
-                  <blockquote className="font-serif text-[14.5px] text-white/82 leading-relaxed mb-6 flex-1">
-                    &ldquo;{t.quote}&rdquo;
-                  </blockquote>
-                  <div className="flex items-center gap-3 mt-auto">
-                    <div
-                      className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0"
-                      style={{ background: "rgba(255,199,46,.18)" }}
-                    >
-                      <GraduationCap className="w-4 h-4" style={{ color: "#FFC72E" }} />
-                    </div>
-                    <div>
-                      <div className="text-[13px] font-medium text-white">{t.name}</div>
-                      <div className="text-[11.5px] text-white/55 mt-0.5">{t.role}</div>
-                    </div>
-                  </div>
                 </div>
               ))}
             </div>

@@ -179,6 +179,9 @@ export interface IStorage {
   // Email verification operations
   setEmailVerificationToken(userId: string, token: string, expiresAt: Date): Promise<void>;
   verifyEmailWithToken(token: string): Promise<User | undefined>;
+
+  // Trial tenant provisioning
+  createTrialTenant(userId: string, firstName: string, lastName: string, email: string): Promise<Tenant>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -934,6 +937,39 @@ export class DatabaseStorage implements IStorage {
     return updated;
   }
 
+  async createTrialTenant(userId: string, firstName: string, lastName: string, email: string): Promise<Tenant> {
+    const base = `${firstName.toLowerCase().replace(/[^a-z0-9]/g, "")}${lastName ? `-${lastName.toLowerCase().replace(/[^a-z0-9]/g, "")}` : ""}`;
+    const uniqueSuffix = crypto.randomBytes(3).toString("hex");
+    const subdomain = `${base || "researcher"}-${uniqueSuffix}`.substring(0, 40);
+
+    const trialEndsAt = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000);
+
+    const tenant = await this.createTenant({
+      name: `${firstName} ${lastName}`.trim(),
+      plan: "free",
+      status: "active",
+      contactEmail: email,
+      trialEndsAt,
+    } as InsertTenant);
+
+    await this.createDomain({
+      tenantId: tenant.id,
+      hostname: `${subdomain}.scholar.name`,
+      isPrimary: true,
+      isSubdomain: true,
+    });
+
+    await this.updateTenantProfile(tenant.id, {
+      tenantId: tenant.id,
+      displayName: `${firstName} ${lastName}`.trim(),
+      isPublic: true,
+    });
+
+    await this.updateUser(userId, { tenantId: tenant.id });
+
+    return tenant;
+  }
+
   async updatePaymentStatus(orderNumber: string, status: PaymentStatus, transactionId?: string): Promise<Payment | undefined> {
     const updates: Partial<Payment> = { status };
     if (transactionId) {
@@ -1211,6 +1247,7 @@ class MemoryStorage {
   async markPasswordResetTokenUsed(_token: string) { return; }
   async setEmailVerificationToken(_userId: string, _token: string, _expiresAt: Date) { return; }
   async verifyEmailWithToken(_token: string) { return undefined; }
+  async createTrialTenant(_userId: string, _firstName: string, _lastName: string, _email: string) { return {} as any; }
 }
 
 export const storage: IStorage = process.env.DATABASE_URL ? new DatabaseStorage() : new MemoryStorage();

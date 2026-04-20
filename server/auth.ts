@@ -140,6 +140,11 @@ router.post("/register", async (req: Request, res: Response) => {
       console.error("[auth] Failed to send signup email:", err)
     );
 
+    // Provision a free trial tenant immediately (non-blocking — login still succeeds even if this fails)
+    storage.createTrialTenant(user.id, validatedData.firstName, validatedData.lastName || "", validatedData.email).catch((err) =>
+      console.error("[auth] Failed to create trial tenant:", err)
+    );
+
     req.session.regenerate((err) => {
       if (err) {
         console.error("Session regeneration error:", err);

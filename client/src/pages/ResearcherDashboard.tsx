@@ -102,6 +102,7 @@ interface TenantData {
   name: string;
   plan: string;
   status: string;
+  trialEndsAt: string | null;
   primaryColor: string | null;
   accentColor: string | null;
   domains: Domain[];
@@ -1010,6 +1011,56 @@ export default function ResearcherDashboard() {
         </div>
       )}
 
+      {/* Trial countdown banner */}
+      {tenant?.plan === "free" && tenant?.trialEndsAt && (() => {
+        const trialEnd = new Date(tenant.trialEndsAt!);
+        const now = new Date();
+        const daysLeft = Math.ceil((trialEnd.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+        if (daysLeft <= 0) {
+          return (
+            <div style={{ background: "#FFF3E0", borderBottom: "1px solid #FF9800", padding: "10px 16px", display: "flex", alignItems: "center", justifyContent: "center", gap: 12, flexWrap: "wrap" }}>
+              <span style={{ fontSize: 14, color: "#E65100", fontWeight: 600 }}>
+                🔔 Your free trial has ended. Choose a plan to keep your portfolio live.
+              </span>
+              <button
+                onClick={() => { window.scrollTo(0, 0); navigate("/contact"); }}
+                style={{ fontSize: 13, fontWeight: 600, color: "#fff", background: "#E65100", border: "none", borderRadius: 6, padding: "4px 14px", cursor: "pointer" }}
+              >
+                Choose a plan →
+              </button>
+            </div>
+          );
+        }
+        if (daysLeft <= 7) {
+          return (
+            <div style={{ background: "#FFF8E1", borderBottom: "1px solid #FFC72E", padding: "10px 16px", display: "flex", alignItems: "center", justifyContent: "center", gap: 12, flexWrap: "wrap" }}>
+              <span style={{ fontSize: 14, color: "#5D4037" }}>
+                ⏳ <strong>{daysLeft} day{daysLeft !== 1 ? "s" : ""}</strong> left in your free trial.
+              </span>
+              <button
+                onClick={() => { window.scrollTo(0, 0); navigate("/contact"); }}
+                style={{ fontSize: 13, fontWeight: 600, color: "#0B1F3A", background: "#FFC72E", border: "none", borderRadius: 6, padding: "4px 14px", cursor: "pointer" }}
+              >
+                Upgrade now →
+              </button>
+            </div>
+          );
+        }
+        return (
+          <div style={{ background: "rgba(11,31,58,.04)", borderBottom: "1px solid rgba(11,31,58,.08)", padding: "8px 16px", display: "flex", alignItems: "center", justifyContent: "center", gap: 10, flexWrap: "wrap" }}>
+            <span style={{ fontSize: 13, color: "#44474D" }}>
+              🎉 Free trial active — <strong>{daysLeft} days</strong> remaining.
+            </span>
+            <button
+              onClick={() => { window.scrollTo(0, 0); navigate("/contact"); }}
+              style={{ fontSize: 12, color: "#0B1F3A", background: "transparent", border: "1px solid rgba(11,31,58,.25)", borderRadius: 5, padding: "2px 10px", cursor: "pointer" }}
+            >
+              Upgrade
+            </button>
+          </div>
+        );
+      })()}
+
       <main className="flex-1 max-w-5xl mx-auto w-full px-4 py-8 space-y-8">
         {/* ═══════ Personalized Greeting ═══════ */}
         <div>
@@ -1778,6 +1829,18 @@ export default function ResearcherDashboard() {
                 )}
               </CardContent>
             </Card>
+
+            {/* Report publication issue */}
+            {tenantData?.tenant?.profile?.openalexId && (
+              <div className="flex items-center justify-end">
+                <a
+                  href={`/contact?subject=publication-issue&openalexId=${tenantData.tenant.profile.openalexId}`}
+                  className="text-xs text-muted-foreground hover:text-foreground underline underline-offset-4 transition-colors"
+                >
+                  Report a publication data issue →
+                </a>
+              </div>
+            )}
           </TabsContent>
 
           {/* ═══════ Sections Tab ═══════ */}
@@ -2455,6 +2518,21 @@ export default function ResearcherDashboard() {
                       Contact support to change your plan
                     </span>
                   </div>
+                </div>
+
+                <Separator />
+
+                <div className="space-y-2">
+                  <Label className="text-red-600">Cancel Subscription</Label>
+                  <p className="text-sm text-muted-foreground">
+                    Your profile stays active until the end of the current billing period. This cannot be undone automatically.
+                  </p>
+                  <a
+                    href={`mailto:support@scholar.name?subject=Cancel%20subscription&body=Please%20cancel%20my%20subscription%20for%20account%20${encodeURIComponent(userData?.user?.email || "")}.`}
+                    className="inline-flex items-center gap-1.5 text-sm font-medium text-red-600 hover:text-red-700 border border-red-200 hover:border-red-300 rounded-lg px-3 py-2 bg-red-50 hover:bg-red-100 transition-colors"
+                  >
+                    Request cancellation →
+                  </a>
                 </div>
 
                 <Separator />

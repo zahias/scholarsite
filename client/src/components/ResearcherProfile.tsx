@@ -241,11 +241,14 @@ function ResearcherProfileContent() {
           <p style={{ color: "rgba(255,255,255,.5)", fontSize: 13, margin: 0 }}>
             © {new Date().getFullYear()} Scholar.name. All rights reserved.
           </p>
-          {researcherData?.lastSynced && (
-            <p style={{ color: "rgba(255,255,255,.35)", fontSize: 12, margin: 0 }}>
-              Last sync: {new Date(researcherData.lastSynced).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
-            </p>
-          )}
+          <div style={{ display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
+            {researcherData?.lastSynced && (
+              <p style={{ color: "rgba(255,255,255,.35)", fontSize: 12, margin: 0 }}>
+                Last sync: {new Date(researcherData.lastSynced).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
+              </p>
+            )}
+            <ReportIssue openalexId={openalexId} researcherName={displayName} />
+          </div>
         </div>
       </footer>
 
