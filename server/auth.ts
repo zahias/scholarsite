@@ -305,13 +305,16 @@ router.patch("/password", isAuthenticated, async (req: Request, res: Response) =
     const newPasswordHash = await bcrypt.hash(newPassword, 12);
     await storage.updateUser(userId, { passwordHash: newPasswordHash });
 
-    req.session.regenerate((err) => {
+    // Use session.save (not regenerate) — regenerate fails with pg session store in production
+    req.session.userId = userId;
+    req.session.userRole = user.role as UserRole;
+    req.session.isAuthenticated = true;
+
+    req.session.save((err) => {
       if (err) {
-        console.error("Session regeneration error after password change:", err);
+        console.error("Session save error after password change:", err);
+        return res.status(500).json({ message: "Failed to update password" });
       }
-      req.session.userId = userId;
-      req.session.userRole = user.role as UserRole;
-      req.session.isAuthenticated = true;
       return res.json({ message: "Password updated successfully" });
     });
   } catch (error) {

@@ -141,7 +141,8 @@ router.post('/webhook', async (req: Request, res: Response) => {
     // C1: Verify webhook authenticity via shared secret
     const webhookSecret = process.env.WEBHOOK_SECRET;
     if (webhookSecret) {
-      const signature = req.headers['x-webhook-signature'] || req.headers['x-signature'];
+      const rawSig = req.headers['x-webhook-signature'] || req.headers['x-signature'];
+      const signature = Array.isArray(rawSig) ? rawSig[0] : rawSig;
       if (!signature) {
         console.warn('Webhook rejected: missing signature header');
         return res.status(403).send('Forbidden');
@@ -149,7 +150,10 @@ router.post('/webhook', async (req: Request, res: Response) => {
       const expectedSig = crypto.createHmac('sha256', webhookSecret)
         .update(JSON.stringify(req.body))
         .digest('hex');
-      if (signature !== expectedSig) {
+      // Use constant-time comparison to prevent timing attacks
+      const expectedBuf = Buffer.from(expectedSig, 'hex');
+      const receivedBuf = Buffer.from(signature, 'hex');
+      if (expectedBuf.length !== receivedBuf.length || !crypto.timingSafeEqual(expectedBuf, receivedBuf)) {
         console.warn('Webhook rejected: invalid signature');
         return res.status(403).send('Forbidden');
       }

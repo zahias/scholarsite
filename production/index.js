@@ -1913,13 +1913,14 @@ router.patch("/password", isAuthenticated, async (req, res) => {
     }
     const newPasswordHash = await bcrypt.hash(newPassword, 12);
     await storage.updateUser(userId, { passwordHash: newPasswordHash });
-    req.session.regenerate((err) => {
+    req.session.userId = userId;
+    req.session.userRole = user.role;
+    req.session.isAuthenticated = true;
+    req.session.save((err) => {
       if (err) {
-        console.error("Session regeneration error after password change:", err);
+        console.error("Session save error after password change:", err);
+        return res.status(500).json({ message: "Failed to update password" });
       }
-      req.session.userId = userId;
-      req.session.userRole = user.role;
-      req.session.isAuthenticated = true;
       return res.json({ message: "Password updated successfully" });
     });
   } catch (error) {
@@ -2901,7 +2902,11 @@ router4.get("/my-tenant", isAuthenticated, async (req, res) => {
       );
       if (completedWithTenant?.tenantId) {
         await storage.updateUser(user.id, { tenantId: completedWithTenant.tenantId });
-        user = await storage.getUser(userId);
+        const refreshed = await storage.getUser(userId);
+        if (!refreshed) {
+          return res.status(404).json({ message: "User no longer exists" });
+        }
+        user = refreshed;
       }
     }
     if (!user.tenantId) {
@@ -3655,13 +3660,16 @@ router5.post("/webhook", async (req, res) => {
   try {
     const webhookSecret = process.env.WEBHOOK_SECRET;
     if (webhookSecret) {
-      const signature = req.headers["x-webhook-signature"] || req.headers["x-signature"];
+      const rawSig = req.headers["x-webhook-signature"] || req.headers["x-signature"];
+      const signature = Array.isArray(rawSig) ? rawSig[0] : rawSig;
       if (!signature) {
         console.warn("Webhook rejected: missing signature header");
         return res.status(403).send("Forbidden");
       }
       const expectedSig = crypto4.createHmac("sha256", webhookSecret).update(JSON.stringify(req.body)).digest("hex");
-      if (signature !== expectedSig) {
+      const expectedBuf = Buffer.from(expectedSig, "hex");
+      const receivedBuf = Buffer.from(signature, "hex");
+      if (expectedBuf.length !== receivedBuf.length || !crypto4.timingSafeEqual(expectedBuf, receivedBuf)) {
         console.warn("Webhook rejected: invalid signature");
         return res.status(403).send("Forbidden");
       }
@@ -4480,13 +4488,18 @@ async function registerRoutes(app2) {
     try {
       let systemUser = await storage.getUserByEmail("system@admin.local");
       if (!systemUser) {
-        systemUser = await storage.createUser({
-          email: "system@admin.local",
-          passwordHash: "SYSTEM_USER_NO_LOGIN",
-          firstName: "System",
-          lastName: "Admin",
-          role: "admin"
-        });
+        try {
+          systemUser = await storage.createUser({
+            email: "system@admin.local",
+            passwordHash: "SYSTEM_USER_NO_LOGIN",
+            firstName: "System",
+            lastName: "Admin",
+            role: "admin"
+          });
+        } catch (e) {
+          if (e?.code !== "23505") throw e;
+          systemUser = await storage.getUserByEmail("system@admin.local");
+        }
       }
       const profileData = insertResearcherProfileSchema.parse({
         ...req.body,
@@ -5303,10 +5316,7 @@ async function registerRoutes(app2) {
       });
     } catch (error) {
       console.error("Error handling chat message:", error);
-      res.json({
-        success: true,
-        message: "Message received! We'll get back to you soon."
-      });
+      res.status(500).json({ message: "Failed to deliver message. Please email us directly at hello@scholar.name." });
     }
   });
   app2.post("/api/report-issue", publicWriteRateLimit, async (req, res) => {

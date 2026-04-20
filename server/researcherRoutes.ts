@@ -69,7 +69,11 @@ router.get("/my-tenant", isAuthenticated, async (req: Request, res: Response) =>
       );
       if (completedWithTenant?.tenantId) {
         await storage.updateUser(user.id, { tenantId: completedWithTenant.tenantId });
-        user = (await storage.getUser(userId))!;
+        const refreshed = await storage.getUser(userId);
+        if (!refreshed) {
+          return res.status(404).json({ message: "User no longer exists" });
+        }
+        user = refreshed;
       }
     }
 

@@ -951,13 +951,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get or create system admin user for admin-created profiles
       let systemUser = await storage.getUserByEmail('system@admin.local');
       if (!systemUser) {
-        systemUser = await storage.createUser({
-          email: 'system@admin.local',
-          passwordHash: 'SYSTEM_USER_NO_LOGIN',
-          firstName: 'System',
-          lastName: 'Admin',
-          role: 'admin',
-        });
+        try {
+          systemUser = await storage.createUser({
+            email: 'system@admin.local',
+            passwordHash: 'SYSTEM_USER_NO_LOGIN',
+            firstName: 'System',
+            lastName: 'Admin',
+            role: 'admin',
+          });
+        } catch (e: any) {
+          if (e?.code !== '23505') throw e; // re-throw non-unique-constraint errors
+          systemUser = (await storage.getUserByEmail('system@admin.local'))!;
+        }
       }
 
       const profileData = insertResearcherProfileSchema.parse({
@@ -1994,11 +1999,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error) {
       console.error('Error handling chat message:', error);
-      // Still return success to user even if email fails
-      res.json({
-        success: true,
-        message: 'Message received! We\'ll get back to you soon.'
-      });
+      res.status(500).json({ message: 'Failed to deliver message. Please email us directly at hello@scholar.name.' });
     }
   });
 
