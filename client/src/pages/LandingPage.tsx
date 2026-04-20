@@ -297,7 +297,7 @@ export default function LandingPage() {
 
         {/* ═══════ HERO ═══════ */}
         <section
-          className="relative overflow-hidden flex items-center"
+          className="relative overflow-hidden flex items-center hero-section"
           style={{
             background: "linear-gradient(135deg,#081529 0%,#0B1F3A 45%,#17345b 100%)",
             color: "#fff",

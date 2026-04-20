@@ -1,268 +1,176 @@
 import { useEffect } from "react";
 import { Link, useLocation } from "wouter";
-import { BookOpen, ArrowLeft, Shield, Database, Clock, Mail, Users, Globe, Award, CheckCircle, ExternalLink } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Shield, Database, Clock, Mail, Globe, Award, CheckCircle, ExternalLink } from "lucide-react";
 import SEO from "@/components/SEO";
+import GlobalNav from "@/components/GlobalNav";
+import GlobalFooter from "@/components/GlobalFooter";
 
 export default function AboutPage() {
   const [, navigate] = useLocation();
-  
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, []);
+  useEffect(() => { window.scrollTo(0, 0); }, []);
 
   return (
-    <div className="min-h-screen bg-background">
-      <SEO 
-        title="About Scholar.name - Our Mission & Team"
+    <div className="min-h-screen flex flex-col" style={{ background: "#fff" }}>
+      <SEO
+        title="About Scholar.name — Our Mission & Team"
         description="Learn about Scholar.name, our mission to help researchers showcase their work, how we source data, and our commitment to accuracy and privacy."
         url="https://scholar.name/about"
       />
-      
-      <nav className="sticky top-0 z-50 glass-nav">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16">
-            <Link href="/" className="flex items-center">
-              <BookOpen className="h-7 w-7 text-primary-container mr-2" />
-              <span className="text-lg font-semibold text-on-surface font-headline">Scholar.name</span>
-            </Link>
-            <div className="flex items-center gap-4">
-              <Link href="/contact" className="text-on-surface-variant hover:text-primary-container text-sm font-medium transition-colors">
-                Contact
-              </Link>
-            </div>
-          </div>
-        </div>
-      </nav>
+      <GlobalNav mode="landing" />
 
-      <div className="max-w-4xl mx-auto px-4 py-12">
-        <Button
-          variant="ghost"
-          className="mb-6"
-          onClick={() => navigate("/")}
-        >
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Back to Home
-        </Button>
-
-        {/* Mission Section */}
-        <section className="mb-16">
-          <Badge variant="scholarly-label" className="mb-4">Our Mission</Badge>
-          <h1 className="text-3xl sm:text-4xl font-bold mb-6">
-            Helping Researchers Showcase Their Work
-          </h1>
-          <p className="text-lg text-muted-foreground leading-relaxed mb-6">
-            Scholar.name was built to solve a simple problem: researchers deserve better than a bare 
-            Google Scholar listing or an outdated faculty page. Your work matters, and how you present 
-            it should too.
-          </p>
-          <p className="text-lg text-muted-foreground leading-relaxed">
-            We believe every researcher should have a professional, up-to-date portfolio that reflects 
-            their contributions to science — without spending hours maintaining it manually.
-          </p>
-        </section>
-
-        {/* Who Built This */}
-        <section className="mb-16">
-          <Card className="bg-gradient-to-br from-primary/5 to-background border-primary/20">
-            <CardContent className="pt-8 pb-8">
-              <div className="flex flex-col md:flex-row items-center gap-6">
-                <div className="w-24 h-24 rounded-full bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center flex-shrink-0 shadow-lg">
-                  <Users className="w-12 h-12 text-white" />
-                </div>
-                <div className="text-center md:text-left">
-                  <Badge className="mb-3">Built by Researchers, for Researchers</Badge>
-                  <p className="text-muted-foreground leading-relaxed mb-4">
-                    Scholar.name was created by academics who were frustrated with the lack of good 
-                    options for presenting research online. We understand the academic world because 
-                    we live it — the pressure to publish, the need to stand out for grants and positions, 
-                    and the desire to have your work recognized.
-                  </p>
-                  <p className="text-sm text-muted-foreground italic">
-                    We're a small, focused team committed to building the best research portfolio platform in the world.
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </section>
-
-        {/* Data Sources Section */}
-        <section className="mb-16">
-          <div className="flex items-center gap-3 mb-6">
-            <Database className="w-8 h-8 text-primary" />
-            <h2 className="text-2xl font-bold">Where Your Data Comes From</h2>
-          </div>
-          
-          <div className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Globe className="w-5 h-5 text-blue-600" />
-                  OpenAlex — Our Primary Data Source
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground mb-4">
-                  All publication data on Scholar.name comes from{" "}
-                  <a href="https://openalex.org" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline inline-flex items-center gap-1">
-                    OpenAlex <ExternalLink className="w-3 h-3" />
-                  </a>, 
-                  a free and open catalog of the world's scholarly papers, researchers, and institutions.
-                </p>
-                <ul className="space-y-2 text-muted-foreground">
-                  <li className="flex items-start gap-2">
-                    <CheckCircle className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
-                    <span><strong>250+ million works</strong> indexed from major publishers and databases</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <CheckCircle className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
-                    <span><strong>Updated daily</strong> with new publications and citations</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <CheckCircle className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
-                    <span><strong>Open and transparent</strong> — anyone can verify the source data</span>
-                  </li>
-                </ul>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Shield className="w-5 h-5 text-green-600" />
-                  What's Automated vs. What You Control
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid md:grid-cols-2 gap-6">
-                  <div>
-                    <h4 className="font-semibold mb-3 text-green-700">✅ Automated (from OpenAlex)</h4>
-                    <ul className="space-y-1 text-sm text-muted-foreground">
-                      <li>• Publication list & metadata</li>
-                      <li>• Citation counts & metrics</li>
-                      <li>• Co-author networks</li>
-                      <li>• Research topics</li>
-                      <li>• Affiliation history</li>
-                    </ul>
-                  </div>
-                  <div>
-                    <h4 className="font-semibold mb-3 text-blue-700">🎨 You Control</h4>
-                    <ul className="space-y-1 text-sm text-muted-foreground">
-                      <li>• Bio & profile description</li>
-                      <li>• Profile photo</li>
-                      <li>• Which publications to feature</li>
-                      <li>• Custom sections (awards, grants)</li>
-                      <li>• Theme & visual design</li>
-                      <li>• Privacy (public/private)</li>
-                    </ul>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="border-amber-200 bg-amber-50/50">
-              <CardContent className="pt-6">
-                <h4 className="font-semibold mb-2 flex items-center gap-2">
-                  <Award className="w-5 h-5 text-amber-600" />
-                  Data Accuracy Commitment
-                </h4>
-                <p className="text-muted-foreground text-sm mb-4">
-                  We know data accuracy is crucial. Publication matching — especially for common names, 
-                  name variations, and transliterated names — is an ongoing challenge in bibliometrics. 
-                  We sync directly from OpenAlex and show you exactly when data was last updated.
-                </p>
-                <p className="text-muted-foreground text-sm">
-                  <strong>If something looks wrong:</strong> You can report issues directly from your profile, 
-                  and we'll investigate. Some issues may need to be corrected at the source (OpenAlex), 
-                  and we'll guide you through that process.
-                </p>
-              </CardContent>
-            </Card>
-          </div>
-        </section>
-
-        {/* Contact & Support */}
-        <section className="mb-16">
-          <div className="flex items-center gap-3 mb-6">
-            <Mail className="w-8 h-8 text-primary" />
-            <h2 className="text-2xl font-bold">Contact & Support</h2>
-          </div>
-          
-          <div className="grid md:grid-cols-2 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Email Support</CardTitle>
-                <CardDescription>Best for detailed questions</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground mb-2">
-                  <a href="mailto:support@scholar.name" className="text-primary hover:underline">
-                    support@scholar.name
-                  </a>
-                </p>
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Clock className="w-4 h-4" />
-                  <span>Response time: 24-48 hours</span>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Live Chat</CardTitle>
-                <CardDescription>Quick questions & help</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground mb-2">
-                  Use the contact form on our <a href="/contact" className="text-primary hover:underline">Contact page</a> and we’ll get back to you promptly.
-                </p>
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Clock className="w-4 h-4" />
-                  <span>Usually responds within minutes during business hours</span>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          <div className="mt-6 p-4 bg-muted/50 rounded-lg text-sm text-muted-foreground">
-            <p>
-              <strong>For urgent issues</strong> affecting your published profile (broken links, incorrect data showing publicly), 
-              please mark your message as urgent and we'll prioritize it.
+      <main style={{ flex: 1 }}>
+        {/* Hero */}
+        <section style={{ background: "#0B1F3A", padding: "72px 0 56px", position: "relative", overflow: "hidden" }}>
+          <div style={{ position: "absolute", inset: 0, background: "radial-gradient(ellipse at 70% 0%, rgba(255,199,46,.14), transparent 55%), repeating-linear-gradient(0deg, rgba(255,255,255,.025) 0 1px, transparent 1px 52px)", pointerEvents: "none" }} />
+          <div style={{ maxWidth: 720, margin: "0 auto", padding: "0 32px", position: "relative", zIndex: 1, textAlign: "center" }}>
+            <span style={{ fontFamily: "'Newsreader', serif", fontSize: 11, letterSpacing: ".22em", textTransform: "uppercase", color: "#FFC72E", fontWeight: 600, display: "block", marginBottom: 16 }}>About Us</span>
+            <h1 style={{ fontFamily: "'Newsreader', serif", fontSize: "clamp(32px,5vw,56px)", lineHeight: 1.08, fontWeight: 500, color: "#fff", margin: "0 0 16px", letterSpacing: "-0.02em" }}>
+              Helping researchers showcase their work
+            </h1>
+            <p style={{ fontSize: 17, color: "rgba(255,255,255,.7)", lineHeight: 1.55, maxWidth: 540, margin: "0 auto" }}>
+              Scholar.name was built to solve a simple problem: researchers deserve better than a bare Google Scholar listing or an outdated faculty page.
             </p>
           </div>
         </section>
 
-        {/* CTA */}
-        <section className="text-center py-12 px-6 hero-gradient rounded-2xl">
-          <h2 className="text-2xl font-bold mb-4 text-white">Ready to Create Your Portfolio?</h2>
-          <p className="text-white/70 mb-6 max-w-md mx-auto">
-            Join researchers from leading institutions who trust Scholar.name to showcase their work.
-          </p>
-          <div className="flex flex-wrap justify-center gap-3">
-            <Button variant="primary-cta" size="lg" onClick={() => navigate("/signup")}>
-              Create Free Account
-            </Button>
-            <Button variant="ghost-light" size="lg" onClick={() => navigate("/")}>
-              Learn More
-            </Button>
+        <section style={{ background: "#F0F4F8", padding: "64px 24px 80px" }}>
+          <div style={{ maxWidth: 800, margin: "0 auto", display: "flex", flexDirection: "column", gap: 20 }}>
+
+            {/* Mission */}
+            <div style={{ background: "#fff", borderRadius: 16, border: "1px solid rgba(11,31,58,.08)", padding: "32px 32px" }}>
+              <span style={{ fontSize: 11, letterSpacing: ".18em", textTransform: "uppercase", color: "#FFC72E", fontWeight: 700, display: "block", marginBottom: 12 }}>Our Mission</span>
+              <h2 style={{ fontFamily: "'Newsreader', serif", fontSize: "clamp(20px,2.5vw,26px)", fontWeight: 500, color: "#0B1F3A", margin: "0 0 14px", letterSpacing: "-0.01em" }}>
+                Built by researchers, for researchers
+              </h2>
+              <p style={{ fontSize: 15.5, color: "#44474D", lineHeight: 1.7, margin: "0 0 12px" }}>
+                Scholar.name was created by academics who were frustrated with the lack of good options for presenting research online. We understand the academic world because we live it — the pressure to publish, the need to stand out for grants and positions, and the desire to have your work recognized.
+              </p>
+              <p style={{ fontSize: 15.5, color: "#44474D", lineHeight: 1.7, margin: 0 }}>
+                We believe every researcher should have a professional, up-to-date portfolio that reflects their contributions to science — without spending hours maintaining it manually.
+              </p>
+            </div>
+
+            {/* Data sources */}
+            <div style={{ background: "#fff", borderRadius: 16, border: "1px solid rgba(11,31,58,.08)", padding: "32px 32px" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 20 }}>
+                <span style={{ width: 36, height: 36, borderRadius: 9, background: "rgba(11,31,58,.06)", display: "grid", placeItems: "center" }}>
+                  <Database size={17} style={{ color: "#0B1F3A" }} />
+                </span>
+                <h2 style={{ fontFamily: "'Newsreader', serif", fontSize: "clamp(18px,2.5vw,24px)", fontWeight: 500, color: "#0B1F3A", margin: 0 }}>
+                  Where your data comes from
+                </h2>
+              </div>
+
+              {/* OpenAlex card */}
+              <div style={{ background: "#F0F4F8", borderRadius: 12, padding: "20px 22px", marginBottom: 16 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+                  <Globe size={16} style={{ color: "#2563EB" }} />
+                  <span style={{ fontFamily: "'Newsreader', serif", fontSize: 17, fontWeight: 500, color: "#0B1F3A" }}>OpenAlex — Our Primary Data Source</span>
+                </div>
+                <p style={{ fontSize: 14.5, color: "#44474D", lineHeight: 1.65, margin: "0 0 12px" }}>
+                  All publication data on Scholar.name comes from{" "}
+                  <a href="https://openalex.org" target="_blank" rel="noopener noreferrer" style={{ color: "#2563EB", textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 3 }}>
+                    OpenAlex <ExternalLink size={11} />
+                  </a>
+                  , a free and open catalog of the world's scholarly papers, researchers, and institutions.
+                </p>
+                <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
+                  {["250+ million works indexed from major publishers and databases", "Updated daily with new publications and citations", "Open and transparent — anyone can verify the source data"].map((item, i) => (
+                    <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 8, fontSize: 14, color: "#44474D" }}>
+                      <CheckCircle size={14} style={{ color: "#059669", flexShrink: 0, marginTop: 2 }} />
+                      <span>{item}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Automated vs controlled */}
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }} className="about-grid">
+                <style>{`@media (max-width: 560px) { .about-grid { grid-template-columns: 1fr !important; } }`}</style>
+                <div style={{ background: "#F0F4F8", borderRadius: 11, padding: "16px 18px" }}>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: "#059669", marginBottom: 10 }}>✓ Automated (from OpenAlex)</div>
+                  {["Publication list & metadata", "Citation counts & metrics", "Co-author networks", "Research topics", "Affiliation history"].map((item) => (
+                    <div key={item} style={{ fontSize: 13.5, color: "#44474D", padding: "3px 0" }}>• {item}</div>
+                  ))}
+                </div>
+                <div style={{ background: "#F0F4F8", borderRadius: 11, padding: "16px 18px" }}>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: "#2563EB", marginBottom: 10 }}>✦ You control</div>
+                  {["Bio & profile description", "Profile photo", "Which publications to feature", "Custom sections (awards, grants)", "Theme & visual design", "Privacy (public/private)"].map((item) => (
+                    <div key={item} style={{ fontSize: 13.5, color: "#44474D", padding: "3px 0" }}>• {item}</div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Accuracy note */}
+            <div style={{ background: "rgba(255,199,46,.08)", borderRadius: 14, border: "1px solid rgba(255,199,46,.25)", padding: "22px 24px" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+                <Award size={16} style={{ color: "#B87A0A" }} />
+                <span style={{ fontFamily: "'Newsreader', serif", fontSize: 16, fontWeight: 500, color: "#0B1F3A" }}>Data Accuracy Commitment</span>
+              </div>
+              <p style={{ fontSize: 14.5, color: "#44474D", lineHeight: 1.65, margin: "0 0 8px" }}>
+                We know data accuracy is crucial. Publication matching — especially for common names, name variations, and transliterated names — is an ongoing challenge in bibliometrics. We sync directly from OpenAlex and show you exactly when data was last updated.
+              </p>
+              <p style={{ fontSize: 14.5, color: "#44474D", lineHeight: 1.65, margin: 0 }}>
+                <strong>If something looks wrong:</strong> You can report issues directly from your profile, and we'll investigate.
+              </p>
+            </div>
+
+            {/* Contact */}
+            <div style={{ background: "#fff", borderRadius: 16, border: "1px solid rgba(11,31,58,.08)", padding: "32px 32px" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 20 }}>
+                <span style={{ width: 36, height: 36, borderRadius: 9, background: "rgba(11,31,58,.06)", display: "grid", placeItems: "center" }}>
+                  <Mail size={17} style={{ color: "#0B1F3A" }} />
+                </span>
+                <h2 style={{ fontFamily: "'Newsreader', serif", fontSize: "clamp(18px,2.5vw,24px)", fontWeight: 500, color: "#0B1F3A", margin: 0 }}>
+                  Contact & Support
+                </h2>
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }} className="about-grid">
+                <div style={{ background: "#F0F4F8", borderRadius: 12, padding: "18px 20px" }}>
+                  <div style={{ fontFamily: "'Newsreader', serif", fontSize: 16, fontWeight: 500, color: "#0B1F3A", marginBottom: 4 }}>Email Support</div>
+                  <div style={{ fontSize: 13.5, color: "#75777E", marginBottom: 8 }}>Best for detailed questions</div>
+                  <a href="mailto:support@scholar.name" style={{ fontSize: 14, color: "#2563EB", textDecoration: "none" }}>support@scholar.name</a>
+                  <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, color: "#75777E", marginTop: 8 }}>
+                    <Clock size={12} /> Response: 24-48 hours
+                  </div>
+                </div>
+                <div style={{ background: "#F0F4F8", borderRadius: 12, padding: "18px 20px" }}>
+                  <div style={{ fontFamily: "'Newsreader', serif", fontSize: 16, fontWeight: 500, color: "#0B1F3A", marginBottom: 4 }}>Contact Form</div>
+                  <div style={{ fontSize: 13.5, color: "#75777E", marginBottom: 8 }}>Quick questions & help</div>
+                  <Link href="/contact" style={{ fontSize: 14, color: "#2563EB", textDecoration: "none" }}>Open contact form →</Link>
+                  <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, color: "#75777E", marginTop: 8 }}>
+                    <Clock size={12} /> Usually within minutes
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* CTA band */}
+            <div style={{ background: "#0B1F3A", borderRadius: 16, padding: "44px 36px", textAlign: "center", position: "relative", overflow: "hidden" }}>
+              <div style={{ position: "absolute", inset: 0, background: "radial-gradient(ellipse at 70% 0%, rgba(255,199,46,.15), transparent 55%)", pointerEvents: "none" }} />
+              <div style={{ position: "relative" }}>
+                <h2 style={{ fontFamily: "'Newsreader', serif", fontSize: "clamp(22px,3vw,30px)", fontWeight: 500, color: "#fff", margin: "0 0 10px", letterSpacing: "-0.01em" }}>
+                  Ready to create your portfolio?
+                </h2>
+                <p style={{ fontSize: 15, color: "rgba(255,255,255,.65)", margin: "0 0 24px" }}>
+                  Join researchers from leading institutions who trust Scholar.name.
+                </p>
+                <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap" }}>
+                  <button onClick={() => navigate("/signup")} style={{ padding: "11px 24px", background: "#FFC72E", color: "#6F5400", border: "none", borderRadius: 9, fontSize: 14, fontWeight: 700, fontFamily: "inherit", cursor: "pointer" }}>
+                    Create Free Account
+                  </button>
+                  <button onClick={() => navigate("/")} style={{ padding: "11px 20px", background: "rgba(255,255,255,.1)", color: "#fff", border: "1px solid rgba(255,255,255,.18)", borderRadius: 9, fontSize: 14, fontWeight: 500, fontFamily: "inherit", cursor: "pointer" }}>
+                    Learn More
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
         </section>
-      </div>
+      </main>
 
-      {/* Footer */}
-      <footer className="bg-muted/30 border-t border-border py-8 mt-12">
-        <div className="max-w-4xl mx-auto px-4 text-center text-sm text-muted-foreground">
-          <p>&copy; {new Date().getFullYear()} Scholar.name. All rights reserved.</p>
-          <div className="flex justify-center gap-4 mt-2">
-            <Link href="/privacy" className="hover:text-foreground">Privacy Policy</Link>
-            <Link href="/terms" className="hover:text-foreground">Terms of Service</Link>
-            <Link href="/contact" className="hover:text-foreground">Contact</Link>
-          </div>
-        </div>
-      </footer>
+      <GlobalFooter />
     </div>
   );
 }

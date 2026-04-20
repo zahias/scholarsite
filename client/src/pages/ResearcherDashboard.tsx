@@ -2,22 +2,6 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { useLocation } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Separator } from "@/components/ui/separator";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import GlobalFooter from "@/components/GlobalFooter";
 import type { Theme } from "@shared/schema";
@@ -898,18 +882,94 @@ export default function ResearcherDashboard() {
     [updateProfileMutation, tenantData],
   );
 
+  // ───── Style constants ─────
+
+  const inputStyle: React.CSSProperties = {
+    width: "100%", padding: "10px 13px", fontSize: 14, fontFamily: "inherit",
+    borderRadius: 9, border: "1px solid rgba(11,31,58,.14)", outline: "none",
+    color: "#171C1F", background: "#fff", boxSizing: "border-box",
+    transition: "border-color .15s",
+  };
+
+  const cardStyle: React.CSSProperties = {
+    background: "#fff", borderRadius: 14, border: "1px solid rgba(11,31,58,.08)",
+    overflow: "hidden",
+  };
+
+  const cardHeaderStyle: React.CSSProperties = {
+    padding: "20px 24px 16px", borderBottom: "1px solid rgba(11,31,58,.06)",
+  };
+
+  const cardBodyStyle: React.CSSProperties = { padding: "20px 24px" };
+
+  const cardTitleStyle: React.CSSProperties = {
+    fontFamily: "'Newsreader', serif", fontSize: 18, fontWeight: 500,
+    color: "#0B1F3A", display: "flex", alignItems: "center", gap: 8, margin: 0,
+  };
+
+  const cardDescStyle: React.CSSProperties = {
+    fontSize: 13.5, color: "#75777E", marginTop: 4,
+  };
+
+  const labelStyle: React.CSSProperties = {
+    fontSize: 13, color: "#0B1F3A", fontWeight: 500,
+    display: "block", marginBottom: 6,
+  };
+
+  const btnPrimary = (disabled?: boolean): React.CSSProperties => ({
+    display: "inline-flex", alignItems: "center", gap: 6,
+    padding: "10px 18px",
+    background: disabled ? "rgba(255,199,46,.45)" : "#FFC72E",
+    color: "#6F5400", border: "none", borderRadius: 9, fontSize: 14,
+    fontWeight: 700, fontFamily: "inherit",
+    cursor: disabled ? "not-allowed" : "pointer",
+  });
+
+  const btnGhost = (disabled?: boolean): React.CSSProperties => ({
+    display: "inline-flex", alignItems: "center", gap: 6,
+    padding: "9px 16px", background: "#fff", color: "#44474D",
+    border: "1px solid rgba(11,31,58,.14)", borderRadius: 9, fontSize: 13.5,
+    fontFamily: "inherit", cursor: disabled ? "not-allowed" : "pointer",
+    opacity: disabled ? 0.5 : 1,
+  });
+
+  const btnIcon = (danger?: boolean): React.CSSProperties => ({
+    display: "inline-flex", alignItems: "center", justifyContent: "center",
+    width: 32, height: 32, background: "transparent",
+    color: danger ? "#EF4444" : "#44474D",
+    border: "none", borderRadius: 7, cursor: "pointer",
+  });
+
+  const chip = (color?: "green" | "amber" | "red" | "blue"): React.CSSProperties => {
+    const map = {
+      green: { background: "rgba(5,150,105,.1)", border: "1px solid rgba(5,150,105,.2)", color: "#065f46" },
+      amber: { background: "rgba(245,158,11,.1)", border: "1px solid rgba(245,158,11,.2)", color: "#92400e" },
+      red: { background: "rgba(239,68,68,.1)", border: "1px solid rgba(239,68,68,.2)", color: "#b91c1c" },
+      blue: { background: "rgba(37,99,235,.1)", border: "1px solid rgba(37,99,235,.2)", color: "#1d4ed8" },
+    };
+    const base: React.CSSProperties = {
+      display: "inline-flex", alignItems: "center",
+      padding: "3px 10px", borderRadius: 99, fontSize: 12, fontWeight: 500,
+    };
+    return color ? { ...base, ...map[color] } : {
+      ...base,
+      background: "rgba(11,31,58,.06)", border: "1px solid rgba(11,31,58,.1)", color: "#44474D",
+    };
+  };
+
   // ───── Loading / Auth guard ─────
 
   if (userLoading || tenantLoading) {
     return (
-      <div className="min-h-screen bg-surface-container-lowest p-8">
-        <div className="max-w-5xl mx-auto space-y-6">
-          <Skeleton className="h-20 w-full" />
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Skeleton className="h-32" />
-            <Skeleton className="h-32" />
-            <Skeleton className="h-32" />
+      <div style={{ minHeight: "100vh", background: "#F0F4F8", padding: "32px 24px" }}>
+        <div style={{ maxWidth: 860, margin: "0 auto", display: "flex", flexDirection: "column", gap: 16 }}>
+          <div style={{ height: 72, borderRadius: 14, background: "rgba(11,31,58,.06)", animation: "pulse 2s infinite" }} />
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 12 }}>
+            {[1,2,3].map(i => (
+              <div key={i} style={{ height: 100, borderRadius: 14, background: "rgba(11,31,58,.06)", animation: "pulse 2s infinite" }} />
+            ))}
           </div>
+          <div style={{ height: 400, borderRadius: 14, background: "rgba(11,31,58,.06)", animation: "pulse 2s infinite" }} />
         </div>
       </div>
     );
@@ -922,21 +982,18 @@ export default function ResearcherDashboard() {
 
   if (!tenantLoading && !tenantData?.tenant) {
     return (
-      <div className="min-h-screen bg-surface-container-lowest flex flex-col items-center justify-center p-8">
-        <div className="max-w-md w-full text-center space-y-6">
-          <div className="w-16 h-16 bg-primary rounded-2xl flex items-center justify-center mx-auto">
-            <BookOpen className="w-8 h-8 text-white" />
+      <div style={{ minHeight: "100vh", background: "#F0F4F8", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "40px 24px" }}>
+        <div style={{ maxWidth: 440, width: "100%", ...cardStyle, padding: "48px 40px", textAlign: "center" }}>
+          <div style={{ width: 64, height: 64, borderRadius: "50%", background: "rgba(11,31,58,.08)", display: "grid", placeItems: "center", margin: "0 auto 20px" }}>
+            <BookOpen size={28} style={{ color: "#0B1F3A" }} />
           </div>
-          <div>
-            <h1 className="text-2xl font-bold text-foreground">Activate your portfolio</h1>
-            <p className="text-muted-foreground mt-2">
-              Choose a plan to publish your Scholar.name portfolio and start showcasing your research.
-            </p>
-          </div>
-          <a
-            href="/pricing"
-            className="inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-6 py-3 text-sm font-semibold text-white hover:bg-primary/90 transition-colors"
-          >
+          <h1 style={{ fontFamily: "'Newsreader', serif", fontSize: 24, fontWeight: 500, color: "#0B1F3A", margin: "0 0 10px" }}>
+            Activate your portfolio
+          </h1>
+          <p style={{ fontSize: 15, color: "#44474D", lineHeight: 1.6, margin: "0 0 28px" }}>
+            Choose a plan to publish your Scholar.name portfolio and start showcasing your research.
+          </p>
+          <a href="/pricing" style={{ ...btnPrimary(), display: "inline-flex", textDecoration: "none" }}>
             View plans &amp; pricing
           </a>
         </div>
@@ -949,47 +1006,61 @@ export default function ResearcherDashboard() {
   const primaryDomain =
     tenant?.domains?.find((d) => d.isPrimary) || tenant?.domains?.[0];
 
+  // ───── Tab definitions ─────
+  const tabs = [
+    { value: "profile", icon: User, label: "Profile" },
+    { value: "publications", icon: BookOpen, label: "Publications" },
+    { value: "sections", icon: FileText, label: "Sections" },
+    { value: "sync", icon: History, label: "Sync" },
+    { value: "settings", icon: Settings, label: "Settings" },
+  ];
+
   return (
-    <div className="min-h-screen bg-surface-container-lowest flex flex-col">
-      {/* DESIGN-1: Proper dashboard header */}
-      <header className="glass-nav sticky top-0 z-50">
-        <div className="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-primary-container rounded-xl flex items-center justify-center">
-              <BookOpen className="w-5 h-5 text-white" />
-            </div>
-            <div>
-              <h1 className="text-lg font-semibold text-on-surface font-headline">
-                My Portfolio
-              </h1>
-              <p className="text-sm text-on-surface-variant">
-                Welcome, {userData.user.firstName}
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center gap-3">
+    <div style={{ minHeight: "100vh", background: "#F0F4F8", display: "flex", flexDirection: "column" }}>
+
+      {/* ═══════ Header ═══════ */}
+      <header style={{ background: "#fff", borderBottom: "1px solid rgba(11,31,58,.08)", position: "sticky", top: 0, zIndex: 50 }}>
+        <div style={{ maxWidth: 900, margin: "0 auto", padding: "0 24px", height: 60, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          {/* Logo */}
+          <a href="/" style={{ display: "flex", alignItems: "center", gap: 8, textDecoration: "none" }}>
+            <span style={{ width: 32, height: 32, borderRadius: 8, background: "#0B1F3A", display: "grid", placeItems: "center", flexShrink: 0 }}>
+              <BookOpen size={16} style={{ color: "#FFC72E" }} />
+            </span>
+            <span style={{ fontFamily: "'Newsreader', serif", fontSize: 18, fontWeight: 500, color: "#0B1F3A", letterSpacing: "-0.01em" }}>
+              Scholar<span style={{ color: "#FFC72E" }}>.name</span>
+            </span>
+          </a>
+
+          {/* Right side */}
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
             {primaryDomain && (
               <a
                 href={`https://${primaryDomain.hostname}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hidden md:flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+                style={{ display: "none" }}
+                className="dash-domain-link"
               >
-                <Globe className="w-4 h-4" />
+                <Globe size={14} />
                 {primaryDomain.hostname}
-                <ExternalLink className="w-3 h-3" />
+                <ExternalLink size={11} />
               </a>
             )}
-            <Button
-              variant="ghost"
-              size="sm"
+            <style>{`
+              @media (min-width: 640px) {
+                .dash-domain-link { display: inline-flex !important; align-items: center; gap: 5px; font-size: 13px; color: #75777E; text-decoration: none; padding: 6px 10px; border-radius: 7px; border: 1px solid rgba(11,31,58,.1); }
+                .dash-domain-link:hover { border-color: rgba(11,31,58,.2); color: #44474D; }
+              }
+            `}</style>
+            <button
               onClick={() => logoutMutation.mutate()}
-              className="text-muted-foreground hover:text-foreground"
+              disabled={logoutMutation.isPending}
               data-testid="button-logout"
+              style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "7px 14px", background: "transparent", color: "#44474D", border: "1px solid rgba(11,31,58,.12)", borderRadius: 8, fontSize: 13.5, fontFamily: "inherit", cursor: "pointer" }}
             >
-              <LogOut className="w-4 h-4 mr-2" />
+              <LogOut size={14} />
               Sign Out
-            </Button>
+            </button>
           </div>
         </div>
       </header>
@@ -1010,18 +1081,19 @@ export default function ResearcherDashboard() {
         </div>
       )}
 
-      <main className="flex-1 max-w-5xl mx-auto w-full px-4 py-8 space-y-8">
-        {/* ═══════ Personalized Greeting ═══════ */}
+      <main style={{ flex: 1, maxWidth: 900, margin: "0 auto", width: "100%", padding: "32px 24px 80px", display: "flex", flexDirection: "column", gap: 20 }}>
+
+        {/* ═══════ Greeting ═══════ */}
         <div>
-          <h2 className="text-display-sm font-serif text-on-surface leading-tight">
+          <h2 style={{ fontFamily: "'Newsreader', serif", fontSize: "clamp(22px,3vw,30px)", fontWeight: 500, color: "#0B1F3A", margin: "0 0 4px", letterSpacing: "-0.01em" }}>
             Welcome back,{" "}
-            <span className="italic text-secondary-container">
-              {profile?.lastName
-                ? `Dr. ${profile.lastName}.`
-                : `${userData.user.firstName}.`}
-            </span>
+            <em>
+              {profile?.displayName
+                ? profile.displayName.split(" ").slice(-1)[0]
+                : userData.user.firstName}.
+            </em>
           </h2>
-          <p className="mt-2 text-sm text-on-surface-variant">
+          <p style={{ fontSize: 14, color: "#75777E", margin: 0 }}>
             {authorData?.cited_by_count
               ? `Your portfolio has ${authorData.cited_by_count.toLocaleString()} total citations across ${authorData.works_count?.toLocaleString() || "your"} publications.`
               : "Your research portfolio is ready to grow."}
@@ -1039,91 +1111,83 @@ export default function ResearcherDashboard() {
           const score = Math.round((steps.filter((s) => s.done).length / steps.length) * 100);
           const nextStep = steps.find((s) => !s.done);
           return (
-            <div className="bg-surface-container-lowest rounded-2xl p-5 shadow-sm">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-label-md uppercase tracking-widest text-on-surface-variant">Profile Completion</span>
-                <span className="text-lg font-bold font-serif text-on-surface">{score}%</span>
+            <div style={{ background: "#fff", borderRadius: 12, border: "1px solid rgba(11,31,58,.08)", padding: "16px 20px" }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
+                <span style={{ fontSize: 12, letterSpacing: ".12em", textTransform: "uppercase", color: "#75777E", fontWeight: 600 }}>Profile Completion</span>
+                <span style={{ fontFamily: "'Newsreader', serif", fontSize: 18, fontWeight: 600, color: "#0B1F3A" }}>{score}%</span>
               </div>
-              <div className="w-full h-2 rounded-full bg-surface-container-high overflow-hidden mb-3">
-                <div
-                  className="h-full rounded-full bg-warm transition-all duration-500"
-                  style={{ width: `${score}%` }}
-                />
+              <div style={{ height: 6, borderRadius: 99, background: "rgba(11,31,58,.08)", overflow: "hidden", marginBottom: 8 }}>
+                <div style={{ height: "100%", borderRadius: 99, background: "#FFC72E", width: `${score}%`, transition: "width .5s ease" }} />
               </div>
-              {score < 100 && nextStep && (
-                <p className="text-sm text-on-surface-variant">
-                  <a href={nextStep.href} className="text-primary-container font-medium hover:underline">
+              {score < 100 && nextStep ? (
+                <p style={{ fontSize: 13, color: "#75777E", margin: 0 }}>
+                  Next:{" "}
+                  <a href={nextStep.href} style={{ color: "#0B1F3A", fontWeight: 600, textDecoration: "none" }}>
                     {nextStep.label}
-                  </a>{" "}
-                  to reach {Math.min(score + 25, 100)}%
+                  </a>
+                  {" "}→ reach {Math.min(score + 25, 100)}%
                 </p>
-              )}
-              {score === 100 && (
-                <p className="text-sm text-secondary-container font-medium">Your profile is complete ✓</p>
-              )}
+              ) : score === 100 ? (
+                <p style={{ fontSize: 13, color: "#059669", fontWeight: 600, margin: 0 }}>Profile complete ✓</p>
+              ) : null}
             </div>
           );
         })()}
 
-        {/* OpenAlex Connection Card */}
+        {/* ═══════ OpenAlex Connect OR Stats ═══════ */}
         {!profile?.openalexId ? (
-          <Card className="border-orange-200 bg-orange-50">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-orange-800">
-                <Search className="w-5 h-5" />
+          <div style={cardStyle} id="openalex">
+            <div style={{ ...cardHeaderStyle, background: "rgba(251,191,36,.06)" }}>
+              <div style={{ ...cardTitleStyle, fontSize: 17 }}>
+                <Search size={17} style={{ color: "#B87A0A" }} />
                 Connect Your OpenAlex Profile
-              </CardTitle>
-              <CardDescription className="text-orange-700">
-                Search for your name to find and connect your OpenAlex author
-                profile. This will import your publications, citations, and
-                research topics automatically.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
+              </div>
+              <div style={cardDescStyle}>
+                Search for your name to find and connect your OpenAlex author profile. This will import your publications, citations, and research topics automatically.
+              </div>
+            </div>
+            <div style={cardBodyStyle}>
               {/* Name search */}
-              <div className="relative" ref={searchRef}>
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-orange-400 w-4 h-4" />
-                  <Input
+              <div style={{ position: "relative", marginBottom: 16 }} ref={searchRef}>
+                <div style={{ position: "relative" }}>
+                  <Search size={15} style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: "#75777E", pointerEvents: "none" }} />
+                  <input
                     type="text"
                     placeholder="Search by name..."
                     value={searchQuery}
-                    onChange={(e) => {
-                      setSearchQuery(e.target.value);
-                      setShowResults(true);
-                      setSelectedAuthor(null);
-                    }}
+                    onChange={(e) => { setSearchQuery(e.target.value); setShowResults(true); setSelectedAuthor(null); }}
                     onFocus={() => setShowResults(true)}
-                    className="pl-10"
+                    style={{ ...inputStyle, paddingLeft: 36 }}
                     data-testid="input-openalex-search"
                   />
                 </div>
 
                 {/* Dropdown results */}
                 {showResults && debouncedQuery.length >= 2 && (
-                  <div className="absolute z-50 w-full mt-1 bg-card border rounded-lg shadow-lg max-h-64 overflow-y-auto">
+                  <div style={{ position: "absolute", zIndex: 50, width: "100%", marginTop: 4, background: "#fff", border: "1px solid rgba(11,31,58,.12)", borderRadius: 10, boxShadow: "0 8px 24px -8px rgba(11,31,58,.15)", maxHeight: 260, overflowY: "auto" }}>
                     {isSearching ? (
-                      <div className="p-4 flex items-center justify-center gap-2 text-sm text-muted-foreground">
-                        <Loader2 className="w-4 h-4 animate-spin" />
+                      <div style={{ padding: "16px", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, fontSize: 13.5, color: "#75777E" }}>
+                        <Loader2 size={14} style={{ animation: "spin 1s linear infinite" }} />
                         Searching...
                       </div>
                     ) : searchResults?.results?.length ? (
                       searchResults.results.map((author) => (
                         <button
                           key={author.id}
-                          className="w-full text-left px-4 py-3 hover:bg-muted/50 transition-colors border-b last:border-b-0"
+                          style={{ width: "100%", textAlign: "left", padding: "12px 16px", background: "none", border: "none", borderBottom: "1px solid rgba(11,31,58,.06)", cursor: "pointer", fontFamily: "inherit" }}
+                          onMouseEnter={e => (e.currentTarget.style.background = "#F8F9FA")}
+                          onMouseLeave={e => (e.currentTarget.style.background = "none")}
                           onClick={() => handleSelectAuthor(author)}
                         >
-                          <p className="font-medium text-sm">{author.display_name}</p>
-                          <p className="text-xs text-muted-foreground truncate">{author.hint}</p>
-                          <p className="text-xs text-muted-foreground mt-0.5">
-                            {author.works_count.toLocaleString()} works &middot;{" "}
-                            {author.cited_by_count.toLocaleString()} citations
+                          <p style={{ fontSize: 14, fontWeight: 600, color: "#0B1F3A", margin: "0 0 2px" }}>{author.display_name}</p>
+                          <p style={{ fontSize: 12.5, color: "#75777E", margin: "0 0 2px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{author.hint}</p>
+                          <p style={{ fontSize: 12, color: "#75777E", margin: 0 }}>
+                            {author.works_count.toLocaleString()} works &middot; {author.cited_by_count.toLocaleString()} citations
                           </p>
                         </button>
                       ))
                     ) : (
-                      <div className="p-4 text-sm text-muted-foreground text-center">
+                      <div style={{ padding: "16px", fontSize: 13.5, color: "#75777E", textAlign: "center" }}>
                         No researchers found for &ldquo;{debouncedQuery}&rdquo;
                       </div>
                     )}
@@ -1133,1460 +1197,892 @@ export default function ResearcherDashboard() {
 
               {/* Selected author card */}
               {selectedAuthor && (
-                <div className="border rounded-lg p-4 bg-white">
-                  <div className="flex items-start gap-3">
-                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                      <BookOpen className="w-5 h-5 text-primary" />
+                <div style={{ border: "1px solid rgba(11,31,58,.1)", borderRadius: 10, padding: "16px", background: "#F8F9FA", marginBottom: 12 }}>
+                  <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
+                    <div style={{ width: 40, height: 40, borderRadius: "50%", background: "rgba(11,31,58,.08)", display: "grid", placeItems: "center", flexShrink: 0 }}>
+                      <BookOpen size={18} style={{ color: "#0B1F3A" }} />
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-semibold">{selectedAuthor.display_name}</p>
-                      <p className="text-sm text-muted-foreground truncate">{selectedAuthor.hint}</p>
-                      <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <p style={{ fontSize: 15, fontWeight: 600, color: "#0B1F3A", margin: "0 0 2px" }}>{selectedAuthor.display_name}</p>
+                      <p style={{ fontSize: 13, color: "#75777E", margin: "0 0 6px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{selectedAuthor.hint}</p>
+                      <div style={{ display: "flex", gap: 12, fontSize: 12.5, color: "#75777E" }}>
                         <span>{selectedAuthor.works_count.toLocaleString()} works</span>
                         <span>{selectedAuthor.cited_by_count.toLocaleString()} citations</span>
                       </div>
                     </div>
-                    <Button
+                    <button
                       onClick={() => connectOpenAlexMutation.mutate(selectedAuthor.id)}
                       disabled={connectOpenAlexMutation.isPending}
-                      className="bg-orange-500 hover:bg-orange-600 flex-shrink-0"
+                      style={btnPrimary(connectOpenAlexMutation.isPending)}
                       data-testid="button-connect-openalex"
                     >
                       {connectOpenAlexMutation.isPending ? (
-                        <>
-                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                          Connecting...
-                        </>
-                      ) : (
-                        "Connect"
-                      )}
-                    </Button>
+                        <><Loader2 size={13} style={{ animation: "spin 1s linear infinite" }} /> Connecting…</>
+                      ) : "Connect"}
+                    </button>
                   </div>
                 </div>
               )}
 
               {!selectedAuthor && (
-                <p className="text-sm text-orange-600">
-                  Type your name above to search OpenAlex&apos;s database of
-                  researchers and their publications.
+                <p style={{ fontSize: 13.5, color: "#75777E" }}>
+                  Type your name above to search OpenAlex&apos;s database of researchers and their publications.
                 </p>
               )}
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         ) : (
           <>
             {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <Card>
-                <CardContent className="pt-6">
-                  <div className="flex items-center justify-between">
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 12 }} className="dash-stats-grid">
+              <style>{`@media (max-width: 560px) { .dash-stats-grid { grid-template-columns: 1fr !important; } }`}</style>
+              {[
+                { label: "Publications", value: authorData?.works_count?.toLocaleString() || "—", icon: BookOpen, iconBg: "rgba(37,99,235,.1)", iconColor: "#2563EB" },
+                { label: "Citations", value: authorData?.cited_by_count?.toLocaleString() || "—", icon: BarChart3, iconBg: "rgba(5,150,105,.1)", iconColor: "#059669" },
+                { label: "Status", value: tenant?.status === "active" ? "Live" : "Pending", icon: Award, iconBg: "rgba(139,92,246,.1)", iconColor: "#7c3aed" },
+              ].map(({ label, value, icon: Icon, iconBg, iconColor }) => (
+                <div key={label} style={{ background: "#fff", borderRadius: 14, border: "1px solid rgba(11,31,58,.08)", padding: "20px 20px" }}>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                     <div>
-                      <p className="text-sm text-muted-foreground">
-                        Publications
-                      </p>
-                      <p className="text-3xl font-bold text-foreground">
-                        {authorData?.works_count?.toLocaleString() || "\u2014"}
-                      </p>
+                      <p style={{ fontSize: 13, color: "#75777E", margin: "0 0 4px" }}>{label}</p>
+                      {label === "Status" ? (
+                        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                          {tenant?.status === "active"
+                            ? <><CheckCircle size={18} style={{ color: "#059669" }} /><span style={{ fontSize: 18, fontWeight: 600, color: "#059669", fontFamily: "'Newsreader', serif" }}>Live</span></>
+                            : <><AlertCircle size={18} style={{ color: "#d97706" }} /><span style={{ fontSize: 18, fontWeight: 600, color: "#d97706", fontFamily: "'Newsreader', serif" }}>Pending</span></>
+                          }
+                        </div>
+                      ) : (
+                        <p style={{ fontFamily: "'Newsreader', serif", fontSize: 28, fontWeight: 600, color: "#0B1F3A", margin: 0 }}>{value}</p>
+                      )}
                     </div>
-                    <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
-                      <BookOpen className="w-6 h-6 text-blue-600" />
+                    <div style={{ width: 44, height: 44, borderRadius: 11, background: iconBg, display: "grid", placeItems: "center" }}>
+                      <Icon size={22} style={{ color: iconColor }} />
                     </div>
                   </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardContent className="pt-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm text-muted-foreground">
-                        Citations
-                      </p>
-                      <p className="text-3xl font-bold text-foreground">
-                        {authorData?.cited_by_count?.toLocaleString() ||
-                          "\u2014"}
-                      </p>
-                    </div>
-                    <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
-                      <BarChart3 className="w-6 h-6 text-green-600" />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardContent className="pt-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm text-muted-foreground">
-                        Status
-                      </p>
-                      <div className="flex items-center gap-2 mt-1">
-                        {tenant?.status === "active" ? (
-                          <>
-                            <CheckCircle className="w-5 h-5 text-green-500" />
-                            <span className="text-lg font-medium text-green-600">
-                              Live
-                            </span>
-                          </>
-                        ) : (
-                          <>
-                            <AlertCircle className="w-5 h-5 text-yellow-500" />
-                            <span className="text-lg font-medium text-yellow-600">
-                              Pending
-                            </span>
-                          </>
-                        )}
-                      </div>
-                    </div>
-                    <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center">
-                      <Award className="w-6 h-6 text-purple-600" />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+                </div>
+              ))}
             </div>
 
             {/* OpenAlex Badge Bar */}
-            <div className="flex items-center justify-between flex-wrap gap-2">
-              <div className="flex items-center gap-2 flex-wrap">
-                <Badge className="bg-slate-100 text-slate-700 hover:bg-slate-100">
-                  OpenAlex: {profile.openalexId}
-                </Badge>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 10 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                <span style={{ ...chip(), fontFamily: "monospace", fontSize: 11.5 }}>
+                  {profile.openalexId}
+                </span>
                 {profile.lastSyncedAt && (
-                  <span className="text-sm text-muted-foreground">
-                    Last synced:{" "}
-                    {new Date(
-                      profile.lastSyncedAt,
-                    ).toLocaleDateString()}
+                  <span style={{ fontSize: 12.5, color: "#75777E" }}>
+                    Last synced: {new Date(profile.lastSyncedAt).toLocaleDateString()}
                   </span>
                 )}
               </div>
-              <Button
-                variant="outline"
-                size="sm"
+              <button
                 onClick={() => syncMutation.mutate()}
                 disabled={syncMutation.isPending}
+                style={btnGhost(syncMutation.isPending)}
                 data-testid="button-sync"
               >
-                <RefreshCw
-                  className={`w-4 h-4 mr-2 ${syncMutation.isPending ? "animate-spin" : ""}`}
-                />
+                <RefreshCw size={13} style={{ animation: syncMutation.isPending ? "spin 1s linear infinite" : "none" }} />
                 Refresh Data
-              </Button>
+              </button>
             </div>
           </>
         )}
 
         {/* ═══════ Tabs ═══════ */}
-        <Tabs
-          value={activeTab}
-          onValueChange={setActiveTab}
-          className="w-full"
-        >
-          {/* UX-1: Merged Social into Profile = 5 tabs, scrollable on mobile */}
-          <div className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
-            <TabsList className="inline-flex w-auto min-w-full sm:grid sm:grid-cols-5 sm:w-[650px] h-auto p-1">
-              <TabsTrigger
-                value="profile"
-                data-testid="tab-profile"
-                className="flex-shrink-0 text-xs sm:text-sm"
-              >
-                <User className="w-4 h-4 sm:mr-2" />
-                <span className="hidden sm:inline">Profile</span>
-              </TabsTrigger>
-              <TabsTrigger
-                value="publications"
-                data-testid="tab-publications"
-                className="flex-shrink-0 text-xs sm:text-sm"
-              >
-                <BookOpen className="w-4 h-4 sm:mr-2" />
-                <span className="hidden sm:inline">Publications</span>
-              </TabsTrigger>
-              <TabsTrigger
-                value="sections"
-                data-testid="tab-sections"
-                className="flex-shrink-0 text-xs sm:text-sm"
-              >
-                <FileText className="w-4 h-4 sm:mr-2" />
-                <span className="hidden sm:inline">Sections</span>
-              </TabsTrigger>
-              <TabsTrigger
-                value="sync"
-                data-testid="tab-sync"
-                className="flex-shrink-0 text-xs sm:text-sm"
-              >
-                <History className="w-4 h-4 sm:mr-2" />
-                <span className="hidden sm:inline">Sync</span>
-              </TabsTrigger>
-              <TabsTrigger
-                value="settings"
-                data-testid="tab-settings"
-                className="flex-shrink-0 text-xs sm:text-sm"
-              >
-                <Settings className="w-4 h-4 sm:mr-2" />
-                <span className="hidden sm:inline">Settings</span>
-              </TabsTrigger>
-            </TabsList>
+        <div>
+          {/* Tab bar */}
+          <div style={{ borderBottom: "1px solid rgba(11,31,58,.1)", marginBottom: 0, overflowX: "auto" }}>
+            <div style={{ display: "flex", gap: 0, minWidth: "max-content" }}>
+              {tabs.map(({ value, icon: Icon, label }) => (
+                <button
+                  key={value}
+                  onClick={() => setActiveTab(value)}
+                  data-testid={`tab-${value}`}
+                  style={{
+                    display: "flex", alignItems: "center", gap: 6, padding: "12px 20px",
+                    background: "none", border: "none",
+                    borderBottom: activeTab === value ? "2px solid #FFC72E" : "2px solid transparent",
+                    color: activeTab === value ? "#0B1F3A" : "#75777E",
+                    fontSize: 14, fontWeight: activeTab === value ? 600 : 400,
+                    fontFamily: "inherit", cursor: "pointer", flexShrink: 0, transition: "color .15s",
+                  }}
+                >
+                  <Icon size={15} />
+                  {label}
+                </button>
+              ))}
+            </div>
           </div>
 
-          {/* ═══════ Profile Tab (now includes social links) ═══════ */}
-          <TabsContent value="profile" className="mt-6 space-y-6">
-            {/* Photo Upload */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Profile Photo</CardTitle>
-                <CardDescription>
-                  Upload a professional photo to personalize your portfolio
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-center gap-6">
-                  <div className="relative">
-                    {profile?.profileImageUrl ? (
-                      <img
-                        src={profile.profileImageUrl}
-                        alt="Your profile photo"
-                        className="w-24 h-24 rounded-full object-cover border-4 border-slate-100"
-                      />
-                    ) : (
-                      <div className="w-24 h-24 rounded-full bg-primary flex items-center justify-center">
-                        <User className="w-10 h-10 text-white" />
-                      </div>
-                    )}
-                    <button
-                      onClick={() => fileInputRef.current?.click()}
-                      disabled={uploadPhotoMutation.isPending}
-                      className="absolute bottom-0 right-0 w-8 h-8 bg-white rounded-full shadow-lg flex items-center justify-center border border-slate-200 hover:bg-slate-50 transition-colors"
-                      aria-label="Change profile photo"
-                      data-testid="button-change-photo"
-                    >
-                      <Camera className="w-4 h-4 text-muted-foreground" />
-                    </button>
+          {/* ═══════ Profile Tab ═══════ */}
+          {activeTab === "profile" && (
+            <div style={{ marginTop: 20, display: "flex", flexDirection: "column", gap: 16 }}>
+              {/* Photo Upload */}
+              <div style={cardStyle}>
+                <div style={cardHeaderStyle}>
+                  <div style={cardTitleStyle}><Camera size={17} style={{ color: "#B87A0A" }} /> Profile Photo</div>
+                  <div style={cardDescStyle}>Upload a professional photo to personalize your portfolio</div>
+                </div>
+                <div style={cardBodyStyle}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
+                    <div style={{ position: "relative", flexShrink: 0 }}>
+                      {profile?.profileImageUrl ? (
+                        <img src={profile.profileImageUrl} alt="Your profile photo" style={{ width: 88, height: 88, borderRadius: "50%", objectFit: "cover", border: "3px solid rgba(11,31,58,.08)" }} />
+                      ) : (
+                        <div style={{ width: 88, height: 88, borderRadius: "50%", background: "#0B1F3A", display: "grid", placeItems: "center" }}>
+                          <User size={36} style={{ color: "#FFC72E" }} />
+                        </div>
+                      )}
+                      <button
+                        onClick={() => fileInputRef.current?.click()}
+                        disabled={uploadPhotoMutation.isPending}
+                        style={{ position: "absolute", bottom: 0, right: 0, width: 28, height: 28, background: "#fff", borderRadius: "50%", border: "1px solid rgba(11,31,58,.14)", display: "grid", placeItems: "center", cursor: "pointer", boxShadow: "0 2px 6px rgba(0,0,0,.1)" }}
+                        aria-label="Change profile photo"
+                        data-testid="button-change-photo"
+                      >
+                        <Camera size={13} style={{ color: "#44474D" }} />
+                      </button>
+                    </div>
+                    <div>
+                      <input ref={fileInputRef} type="file" accept="image/*" onChange={handlePhotoUpload} className="hidden" aria-label="Upload profile photo" data-testid="input-photo-file" style={{ display: "none" }} />
+                      <button
+                        onClick={() => fileInputRef.current?.click()}
+                        disabled={uploadPhotoMutation.isPending}
+                        style={btnGhost(uploadPhotoMutation.isPending)}
+                        data-testid="button-upload-photo"
+                      >
+                        <Upload size={13} />
+                        {uploadPhotoMutation.isPending ? "Uploading…" : "Upload Photo"}
+                      </button>
+                      <p style={{ fontSize: 12.5, color: "#75777E", marginTop: 8 }}>JPG, PNG or GIF. Max 5MB.</p>
+                    </div>
                   </div>
-                  <div className="flex-1">
+                </div>
+              </div>
+
+              {/* Profile Information */}
+              <div style={cardStyle}>
+                <div style={cardHeaderStyle}>
+                  <div style={cardTitleStyle}><User size={17} style={{ color: "#B87A0A" }} /> Profile Information</div>
+                  <div style={cardDescStyle}>Customize how your name and biography appear on your portfolio</div>
+                </div>
+                <div style={{ ...cardBodyStyle, display: "flex", flexDirection: "column", gap: 14 }}>
+                  <div>
+                    <label htmlFor="display-name" style={labelStyle}>Display Name</label>
                     <input
-                      ref={fileInputRef}
-                      type="file"
-                      accept="image/*"
-                      onChange={handlePhotoUpload}
-                      className="hidden"
-                      aria-label="Upload profile photo"
-                      data-testid="input-photo-file"
+                      id="display-name"
+                      value={profileForm.displayName}
+                      onChange={(e) => updateField("displayName", e.target.value)}
+                      placeholder={authorData?.display_name || "Your Name"}
+                      style={inputStyle}
+                      data-testid="input-display-name"
+                      onFocus={e => (e.target.style.borderColor = "#FFC72E")}
+                      onBlur={e => (e.target.style.borderColor = "rgba(11,31,58,.14)")}
                     />
-                    <Button
-                      variant="outline"
-                      onClick={() => fileInputRef.current?.click()}
-                      disabled={uploadPhotoMutation.isPending}
-                      data-testid="button-upload-photo"
-                    >
-                      <Upload className="w-4 h-4 mr-2" />
-                      {uploadPhotoMutation.isPending
-                        ? "Uploading..."
-                        : "Upload Photo"}
-                    </Button>
-                    <p className="text-sm text-muted-foreground mt-2">
-                      JPG, PNG or GIF. Max 5MB.
-                    </p>
+                    <p style={{ fontSize: 12.5, color: "#75777E", marginTop: 5 }}>Leave blank to use your name from OpenAlex</p>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Profile Information */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Profile Information</CardTitle>
-                <CardDescription>
-                  Customize how your name and biography appear on your
-                  portfolio
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="display-name">Display Name</Label>
-                  <Input
-                    id="display-name"
-                    value={profileForm.displayName}
-                    onChange={(e) =>
-                      updateField("displayName", e.target.value)
-                    }
-                    placeholder={
-                      authorData?.display_name || "Your Name"
-                    }
-                    data-testid="input-display-name"
-                  />
-                  <p className="text-sm text-muted-foreground">
-                    Leave blank to use your name from OpenAlex
-                  </p>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="professional-title">
-                    Professional Title
-                  </Label>
-                  <Input
-                    id="professional-title"
-                    value={profileForm.title}
-                    onChange={(e) =>
-                      updateField("title", e.target.value)
-                    }
-                    placeholder="e.g., Associate Professor of Computer Science"
-                    data-testid="input-title"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="biography">Biography</Label>
-                  <Textarea
-                    id="biography"
-                    value={profileForm.bio}
-                    onChange={(e) =>
-                      updateField("bio", e.target.value)
-                    }
-                    placeholder="Tell visitors about your research interests, background, and achievements..."
-                    className="min-h-[150px]"
-                    data-testid="input-bio"
-                  />
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* UX-1: Social Links (merged from separate tab) */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Globe className="w-5 h-5" />
-                  Social &amp; Academic Links
-                </CardTitle>
-                <CardDescription>
-                  Add links to your other profiles and websites
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid sm:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="website-url">
-                      Personal Website
-                    </Label>
-                    <Input
-                      id="website-url"
-                      value={profileForm.websiteUrl}
-                      onChange={(e) =>
-                        updateField("websiteUrl", e.target.value)
-                      }
-                      placeholder="https://yourwebsite.com"
-                      type="url"
-                      data-testid="input-website"
+                  <div>
+                    <label htmlFor="professional-title" style={labelStyle}>Professional Title</label>
+                    <input
+                      id="professional-title"
+                      value={profileForm.title}
+                      onChange={(e) => updateField("title", e.target.value)}
+                      placeholder="e.g., Associate Professor of Computer Science"
+                      style={inputStyle}
+                      data-testid="input-title"
+                      onFocus={e => (e.target.style.borderColor = "#FFC72E")}
+                      onBlur={e => (e.target.style.borderColor = "rgba(11,31,58,.14)")}
                     />
                   </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="twitter-url">Twitter / X</Label>
-                    <Input
-                      id="twitter-url"
-                      value={profileForm.twitterUrl}
-                      onChange={(e) =>
-                        updateField("twitterUrl", e.target.value)
-                      }
-                      placeholder="https://twitter.com/yourusername"
-                      type="url"
-                      data-testid="input-twitter"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="linkedin-url">LinkedIn</Label>
-                    <Input
-                      id="linkedin-url"
-                      value={profileForm.linkedinUrl}
-                      onChange={(e) =>
-                        updateField("linkedinUrl", e.target.value)
-                      }
-                      placeholder="https://linkedin.com/in/yourusername"
-                      type="url"
-                      data-testid="input-linkedin"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="google-scholar-url">
-                      Google Scholar
-                    </Label>
-                    <Input
-                      id="google-scholar-url"
-                      value={profileForm.googleScholarUrl}
-                      onChange={(e) =>
-                        updateField(
-                          "googleScholarUrl",
-                          e.target.value,
-                        )
-                      }
-                      placeholder="https://scholar.google.com/citations?user=..."
-                      type="url"
-                      data-testid="input-google-scholar"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="orcid-url">ORCID</Label>
-                    <Input
-                      id="orcid-url"
-                      value={profileForm.orcidUrl}
-                      onChange={(e) =>
-                        updateField("orcidUrl", e.target.value)
-                      }
-                      placeholder="https://orcid.org/0000-0000-0000-0000"
-                      type="url"
-                      data-testid="input-orcid"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="researchgate-url">
-                      ResearchGate
-                    </Label>
-                    <Input
-                      id="researchgate-url"
-                      value={profileForm.researchGateUrl}
-                      onChange={(e) =>
-                        updateField(
-                          "researchGateUrl",
-                          e.target.value,
-                        )
-                      }
-                      placeholder="https://www.researchgate.net/profile/Your-Name"
-                      type="url"
-                      data-testid="input-researchgate"
+                  <div>
+                    <label htmlFor="biography" style={labelStyle}>Biography</label>
+                    <textarea
+                      id="biography"
+                      value={profileForm.bio}
+                      onChange={(e) => updateField("bio", e.target.value)}
+                      placeholder="Tell visitors about your research interests, background, and achievements..."
+                      style={{ ...inputStyle, minHeight: 140, resize: "vertical" } as React.CSSProperties}
+                      data-testid="input-bio"
+                      onFocus={e => (e.target.style.borderColor = "#FFC72E")}
+                      onBlur={e => (e.target.style.borderColor = "rgba(11,31,58,.14)")}
                     />
                   </div>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
 
-            {/* Save button for entire profile+social */}
-            <Button
-              onClick={handleSaveProfile}
-              disabled={isSaving}
-              className="bg-primary hover:bg-primary/90"
-              data-testid="button-save-profile"
-            >
-              <Save className="w-4 h-4 mr-2" />
-              {isSaving ? "Saving..." : "Save All Changes"}
-            </Button>
-          </TabsContent>
+              {/* Social Links */}
+              <div style={cardStyle}>
+                <div style={cardHeaderStyle}>
+                  <div style={cardTitleStyle}><Globe size={17} style={{ color: "#B87A0A" }} /> Social &amp; Academic Links</div>
+                  <div style={cardDescStyle}>Add links to your other profiles and websites</div>
+                </div>
+                <div style={{ ...cardBodyStyle }}>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }} className="social-links-grid">
+                    <style>{`@media (max-width: 560px) { .social-links-grid { grid-template-columns: 1fr !important; } }`}</style>
+                    {[
+                      { id: "website-url", field: "websiteUrl" as const, label: "Personal Website", placeholder: "https://yourwebsite.com", testId: "input-website" },
+                      { id: "twitter-url", field: "twitterUrl" as const, label: "Twitter / X", placeholder: "https://twitter.com/yourusername", testId: "input-twitter" },
+                      { id: "linkedin-url", field: "linkedinUrl" as const, label: "LinkedIn", placeholder: "https://linkedin.com/in/yourusername", testId: "input-linkedin" },
+                      { id: "google-scholar-url", field: "googleScholarUrl" as const, label: "Google Scholar", placeholder: "https://scholar.google.com/citations?user=...", testId: "input-google-scholar" },
+                      { id: "orcid-url", field: "orcidUrl" as const, label: "ORCID", placeholder: "https://orcid.org/0000-0000-0000-0000", testId: "input-orcid" },
+                      { id: "researchgate-url", field: "researchGateUrl" as const, label: "ResearchGate", placeholder: "https://www.researchgate.net/profile/Your-Name", testId: "input-researchgate" },
+                    ].map(({ id, field, label, placeholder, testId }) => (
+                      <div key={id}>
+                        <label htmlFor={id} style={labelStyle}>{label}</label>
+                        <input
+                          id={id}
+                          value={profileForm[field]}
+                          onChange={(e) => updateField(field, e.target.value)}
+                          placeholder={placeholder}
+                          type="url"
+                          style={inputStyle}
+                          data-testid={testId}
+                          onFocus={e => (e.target.style.borderColor = "#FFC72E")}
+                          onBlur={e => (e.target.style.borderColor = "rgba(11,31,58,.14)")}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Save button */}
+              <div>
+                <button
+                  onClick={handleSaveProfile}
+                  disabled={isSaving}
+                  style={btnPrimary(isSaving)}
+                  data-testid="button-save-profile"
+                >
+                  <Save size={14} />
+                  {isSaving ? "Saving…" : "Save All Changes"}
+                </button>
+              </div>
+            </div>
+          )}
 
           {/* ═══════ Publications Tab ═══════ */}
-          <TabsContent value="publications" className="mt-6 space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Star className="w-5 h-5 text-yellow-500" />
-                  Featured Publications
-                </CardTitle>
-                <CardDescription>
-                  Mark publications as featured to highlight them on your
-                  portfolio. Featured publications appear prominently at
-                  the top.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                {!tenantData?.tenant?.profile?.openalexId ? (
-                  <div className="text-center py-8 text-muted-foreground">
-                    <BookOpen className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                    <p>
-                      Connect your OpenAlex ID to manage publications
-                    </p>
-                  </div>
-                ) : !publicationsData?.publications?.length ? (
-                  <div className="text-center py-8 text-muted-foreground">
-                    <BookOpen className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                    <p>
-                      No publications found. Try syncing your profile.
-                    </p>
-                    <Button
-                      onClick={() => syncMutation.mutate()}
-                      variant="outline"
-                      className="mt-4"
-                      disabled={syncMutation.isPending}
-                    >
-                      <RefreshCw
-                        className={`w-4 h-4 mr-2 ${syncMutation.isPending ? "animate-spin" : ""}`}
-                      />
-                      Sync Now
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between text-sm text-muted-foreground pb-2 border-b">
-                      <span>
-                        {
-                          publicationsData.publications.filter(
-                            (p) => p.isFeatured,
-                          ).length
-                        }{" "}
-                        featured
-                      </span>
-                      <span>
-                        {publicationsData.publications.length} total
-                        publications
-                      </span>
+          {activeTab === "publications" && (
+            <div style={{ marginTop: 20 }}>
+              <div style={cardStyle}>
+                <div style={cardHeaderStyle}>
+                  <div style={cardTitleStyle}><Star size={17} style={{ color: "#B87A0A" }} /> Featured Publications</div>
+                  <div style={cardDescStyle}>Mark publications as featured to highlight them on your portfolio. Featured publications appear prominently at the top.</div>
+                </div>
+                <div style={cardBodyStyle}>
+                  {!tenantData?.tenant?.profile?.openalexId ? (
+                    <div style={{ textAlign: "center", padding: "40px 0", color: "#75777E" }}>
+                      <BookOpen size={40} style={{ opacity: 0.3, marginBottom: 12 }} />
+                      <p style={{ fontSize: 14 }}>Connect your OpenAlex ID to manage publications</p>
                     </div>
-                    <div className="max-h-[500px] overflow-y-auto space-y-2">
-                      {publicationsData.publications.map((pub) => (
-                        <div
-                          key={pub.id}
-                          className={`flex items-start gap-3 p-3 rounded-lg border transition-colors ${
-                            pub.isFeatured
-                              ? "bg-yellow-50 border-yellow-200"
-                              : "bg-white border-slate-200 hover:border-slate-300"
-                          }`}
-                        >
-                          {/* A11Y-2: aria-pressed + aria-label on star toggle */}
-                          <button
-                            onClick={() =>
-                              toggleFeaturedMutation.mutate({
-                                publicationId: pub.id,
-                                isFeatured: !pub.isFeatured,
-                              })
-                            }
-                            className={`mt-1 transition-colors ${pub.isFeatured ? "text-yellow-500" : "text-slate-300 hover:text-yellow-400"}`}
-                            disabled={
-                              toggleFeaturedMutation.isPending
-                            }
-                            aria-pressed={pub.isFeatured}
-                            aria-label={
-                              pub.isFeatured
-                                ? `Unfeature "${pub.title}"`
-                                : `Feature "${pub.title}"`
-                            }
+                  ) : !publicationsData?.publications?.length ? (
+                    <div style={{ textAlign: "center", padding: "40px 0", color: "#75777E" }}>
+                      <BookOpen size={40} style={{ opacity: 0.3, marginBottom: 12 }} />
+                      <p style={{ fontSize: 14, marginBottom: 14 }}>No publications found. Try syncing your profile.</p>
+                      <button onClick={() => syncMutation.mutate()} disabled={syncMutation.isPending} style={btnGhost(syncMutation.isPending)}>
+                        <RefreshCw size={13} style={{ animation: syncMutation.isPending ? "spin 1s linear infinite" : "none" }} />
+                        Sync Now
+                      </button>
+                    </div>
+                  ) : (
+                    <div>
+                      <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: "#75777E", paddingBottom: 12, borderBottom: "1px solid rgba(11,31,58,.07)", marginBottom: 12 }}>
+                        <span>{publicationsData.publications.filter(p => p.isFeatured).length} featured</span>
+                        <span>{publicationsData.publications.length} total</span>
+                      </div>
+                      <div style={{ maxHeight: 520, overflowY: "auto", display: "flex", flexDirection: "column", gap: 8 }}>
+                        {publicationsData.publications.map((pub) => (
+                          <div
+                            key={pub.id}
+                            style={{
+                              display: "flex", alignItems: "flex-start", gap: 10, padding: "12px 14px", borderRadius: 10,
+                              border: pub.isFeatured ? "1px solid rgba(255,199,46,.4)" : "1px solid rgba(11,31,58,.08)",
+                              background: pub.isFeatured ? "rgba(255,199,46,.05)" : "#F8F9FA",
+                            }}
                           >
-                            <Star
-                              className={`w-5 h-5 ${pub.isFeatured ? "fill-current" : ""}`}
-                            />
-                          </button>
-                          <div className="flex-1 min-w-0">
-                            <h4 className="font-medium text-sm text-foreground line-clamp-2">
-                              {pub.title}
-                            </h4>
-                            <p className="text-xs text-muted-foreground mt-1">
-                              {pub.journal && (
-                                <span>{pub.journal}</span>
-                              )}
-                              {pub.publicationYear && (
-                                <span>
-                                  {" "}
-                                  &middot; {pub.publicationYear}
-                                </span>
-                              )}
-                              {pub.citationCount > 0 && (
-                                <span>
-                                  {" "}
-                                  &middot; {pub.citationCount}{" "}
-                                  citations
-                                </span>
-                              )}
-                            </p>
-                            <div className="flex items-center gap-2 mt-2 flex-wrap">
-                              {pub.isOpenAccess && (
-                                <Badge
-                                  variant="outline"
-                                  className="text-green-600 border-green-300 text-xs"
-                                >
-                                  Open Access
-                                </Badge>
-                              )}
-                              {pub.doi && (
-                                <a
-                                  href={`https://doi.org/${pub.doi}`}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="text-xs text-blue-600 hover:underline flex items-center gap-1"
-                                >
-                                  <ExternalLink className="w-3 h-3" />
-                                  DOI
-                                </a>
-                              )}
-                              {/* FUNC-1: Fixed PDF upload/delete endpoints */}
-                              {pub.pdfUrl ? (
-                                <div className="flex items-center gap-1">
-                                  <a
-                                    href={pub.pdfUrl}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="text-xs text-green-600 hover:underline flex items-center gap-1"
-                                  >
-                                    <FileText className="w-3 h-3" />
-                                    PDF
+                            <button
+                              onClick={() => toggleFeaturedMutation.mutate({ publicationId: pub.id, isFeatured: !pub.isFeatured })}
+                              disabled={toggleFeaturedMutation.isPending}
+                              style={{ background: "none", border: "none", cursor: "pointer", padding: "2px 0", color: pub.isFeatured ? "#FFC72E" : "rgba(11,31,58,.2)", transition: "color .15s", flexShrink: 0, marginTop: 2 }}
+                              aria-pressed={pub.isFeatured}
+                              aria-label={pub.isFeatured ? `Unfeature "${pub.title}"` : `Feature "${pub.title}"`}
+                            >
+                              <Star size={18} style={{ fill: pub.isFeatured ? "#FFC72E" : "none" }} />
+                            </button>
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                              <h4 style={{ fontSize: 13.5, fontWeight: 600, color: "#0B1F3A", margin: "0 0 3px", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
+                                {pub.title}
+                              </h4>
+                              <p style={{ fontSize: 12.5, color: "#75777E", margin: "0 0 8px" }}>
+                                {pub.journal && <span>{pub.journal}</span>}
+                                {pub.publicationYear && <span> &middot; {pub.publicationYear}</span>}
+                                {pub.citationCount > 0 && <span> &middot; {pub.citationCount} citations</span>}
+                              </p>
+                              <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+                                {pub.isOpenAccess && (
+                                  <span style={{ ...chip("green"), fontSize: 11 }}>Open Access</span>
+                                )}
+                                {pub.doi && (
+                                  <a href={`https://doi.org/${pub.doi}`} target="_blank" rel="noopener noreferrer" style={{ fontSize: 12, color: "#2563EB", textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 3 }}>
+                                    <ExternalLink size={11} /> DOI
                                   </a>
-                                  <button
-                                    onClick={() =>
-                                      deletePubPdfMutation.mutate(
-                                        pub.id,
-                                      )
-                                    }
-                                    disabled={
-                                      deletePubPdfMutation.isPending
-                                    }
-                                    className="text-xs text-red-500 hover:text-red-700"
-                                    aria-label={`Remove PDF for "${pub.title}"`}
+                                )}
+                                {/* FUNC-1: Fixed PDF upload/delete endpoints */}
+                                {pub.pdfUrl ? (
+                                  <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                                    <a href={pub.pdfUrl} target="_blank" rel="noopener noreferrer" style={{ fontSize: 12, color: "#059669", textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 3 }}>
+                                      <FileText size={11} /> PDF
+                                    </a>
+                                    <button
+                                      onClick={() => deletePubPdfMutation.mutate(pub.id)}
+                                      disabled={deletePubPdfMutation.isPending}
+                                      style={{ background: "none", border: "none", cursor: "pointer", color: "#EF4444", display: "flex", padding: "0 2px" }}
+                                      aria-label={`Remove PDF for "${pub.title}"`}
+                                    >
+                                      <Trash2 size={11} />
+                                    </button>
+                                  </div>
+                                ) : (
+                                  <label style={{ fontSize: 12, color: "#75777E", cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 3 }}
+                                    onMouseEnter={e => (e.currentTarget.style.color = "#2563EB")}
+                                    onMouseLeave={e => (e.currentTarget.style.color = "#75777E")}
                                   >
-                                    <Trash2 className="w-3 h-3" />
-                                  </button>
-                                </div>
-                              ) : (
-                                <label className="text-xs text-muted-foreground hover:text-blue-600 cursor-pointer flex items-center gap-1">
-                                  <Upload className="w-3 h-3" />
-                                  Upload PDF
-                                  <input
-                                    type="file"
-                                    accept=".pdf"
-                                    className="hidden"
-                                    aria-label={`Upload PDF for "${pub.title}"`}
-                                    onChange={(e) => {
-                                      const file =
-                                        e.target.files?.[0];
-                                      if (!file) return;
-                                      // FUNC-2: Aligned to 10MB server limit
-                                      if (
-                                        file.size >
-                                        10 * 1024 * 1024
-                                      ) {
-                                        toast({
-                                          title: "File too large",
-                                          description:
-                                            "PDF must be under 10MB",
-                                          variant: "destructive",
-                                        });
-                                        return;
-                                      }
-                                      uploadPubPdfMutation.mutate({
-                                        publicationId: pub.id,
-                                        file,
-                                      });
-                                      e.target.value = "";
-                                    }}
-                                  />
-                                </label>
-                              )}
+                                    <Upload size={11} /> Upload PDF
+                                    <input
+                                      type="file" accept=".pdf"
+                                      style={{ display: "none" }}
+                                      aria-label={`Upload PDF for "${pub.title}"`}
+                                      onChange={(e) => {
+                                        const file = e.target.files?.[0];
+                                        if (!file) return;
+                                        // FUNC-2: Aligned to 10MB server limit
+                                        if (file.size > 10 * 1024 * 1024) {
+                                          toast({ title: "File too large", description: "PDF must be under 10MB", variant: "destructive" });
+                                          return;
+                                        }
+                                        uploadPubPdfMutation.mutate({ publicationId: pub.id, file });
+                                        e.target.value = "";
+                                      }}
+                                    />
+                                  </label>
+                                )}
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      ))}
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* ═══════ Sections Tab ═══════ */}
-          <TabsContent value="sections" className="mt-6 space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <FileText className="w-5 h-5 text-blue-500" />
-                  Content Sections
-                </CardTitle>
-                <CardDescription>
-                  Add custom sections to your portfolio such as Research
-                  Interests, Awards, Teaching, or any other content.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                {/* Add / Edit Section Form */}
-                <div className="space-y-4 pb-6 border-b">
-                  <h4 className="font-medium text-sm text-foreground">
-                    {editingSectionId
-                      ? "Edit Section"
-                      : "Add New Section"}
-                  </h4>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="section-title">
-                        Section Title
-                      </Label>
-                      <Input
-                        id="section-title"
-                        value={sectionTitle}
-                        onChange={(e) =>
-                          setSectionTitle(e.target.value)
-                        }
-                        placeholder="e.g., Research Interests, Awards, Teaching"
+          {activeTab === "sections" && (
+            <div style={{ marginTop: 20 }}>
+              <div style={cardStyle}>
+                <div style={cardHeaderStyle}>
+                  <div style={cardTitleStyle}><FileText size={17} style={{ color: "#B87A0A" }} /> Content Sections</div>
+                  <div style={cardDescStyle}>Add custom sections to your portfolio such as Research Interests, Awards, Teaching, or any other content.</div>
+                </div>
+                <div style={cardBodyStyle}>
+                  {/* Add / Edit Form */}
+                  <div style={{ paddingBottom: 20, borderBottom: "1px solid rgba(11,31,58,.07)", marginBottom: 20 }}>
+                    <p style={{ fontSize: 13.5, fontWeight: 600, color: "#0B1F3A", margin: "0 0 14px" }}>
+                      {editingSectionId ? "Edit Section" : "Add New Section"}
+                    </p>
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 12 }} className="section-form-grid">
+                      <style>{`@media (max-width: 560px) { .section-form-grid { grid-template-columns: 1fr !important; } }`}</style>
+                      <div>
+                        <label htmlFor="section-title" style={labelStyle}>Section Title</label>
+                        <input
+                          id="section-title"
+                          value={sectionTitle}
+                          onChange={(e) => setSectionTitle(e.target.value)}
+                          placeholder="e.g., Research Interests, Awards, Teaching"
+                          style={inputStyle}
+                          onFocus={e => (e.target.style.borderColor = "#FFC72E")}
+                          onBlur={e => (e.target.style.borderColor = "rgba(11,31,58,.14)")}
+                        />
+                      </div>
+                      <div>
+                        <label htmlFor="section-type" style={labelStyle}>Section Type</label>
+                        <select
+                          id="section-type"
+                          value={sectionType}
+                          onChange={(e) => setSectionType(e.target.value)}
+                          style={{ ...inputStyle, cursor: "pointer" }}
+                          onFocus={e => ((e.target as HTMLSelectElement).style.borderColor = "#FFC72E")}
+                          onBlur={e => ((e.target as HTMLSelectElement).style.borderColor = "rgba(11,31,58,.14)")}
+                        >
+                          <option value="custom">Custom</option>
+                          <option value="research_interests">Research Interests</option>
+                          <option value="awards">Awards &amp; Honors</option>
+                          <option value="teaching">Teaching</option>
+                          <option value="grants">Grants &amp; Funding</option>
+                        </select>
+                      </div>
+                    </div>
+                    <div style={{ marginBottom: 14 }}>
+                      <label htmlFor="section-content" style={labelStyle}>Content</label>
+                      <textarea
+                        id="section-content"
+                        value={sectionContent}
+                        onChange={(e) => setSectionContent(e.target.value)}
+                        placeholder="Enter your content here. You can use markdown for formatting..."
+                        style={{ ...inputStyle, minHeight: 100, resize: "vertical" } as React.CSSProperties}
+                        onFocus={e => (e.target.style.borderColor = "#FFC72E")}
+                        onBlur={e => (e.target.style.borderColor = "rgba(11,31,58,.14)")}
                       />
                     </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="section-type">
-                        Section Type
-                      </Label>
-                      <select
-                        id="section-type"
-                        value={sectionType}
-                        onChange={(e) =>
-                          setSectionType(e.target.value)
-                        }
-                        className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm"
-                      >
-                        <option value="custom">Custom</option>
-                        <option value="research_interests">
-                          Research Interests
-                        </option>
-                        <option value="awards">
-                          Awards &amp; Honors
-                        </option>
-                        <option value="teaching">Teaching</option>
-                        <option value="grants">
-                          Grants &amp; Funding
-                        </option>
-                      </select>
+                    <div style={{ display: "flex", gap: 8 }}>
+                      {editingSectionId ? (
+                        <>
+                          <button
+                            onClick={() => updateSectionMutation.mutate({ id: editingSectionId, title: sectionTitle, content: sectionContent })}
+                            disabled={!sectionTitle || !sectionContent || updateSectionMutation.isPending}
+                            style={btnPrimary(!sectionTitle || !sectionContent || updateSectionMutation.isPending)}
+                          >
+                            <Save size={13} />
+                            Save Changes
+                          </button>
+                          <button
+                            onClick={() => { setEditingSectionId(null); setSectionTitle(""); setSectionContent(""); setSectionType("custom"); }}
+                            style={btnGhost()}
+                          >
+                            Cancel
+                          </button>
+                        </>
+                      ) : (
+                        <button
+                          onClick={() => createSectionMutation.mutate({ title: sectionTitle, content: sectionContent, sectionType })}
+                          disabled={!sectionTitle || !sectionContent || createSectionMutation.isPending}
+                          style={btnPrimary(!sectionTitle || !sectionContent || createSectionMutation.isPending)}
+                        >
+                          <Plus size={13} />
+                          Add Section
+                        </button>
+                      )}
                     </div>
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="section-content">Content</Label>
-                    <Textarea
-                      id="section-content"
-                      value={sectionContent}
-                      onChange={(e) =>
-                        setSectionContent(e.target.value)
-                      }
-                      placeholder="Enter your content here. You can use markdown for formatting..."
-                      className="min-h-[120px]"
-                    />
-                  </div>
-                  <div className="flex gap-2">
-                    {editingSectionId ? (
-                      <>
-                        <Button
-                          onClick={() => {
-                            updateSectionMutation.mutate({
-                              id: editingSectionId,
-                              title: sectionTitle,
-                              content: sectionContent,
-                            });
-                          }}
-                          disabled={
-                            !sectionTitle ||
-                            !sectionContent ||
-                            updateSectionMutation.isPending
-                          }
-                          className="bg-primary hover:bg-primary/90"
-                        >
-                          <Save className="w-4 h-4 mr-2" />
-                          Save Changes
-                        </Button>
-                        <Button
-                          variant="outline"
-                          onClick={() => {
-                            setEditingSectionId(null);
-                            setSectionTitle("");
-                            setSectionContent("");
-                            setSectionType("custom");
-                          }}
-                        >
-                          Cancel
-                        </Button>
-                      </>
+
+                  {/* Existing Sections */}
+                  <div>
+                    <p style={{ fontSize: 13.5, fontWeight: 600, color: "#0B1F3A", margin: "0 0 12px" }}>Your Sections</p>
+                    {!sectionsData?.sections?.length ? (
+                      <div style={{ textAlign: "center", padding: "36px 0", color: "#75777E" }}>
+                        <FileText size={36} style={{ opacity: 0.3, marginBottom: 10 }} />
+                        <p style={{ fontSize: 14 }}>No custom sections yet. Add one above!</p>
+                      </div>
                     ) : (
-                      <Button
-                        onClick={() => {
-                          createSectionMutation.mutate({
-                            title: sectionTitle,
-                            content: sectionContent,
-                            sectionType,
-                          });
-                        }}
-                        disabled={
-                          !sectionTitle ||
-                          !sectionContent ||
-                          createSectionMutation.isPending
-                        }
-                        className="bg-primary hover:bg-primary/90"
-                      >
-                        <Plus className="w-4 h-4 mr-2" />
-                        Add Section
-                      </Button>
+                      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                        {sectionsData.sections.map((section) => (
+                          <div key={section.id} style={{ display: "flex", alignItems: "flex-start", gap: 10, padding: "14px 14px", borderRadius: 10, border: "1px solid rgba(11,31,58,.08)", background: "#F8F9FA" }}>
+                            <GripVertical size={15} style={{ color: "#75777E", marginTop: 2, flexShrink: 0 }} />
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                              <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 4 }}>
+                                <h5 style={{ fontSize: 14, fontWeight: 600, color: "#0B1F3A", margin: 0 }}>{section.title}</h5>
+                                <span style={chip()}>{section.sectionType}</span>
+                                {!section.isVisible && <span style={chip("amber")}>Hidden</span>}
+                              </div>
+                              <p style={{ fontSize: 13, color: "#75777E", margin: 0, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
+                                {section.content}
+                              </p>
+                            </div>
+                            <div style={{ display: "flex", alignItems: "center", gap: 2, flexShrink: 0 }}>
+                              <button
+                                style={btnIcon()}
+                                aria-label={`Edit "${section.title}"`}
+                                onClick={() => { setEditingSectionId(section.id); setSectionTitle(section.title); setSectionContent(section.content); setSectionType(section.sectionType); }}
+                              >
+                                <Edit2 size={14} />
+                              </button>
+                              <button
+                                style={btnIcon()}
+                                aria-label={section.isVisible ? `Hide "${section.title}"` : `Show "${section.title}"`}
+                                onClick={() => updateSectionMutation.mutate({ id: section.id, isVisible: !section.isVisible })}
+                              >
+                                {section.isVisible ? <Eye size={14} /> : <EyeOff size={14} />}
+                              </button>
+                              <button
+                                style={btnIcon(true)}
+                                aria-label={`Delete "${section.title}"`}
+                                onClick={() => { if (confirm("Are you sure you want to delete this section?")) deleteSectionMutation.mutate(section.id); }}
+                              >
+                                <Trash2 size={14} />
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
                     )}
                   </div>
                 </div>
-
-                {/* Existing Sections */}
-                <div className="pt-6 space-y-3">
-                  <h4 className="font-medium text-sm text-foreground">
-                    Your Sections
-                  </h4>
-                  {!sectionsData?.sections?.length ? (
-                    <div className="text-center py-8 text-muted-foreground">
-                      <FileText className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                      <p>No custom sections yet. Add one above!</p>
-                    </div>
-                  ) : (
-                    <div className="space-y-2">
-                      {sectionsData.sections.map((section) => (
-                        <div
-                          key={section.id}
-                          className="flex items-start gap-3 p-4 rounded-lg border bg-white border-slate-200"
-                        >
-                          <GripVertical className="w-4 h-4 mt-1 text-muted-foreground" />
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 flex-wrap">
-                              <h5 className="font-medium text-foreground">
-                                {section.title}
-                              </h5>
-                              <Badge
-                                variant="outline"
-                                className="text-xs"
-                              >
-                                {section.sectionType}
-                              </Badge>
-                              {!section.isVisible && (
-                                <Badge
-                                  variant="outline"
-                                  className="text-xs text-orange-600 border-orange-300"
-                                >
-                                  Hidden
-                                </Badge>
-                              )}
-                            </div>
-                            <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
-                              {section.content}
-                            </p>
-                          </div>
-                          <div className="flex items-center gap-1">
-                            {/* A11Y-3: aria-labels on action buttons */}
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              aria-label={`Edit "${section.title}"`}
-                              onClick={() => {
-                                setEditingSectionId(section.id);
-                                setSectionTitle(section.title);
-                                setSectionContent(section.content);
-                                setSectionType(
-                                  section.sectionType,
-                                );
-                              }}
-                            >
-                              <Edit2 className="w-4 h-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              aria-label={
-                                section.isVisible
-                                  ? `Hide "${section.title}"`
-                                  : `Show "${section.title}"`
-                              }
-                              onClick={() => {
-                                updateSectionMutation.mutate({
-                                  id: section.id,
-                                  isVisible: !section.isVisible,
-                                });
-                              }}
-                            >
-                              {section.isVisible ? (
-                                <Eye className="w-4 h-4" />
-                              ) : (
-                                <EyeOff className="w-4 h-4" />
-                              )}
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                              aria-label={`Delete "${section.title}"`}
-                              onClick={() => {
-                                if (
-                                  confirm(
-                                    "Are you sure you want to delete this section?",
-                                  )
-                                ) {
-                                  deleteSectionMutation.mutate(
-                                    section.id,
-                                  );
-                                }
-                              }}
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
+              </div>
+            </div>
+          )}
 
           {/* ═══════ Sync Tab ═══════ */}
-          <TabsContent value="sync" className="mt-6 space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <History className="w-5 h-5" />
-                  OpenAlex Sync Management
-                </CardTitle>
-                <CardDescription>
-                  View sync history and manually trigger data
-                  synchronization from OpenAlex
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                {/* FUNC-3: Fixed — uses syncMutation instead of duplicate raw fetch */}
-                <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg border">
-                  <div>
-                    <h4 className="font-medium text-foreground">
-                      Sync Publications
-                    </h4>
-                    <p className="text-sm text-muted-foreground">
-                      Fetch latest publications and citations from
-                      OpenAlex
-                    </p>
+          {activeTab === "sync" && (
+            <div style={{ marginTop: 20 }}>
+              <div style={cardStyle}>
+                <div style={cardHeaderStyle}>
+                  <div style={cardTitleStyle}><History size={17} style={{ color: "#B87A0A" }} /> OpenAlex Sync Management</div>
+                  <div style={cardDescStyle}>View sync history and manually trigger data synchronization from OpenAlex</div>
+                </div>
+                <div style={{ ...cardBodyStyle, display: "flex", flexDirection: "column", gap: 20 }}>
+                  {/* FUNC-3: Fixed — uses syncMutation instead of duplicate raw fetch */}
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 18px", background: "#F8F9FA", borderRadius: 10, border: "1px solid rgba(11,31,58,.08)" }}>
+                    <div>
+                      <p style={{ fontSize: 14, fontWeight: 600, color: "#0B1F3A", margin: "0 0 3px" }}>Sync Publications</p>
+                      <p style={{ fontSize: 13, color: "#75777E", margin: 0 }}>Fetch latest publications and citations from OpenAlex</p>
+                    </div>
+                    <button onClick={() => syncMutation.mutate()} disabled={syncMutation.isPending} style={btnPrimary(syncMutation.isPending)}>
+                      <RefreshCw size={13} style={{ animation: syncMutation.isPending ? "spin 1s linear infinite" : "none" }} />
+                      {syncMutation.isPending ? "Syncing…" : "Sync Now"}
+                    </button>
                   </div>
-                  <Button
-                    onClick={() => syncMutation.mutate()}
-                    disabled={syncMutation.isPending}
-                  >
-                    <RefreshCw
-                      className={`w-4 h-4 mr-2 ${syncMutation.isPending ? "animate-spin" : ""}`}
-                    />
-                    {syncMutation.isPending
-                      ? "Syncing..."
-                      : "Sync Now"}
-                  </Button>
-                </div>
 
-                {/* Sync History */}
-                <div>
-                  <h4 className="font-medium text-foreground mb-4">
-                    Sync History
-                  </h4>
-                  {!syncLogsData?.logs ||
-                  syncLogsData.logs.length === 0 ? (
-                    <div className="text-center py-8 text-muted-foreground bg-slate-50 rounded-lg border border-dashed">
-                      <History className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                      <p>No sync history yet</p>
-                      <p className="text-sm">
-                        Click &ldquo;Sync Now&rdquo; to fetch your
-                        latest publications
-                      </p>
-                    </div>
-                  ) : (
-                    <div className="space-y-3">
-                      {syncLogsData.logs.map((log) => (
-                        <div
-                          key={log.id}
-                          className={`p-4 rounded-lg border ${
-                            log.status === "completed"
-                              ? "bg-green-50 border-green-200"
-                              : log.status === "failed"
-                                ? "bg-red-50 border-red-200"
-                                : log.status === "in_progress"
-                                  ? "bg-blue-50 border-blue-200"
-                                  : "bg-slate-50 border-slate-200"
-                          }`}
-                        >
-                          <div className="flex items-start justify-between">
-                            <div className="flex items-center gap-2">
-                              {log.status === "completed" && (
-                                <CheckCircle2 className="w-5 h-5 text-green-600" />
-                              )}
-                              {log.status === "failed" && (
-                                <XCircle className="w-5 h-5 text-red-600" />
-                              )}
-                              {log.status === "in_progress" && (
-                                <Clock className="w-5 h-5 text-blue-600 animate-pulse" />
-                              )}
-                              {log.status === "pending" && (
-                                <Clock className="w-5 h-5 text-muted-foreground" />
-                              )}
-                              <div>
-                                <p className="font-medium text-foreground capitalize">
-                                  {log.syncType.replace("_", " ")}{" "}
-                                  Sync
-                                </p>
-                                <p className="text-sm text-muted-foreground">
-                                  Started:{" "}
-                                  {new Date(
-                                    log.startedAt,
-                                  ).toLocaleString()}
-                                </p>
+                  {/* Sync History */}
+                  <div>
+                    <p style={{ fontSize: 13.5, fontWeight: 600, color: "#0B1F3A", margin: "0 0 12px" }}>Sync History</p>
+                    {!syncLogsData?.logs || syncLogsData.logs.length === 0 ? (
+                      <div style={{ textAlign: "center", padding: "36px 0", color: "#75777E", borderRadius: 10, border: "1px dashed rgba(11,31,58,.12)", background: "#F8F9FA" }}>
+                        <History size={32} style={{ opacity: 0.3, marginBottom: 8 }} />
+                        <p style={{ fontSize: 14, margin: "0 0 4px" }}>No sync history yet</p>
+                        <p style={{ fontSize: 13, margin: 0 }}>Click &ldquo;Sync Now&rdquo; to fetch your latest publications</p>
+                      </div>
+                    ) : (
+                      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                        {syncLogsData.logs.map((log) => {
+                          const statusColor = log.status === "completed" ? "green" : log.status === "failed" ? "red" : log.status === "in_progress" ? "blue" : undefined;
+                          return (
+                            <div key={log.id} style={{ padding: "14px 16px", borderRadius: 10, border: "1px solid rgba(11,31,58,.08)", background: "#F8F9FA" }}>
+                              <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
+                                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                                  {log.status === "completed" && <CheckCircle2 size={17} style={{ color: "#059669", flexShrink: 0 }} />}
+                                  {log.status === "failed" && <XCircle size={17} style={{ color: "#EF4444", flexShrink: 0 }} />}
+                                  {log.status === "in_progress" && <Clock size={17} style={{ color: "#2563EB", flexShrink: 0, animation: "pulse 2s infinite" }} />}
+                                  {log.status === "pending" && <Clock size={17} style={{ color: "#75777E", flexShrink: 0 }} />}
+                                  <div>
+                                    <p style={{ fontSize: 14, fontWeight: 600, color: "#0B1F3A", margin: "0 0 2px", textTransform: "capitalize" }}>
+                                      {log.syncType.replace("_", " ")} Sync
+                                    </p>
+                                    <p style={{ fontSize: 12.5, color: "#75777E", margin: 0 }}>
+                                      Started: {new Date(log.startedAt).toLocaleString()}
+                                    </p>
+                                  </div>
+                                </div>
+                                <span style={chip(statusColor)}>{log.status}</span>
                               </div>
+                              {log.itemsProcessed !== null && (
+                                <p style={{ fontSize: 12.5, color: "#75777E", marginTop: 8 }}>
+                                  Processed: {log.itemsProcessed}{log.itemsTotal ? ` / ${log.itemsTotal}` : ""} items
+                                </p>
+                              )}
+                              {log.errorMessage && (
+                                <p style={{ fontSize: 12.5, color: "#b91c1c", marginTop: 6 }}>Error: {log.errorMessage}</p>
+                              )}
+                              {log.completedAt && (
+                                <p style={{ fontSize: 12, color: "#75777E", marginTop: 4 }}>
+                                  Completed: {new Date(log.completedAt).toLocaleString()}
+                                </p>
+                              )}
                             </div>
-                            <Badge
-                              variant="outline"
-                              className={`${
-                                log.status === "completed"
-                                  ? "text-green-700 border-green-300"
-                                  : log.status === "failed"
-                                    ? "text-red-700 border-red-300"
-                                    : log.status === "in_progress"
-                                      ? "text-blue-700 border-blue-300"
-                                      : "text-slate-700 border-slate-300"
-                              }`}
-                            >
-                              {log.status}
-                            </Badge>
-                          </div>
-                          {log.itemsProcessed !== null && (
-                            <p className="text-sm text-muted-foreground mt-2">
-                              Processed: {log.itemsProcessed}
-                              {log.itemsTotal
-                                ? ` / ${log.itemsTotal}`
-                                : ""}{" "}
-                              items
-                            </p>
-                          )}
-                          {log.errorMessage && (
-                            <p className="text-sm text-red-600 mt-2">
-                              Error: {log.errorMessage}
-                            </p>
-                          )}
-                          {log.completedAt && (
-                            <p className="text-xs text-muted-foreground mt-2">
-                              Completed:{" "}
-                              {new Date(
-                                log.completedAt,
-                              ).toLocaleString()}
-                            </p>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  )}
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
+              </div>
+            </div>
+          )}
 
           {/* ═══════ Settings Tab ═══════ */}
-          <TabsContent value="settings" className="mt-6 space-y-6">
-            {/* Profile Visibility */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  {isPublic ? (
-                    <Eye className="w-5 h-5 text-green-600" />
-                  ) : (
-                    <EyeOff className="w-5 h-5 text-muted-foreground" />
-                  )}
-                  Profile Visibility
-                </CardTitle>
-                <CardDescription>
-                  Control who can see your research portfolio
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg border">
-                  <div className="space-y-1">
-                    <Label
-                      htmlFor="profile-visibility"
-                      className="text-base font-medium"
-                    >
-                      Public Profile
-                    </Label>
-                    <p className="text-sm text-muted-foreground">
-                      {isPublic
-                        ? "Your portfolio is visible to everyone on the internet"
-                        : "Your portfolio is hidden from public view"}
-                    </p>
+          {activeTab === "settings" && (
+            <div style={{ marginTop: 20, display: "flex", flexDirection: "column", gap: 16 }}>
+              {/* Profile Visibility */}
+              <div style={cardStyle}>
+                <div style={cardHeaderStyle}>
+                  <div style={cardTitleStyle}>
+                    {isPublic ? <Eye size={17} style={{ color: "#059669" }} /> : <EyeOff size={17} style={{ color: "#75777E" }} />}
+                    Profile Visibility
                   </div>
-                  <Switch
-                    id="profile-visibility"
-                    checked={isPublic}
-                    onCheckedChange={handlePrivacyToggle}
-                    disabled={updateProfileMutation.isPending}
-                  />
+                  <div style={cardDescStyle}>Control who can see your research portfolio</div>
                 </div>
-              </CardContent>
-            </Card>
-
-            {/* CV Upload */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <FileText className="w-5 h-5" />
-                  CV / Resume
-                </CardTitle>
-                <CardDescription>
-                  Upload your CV to allow visitors to download it from
-                  your portfolio
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {profile?.cvUrl ? (
-                  <div className="flex items-center gap-3 p-4 bg-green-50 rounded-lg border border-green-200">
-                    <FileText className="w-8 h-8 text-green-600" />
-                    <div className="flex-1">
-                      <p className="font-medium text-green-800">
-                        CV Uploaded
-                      </p>
-                      <p className="text-sm text-green-600">
-                        Your CV is available for download on your
-                        portfolio
+                <div style={cardBodyStyle}>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px", background: "#F8F9FA", borderRadius: 10, border: "1px solid rgba(11,31,58,.08)" }}>
+                    <div>
+                      <label htmlFor="profile-visibility" style={{ fontSize: 14, fontWeight: 600, color: "#0B1F3A", cursor: "pointer" }}>
+                        Public Profile
+                      </label>
+                      <p style={{ fontSize: 13, color: "#75777E", margin: "3px 0 0" }}>
+                        {isPublic ? "Your portfolio is visible to everyone on the internet" : "Your portfolio is hidden from public view"}
                       </p>
                     </div>
-                    <div className="flex gap-2">
-                      <a
-                        href={profile.cvUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 px-3 py-1.5 bg-green-600 text-white rounded-md text-sm font-medium hover:bg-green-700"
-                      >
-                        <ExternalLink className="w-3 h-3" />
-                        View
-                      </a>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => deleteCvMutation.mutate()}
-                        disabled={deleteCvMutation.isPending}
-                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                        aria-label="Remove CV"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="border-2 border-dashed border-slate-200 rounded-lg p-6 text-center">
-                    <FileText className="w-10 h-10 text-muted-foreground mx-auto mb-3" />
-                    <p className="text-muted-foreground mb-3">
-                      No CV uploaded yet
-                    </p>
-                    <input
-                      ref={cvInputRef}
-                      type="file"
-                      accept=".pdf,.doc,.docx"
-                      onChange={handleCvUpload}
-                      className="hidden"
-                      aria-label="Upload CV file"
-                    />
-                    <Button
-                      variant="outline"
-                      onClick={() => cvInputRef.current?.click()}
-                      disabled={uploadCvMutation.isPending}
+                    {/* Custom toggle pill */}
+                    <button
+                      id="profile-visibility"
+                      role="switch"
+                      aria-checked={isPublic}
+                      onClick={() => handlePrivacyToggle(!isPublic)}
+                      disabled={updateProfileMutation.isPending}
+                      style={{ width: 44, height: 24, borderRadius: 12, background: isPublic ? "#FFC72E" : "rgba(11,31,58,.2)", border: "none", cursor: updateProfileMutation.isPending ? "not-allowed" : "pointer", position: "relative", transition: "background .2s", flexShrink: 0 }}
                     >
-                      <Upload className="w-4 h-4 mr-2" />
-                      {uploadCvMutation.isPending
-                        ? "Uploading..."
-                        : "Upload CV"}
-                    </Button>
-                    <p className="text-xs text-muted-foreground mt-2">
-                      PDF, DOC, or DOCX. Max 10MB.
-                    </p>
+                      <div style={{ position: "absolute", top: 2, left: isPublic ? 22 : 2, width: 20, height: 20, borderRadius: "50%", background: "#fff", boxShadow: "0 1px 4px rgba(0,0,0,.2)", transition: "left .2s" }} />
+                    </button>
                   </div>
-                )}
-              </CardContent>
-            </Card>
+                </div>
+              </div>
 
-            {/* Theme Selection */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Palette className="w-5 h-5" />
-                  Portfolio Theme
-                </CardTitle>
-                <CardDescription>
-                  Choose a color theme for your research portfolio
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                  {themesData
-                    ?.filter((t) => t.isActive)
-                    .map((theme) => {
-                      const colors = theme.config as {
-                        colors: {
-                          primary: string;
-                          accent: string;
-                        };
-                      };
-                      const isSelected =
-                        selectedThemeId === theme.id;
+              {/* CV Upload */}
+              <div style={cardStyle}>
+                <div style={cardHeaderStyle}>
+                  <div style={cardTitleStyle}><FileText size={17} style={{ color: "#B87A0A" }} /> CV / Resume</div>
+                  <div style={cardDescStyle}>Upload your CV to allow visitors to download it from your portfolio</div>
+                </div>
+                <div style={cardBodyStyle}>
+                  {profile?.cvUrl ? (
+                    <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "14px 16px", background: "rgba(5,150,105,.06)", borderRadius: 10, border: "1px solid rgba(5,150,105,.2)" }}>
+                      <FileText size={28} style={{ color: "#059669", flexShrink: 0 }} />
+                      <div style={{ flex: 1 }}>
+                        <p style={{ fontSize: 14, fontWeight: 600, color: "#065f46", margin: "0 0 2px" }}>CV Uploaded</p>
+                        <p style={{ fontSize: 13, color: "#059669", margin: 0 }}>Your CV is available for download on your portfolio</p>
+                      </div>
+                      <div style={{ display: "flex", gap: 8 }}>
+                        <a href={profile.cvUrl} target="_blank" rel="noopener noreferrer" style={{ ...btnPrimary(), fontSize: 13, padding: "7px 14px", textDecoration: "none" }}>
+                          <ExternalLink size={12} /> View
+                        </a>
+                        <button onClick={() => deleteCvMutation.mutate()} disabled={deleteCvMutation.isPending} style={{ ...btnGhost(deleteCvMutation.isPending), color: "#EF4444", border: "1px solid rgba(239,68,68,.3)" }} aria-label="Remove CV">
+                          <Trash2 size={13} />
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div style={{ border: "2px dashed rgba(11,31,58,.12)", borderRadius: 10, padding: "32px 24px", textAlign: "center" }}>
+                      <FileText size={36} style={{ color: "#75777E", opacity: 0.4, marginBottom: 10 }} />
+                      <p style={{ fontSize: 14, color: "#75777E", margin: "0 0 14px" }}>No CV uploaded yet</p>
+                      <input ref={cvInputRef} type="file" accept=".pdf,.doc,.docx" onChange={handleCvUpload} style={{ display: "none" }} aria-label="Upload CV file" />
+                      <button onClick={() => cvInputRef.current?.click()} disabled={uploadCvMutation.isPending} style={btnGhost(uploadCvMutation.isPending)}>
+                        <Upload size={13} />
+                        {uploadCvMutation.isPending ? "Uploading…" : "Upload CV"}
+                      </button>
+                      <p style={{ fontSize: 12.5, color: "#75777E", marginTop: 8 }}>PDF, DOC, or DOCX. Max 10MB.</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Theme Selection */}
+              <div style={cardStyle}>
+                <div style={cardHeaderStyle}>
+                  <div style={cardTitleStyle}><Palette size={17} style={{ color: "#B87A0A" }} /> Portfolio Theme</div>
+                  <div style={cardDescStyle}>Choose a color theme for your research portfolio</div>
+                </div>
+                <div style={cardBodyStyle}>
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 10 }} className="theme-grid">
+                    <style>{`@media (max-width: 480px) { .theme-grid { grid-template-columns: 1fr 1fr !important; } }`}</style>
+                    {themesData?.filter((t) => t.isActive).map((theme) => {
+                      const colors = theme.config as { colors: { primary: string; accent: string } };
+                      const isSelected = selectedThemeId === theme.id;
                       return (
                         <button
                           key={theme.id}
-                          onClick={() =>
-                            handleThemeChange(theme.id)
-                          }
+                          onClick={() => handleThemeChange(theme.id)}
                           aria-pressed={isSelected}
                           aria-label={`Select ${theme.name} theme`}
-                          className={`relative p-4 rounded-lg border-2 transition-all ${
-                            isSelected
-                              ? "border-primary bg-primary/5 ring-2 ring-primary/20"
-                              : "border-slate-200 hover:border-slate-300"
-                          }`}
+                          style={{ position: "relative", padding: "14px 12px", borderRadius: 11, border: isSelected ? "2px solid #FFC72E" : "1px solid rgba(11,31,58,.1)", background: isSelected ? "rgba(255,199,46,.06)" : "#F8F9FA", cursor: "pointer", textAlign: "left", transition: "border .15s, background .15s", fontFamily: "inherit" }}
                         >
-                          <div className="flex items-center gap-2 mb-2">
-                            <div
-                              className="w-6 h-6 rounded-full border border-slate-200"
-                              style={{
-                                backgroundColor:
-                                  colors.colors.primary,
-                              }}
-                            />
-                            <div
-                              className="w-4 h-4 rounded-full border border-slate-200"
-                              style={{
-                                backgroundColor:
-                                  colors.colors.accent,
-                              }}
-                            />
+                          <div style={{ display: "flex", gap: 5, marginBottom: 8 }}>
+                            <div style={{ width: 20, height: 20, borderRadius: "50%", background: colors.colors.primary, border: "1px solid rgba(0,0,0,.08)" }} />
+                            <div style={{ width: 14, height: 14, borderRadius: "50%", background: colors.colors.accent, border: "1px solid rgba(0,0,0,.08)", marginTop: 3 }} />
                           </div>
-                          <p className="text-sm font-medium text-left">
-                            {theme.name}
-                          </p>
-                          {isSelected && (
-                            <CheckCircle className="absolute top-2 right-2 w-5 h-5 text-primary" />
-                          )}
+                          <p style={{ fontSize: 13, fontWeight: 600, color: "#0B1F3A", margin: 0 }}>{theme.name}</p>
+                          {isSelected && <CheckCircle size={15} style={{ position: "absolute", top: 10, right: 10, color: "#B87A0A" }} />}
                         </button>
                       );
                     })}
-                </div>
-                {(!themesData || themesData.length === 0) && (
-                  <p className="text-sm text-muted-foreground text-center py-4">
-                    No themes available. Contact your administrator.
-                  </p>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Account Settings */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Account Settings</CardTitle>
-                <CardDescription>
-                  Manage your account and portfolio settings
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="space-y-2">
-                  <Label>Preview Portfolio</Label>
-                  {profile?.openalexId ? (
-                    <div className="flex items-center gap-2 p-3 bg-blue-50 rounded-lg border border-blue-100">
-                      <ExternalLink className="w-4 h-4 text-blue-500" />
-                      <span className="text-sm text-blue-700">
-                        See how visitors will view your portfolio
-                      </span>
-                      <a
-                        href={`/researcher/${profile.openalexId}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="ml-auto bg-blue-600 text-white px-3 py-1.5 rounded-md text-sm font-medium hover:bg-blue-700 flex items-center gap-1"
-                        data-testid="link-preview-portfolio"
-                      >
-                        Preview
-                        <ExternalLink className="w-3 h-3" />
-                      </a>
-                    </div>
-                  ) : (
-                    <p className="text-sm text-muted-foreground">
-                      Connect your OpenAlex ID to preview your
-                      portfolio
-                    </p>
+                  </div>
+                  {(!themesData || themesData.length === 0) && (
+                    <p style={{ fontSize: 13.5, color: "#75777E", textAlign: "center", padding: "16px 0" }}>No themes available. Contact your administrator.</p>
                   )}
                 </div>
+              </div>
 
-                <Separator />
-
-                <div className="space-y-2">
-                  <Label>QR Code</Label>
-                  {profile?.openalexId ? (
-                    <div className="flex items-center gap-2 p-3 bg-purple-50 rounded-lg border border-purple-100">
-                      <QrCode className="w-4 h-4 text-purple-500" />
-                      <span className="text-sm text-purple-700">
-                        Download a QR code linking to your portfolio
-                      </span>
-                      <a
-                        href={`/api/researcher/${profile.openalexId}/qr-code${primaryDomain ? `?url=https://${primaryDomain.hostname}` : ""}`}
-                        download={`${profile.displayName || "portfolio"}-qr-code.png`}
-                        className="ml-auto bg-purple-600 text-white px-3 py-1.5 rounded-md text-sm font-medium hover:bg-purple-700 flex items-center gap-1"
-                        data-testid="link-download-qr"
-                      >
-                        <Download className="w-3 h-3" />
-                        Download QR
-                      </a>
-                    </div>
-                  ) : (
-                    <p className="text-sm text-muted-foreground">
-                      Connect your OpenAlex ID to generate a QR code
-                    </p>
-                  )}
+              {/* Account Settings */}
+              <div style={cardStyle}>
+                <div style={cardHeaderStyle}>
+                  <div style={cardTitleStyle}><Settings size={17} style={{ color: "#B87A0A" }} /> Account Settings</div>
+                  <div style={cardDescStyle}>Manage your account and portfolio settings</div>
                 </div>
+                <div style={{ ...cardBodyStyle, display: "flex", flexDirection: "column", gap: 0 }}>
+                  {/* Preview Portfolio */}
+                  <div style={{ paddingBottom: 18 }}>
+                    <p style={{ ...labelStyle, marginBottom: 8 }}>Preview Portfolio</p>
+                    {profile?.openalexId ? (
+                      <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 14px", background: "rgba(37,99,235,.05)", borderRadius: 9, border: "1px solid rgba(37,99,235,.15)" }}>
+                        <ExternalLink size={15} style={{ color: "#2563EB", flexShrink: 0 }} />
+                        <span style={{ fontSize: 13.5, color: "#1d4ed8", flex: 1 }}>See how visitors will view your portfolio</span>
+                        <a href={`/researcher/${profile.openalexId}`} target="_blank" rel="noopener noreferrer"
+                          style={{ fontSize: 13, color: "#fff", background: "#2563EB", padding: "6px 14px", borderRadius: 7, textDecoration: "none", fontWeight: 600, display: "inline-flex", alignItems: "center", gap: 4 }}
+                          data-testid="link-preview-portfolio"
+                        >
+                          Preview <ExternalLink size={11} />
+                        </a>
+                      </div>
+                    ) : (
+                      <p style={{ fontSize: 13.5, color: "#75777E" }}>Connect your OpenAlex ID to preview your portfolio</p>
+                    )}
+                  </div>
+                  <hr style={{ border: "none", borderTop: "1px solid rgba(11,31,58,.07)", margin: "0 0 18px" }} />
 
-                <Separator />
+                  {/* QR Code */}
+                  <div style={{ paddingBottom: 18 }}>
+                    <p style={{ ...labelStyle, marginBottom: 8 }}>QR Code</p>
+                    {profile?.openalexId ? (
+                      <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 14px", background: "rgba(139,92,246,.05)", borderRadius: 9, border: "1px solid rgba(139,92,246,.15)" }}>
+                        <QrCode size={15} style={{ color: "#7c3aed", flexShrink: 0 }} />
+                        <span style={{ fontSize: 13.5, color: "#6d28d9", flex: 1 }}>Download a QR code linking to your portfolio</span>
+                        <a
+                          href={`/api/researcher/${profile.openalexId}/qr-code${primaryDomain ? `?url=https://${primaryDomain.hostname}` : ""}`}
+                          download={`${profile.displayName || "portfolio"}-qr-code.png`}
+                          style={{ fontSize: 13, color: "#fff", background: "#7c3aed", padding: "6px 14px", borderRadius: 7, textDecoration: "none", fontWeight: 600, display: "inline-flex", alignItems: "center", gap: 4 }}
+                          data-testid="link-download-qr"
+                        >
+                          <Download size={11} /> Download QR
+                        </a>
+                      </div>
+                    ) : (
+                      <p style={{ fontSize: 13.5, color: "#75777E" }}>Connect your OpenAlex ID to generate a QR code</p>
+                    )}
+                  </div>
+                  <hr style={{ border: "none", borderTop: "1px solid rgba(11,31,58,.07)", margin: "0 0 18px" }} />
 
-                <div className="space-y-2">
-                  <Label>Your Domain</Label>
-                  {primaryDomain ? (
-                    <div className="flex items-center gap-2 p-3 bg-slate-50 rounded-lg">
-                      <Globe className="w-4 h-4 text-muted-foreground" />
-                      <span className="font-medium">
-                        {primaryDomain.hostname}
-                      </span>
-                      <a
-                        href={`https://${primaryDomain.hostname}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="ml-auto text-blue-600 hover:text-blue-700 flex items-center gap-1 text-sm"
-                      >
-                        Visit Site
-                        <ExternalLink className="w-3 h-3" />
-                      </a>
+                  {/* Domain */}
+                  <div style={{ paddingBottom: 18 }}>
+                    <p style={{ ...labelStyle, marginBottom: 8 }}>Your Domain</p>
+                    {primaryDomain ? (
+                      <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 14px", background: "#F8F9FA", borderRadius: 9, border: "1px solid rgba(11,31,58,.08)" }}>
+                        <Globe size={15} style={{ color: "#44474D", flexShrink: 0 }} />
+                        <span style={{ fontSize: 14, fontWeight: 600, color: "#0B1F3A", flex: 1 }}>{primaryDomain.hostname}</span>
+                        <a href={`https://${primaryDomain.hostname}`} target="_blank" rel="noopener noreferrer" style={{ fontSize: 13, color: "#2563EB", textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 4 }}>
+                          Visit Site <ExternalLink size={11} />
+                        </a>
+                      </div>
+                    ) : (
+                      <p style={{ fontSize: 13.5, color: "#75777E" }}>Your domain will be assigned by the administrator</p>
+                    )}
+                  </div>
+                  <hr style={{ border: "none", borderTop: "1px solid rgba(11,31,58,.07)", margin: "0 0 18px" }} />
+
+                  {/* Plan */}
+                  <div style={{ paddingBottom: 18 }}>
+                    <p style={{ ...labelStyle, marginBottom: 8 }}>Plan</p>
+                    <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 14px", background: "#F8F9FA", borderRadius: 9, border: "1px solid rgba(11,31,58,.08)" }}>
+                      <span style={{ ...chip(), textTransform: "capitalize" }}>{tenant?.plan}</span>
+                      <span style={{ fontSize: 13, color: "#75777E" }}>Contact support to change your plan</span>
                     </div>
-                  ) : (
-                    <p className="text-sm text-muted-foreground">
-                      Your domain will be assigned by the
-                      administrator
-                    </p>
-                  )}
-                </div>
+                  </div>
+                  <hr style={{ border: "none", borderTop: "1px solid rgba(11,31,58,.07)", margin: "0 0 18px" }} />
 
-                <Separator />
-
-                <div className="space-y-2">
-                  <Label>Plan</Label>
-                  <div className="flex items-center gap-2 p-3 bg-slate-50 rounded-lg">
-                    <Badge className="capitalize">
-                      {tenant?.plan}
-                    </Badge>
-                    <span className="text-sm text-muted-foreground">
-                      Contact support to change your plan
-                    </span>
+                  {/* OpenAlex ID */}
+                  <div>
+                    <p style={{ ...labelStyle, marginBottom: 8 }}>OpenAlex ID</p>
+                    <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 14px", background: "#F8F9FA", borderRadius: 9, border: "1px solid rgba(11,31,58,.08)" }}>
+                      <span style={{ ...chip(), fontFamily: "monospace", fontSize: 11.5 }}>{profile?.openalexId || "Not connected"}</span>
+                      <span style={{ fontSize: 13, color: "#75777E" }}>To change your OpenAlex profile, contact support</span>
+                    </div>
                   </div>
                 </div>
+              </div>
 
-                <Separator />
-
-                <div className="space-y-2">
-                  <Label>OpenAlex ID</Label>
-                  <div className="flex items-center gap-2 p-3 bg-slate-50 rounded-lg">
-                    <Badge variant="outline" className="font-mono text-xs">
-                      {profile?.openalexId || "Not connected"}
-                    </Badge>
-                    <span className="text-sm text-muted-foreground">
-                      To change your OpenAlex profile, contact support
-                    </span>
-                  </div>
+              {/* Change Password */}
+              <div style={cardStyle}>
+                <div style={cardHeaderStyle}>
+                  <div style={cardTitleStyle}><Lock size={17} style={{ color: "#B87A0A" }} /> Change Password</div>
+                  <div style={cardDescStyle}>Update your account password</div>
                 </div>
-              </CardContent>
-            </Card>
+                <div style={{ ...cardBodyStyle, display: "flex", flexDirection: "column", gap: 14 }}>
+                  <div>
+                    <label htmlFor="current-password" style={labelStyle}>Current Password</label>
+                    <div style={{ position: "relative" }}>
+                      <input
+                        id="current-password"
+                        type={showCurrentPassword ? "text" : "password"}
+                        value={currentPassword}
+                        onChange={(e) => setCurrentPassword(e.target.value)}
+                        placeholder="Enter current password"
+                        style={{ ...inputStyle, paddingRight: 40 }}
+                        onFocus={e => (e.target.style.borderColor = "#FFC72E")}
+                        onBlur={e => (e.target.style.borderColor = "rgba(11,31,58,.14)")}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                        style={{ position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "#75777E" }}
+                        aria-label={showCurrentPassword ? "Hide current password" : "Show current password"}
+                      >
+                        {showCurrentPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                      </button>
+                    </div>
+                  </div>
 
-            {/* Change Password */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Lock className="w-5 h-5" />
-                  Change Password
-                </CardTitle>
-                <CardDescription>
-                  Update your account password
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="current-password">
-                    Current Password
-                  </Label>
-                  <div className="relative">
-                    <Input
-                      id="current-password"
-                      type={
-                        showCurrentPassword ? "text" : "password"
-                      }
-                      value={currentPassword}
-                      onChange={(e) =>
-                        setCurrentPassword(e.target.value)
-                      }
-                      placeholder="Enter current password"
+                  <div>
+                    <label htmlFor="new-password" style={labelStyle}>New Password</label>
+                    <div style={{ position: "relative" }}>
+                      <input
+                        id="new-password"
+                        type={showNewPassword ? "text" : "password"}
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                        placeholder="Enter new password (min. 8 characters)"
+                        style={{ ...inputStyle, paddingRight: 40 }}
+                        onFocus={e => (e.target.style.borderColor = "#FFC72E")}
+                        onBlur={e => (e.target.style.borderColor = "rgba(11,31,58,.14)")}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowNewPassword(!showNewPassword)}
+                        style={{ position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "#75777E" }}
+                        aria-label={showNewPassword ? "Hide new password" : "Show new password"}
+                      >
+                        {showNewPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label htmlFor="confirm-password" style={labelStyle}>Confirm New Password</label>
+                    <input
+                      id="confirm-password"
+                      type="password"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      placeholder="Confirm new password"
+                      style={inputStyle}
+                      onFocus={e => (e.target.style.borderColor = "#FFC72E")}
+                      onBlur={e => (e.target.style.borderColor = "rgba(11,31,58,.14)")}
                     />
+                  </div>
+
+                  <div>
                     <button
-                      type="button"
-                      onClick={() =>
-                        setShowCurrentPassword(!showCurrentPassword)
-                      }
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                      aria-label={
-                        showCurrentPassword
-                          ? "Hide current password"
-                          : "Show current password"
-                      }
+                      onClick={handlePasswordChange}
+                      disabled={!currentPassword || !newPassword || !confirmPassword || changePasswordMutation.isPending}
+                      style={btnPrimary(!currentPassword || !newPassword || !confirmPassword || changePasswordMutation.isPending)}
                     >
-                      {showCurrentPassword ? (
-                        <EyeOff className="w-4 h-4" />
-                      ) : (
-                        <Eye className="w-4 h-4" />
-                      )}
+                      <Lock size={13} />
+                      {changePasswordMutation.isPending ? "Updating…" : "Update Password"}
                     </button>
                   </div>
                 </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="new-password">New Password</Label>
-                  <div className="relative">
-                    <Input
-                      id="new-password"
-                      type={showNewPassword ? "text" : "password"}
-                      value={newPassword}
-                      onChange={(e) => setNewPassword(e.target.value)}
-                      placeholder="Enter new password (min. 8 characters)"
-                    />
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setShowNewPassword(!showNewPassword)
-                      }
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                      aria-label={
-                        showNewPassword
-                          ? "Hide new password"
-                          : "Show new password"
-                      }
-                    >
-                      {showNewPassword ? (
-                        <EyeOff className="w-4 h-4" />
-                      ) : (
-                        <Eye className="w-4 h-4" />
-                      )}
-                    </button>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="confirm-password">
-                    Confirm New Password
-                  </Label>
-                  <Input
-                    id="confirm-password"
-                    type="password"
-                    value={confirmPassword}
-                    onChange={(e) =>
-                      setConfirmPassword(e.target.value)
-                    }
-                    placeholder="Confirm new password"
-                  />
-                </div>
-
-                <Button
-                  onClick={handlePasswordChange}
-                  disabled={
-                    !currentPassword ||
-                    !newPassword ||
-                    !confirmPassword ||
-                    changePasswordMutation.isPending
-                  }
-                  className="bg-primary hover:bg-primary/90"
-                >
-                  <Lock className="w-4 h-4 mr-2" />
-                  {changePasswordMutation.isPending
-                    ? "Updating..."
-                    : "Update Password"}
-                </Button>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
+              </div>
+            </div>
+          )}
+        </div>
       </main>
 
       <GlobalFooter mode="app" />
