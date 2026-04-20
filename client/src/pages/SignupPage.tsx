@@ -85,7 +85,7 @@ function BenefitsPanel() {
             ["Auto-sync publications", "Linked to OpenAlex — 250M+ works, updated automatically."],
             ["Institutional credibility", "A URL like scholar.name/you signals professionalism."],
             ["Citation analytics", "Track your h-index, i10, and citation trends over time."],
-            ["Free forever", "No credit card required. Paid plans unlock more."],
+            ["14-day free trial", "Full access, no credit card required. Starter from $9.99/mo after."],
           ].map(([title, desc]) => (
             <div key={title as string} style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
               <div style={{ width: 22, height: 22, borderRadius: "50%", background: "rgba(255,199,46,.15)", border: "1px solid rgba(255,199,46,.3)", display: "grid", placeItems: "center", flexShrink: 0, marginTop: 1 }}>
@@ -306,8 +306,8 @@ export default function SignupPage() {
             {/* Step 1: Credentials */}
             {step === 1 && (
               <>
-                <h1 style={{ fontFamily: "'Newsreader', serif", fontSize: 26, fontWeight: 500, color: "#0B1F3A", margin: "0 0 6px", letterSpacing: "-0.015em" }}>Create your account</h1>
-                <p style={{ fontSize: 14, color: "#44474D", margin: "0 0 28px", lineHeight: 1.5 }}>Step 1 of {totalSteps} — your login details</p>
+                <h1 style={{ fontFamily: "'Newsreader', serif", fontSize: 26, fontWeight: 500, color: "#0B1F3A", margin: "0 0 6px", letterSpacing: "-0.015em" }}>Start your free 14-day trial</h1>
+                <p style={{ fontSize: 14, color: "#44474D", margin: "0 0 28px", lineHeight: 1.5 }}>Step 1 of {totalSteps} — no credit card required</p>
 
                 {/* OAuth buttons */}
                 <button type="button" disabled style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 10, padding: "10px 16px", borderRadius: 8, border: "1px solid rgba(11,31,58,.14)", background: "#fff", fontSize: 14, fontWeight: 500, color: "#0B1F3A", cursor: "not-allowed", opacity: .65, marginBottom: 10, fontFamily: "inherit" }}>

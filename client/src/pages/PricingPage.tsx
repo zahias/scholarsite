@@ -98,6 +98,24 @@ export default function PricingPage() {
               </span>
             </div>
 
+            {/* Free trial banner */}
+            <div style={{ maxWidth: 720, margin: "0 auto 28px", padding: "28px 32px", borderRadius: 16, border: "1.5px dashed rgba(11,31,58,.18)", background: "rgba(240,244,248,.7)", display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 24, flexWrap: "wrap" }}>
+              <div>
+                <div style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "3px 10px", borderRadius: 999, fontSize: 12, fontWeight: 600, background: "rgba(47,109,58,.1)", color: "#2F6D3A", border: "1px solid rgba(47,109,58,.18)", marginBottom: 8 }}>
+                  <Check style={{ width: 12, height: 12, flexShrink: 0 }} />
+                  Free &mdash; no credit card
+                </div>
+                <div style={{ fontFamily: "'Newsreader', serif", fontSize: 20, fontWeight: 500, color: "#0B1F3A", marginBottom: 4 }}>14-day free trial</div>
+                <p style={{ fontSize: 13.5, color: "#75777E", margin: 0 }}>Full access to all features. Your portfolio goes live immediately. Choose a paid plan when you&rsquo;re ready.</p>
+              </div>
+              <button
+                style={{ background: "#0B1F3A", color: "#fff", border: "none", borderRadius: 8, padding: "10px 22px", fontSize: 14, fontWeight: 600, cursor: "pointer", flexShrink: 0 }}
+                onClick={() => { window.scrollTo(0, 0); navigate("/signup"); }}
+              >
+                Start free trial
+              </button>
+            </div>
+
             {/* Plan cards */}
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }} className="pricing-grid">
               <style>{`@media (max-width: 600px) { .pricing-grid { grid-template-columns: 1fr !important; } }`}</style>

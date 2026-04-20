@@ -315,7 +315,7 @@ export default function LandingPage() {
                 Scholar.name creates a professional academic portfolio from your publications — no manual entry, no maintenance.
               </p>
 
-              <div className="flex gap-3 justify-center items-center flex-wrap mb-8">
+              <div className="flex gap-3 justify-center items-center flex-wrap mb-3">
                 <button
                   className="btn-gold inline-flex items-center gap-2 px-6 py-3.5 rounded-lg text-[15px] font-semibold"
                   onClick={() => { window.scrollTo(0, 0); navigate("/signup"); }}
@@ -324,7 +324,7 @@ export default function LandingPage() {
                   <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                     <path d="M12 3l1.9 5.8L20 9l-4.8 3.5L17 19l-5-3.6L7 19l1.8-6.5L4 9l6.1-.2z"/>
                   </svg>
-                  Create your portfolio
+                  Start free 14-day trial
                 </button>
                 <button
                   className="text-white/70 hover:text-white text-[14px] transition-colors underline underline-offset-4"
@@ -333,6 +333,11 @@ export default function LandingPage() {
                   View a demo profile →
                 </button>
               </div>
+
+              {/* Trust line */}
+              <p className="text-white/50 text-[13px] mb-8" style={{ letterSpacing: "0.01em" }}>
+                No credit card required &middot; Full access for 14 days &middot; Cancel anytime
+              </p>
 
               {/* Search bar */}
               <div className="relative max-w-[580px] mx-auto" ref={searchRef}>
@@ -817,6 +822,32 @@ export default function LandingPage() {
               </div>
             </div>
 
+            {/* Free trial card */}
+            <div className="max-w-[780px] mx-auto mb-6">
+              <div
+                className="rounded-[14px] p-7 flex flex-col sm:flex-row items-center justify-between gap-5"
+                style={{ border: "1.5px dashed rgba(11,31,58,.18)", background: "rgba(240,244,248,.7)" }}
+              >
+                <div className="text-center sm:text-left">
+                  <div
+                    className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[12px] font-medium mb-2"
+                    style={{ background: "rgba(47,109,58,.1)", color: "#2F6D3A", border: "1px solid rgba(47,109,58,.18)" }}
+                  >
+                    <Check className="w-3 h-3 flex-shrink-0" />
+                    Free &mdash; no credit card
+                  </div>
+                  <h3 className="font-serif font-medium text-[#0B1F3A] mb-1" style={{ fontSize: 20 }}>14-day free trial</h3>
+                  <p className="text-[13.5px] text-gray-600">Full access to all features. Your portfolio goes live immediately.<br className="hidden sm:block" /> Choose a paid plan when you&rsquo;re ready.</p>
+                </div>
+                <button
+                  className="btn-navy px-5 py-2.5 rounded-lg text-[14px] font-semibold flex-shrink-0"
+                  onClick={() => { window.scrollTo(0, 0); navigate("/signup"); }}
+                >
+                  Start free trial
+                </button>
+              </div>
+            </div>
+
             <div className="grid sm:grid-cols-2 gap-6 max-w-[780px] mx-auto">
               {pricingPlans.map((plan) => (
                 <div
@@ -938,8 +969,9 @@ export default function LandingPage() {
               className="btn-gold inline-flex items-center gap-2 px-7 py-4 rounded-lg text-[15px] font-semibold"
               onClick={() => { window.scrollTo(0, 0); navigate("/signup"); }}
             >
-              Start building your portfolio
+              Start free 14-day trial
             </button>
+            <p className="text-white/40 text-[13px] mt-4">No credit card required &middot; Cancel anytime</p>
           </div>
         </section>
 
