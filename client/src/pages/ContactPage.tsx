@@ -261,9 +261,9 @@ export default function ContactPage() {
               {" "}and{" "}
               <Link href="/terms" style={{ color: "#2563EB", textDecoration: "none" }}>Terms of Service</Link>.
             </p>
-          </div>
-        </div>
-      </main>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }

@@ -1623,23 +1623,23 @@ export default function ResearcherDashboard() {
                         ))}
                       </div>
                     </div>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Report publication issue */}
-            {tenantData?.tenant?.profile?.openalexId && (
-              <div className="flex items-center justify-end">
-                <a
-                  href={`/contact?subject=publication-issue&openalexId=${tenantData.tenant.profile.openalexId}`}
-                  className="text-xs text-muted-foreground hover:text-foreground underline underline-offset-4 transition-colors"
-                >
-                  Report a publication data issue →
-                </a>
+                  )}
+                </div>
               </div>
-            )}
-          </TabsContent>
+
+              {/* Report publication issue */}
+              {tenantData?.tenant?.profile?.openalexId && (
+                <div className="flex items-center justify-end" style={{ marginTop: 8 }}>
+                  <a
+                    href={`/contact?subject=publication-issue&openalexId=${tenantData.tenant.profile.openalexId}`}
+                    className="text-xs text-muted-foreground hover:text-foreground underline underline-offset-4 transition-colors"
+                  >
+                    Report a publication data issue →
+                  </a>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* ═══════ Sections Tab ═══════ */}
           {activeTab === "sections" && (
@@ -2050,6 +2050,19 @@ export default function ResearcherDashboard() {
                   </div>
                   <hr style={{ border: "none", borderTop: "1px solid rgba(11,31,58,.07)", margin: "0 0 18px" }} />
 
+                  {/* Cancel Subscription */}
+                  <div style={{ paddingBottom: 18 }}>
+                    <p style={{ ...labelStyle, marginBottom: 4, color: "#DC2626" }}>Cancel Subscription</p>
+                    <p style={{ fontSize: 13, color: "#75777E", marginBottom: 10 }}>Your profile stays active until the end of the current billing period.</p>
+                    <a
+                      href={`mailto:support@scholar.name?subject=Cancel%20subscription&body=Please%20cancel%20my%20subscription%20for%20account%20${encodeURIComponent(userData?.user?.email || "")}.`}
+                      style={{ fontSize: 13, color: "#DC2626", textDecoration: "underline" }}
+                    >
+                      Request cancellation →
+                    </a>
+                  </div>
+                  <hr style={{ border: "none", borderTop: "1px solid rgba(11,31,58,.07)", margin: "0 0 18px" }} />
+
                   {/* OpenAlex ID */}
                   <div>
                     <p style={{ ...labelStyle, marginBottom: 8 }}>OpenAlex ID</p>
@@ -2061,33 +2074,11 @@ export default function ResearcherDashboard() {
                 </div>
               </div>
 
-                <Separator />
-
-                <div className="space-y-2">
-                  <Label className="text-red-600">Cancel Subscription</Label>
-                  <p className="text-sm text-muted-foreground">
-                    Your profile stays active until the end of the current billing period. This cannot be undone automatically.
-                  </p>
-                  <a
-                    href={`mailto:support@scholar.name?subject=Cancel%20subscription&body=Please%20cancel%20my%20subscription%20for%20account%20${encodeURIComponent(userData?.user?.email || "")}.`}
-                    className="inline-flex items-center gap-1.5 text-sm font-medium text-red-600 hover:text-red-700 border border-red-200 hover:border-red-300 rounded-lg px-3 py-2 bg-red-50 hover:bg-red-100 transition-colors"
-                  >
-                    Request cancellation →
-                  </a>
-                </div>
-
-                <Separator />
-
-                <div className="space-y-2">
-                  <Label>OpenAlex ID</Label>
-                  <div className="flex items-center gap-2 p-3 bg-slate-50 rounded-lg">
-                    <Badge variant="outline" className="font-mono text-xs">
-                      {profile?.openalexId || "Not connected"}
-                    </Badge>
-                    <span className="text-sm text-muted-foreground">
-                      To change your OpenAlex profile, contact support
-                    </span>
-                  </div>
+              {/* Change Password */}
+              <div style={cardStyle}>
+                <div style={cardHeaderStyle}>
+                  <div style={cardTitleStyle}><Lock size={17} style={{ color: "#B87A0A" }} /> Change Password</div>
+                  <div style={cardDescStyle}>Update your account password</div>
                 </div>
                 <div style={{ ...cardBodyStyle, display: "flex", flexDirection: "column", gap: 14 }}>
                   <div>
