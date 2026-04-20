@@ -1,15 +1,13 @@
 import { useLocation } from "wouter";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { BookOpen, XCircle } from "lucide-react";
 import GlobalNav from "@/components/GlobalNav";
 import SEO from "@/components/SEO";
+import { XCircle, ArrowLeft, MessageCircle } from "lucide-react";
 
 export default function CheckoutCancelPage() {
   const [, navigate] = useLocation();
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-muted/30">
+    <div style={{ minHeight: "100vh", background: "#F0F4F8" }}>
       <SEO
         title="Payment Cancelled — Scholar.name"
         description="Your payment was cancelled. No charges were made."
@@ -17,35 +15,52 @@ export default function CheckoutCancelPage() {
       />
       <GlobalNav mode="auth" />
 
-      <div className="max-w-lg mx-auto px-4 py-16">
-        <Card className="text-center">
-          <CardHeader>
-            <div className="w-16 h-16 rounded-full bg-amber-100 flex items-center justify-center mx-auto mb-4">
-              <XCircle className="w-8 h-8 text-amber-600" />
-            </div>
-            <CardTitle className="text-2xl">Payment Cancelled</CardTitle>
-            <CardDescription>
-              Your payment was not completed. No charges were made.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <p className="text-muted-foreground">
-              If you experienced any issues or have questions, please don't hesitate to contact us.
-            </p>
+      <div style={{ maxWidth: 500, margin: "0 auto", padding: "80px 24px 48px" }}>
+        <div style={{ background: "#fff", borderRadius: 20, border: "1px solid rgba(11,31,58,.08)", boxShadow: "0 20px 60px -20px rgba(11,31,58,.12)", padding: "44px 40px 40px", textAlign: "center" }}>
 
-            <div className="space-y-3">
-              <Button className="w-full" onClick={() => navigate("/#pricing")} data-testid="button-try-again">
-                Try Again
-              </Button>
-              <Button variant="outline" className="w-full" onClick={() => navigate("/contact")} data-testid="button-contact-support">
-                Contact Support
-              </Button>
-              <Button variant="ghost" className="w-full" onClick={() => navigate("/")} data-testid="button-back-home">
-                Back to Homepage
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+          {/* Icon */}
+          <div style={{ width: 64, height: 64, borderRadius: "50%", background: "#F0F4F8", border: "1px solid rgba(11,31,58,.08)", display: "grid", placeItems: "center", margin: "0 auto 24px" }}>
+            <XCircle size={28} style={{ color: "#0B1F3A", opacity: .5 }} />
+          </div>
+
+          <h1 style={{ fontFamily: "'Newsreader', serif", fontSize: "clamp(22px,3vw,30px)", fontWeight: 500, color: "#0B1F3A", margin: "0 0 10px", letterSpacing: "-0.015em" }}>
+            Payment Cancelled
+          </h1>
+          <p style={{ fontSize: 15, color: "#44474D", lineHeight: 1.6, margin: "0 0 28px" }}>
+            Your payment was not completed. No charges were made to your account.
+          </p>
+
+          {/* Divider */}
+          <div style={{ height: 1, background: "rgba(11,31,58,.06)", margin: "0 0 28px" }} />
+
+          <p style={{ fontSize: 14, color: "#75777E", lineHeight: 1.6, margin: "0 0 32px" }}>
+            If you experienced any issues or have questions about our plans, we're happy to help.
+          </p>
+
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            <button
+              onClick={() => navigate("/#pricing")}
+              style={{ width: "100%", padding: "12px 20px", background: "#FFC72E", color: "#6F5400", border: "none", borderRadius: 10, fontSize: 14.5, fontWeight: 700, fontFamily: "inherit", cursor: "pointer" }}
+              data-testid="button-try-again"
+            >
+              Try Again
+            </button>
+            <button
+              onClick={() => navigate("/contact")}
+              style={{ width: "100%", padding: "12px 20px", background: "#fff", color: "#0B1F3A", border: "1px solid rgba(11,31,58,.14)", borderRadius: 10, fontSize: 14.5, fontWeight: 600, fontFamily: "inherit", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}
+              data-testid="button-contact-support"
+            >
+              <MessageCircle size={15} /> Contact Support
+            </button>
+            <button
+              onClick={() => navigate("/")}
+              style={{ width: "100%", padding: "12px 20px", background: "transparent", color: "#75777E", border: "none", borderRadius: 10, fontSize: 14, fontWeight: 500, fontFamily: "inherit", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}
+              data-testid="button-back-home"
+            >
+              <ArrowLeft size={14} /> Back to Homepage
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );

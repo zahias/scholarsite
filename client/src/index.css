@@ -1125,6 +1125,18 @@
   background: rgba(11,31,58,.1);
 }
 
+/* ── Observatory: Mobile responsive fixes ────────────────── */
+@media (max-width: 640px) {
+  .hero-section {
+    padding: 64px 0 72px !important;
+    min-height: 480px !important;
+  }
+  /* Hide decorative orbs on small screens */
+  .hero-section > .absolute.rounded-full {
+    display: none !important;
+  }
+}
+
 /* ── Observatory: Signup two-column ───────────────────────── */
 .signup-benefits-grid {
   background:

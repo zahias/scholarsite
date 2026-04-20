@@ -4,19 +4,14 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Send, Building2, User, Sparkles } from "lucide-react";
+import { Send, Sparkles, User, Building2, Loader2, CheckCircle } from "lucide-react";
 import GlobalNav from "@/components/GlobalNav";
 import SEO from "@/components/SEO";
-import type { Theme, ThemeConfig } from "@shared/schema";
+import type { Theme } from "@shared/schema";
 
 const contactFormSchema = z.object({
   fullName: z.string().min(2, "Name must be at least 2 characters"),
@@ -27,30 +22,27 @@ const contactFormSchema = z.object({
 
 type ContactFormData = z.infer<typeof contactFormSchema>;
 
+const inputStyle: React.CSSProperties = {
+  width: "100%", padding: "11px 14px", fontSize: 14, fontFamily: "inherit",
+  borderRadius: 9, border: "1px solid rgba(11,31,58,.14)", outline: "none",
+  color: "#171C1F", background: "#fff", boxSizing: "border-box",
+};
+
 export default function ContactPage() {
   const [, navigate] = useLocation();
   const { toast } = useToast();
   const [isSubmitted, setIsSubmitted] = useState(false);
-  
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, []);
+
+  useEffect(() => { window.scrollTo(0, 0); }, []);
 
   const urlParams = new URLSearchParams(window.location.search);
-  const preselectedPlan = urlParams.get('plan') || '';
+  const preselectedPlan = urlParams.get("plan") || "";
 
-  const { data: themes = [] } = useQuery<Theme[]>({
-    queryKey: ['/api/themes'],
-  });
+  const { data: themes = [] } = useQuery<Theme[]>({ queryKey: ["/api/themes"] });
 
   const form = useForm<ContactFormData>({
     resolver: zodResolver(contactFormSchema),
-    defaultValues: {
-      fullName: "",
-      email: "",
-      planInterest: preselectedPlan || "trial",
-      message: "",
-    },
+    defaultValues: { fullName: "", email: "", planInterest: preselectedPlan || "trial", message: "" },
   });
 
   const selectedPlan = form.watch("planInterest");
@@ -67,243 +59,161 @@ export default function ContactPage() {
     },
     onSuccess: () => {
       setIsSubmitted(true);
-      toast({
-        title: "Inquiry Submitted",
-        description: "We'll get back to you within 1-2 business days.",
-      });
+      toast({ title: "Inquiry Submitted", description: "We'll get back to you within 1-2 business days." });
     },
     onError: () => {
-      toast({
-        title: "Submission Failed",
-        description: "Please try again or email us directly.",
-        variant: "destructive",
-      });
+      toast({ title: "Submission Failed", description: "Please try again or email us directly.", variant: "destructive" });
     },
   });
 
-  const onSubmit = (data: ContactFormData) => {
-    submitMutation.mutate(data);
-  };
+  const onSubmit = (data: ContactFormData) => submitMutation.mutate(data);
 
   if (isSubmitted) {
     return (
-      <div className="min-h-screen bg-background">
-        <SEO
-          title="Thank You — Scholar.name"
-          description="Your inquiry has been submitted successfully."
-          url="https://scholar.name/contact"
-          type="website"
-        />
+      <div style={{ minHeight: "100vh", background: "#F0F4F8" }}>
+        <SEO title="Thank You — Scholar.name" description="Your inquiry has been submitted." url="https://scholar.name/contact" type="website" />
         <GlobalNav mode="landing" hideSignup hideLogin />
-        
-        <div className="max-w-2xl mx-auto px-4 py-20" aria-live="polite">
-          <Card>
-            <CardContent className="pt-12 pb-12 text-center">
-              <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-6">
-                <Send className="w-8 h-8 text-green-600" />
-              </div>
-              <h1 className="text-3xl font-bold mb-4">Thank You!</h1>
-              <p className="text-muted-foreground mb-8 max-w-md mx-auto">
-                Your inquiry has been submitted successfully. Our team will review your request and get back to you within 1-2 business days.
-              </p>
-              <Button onClick={() => navigate("/")} data-testid="button-back-home">
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Back to Home
-              </Button>
-            </CardContent>
-          </Card>
+        <div style={{ maxWidth: 500, margin: "0 auto", padding: "80px 24px" }} aria-live="polite">
+          <div style={{ background: "#fff", borderRadius: 20, border: "1px solid rgba(11,31,58,.08)", padding: "48px 40px", textAlign: "center" }}>
+            <div style={{ width: 64, height: 64, borderRadius: "50%", background: "rgba(255,199,46,.15)", border: "1px solid rgba(255,199,46,.3)", display: "grid", placeItems: "center", margin: "0 auto 24px" }}>
+              <CheckCircle size={28} style={{ color: "#FFC72E" }} />
+            </div>
+            <h1 style={{ fontFamily: "'Newsreader', serif", fontSize: "clamp(22px,3vw,30px)", fontWeight: 500, color: "#0B1F3A", margin: "0 0 10px" }}>Thank you!</h1>
+            <p style={{ fontSize: 15, color: "#44474D", lineHeight: 1.6, margin: "0 0 28px" }}>
+              Your inquiry has been submitted. Our team will review your request and get back to you within 1-2 business days.
+            </p>
+            <button onClick={() => navigate("/")} data-testid="button-back-home"
+              style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "11px 22px", background: "#FFC72E", color: "#6F5400", border: "none", borderRadius: 9, fontSize: 14, fontWeight: 700, fontFamily: "inherit", cursor: "pointer" }}>
+              ← Back to Home
+            </button>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <SEO
-        title="Get Started — Scholar.name"
-        description="Contact us to set up your professional research portfolio website."
-        url="https://scholar.name/contact"
-        type="website"
-      />
+    <div style={{ minHeight: "100vh", background: "#F0F4F8" }}>
+      <SEO title="Get Started — Scholar.name" description="Contact us to set up your professional research portfolio website." url="https://scholar.name/contact" type="website" />
       <GlobalNav mode="landing" hideSignup hideLogin />
 
-      <div className="max-w-4xl mx-auto px-4 py-12">
-        <Button 
-          variant="ghost" 
-          className="mb-6" 
-          onClick={() => navigate("/")}
-          data-testid="button-back-landing"
-        >
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Back to Home
-        </Button>
+      <main>
+        {/* Hero */}
+        <section style={{ background: "#0B1F3A", padding: "72px 0 56px", position: "relative", overflow: "hidden" }}>
+          <div style={{ position: "absolute", inset: 0, background: "radial-gradient(ellipse at 70% 0%, rgba(255,199,46,.14), transparent 55%), repeating-linear-gradient(0deg, rgba(255,255,255,.025) 0 1px, transparent 1px 52px)", pointerEvents: "none" }} />
+          <div style={{ maxWidth: 720, margin: "0 auto", padding: "0 32px", position: "relative", zIndex: 1, textAlign: "center" }}>
+            <span style={{ fontFamily: "'Newsreader', serif", fontSize: 11, letterSpacing: ".22em", textTransform: "uppercase", color: "#FFC72E", fontWeight: 600, display: "block", marginBottom: 16 }}>Get Started</span>
+            <h1 style={{ fontFamily: "'Newsreader', serif", fontSize: "clamp(30px,5vw,52px)", lineHeight: 1.08, fontWeight: 500, color: "#fff", margin: "0 0 14px", letterSpacing: "-0.02em" }}>
+              Get started with Scholar.name
+            </h1>
+            <p style={{ fontSize: 17, color: "rgba(255,255,255,.7)", lineHeight: 1.55 }}>
+              Tell us about your needs and we'll help you create the perfect research portfolio.
+            </p>
+          </div>
+        </section>
 
-        <div className="text-center mb-10">
-          <h1 className="text-3xl sm:text-4xl font-bold mb-4">Get Started with Scholar.name</h1>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Tell us about your needs and we'll help you create the perfect research portfolio website.
-          </p>
-        </div>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Get Started</CardTitle>
-            <CardDescription>
+        <div style={{ maxWidth: 600, margin: "0 auto", padding: "48px 24px 80px" }}>
+          <div style={{ background: "#fff", borderRadius: 20, border: "1px solid rgba(11,31,58,.08)", boxShadow: "0 20px 60px -20px rgba(11,31,58,.1)", padding: "36px 36px 32px" }}>
+            <h2 style={{ fontFamily: "'Newsreader', serif", fontSize: 22, fontWeight: 500, color: "#0B1F3A", margin: "0 0 4px" }}>Get Started</h2>
+            <p style={{ fontSize: 14, color: "#75777E", margin: "0 0 24px" }}>
               Fill out this quick form and we'll set up your portfolio within 24 hours.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
+            </p>
+
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                <div className="grid md:grid-cols-2 gap-6">
-                  <FormField
-                    control={form.control}
-                    name="fullName"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel htmlFor="fullName">Full Name *</FormLabel>
-                        <FormControl>
-                          <Input
-                            id="fullName"
-                            autoComplete="name"
-                            placeholder="Dr. Jane Smith"
-                            {...field}
-                            data-testid="input-name"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="email"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel htmlFor="email">Email Address *</FormLabel>
-                        <FormControl>
-                          <Input
-                            id="email"
-                            autoComplete="email"
-                            placeholder="jane.smith@university.edu"
-                            type="email"
-                            {...field}
-                            data-testid="input-email"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+              <form onSubmit={form.handleSubmit(onSubmit)} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+
+                {/* Name + email */}
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }} className="name-row">
+                  <style>{`@media (max-width: 520px) { .name-row { grid-template-columns: 1fr !important; } }`}</style>
+                  <FormField control={form.control} name="fullName" render={({ field }) => (
+                    <FormItem style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                      <FormLabel style={{ fontSize: 13, color: "#0B1F3A", fontWeight: 500 }}>Full Name *</FormLabel>
+                      <FormControl>
+                        <input id="fullName" autoComplete="name" placeholder="Dr. Jane Smith" style={inputStyle} {...field} data-testid="input-name"
+                          onFocus={(e) => { (e.target as HTMLInputElement).style.borderColor = "#FFC72E"; }}
+                          onBlur={(e) => { (e.target as HTMLInputElement).style.borderColor = "rgba(11,31,58,.14)"; }} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )} />
+                  <FormField control={form.control} name="email" render={({ field }) => (
+                    <FormItem style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                      <FormLabel style={{ fontSize: 13, color: "#0B1F3A", fontWeight: 500 }}>Email Address *</FormLabel>
+                      <FormControl>
+                        <input id="email" type="email" autoComplete="email" placeholder="jane@university.edu" style={inputStyle} {...field} data-testid="input-email"
+                          onFocus={(e) => { (e.target as HTMLInputElement).style.borderColor = "#FFC72E"; }}
+                          onBlur={(e) => { (e.target as HTMLInputElement).style.borderColor = "rgba(11,31,58,.14)"; }} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )} />
                 </div>
 
-                <FormField
-                  control={form.control}
-                  name="planInterest"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Which plan interests you? *</FormLabel>
-                      <FormControl>
-                        <RadioGroup
-                          onValueChange={field.onChange}
-                          defaultValue={field.value}
-                          className="grid sm:grid-cols-3 gap-4"
-                        >
-                          <div className="relative">
-                            <RadioGroupItem
-                              value="trial"
-                              id="trial"
-                              className="peer sr-only"
-                              data-testid="radio-trial"
-                            />
-                            <Label
-                              htmlFor="trial"
-                              className="flex flex-col items-center justify-center rounded-lg border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary cursor-pointer"
-                            >
-                              <Sparkles className="mb-2 h-6 w-6 text-primary" />
-                              <span className="font-semibold">Free Trial</span>
-                              <span className="text-sm text-muted-foreground">14 days free</span>
+                {/* Plan interest — styled radio chips */}
+                <FormField control={form.control} name="planInterest" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel style={{ fontSize: 13, color: "#0B1F3A", fontWeight: 500, display: "block", marginBottom: 8 }}>Which plan interests you? *</FormLabel>
+                    <FormControl>
+                      <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="grid sm:grid-cols-3 gap-3">
+                        {[
+                          { value: "trial", icon: Sparkles, label: "Free Trial", sub: "14 days free" },
+                          { value: "starter", icon: User, label: "Starter", sub: "$9.99/month" },
+                          { value: "professional", icon: Building2, label: "Pro", sub: "$19.99/month" },
+                        ].map(({ value, icon: Icon, label, sub }) => (
+                          <div key={value} className="relative">
+                            <RadioGroupItem value={value} id={value} className="peer sr-only" data-testid={`radio-${value}`} />
+                            <Label htmlFor={value} style={{
+                              display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+                              borderRadius: 11, border: selectedPlan === value ? "2px solid #FFC72E" : "1px solid rgba(11,31,58,.1)",
+                              background: selectedPlan === value ? "rgba(255,199,46,.06)" : "#F8F9FA",
+                              padding: "14px 12px", cursor: "pointer", transition: "border-color .15s, background .15s",
+                            }}>
+                              <Icon size={20} style={{ color: selectedPlan === value ? "#B87A0A" : "#44474D", marginBottom: 6 }} />
+                              <span style={{ fontSize: 13.5, fontWeight: 600, color: "#0B1F3A" }}>{label}</span>
+                              <span style={{ fontSize: 12, color: "#75777E" }}>{sub}</span>
                             </Label>
                           </div>
-                          <div className="relative">
-                            <RadioGroupItem
-                              value="starter"
-                              id="starter"
-                              className="peer sr-only"
-                              data-testid="radio-starter"
-                            />
-                            <Label
-                              htmlFor="starter"
-                              className="flex flex-col items-center justify-center rounded-lg border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary cursor-pointer"
-                            >
-                              <User className="mb-2 h-6 w-6" />
-                              <span className="font-semibold">Starter</span>
-                              <span className="text-sm text-muted-foreground">$9.99/month</span>
-                            </Label>
-                          </div>
-                          <div className="relative">
-                            <RadioGroupItem
-                              value="professional"
-                              id="professional"
-                              className="peer sr-only"
-                              data-testid="radio-professional"
-                            />
-                            <Label
-                              htmlFor="professional"
-                              className="flex flex-col items-center justify-center rounded-lg border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary cursor-pointer"
-                            >
-                              <Building2 className="mb-2 h-6 w-6" />
-                              <span className="font-semibold">Pro</span>
-                              <span className="text-sm text-muted-foreground">$19.99/month</span>
-                            </Label>
-                          </div>
-                        </RadioGroup>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                        ))}
+                      </RadioGroup>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )} />
 
-                <FormField
-                  control={form.control}
-                  name="message"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel htmlFor="message">Anything else we should know? (optional)</FormLabel>
-                      <FormControl>
-                        <Textarea
-                          id="message"
-                          placeholder="Tell us about yourself, your OpenAlex ID, or any questions..."
-                          className="min-h-[80px]"
-                          {...field}
-                          data-testid="textarea-message"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                {/* Message */}
+                <FormField control={form.control} name="message" render={({ field }) => (
+                  <FormItem style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                    <FormLabel style={{ fontSize: 13, color: "#0B1F3A", fontWeight: 500 }}>Anything else? (optional)</FormLabel>
+                    <FormControl>
+                      <textarea id="message" placeholder="Tell us about yourself, your OpenAlex ID, or any questions…"
+                        style={{ ...inputStyle, minHeight: 80, resize: "vertical" } as React.CSSProperties} {...field} data-testid="textarea-message"
+                        onFocus={(e) => { (e.target as HTMLTextAreaElement).style.borderColor = "#FFC72E"; }}
+                        onBlur={(e) => { (e.target as HTMLTextAreaElement).style.borderColor = "rgba(11,31,58,.14)"; }} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )} />
 
-                <Button 
-                  type="submit" 
-                  className="w-full btn-premium py-6"
-                  disabled={submitMutation.isPending}
-                  data-testid="button-submit-inquiry"
-                >
-                  {submitMutation.isPending ? "Setting up your portfolio..." : "Start My Free Trial"}
-                </Button>
+                <button type="submit" disabled={submitMutation.isPending} data-testid="button-submit-inquiry"
+                  style={{ width: "100%", padding: "13px 20px", background: submitMutation.isPending ? "rgba(255,199,46,.5)" : "#FFC72E", color: "#6F5400", border: "none", borderRadius: 10, fontSize: 14.5, fontWeight: 700, fontFamily: "inherit", cursor: submitMutation.isPending ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, marginTop: 4 }}>
+                  {submitMutation.isPending ? (
+                    <><Loader2 size={15} style={{ animation: "spin 1s linear infinite" }} /> Setting up your portfolio…</>
+                  ) : (
+                    <>Start My Free Trial <Send size={14} /></>
+                  )}
+                </button>
               </form>
             </Form>
-          </CardContent>
-        </Card>
 
-        <p className="text-center text-sm text-muted-foreground mt-6">
-          By submitting this form, you agree to our{" "}
-          <Link href="/privacy" className="text-primary hover:underline">Privacy Policy</Link>
-          {" "}and{" "}
-          <Link href="/terms" className="text-primary hover:underline">Terms of Service</Link>.
-        </p>
-      </div>
+            <p style={{ fontSize: 12.5, textAlign: "center", color: "#75777E", marginTop: 14 }}>
+              By submitting, you agree to our{" "}
+              <Link href="/privacy" style={{ color: "#2563EB", textDecoration: "none" }}>Privacy Policy</Link>
+              {" "}and{" "}
+              <Link href="/terms" style={{ color: "#2563EB", textDecoration: "none" }}>Terms of Service</Link>.
+            </p>
+          </div>
+        </div>
+      </main>
     </div>
   );
 }
