@@ -323,7 +323,7 @@ export default function SignupPage() {
 
                 <Form {...form}>
                   <form onSubmit={(e) => { e.preventDefault(); handleStep1Next(); }} style={{ display: "flex", flexDirection: "column", gap: 13 }}>
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }} className="name-row">
                       <FormField control={form.control} name="firstName" render={({ field }) => (
                         <FormItem style={{ display: "flex", flexDirection: "column", gap: 4 }}>
                           <FormLabel style={{ fontSize: 13, color: "#0B1F3A", fontWeight: 500 }}>First name</FormLabel>

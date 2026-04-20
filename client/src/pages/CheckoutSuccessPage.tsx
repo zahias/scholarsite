@@ -1,9 +1,6 @@
-import { useEffect } from "react";
 import { useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { BookOpen, CheckCircle, Loader2, Mail } from "lucide-react";
+import { CheckCircle, Loader2, Mail, ArrowRight, MessageCircle } from "lucide-react";
 import GlobalNav from "@/components/GlobalNav";
 import SEO from "@/components/SEO";
 
@@ -33,17 +30,17 @@ export default function CheckoutSuccessPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <Loader2 className="w-12 h-12 animate-spin mx-auto mb-4 text-primary" />
-          <p className="text-muted-foreground">Confirming your payment...</p>
+      <div style={{ minHeight: "100vh", background: "#F0F4F8", display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <div style={{ textAlign: "center" }}>
+          <Loader2 size={40} style={{ color: "#FFC72E", animation: "spin 1s linear infinite", margin: "0 auto 16px", display: "block" }} />
+          <p style={{ color: "#44474D", fontSize: 15 }}>Confirming your payment…</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-muted/30">
+    <div style={{ minHeight: "100vh", background: "#F0F4F8" }}>
       <SEO
         title="Payment Successful — Scholar.name"
         description="Your payment was successful. Welcome to Scholar.name."
@@ -51,53 +48,68 @@ export default function CheckoutSuccessPage() {
       />
       <GlobalNav mode="auth" />
 
-      <div className="max-w-lg mx-auto px-4 py-16">
-        <Card className="text-center">
-          <CardHeader>
-            <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
-              <CheckCircle className="w-8 h-8 text-green-600" />
-            </div>
-            <CardTitle className="text-2xl">Payment Successful!</CardTitle>
-            <CardDescription>
-              Welcome to Scholar.name. Your research portfolio is being set up.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            {paymentStatus && (
-              <div className="bg-muted/50 rounded-lg p-4 text-left">
-                <div className="grid grid-cols-2 gap-2 text-sm">
-                  <span className="text-muted-foreground">Order Number:</span>
-                  <span className="font-medium">{paymentStatus.orderNumber}</span>
-                  <span className="text-muted-foreground">Plan:</span>
-                  <span className="font-medium capitalize">{paymentStatus.plan}</span>
-                  <span className="text-muted-foreground">Amount:</span>
-                  <span className="font-medium">${paymentStatus.amount} USD</span>
-                  <span className="text-muted-foreground">Status:</span>
-                  <span className="font-medium text-green-600 capitalize">{paymentStatus.status}</span>
-                </div>
-              </div>
-            )}
+      <div style={{ maxWidth: 520, margin: "0 auto", padding: "80px 24px 48px" }}>
+        <div style={{ background: "#fff", borderRadius: 20, border: "1px solid rgba(11,31,58,.08)", boxShadow: "0 20px 60px -20px rgba(11,31,58,.12)", padding: "44px 40px 40px", textAlign: "center" }}>
 
-            <div className="flex items-start gap-3 text-left bg-blue-50 rounded-lg p-4">
-              <Mail className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-              <div className="text-sm">
-                <p className="font-medium text-blue-900">Check your email</p>
-                <p className="text-blue-700">
+          {/* Icon */}
+          <div style={{ width: 64, height: 64, borderRadius: "50%", background: "rgba(255,199,46,.15)", border: "1px solid rgba(255,199,46,.3)", display: "grid", placeItems: "center", margin: "0 auto 24px" }}>
+            <CheckCircle size={28} style={{ color: "#FFC72E" }} />
+          </div>
+
+          <h1 style={{ fontFamily: "'Newsreader', serif", fontSize: "clamp(22px,3vw,30px)", fontWeight: 500, color: "#0B1F3A", margin: "0 0 10px", letterSpacing: "-0.015em" }}>
+            Payment Successful!
+          </h1>
+          <p style={{ fontSize: 15, color: "#44474D", lineHeight: 1.6, margin: "0 0 28px" }}>
+            Welcome to Scholar.name. Your research portfolio is being set up.
+          </p>
+
+          {/* Order details */}
+          {paymentStatus && (
+            <div style={{ background: "#F0F4F8", borderRadius: 12, padding: "16px 20px", marginBottom: 20, textAlign: "left" }}>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px 0", fontSize: 13.5 }}>
+                <span style={{ color: "#75777E" }}>Order Number</span>
+                <span style={{ color: "#0B1F3A", fontWeight: 600, textAlign: "right" }}>{paymentStatus.orderNumber}</span>
+                <span style={{ color: "#75777E" }}>Plan</span>
+                <span style={{ color: "#0B1F3A", fontWeight: 600, textAlign: "right", textTransform: "capitalize" }}>{paymentStatus.plan}</span>
+                <span style={{ color: "#75777E" }}>Amount</span>
+                <span style={{ color: "#0B1F3A", fontWeight: 600, textAlign: "right" }}>${paymentStatus.amount} USD</span>
+                <span style={{ color: "#75777E" }}>Status</span>
+                <span style={{ color: "#059669", fontWeight: 600, textAlign: "right", textTransform: "capitalize" }}>{paymentStatus.status}</span>
+              </div>
+            </div>
+          )}
+
+          {/* Email notice — navy callout */}
+          <div style={{ background: "#0B1F3A", borderRadius: 12, padding: "16px 20px", marginBottom: 28, textAlign: "left", position: "relative", overflow: "hidden" }}>
+            <div style={{ position: "absolute", inset: 0, background: "radial-gradient(ellipse at 85% 0%, rgba(255,199,46,.18), transparent 60%)", pointerEvents: "none" }} />
+            <div style={{ position: "relative", display: "flex", alignItems: "flex-start", gap: 12 }}>
+              <Mail size={17} style={{ color: "#FFC72E", flexShrink: 0, marginTop: 1 }} />
+              <div>
+                <p style={{ fontSize: 13.5, fontWeight: 600, color: "#fff", margin: "0 0 3px" }}>Check your email</p>
+                <p style={{ fontSize: 13, color: "rgba(255,255,255,.7)", margin: 0, lineHeight: 1.5 }}>
                   We've sent setup instructions to your email. Follow them to customize your portfolio.
                 </p>
               </div>
             </div>
+          </div>
 
-            <div className="space-y-3">
-              <Button className="w-full" onClick={() => navigate("/")} data-testid="button-go-home">
-                Go to Homepage
-              </Button>
-              <Button variant="outline" className="w-full" onClick={() => navigate("/contact")} data-testid="button-need-help">
-                Need Help?
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            <button
+              onClick={() => navigate("/")}
+              style={{ width: "100%", padding: "12px 20px", background: "#FFC72E", color: "#6F5400", border: "none", borderRadius: 10, fontSize: 14.5, fontWeight: 700, fontFamily: "inherit", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}
+              data-testid="button-go-home"
+            >
+              Go to Homepage <ArrowRight size={15} />
+            </button>
+            <button
+              onClick={() => navigate("/contact")}
+              style={{ width: "100%", padding: "12px 20px", background: "#fff", color: "#0B1F3A", border: "1px solid rgba(11,31,58,.14)", borderRadius: 10, fontSize: 14.5, fontWeight: 600, fontFamily: "inherit", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}
+              data-testid="button-need-help"
+            >
+              <MessageCircle size={15} /> Need Help?
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );

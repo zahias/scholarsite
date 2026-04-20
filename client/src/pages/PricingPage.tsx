@@ -1,13 +1,9 @@
 import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Switch } from "@/components/ui/switch";
 import SEO from "@/components/SEO";
 import GlobalNav from "@/components/GlobalNav";
 import GlobalFooter from "@/components/GlobalFooter";
-import { Check, Sparkles, ArrowRight } from "lucide-react";
+import { Check } from "lucide-react";
 
 const plans = [
   {
@@ -45,144 +41,161 @@ const plans = [
 export default function PricingPage() {
   const [, navigate] = useLocation();
   const [isYearly, setIsYearly] = useState(false);
-
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, []);
+  useEffect(() => { window.scrollTo(0, 0); }, []);
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="min-h-screen flex flex-col" style={{ background: "#fff" }}>
       <SEO
         title="Pricing — Scholar.name"
         description="Simple, transparent pricing for professional research portfolios."
         url="https://scholar.name/pricing"
         type="website"
       />
-
       <GlobalNav mode="landing" />
 
-      <main className="flex-1">
+      <main style={{ flex: 1 }}>
         {/* Hero */}
-        <section className="landing-hero py-16 lg:py-20 relative">
-          <div className="hero-orb hero-orb-1" />
-          <div className="hero-orb hero-orb-2" />
-          <div className="relative z-10 max-w-4xl mx-auto px-4 text-center text-white">
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4">
-              Simple, Transparent Pricing
+        <section style={{ background: "#0B1F3A", padding: "72px 0 56px", position: "relative", overflow: "hidden" }}>
+          <div style={{ position: "absolute", inset: 0, background: "radial-gradient(ellipse at 70% 0%, rgba(255,199,46,.14), transparent 55%), repeating-linear-gradient(0deg, rgba(255,255,255,.025) 0 1px, transparent 1px 52px)", pointerEvents: "none" }} />
+          <div style={{ maxWidth: 720, margin: "0 auto", padding: "0 32px", position: "relative", zIndex: 1, textAlign: "center" }}>
+            <span style={{ fontFamily: "'Newsreader', serif", fontSize: 11, letterSpacing: ".22em", textTransform: "uppercase", color: "#FFC72E", fontWeight: 600, display: "block", marginBottom: 16 }}>Pricing</span>
+            <h1 style={{ fontFamily: "'Newsreader', serif", fontSize: "clamp(32px,5vw,56px)", lineHeight: 1.08, fontWeight: 500, color: "#fff", margin: "0 0 16px", letterSpacing: "-0.02em" }}>
+              Simple, transparent pricing
             </h1>
-            <p className="text-lg text-white/80 max-w-2xl mx-auto">
+            <p style={{ fontSize: 17, color: "rgba(255,255,255,.7)", lineHeight: 1.55 }}>
               Choose a plan and your portfolio goes live in minutes.
             </p>
           </div>
         </section>
 
         {/* Toggle + Plans */}
-        <section className="py-16 lg:py-24 bg-muted/30">
-          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-            {/* Monthly / Yearly Toggle */}
-            <div className="flex items-center justify-center gap-3 mb-12">
-              <span className={`text-sm font-medium ${!isYearly ? "text-foreground" : "text-muted-foreground"}`}>
-                Monthly
-              </span>
-              <Switch checked={isYearly} onCheckedChange={setIsYearly} />
-              <span className={`text-sm font-medium ${isYearly ? "text-foreground" : "text-muted-foreground"}`}>
+        <section style={{ background: "#F0F4F8", padding: "64px 24px 80px" }}>
+          <div style={{ maxWidth: 760, margin: "0 auto" }}>
+
+            {/* Monthly / Yearly toggle */}
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 12, marginBottom: 48 }}>
+              <span style={{ fontSize: 14, fontWeight: isYearly ? 400 : 600, color: isYearly ? "#75777E" : "#0B1F3A", transition: "color .15s" }}>Monthly</span>
+              <button
+                onClick={() => setIsYearly(!isYearly)}
+                role="switch"
+                aria-checked={isYearly}
+                style={{
+                  width: 44, height: 24, borderRadius: 12, background: isYearly ? "#0B1F3A" : "rgba(11,31,58,.12)",
+                  border: "none", cursor: "pointer", position: "relative", transition: "background .2s", flexShrink: 0,
+                }}
+              >
+                <span style={{
+                  position: "absolute", top: 3, left: isYearly ? 23 : 3, width: 18, height: 18,
+                  borderRadius: "50%", background: isYearly ? "#FFC72E" : "#fff",
+                  boxShadow: "0 1px 4px rgba(0,0,0,.2)", transition: "left .2s, background .2s",
+                }} />
+              </button>
+              <span style={{ fontSize: 14, fontWeight: isYearly ? 600 : 400, color: isYearly ? "#0B1F3A" : "#75777E", transition: "color .15s", display: "flex", alignItems: "center", gap: 6 }}>
                 Yearly
-                <Badge variant="secondary" className="ml-2 text-xs bg-green-100 text-green-700">
+                <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: ".08em", background: "rgba(5,150,105,.12)", color: "#059669", padding: "2px 7px", borderRadius: 999 }}>
                   Save 2 months
-                </Badge>
+                </span>
               </span>
             </div>
 
             {/* Plan cards */}
-            <div className="grid md:grid-cols-2 gap-6 max-w-3xl mx-auto">
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }} className="pricing-grid">
+              <style>{`@media (max-width: 600px) { .pricing-grid { grid-template-columns: 1fr !important; } }`}</style>
               {plans.map((plan, i) => (
-                <Card
+                <div
                   key={i}
-                  className={`relative ${plan.highlighted ? "border-2 border-secondary-container ambient-shadow" : ""}`}
+                  style={{
+                    background: plan.highlighted ? "#0B1F3A" : "#fff",
+                    borderRadius: 20,
+                    border: plan.highlighted ? "none" : "1px solid rgba(11,31,58,.08)",
+                    padding: "32px 28px",
+                    position: "relative",
+                    boxShadow: plan.highlighted ? "0 20px 60px -16px rgba(11,31,58,.35)" : "none",
+                    overflow: "visible",
+                  }}
                 >
+                  {/* Highlighted bg decoration */}
                   {plan.highlighted && (
-                    <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                      <Badge variant="gold">Most Popular</Badge>
+                    <div style={{ position: "absolute", inset: 0, borderRadius: 20, background: "radial-gradient(ellipse at 80% 0%, rgba(255,199,46,.2), transparent 55%)", pointerEvents: "none" }} />
+                  )}
+
+                  {plan.highlighted && (
+                    <div style={{ position: "absolute", top: -12, left: "50%", transform: "translateX(-50%)", background: "#FFC72E", color: "#6F5400", fontSize: 11, fontWeight: 700, letterSpacing: ".1em", textTransform: "uppercase", padding: "4px 12px", borderRadius: 999 }}>
+                      Most Popular
                     </div>
                   )}
-                  <CardHeader className="text-center pb-2 pt-8">
-                    <CardTitle className="text-xl">{plan.name}</CardTitle>
-                    <CardDescription>{plan.description}</CardDescription>
-                    <div className="mt-4">
-                      <span className="text-4xl font-bold">
+
+                  <div style={{ position: "relative" }}>
+                    <div style={{ fontFamily: "'Newsreader', serif", fontSize: 22, fontWeight: 500, color: plan.highlighted ? "#fff" : "#0B1F3A", marginBottom: 4 }}>{plan.name}</div>
+                    <p style={{ fontSize: 13.5, color: plan.highlighted ? "rgba(255,255,255,.6)" : "#75777E", margin: "0 0 20px" }}>{plan.description}</p>
+
+                    <div style={{ marginBottom: 20 }}>
+                      <span style={{ fontFamily: "'Newsreader', serif", fontSize: "clamp(36px,5vw,44px)", fontWeight: 600, color: plan.highlighted ? "#FFC72E" : "#0B1F3A", letterSpacing: "-0.02em" }}>
                         ${isYearly ? plan.yearlyPrice.toFixed(2) : plan.monthlyPrice.toFixed(2)}
                       </span>
-                      <span className="text-muted-foreground">/{isYearly ? "year" : "month"}</span>
+                      <span style={{ fontSize: 14, color: plan.highlighted ? "rgba(255,255,255,.5)" : "#75777E", marginLeft: 4 }}>/{isYearly ? "year" : "month"}</span>
                       {isYearly && (
-                        <p className="text-sm text-green-600 mt-1">Save ${plan.yearlySavings}</p>
+                        <p style={{ fontSize: 12.5, color: plan.highlighted ? "rgba(255,199,46,.8)" : "#059669", marginTop: 3 }}>
+                          Save ${plan.yearlySavings}
+                        </p>
                       )}
                     </div>
-                  </CardHeader>
-                  <CardContent>
-                    <ul className="space-y-3 mb-6">
+
+                    <ul style={{ listStyle: "none", padding: 0, margin: "0 0 24px", display: "flex", flexDirection: "column", gap: 10 }}>
                       {plan.features.map((feat, j) => (
-                        <li key={j} className="flex items-center gap-2">
-                          <Check className="w-4 h-4 text-primary flex-shrink-0" />
-                          <span className="text-sm">{feat}</span>
+                        <li key={j} style={{ display: "flex", alignItems: "center", gap: 9, fontSize: 14, color: plan.highlighted ? "rgba(255,255,255,.85)" : "#171C1F" }}>
+                          <span style={{ width: 18, height: 18, borderRadius: "50%", background: plan.highlighted ? "rgba(255,199,46,.2)" : "rgba(11,31,58,.06)", display: "grid", placeItems: "center", flexShrink: 0 }}>
+                            <Check size={10} style={{ color: plan.highlighted ? "#FFC72E" : "#0B1F3A" }} />
+                          </span>
+                          {feat}
                         </li>
                       ))}
                     </ul>
-                    <Button
-                      className="w-full"
-                      variant={plan.highlighted ? "primary-cta" : "nav-cta"}
-                      onClick={() => {
-                        window.scrollTo(0, 0);
-                        navigate(`/signup?plan=${plan.name.toLowerCase()}`);
+
+                    <button
+                      onClick={() => { window.scrollTo(0, 0); navigate(`/signup?plan=${plan.name.toLowerCase()}`); }}
+                      style={{
+                        width: "100%", padding: "12px 20px", borderRadius: 10, fontSize: 14.5, fontWeight: 700, fontFamily: "inherit", cursor: "pointer", border: "none",
+                        background: plan.highlighted ? "#FFC72E" : "#0B1F3A",
+                        color: plan.highlighted ? "#6F5400" : "#fff",
                       }}
                     >
                       Get Started
-                    </Button>
-                  </CardContent>
-                </Card>
+                    </button>
+                  </div>
+                </div>
               ))}
             </div>
 
-            {/* Comparison note */}
-            <p className="text-center text-sm text-muted-foreground mt-10 max-w-lg mx-auto">
+            <p style={{ textAlign: "center", fontSize: 13.5, color: "#75777E", marginTop: 24 }}>
               Cancel anytime — your profile stays active until the billing period ends.
             </p>
           </div>
         </section>
 
-        {/* CTA */}
-        <section className="py-16 lg:py-20 bg-white">
-          <div className="max-w-2xl mx-auto px-4 text-center">
-            <h2 className="text-2xl sm:text-3xl font-bold mb-4">
+        {/* Bottom CTA */}
+        <section style={{ background: "#fff", padding: "56px 24px", textAlign: "center", borderTop: "1px solid rgba(11,31,58,.06)" }}>
+          <div style={{ maxWidth: 480, margin: "0 auto" }}>
+            <h2 style={{ fontFamily: "'Newsreader', serif", fontSize: "clamp(22px,3vw,30px)", fontWeight: 500, color: "#0B1F3A", margin: "0 0 24px", letterSpacing: "-0.015em" }}>
               Have questions before you start?
             </h2>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Button
-                variant="outline"
-                size="lg"
-                onClick={() => {
-                  window.scrollTo(0, 0);
-                  navigate("/faq");
-                }}
-              >
-                Read the FAQ
-                <ArrowRight className="w-4 h-4 ml-2" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="lg"
-                onClick={() => {
-                  window.scrollTo(0, 0);
-                  navigate("/contact");
-                }}
-              >
+            <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap" }}>
+              <button
+                onClick={() => { window.scrollTo(0, 0); navigate("/faq"); }}
+                style={{ padding: "10px 22px", background: "#fff", color: "#0B1F3A", border: "1px solid rgba(11,31,58,.14)", borderRadius: 9, fontSize: 14, fontWeight: 600, fontFamily: "inherit", cursor: "pointer" }}>
+                Read the FAQ →
+              </button>
+              <button
+                onClick={() => { window.scrollTo(0, 0); navigate("/contact"); }}
+                style={{ padding: "10px 22px", background: "transparent", color: "#44474D", border: "none", borderRadius: 9, fontSize: 14, fontWeight: 500, fontFamily: "inherit", cursor: "pointer" }}>
                 Contact Us
-              </Button>
+              </button>
             </div>
           </div>
         </section>
       </main>
 
-      <GlobalFooter mode="landing" />
+      <GlobalFooter />
     </div>
   );
 }

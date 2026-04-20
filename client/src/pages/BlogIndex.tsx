@@ -226,7 +226,8 @@ export default function BlogIndex() {
               Get the digest.
             </h2>
             <p style={{ color: "#44474D", fontSize: 15, lineHeight: 1.55, margin: "0 0 24px" }}>New articles, academic career tips, and research visibility insights — delivered monthly.</p>
-            <form onSubmit={(e) => e.preventDefault()} style={{ display: "flex", gap: 8, maxWidth: 400, margin: "0 auto" }}>
+            <form onSubmit={(e) => e.preventDefault()} style={{ display: "flex", gap: 8, maxWidth: 400, margin: "0 auto" }} className="newsletter-form">
+              <style>{`@media (max-width: 480px) { .newsletter-form { flex-direction: column !important; } .newsletter-form button { width: 100% !important; } }`}</style>
               <input type="email" value={newsletterEmail} onChange={(e) => setNewsletterEmail(e.target.value)}
                 placeholder="you@university.edu"
                 style={{ flex: 1, padding: "11px 14px", fontSize: 14, fontFamily: "inherit", borderRadius: 8, border: "1px solid rgba(11,31,58,.14)", outline: "none", color: "#171C1F", background: "#fff" }} />

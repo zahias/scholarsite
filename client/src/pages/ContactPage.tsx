@@ -24,6 +24,12 @@ const contactFormSchema = z.object({
 
 type ContactFormData = z.infer<typeof contactFormSchema>;
 
+const inputStyle: React.CSSProperties = {
+  width: "100%", padding: "11px 14px", fontSize: 14, fontFamily: "inherit",
+  borderRadius: 9, border: "1px solid rgba(11,31,58,.14)", outline: "none",
+  color: "#171C1F", background: "#fff", boxSizing: "border-box",
+};
+
 export default function ContactPage() {
   const [, navigate] = useLocation();
   const { toast } = useToast();
@@ -56,33 +62,19 @@ export default function ContactPage() {
     },
     onSuccess: () => {
       setIsSubmitted(true);
-      toast({
-        title: "Inquiry Submitted",
-        description: "We'll get back to you within 1-2 business days.",
-      });
+      toast({ title: "Inquiry Submitted", description: "We'll get back to you within 1-2 business days." });
     },
     onError: () => {
-      toast({
-        title: "Submission Failed",
-        description: "Please try again or email us directly.",
-        variant: "destructive",
-      });
+      toast({ title: "Submission Failed", description: "Please try again or email us directly.", variant: "destructive" });
     },
   });
 
-  const onSubmit = (data: ContactFormData) => {
-    submitMutation.mutate(data);
-  };
+  const onSubmit = (data: ContactFormData) => submitMutation.mutate(data);
 
   if (isSubmitted) {
     return (
-      <div className="min-h-screen bg-background">
-        <SEO
-          title="Thank You — Scholar.name"
-          description="Your inquiry has been submitted successfully."
-          url="https://scholar.name/contact"
-          type="website"
-        />
+      <div style={{ minHeight: "100vh", background: "#F0F4F8" }}>
+        <SEO title="Thank You — Scholar.name" description="Your inquiry has been submitted." url="https://scholar.name/contact" type="website" />
         <GlobalNav mode="landing" hideSignup hideLogin />
 
         <div className="max-w-2xl mx-auto px-4 py-20" aria-live="polite">
@@ -262,16 +254,16 @@ export default function ContactPage() {
                 </Button>
               </form>
             </Form>
-          </CardContent>
-        </Card>
 
-        <p className="text-center text-sm text-muted-foreground mt-6">
-          By submitting this form, you agree to our{" "}
-          <Link href="/privacy" className="text-primary hover:underline">Privacy Policy</Link>
-          {" "}and{" "}
-          <Link href="/terms" className="text-primary hover:underline">Terms of Service</Link>.
-        </p>
-      </div>
+            <p style={{ fontSize: 12.5, textAlign: "center", color: "#75777E", marginTop: 14 }}>
+              By submitting, you agree to our{" "}
+              <Link href="/privacy" style={{ color: "#2563EB", textDecoration: "none" }}>Privacy Policy</Link>
+              {" "}and{" "}
+              <Link href="/terms" style={{ color: "#2563EB", textDecoration: "none" }}>Terms of Service</Link>.
+            </p>
+          </div>
+        </div>
+      </main>
     </div>
   );
 }
