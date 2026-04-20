@@ -184,13 +184,16 @@ export function startSyncScheduler(intervalHours: number = 1): void {
   console.log(`[SyncScheduler] Starting scheduler with ${intervalHours} hour interval`);
 
   // Delay first run by 5 minutes to let the server fully settle after startup
+  // .unref() allows graceful shutdown without being blocked by this timer
   setTimeout(() => {
     runScheduledSync();
-  }, 5 * 60 * 1000);
+  }, 5 * 60 * 1000).unref();
 
   schedulerInterval = setInterval(() => {
     runScheduledSync();
   }, intervalMs);
+  // .unref() prevents this interval from keeping a zombie process alive if the HTTP server closes
+  schedulerInterval.unref();
 
   console.log('[SyncScheduler] Scheduler started');
 }

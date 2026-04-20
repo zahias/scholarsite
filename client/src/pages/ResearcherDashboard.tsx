@@ -48,6 +48,7 @@ interface CurrentUser {
   firstName: string;
   lastName: string;
   role: string;
+  emailVerifiedAt: string | null;
 }
 
 interface TenantProfile {
@@ -57,6 +58,7 @@ interface TenantProfile {
   displayName: string | null;
   title: string | null;
   bio: string | null;
+  lastName: string | null;
   customCss: string | null;
   socialLinks: Record<string, string> | null;
   featuredWorks: string[] | null;
@@ -298,6 +300,21 @@ export default function ResearcherDashboard() {
 
   // ───── OpenAlex name search ─────
 
+  // Pre-fill OpenAlex connect card if user selected an author during signup
+  useEffect(() => {
+    if (tenantData !== undefined && !tenantData?.tenant?.profile?.openalexId) {
+      const pending = localStorage.getItem("pendingOpenalexConnect");
+      if (pending) {
+        try {
+          const parsed = JSON.parse(pending) as AuthorSearchResult;
+          handleSelectAuthor(parsed);
+        } catch {
+          localStorage.removeItem("pendingOpenalexConnect");
+        }
+      }
+    }
+  }, [tenantData]); // eslint-disable-line react-hooks/exhaustive-deps
+
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedQuery(searchQuery), 300);
     return () => clearTimeout(timer);
@@ -417,6 +434,7 @@ export default function ResearcherDashboard() {
         description: "Your OpenAlex profile has been linked. Syncing publications...",
       });
       setSelectedAuthor(null);
+      localStorage.removeItem("pendingOpenalexConnect");
       queryClient.invalidateQueries({
         queryKey: ["/api/researcher/my-tenant"],
       });
@@ -430,6 +448,19 @@ export default function ResearcherDashboard() {
         description: error.message,
         variant: "destructive",
       });
+    },
+  });
+
+  const resendVerificationMutation = useMutation({
+    mutationFn: async () => {
+      const res = await apiRequest("POST", "/api/auth/send-verification");
+      return res.json();
+    },
+    onSuccess: () => {
+      toast({ title: "Verification email sent", description: "Check your inbox and click the link to verify your email." });
+    },
+    onError: () => {
+      toast({ title: "Failed to send email", description: "Please try again later.", variant: "destructive" });
     },
   });
 
@@ -1033,6 +1064,22 @@ export default function ResearcherDashboard() {
           </div>
         </div>
       </header>
+
+      {/* Email verification banner */}
+      {userData.user && !userData.user.emailVerifiedAt && (
+        <div style={{ background: "#FFF8E1", borderBottom: "1px solid #FFD600", padding: "10px 16px", display: "flex", alignItems: "center", justifyContent: "center", gap: 12, flexWrap: "wrap" }}>
+          <span style={{ fontSize: 14, color: "#5D4037" }}>
+            ✉️ Please verify your email address to secure your account.
+          </span>
+          <button
+            onClick={() => resendVerificationMutation.mutate()}
+            disabled={resendVerificationMutation.isPending}
+            style={{ fontSize: 13, fontWeight: 600, color: "#0B1F3A", background: "transparent", border: "1px solid #0B1F3A", borderRadius: 6, padding: "3px 12px", cursor: "pointer" }}
+          >
+            {resendVerificationMutation.isPending ? "Sending…" : "Resend verification email"}
+          </button>
+        </div>
+      )}
 
       <main style={{ flex: 1, maxWidth: 900, margin: "0 auto", width: "100%", padding: "32px 24px 80px", display: "flex", flexDirection: "column", gap: 20 }}>
 

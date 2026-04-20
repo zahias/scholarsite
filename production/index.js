@@ -20,6 +20,7 @@ __export(schema_exports, {
   affiliations: () => affiliations,
   checkoutSessionSchema: () => checkoutSessionSchema,
   domains: () => domains,
+  forgotPasswordSchema: () => forgotPasswordSchema,
   insertDomainSchema: () => insertDomainSchema,
   insertPaymentSchema: () => insertPaymentSchema,
   insertProfileSectionSchema: () => insertProfileSectionSchema,
@@ -28,6 +29,7 @@ __export(schema_exports, {
   insertThemeSchema: () => insertThemeSchema,
   loginUserSchema: () => loginUserSchema,
   openalexData: () => openalexData,
+  passwordResetTokens: () => passwordResetTokens,
   payments: () => payments,
   profileAnalytics: () => profileAnalytics,
   profileAnalyticsDaily: () => profileAnalyticsDaily,
@@ -36,6 +38,7 @@ __export(schema_exports, {
   registerUserSchema: () => registerUserSchema,
   researchTopics: () => researchTopics,
   researcherProfiles: () => researcherProfiles,
+  resetPasswordSchema: () => resetPasswordSchema,
   siteSettings: () => siteSettings,
   syncLogs: () => syncLogs,
   tenants: () => tenants,
@@ -113,8 +116,19 @@ var users = pgTable("users", {
   lastName: varchar("last_name"),
   profileImageUrl: varchar("profile_image_url"),
   isActive: boolean("is_active").default(true).notNull(),
+  emailVerifiedAt: timestamp("email_verified_at"),
+  emailVerificationToken: varchar("email_verification_token", { length: 64 }),
+  emailVerificationExpiresAt: timestamp("email_verification_expires_at"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow()
+});
+var passwordResetTokens = pgTable("password_reset_tokens", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  token: varchar("token", { length: 64 }).unique().notNull(),
+  expiresAt: timestamp("expires_at").notNull(),
+  usedAt: timestamp("used_at"),
+  createdAt: timestamp("created_at").defaultNow()
 });
 var researcherProfiles = pgTable("researcher_profiles", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -279,6 +293,13 @@ var registerUserSchema = z.object({
 var loginUserSchema = z.object({
   email: z.string().email("Invalid email address"),
   password: z.string().min(1, "Password is required")
+});
+var forgotPasswordSchema = z.object({
+  email: z.string().email("Invalid email address")
+});
+var resetPasswordSchema = z.object({
+  token: z.string().min(1),
+  newPassword: z.string().min(8, "Password must be at least 8 characters")
 });
 var siteSettings = pgTable("site_settings", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -877,6 +898,32 @@ var DatabaseStorage = class {
   async getPaymentsByEmail(email) {
     return await db.select().from(payments).where(eq(payments.customerEmail, email)).orderBy(desc(payments.createdAt));
   }
+  // ─── Password reset tokens ──────────────────────────────────────────────────
+  async createPasswordResetToken(userId, token, expiresAt) {
+    await db.insert(passwordResetTokens).values({ userId, token, expiresAt });
+  }
+  async getPasswordResetToken(token) {
+    const [row] = await db.select().from(passwordResetTokens).where(eq(passwordResetTokens.token, token));
+    return row;
+  }
+  async markPasswordResetTokenUsed(token) {
+    await db.update(passwordResetTokens).set({ usedAt: /* @__PURE__ */ new Date() }).where(eq(passwordResetTokens.token, token));
+  }
+  // ─── Email verification ──────────────────────────────────────────────────────
+  async setEmailVerificationToken(userId, token, expiresAt) {
+    await db.update(users).set({ emailVerificationToken: token, emailVerificationExpiresAt: expiresAt }).where(eq(users.id, userId));
+  }
+  async verifyEmailWithToken(token) {
+    const [user] = await db.select().from(users).where(eq(users.emailVerificationToken, token));
+    if (!user) return void 0;
+    if (!user.emailVerificationExpiresAt || /* @__PURE__ */ new Date() > user.emailVerificationExpiresAt) return void 0;
+    const [updated] = await db.update(users).set({
+      emailVerifiedAt: /* @__PURE__ */ new Date(),
+      emailVerificationToken: null,
+      emailVerificationExpiresAt: null
+    }).where(eq(users.id, user.id)).returning();
+    return updated;
+  }
   async updatePaymentStatus(orderNumber, status, transactionId) {
     const updates = { status };
     if (transactionId) {
@@ -936,6 +983,9 @@ var DatabaseStorage = class {
       isPrimary: true,
       isSubdomain: true
     });
+    if (existingUser) {
+      await this.updateUser(existingUser.id, { tenantId: tenant.id });
+    }
     return tenant;
   }
   async getAllPayments() {
@@ -1097,6 +1147,27 @@ var MemoryStorage = class {
     return [];
   }
   async getDefaultTheme() {
+    return void 0;
+  }
+  async getPaymentsByEmail(_email) {
+    return [];
+  }
+  async getAllPayments() {
+    return [];
+  }
+  async createPasswordResetToken(_userId, _token, _expiresAt) {
+    return;
+  }
+  async getPasswordResetToken(_token) {
+    return void 0;
+  }
+  async markPasswordResetTokenUsed(_token) {
+    return;
+  }
+  async setEmailVerificationToken(_userId, _token, _expiresAt) {
+    return;
+  }
+  async verifyEmailWithToken(_token) {
     return void 0;
   }
 };
@@ -1561,8 +1632,69 @@ async function signObjectURL({
 // server/auth.ts
 import { Router } from "express";
 import bcrypt from "bcryptjs";
+import crypto2 from "crypto";
+import nodemailer from "nodemailer";
 import { z as z2 } from "zod";
 var router = Router();
+function createTransporter() {
+  if (!process.env.SMTP_PASSWORD) return null;
+  return nodemailer.createTransport({
+    host: process.env.SMTP_HOST || "mail.scholar.name",
+    port: parseInt(process.env.SMTP_PORT || "587", 10),
+    secure: parseInt(process.env.SMTP_PORT || "587", 10) === 465,
+    auth: {
+      user: process.env.SMTP_USER || "noreply@scholar.name",
+      pass: process.env.SMTP_PASSWORD
+    },
+    tls: { rejectUnauthorized: false }
+  });
+}
+async function sendEmail(to, subject, text2) {
+  const transporter = createTransporter();
+  if (!transporter) return;
+  const from = `"Scholar.name" <${process.env.SMTP_USER || "noreply@scholar.name"}>`;
+  await transporter.sendMail({ from, to, subject, text: text2 });
+}
+async function sendSignupEmail(email, firstName, verificationToken) {
+  const baseUrl = process.env.BASE_URL || "https://scholar.name";
+  const verifyUrl = `${baseUrl}/verify-email?token=${verificationToken}`;
+  await sendEmail(
+    email,
+    "Welcome to Scholar.name \u2014 please verify your email",
+    [
+      `Hi ${firstName},`,
+      "",
+      "Welcome to Scholar.name! Please verify your email address:",
+      verifyUrl,
+      "",
+      "This link expires in 24 hours. If you didn't sign up, you can ignore this email.",
+      "",
+      "Once verified, log in to connect your OpenAlex profile and publish your portfolio.",
+      "",
+      "Log in at: https://scholar.name/dashboard/login",
+      "",
+      "The Scholar.name team"
+    ].join("\n")
+  );
+}
+async function sendPasswordResetEmail(email, firstName, resetToken) {
+  const baseUrl = process.env.BASE_URL || "https://scholar.name";
+  const resetUrl = `${baseUrl}/reset-password?token=${resetToken}`;
+  await sendEmail(
+    email,
+    "Reset your Scholar.name password",
+    [
+      `Hi ${firstName},`,
+      "",
+      "You requested a password reset. Click the link below to set a new password:",
+      resetUrl,
+      "",
+      "This link expires in 1 hour. If you did not request a reset, you can ignore this email.",
+      "",
+      "The Scholar.name team"
+    ].join("\n")
+  );
+}
 function toSafeUser(user) {
   const { passwordHash, ...safeUser } = user;
   return safeUser;
@@ -1597,13 +1729,20 @@ router.post("/register", async (req, res) => {
       return res.status(400).json({ message: "Email already registered" });
     }
     const passwordHash = await bcrypt.hash(validatedData.password, 12);
+    const verificationToken = crypto2.randomBytes(32).toString("hex");
+    const verificationExpiry = new Date(Date.now() + 24 * 60 * 60 * 1e3);
     const user = await storage.createUser({
       email: validatedData.email,
       passwordHash,
       firstName: validatedData.firstName,
       lastName: validatedData.lastName,
-      role: "researcher"
+      role: "researcher",
+      emailVerificationToken: verificationToken,
+      emailVerificationExpiresAt: verificationExpiry
     });
+    sendSignupEmail(validatedData.email, validatedData.firstName, verificationToken).catch(
+      (err) => console.error("[auth] Failed to send signup email:", err)
+    );
     req.session.regenerate((err) => {
       if (err) {
         console.error("Session regeneration error:", err);
@@ -1758,6 +1897,84 @@ router.patch("/password", isAuthenticated, async (req, res) => {
     }
     console.error("Password update error:", error);
     return res.status(500).json({ message: "Failed to update password" });
+  }
+});
+router.post("/forgot-password", async (req, res) => {
+  try {
+    const { email } = forgotPasswordSchema.parse(req.body);
+    const user = await storage.getUserByEmail(email);
+    if (!user || !user.isActive) {
+      return res.json({ message: "If that email is registered, a reset link has been sent." });
+    }
+    const token = crypto2.randomBytes(32).toString("hex");
+    const expiresAt = new Date(Date.now() + 60 * 60 * 1e3);
+    await storage.createPasswordResetToken(user.id, token, expiresAt);
+    sendPasswordResetEmail(email, user.firstName || "there", token).catch(
+      (err) => console.error("[auth] Failed to send password reset email:", err)
+    );
+    return res.json({ message: "If that email is registered, a reset link has been sent." });
+  } catch (error) {
+    if (error instanceof z2.ZodError) {
+      return res.status(400).json({ message: "Invalid email address" });
+    }
+    console.error("Forgot password error:", error);
+    return res.status(500).json({ message: "Failed to process request" });
+  }
+});
+router.post("/reset-password", async (req, res) => {
+  try {
+    const { token, newPassword } = resetPasswordSchema.parse(req.body);
+    const resetToken = await storage.getPasswordResetToken(token);
+    if (!resetToken) {
+      return res.status(400).json({ message: "Invalid or expired reset link." });
+    }
+    if (resetToken.usedAt) {
+      return res.status(400).json({ message: "This reset link has already been used." });
+    }
+    if (/* @__PURE__ */ new Date() > resetToken.expiresAt) {
+      return res.status(400).json({ message: "This reset link has expired. Please request a new one." });
+    }
+    const newPasswordHash = await bcrypt.hash(newPassword, 12);
+    await storage.updateUser(resetToken.userId, { passwordHash: newPasswordHash });
+    await storage.markPasswordResetTokenUsed(token);
+    return res.json({ message: "Password updated successfully. You can now log in." });
+  } catch (error) {
+    if (error instanceof z2.ZodError) {
+      return res.status(400).json({ message: "Validation error", errors: error.errors });
+    }
+    console.error("Reset password error:", error);
+    return res.status(500).json({ message: "Failed to reset password" });
+  }
+});
+router.post("/send-verification", isAuthenticated, async (req, res) => {
+  try {
+    const user = await storage.getUser(req.session.userId);
+    if (!user) return res.status(404).json({ message: "User not found" });
+    if (user.emailVerifiedAt) return res.json({ message: "Email already verified." });
+    const token = crypto2.randomBytes(32).toString("hex");
+    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1e3);
+    await storage.setEmailVerificationToken(user.id, token, expiresAt);
+    sendSignupEmail(user.email, user.firstName || "there", token).catch(
+      (err) => console.error("[auth] Failed to send verification email:", err)
+    );
+    return res.json({ message: "Verification email sent." });
+  } catch (error) {
+    console.error("Send verification error:", error);
+    return res.status(500).json({ message: "Failed to send verification email" });
+  }
+});
+router.get("/verify-email", async (req, res) => {
+  try {
+    const token = req.query.token;
+    if (!token) return res.status(400).json({ message: "Missing token" });
+    const user = await storage.verifyEmailWithToken(token);
+    if (!user) {
+      return res.status(400).json({ message: "Invalid or expired verification link." });
+    }
+    return res.json({ message: "Email verified successfully." });
+  } catch (error) {
+    console.error("Verify email error:", error);
+    return res.status(500).json({ message: "Failed to verify email" });
   }
 });
 var authRouter = router;
@@ -2145,10 +2362,11 @@ function startSyncScheduler(intervalHours = 1) {
   console.log(`[SyncScheduler] Starting scheduler with ${intervalHours} hour interval`);
   setTimeout(() => {
     runScheduledSync();
-  }, 5 * 60 * 1e3);
+  }, 5 * 60 * 1e3).unref();
   schedulerInterval = setInterval(() => {
     runScheduledSync();
   }, intervalMs);
+  schedulerInterval.unref();
   console.log("[SyncScheduler] Scheduler started");
 }
 function stopSyncScheduler() {
@@ -2638,8 +2856,21 @@ router4.get("/my-tenant", isAuthenticated, async (req, res) => {
     if (!userId) {
       return res.status(401).json({ message: "Not authenticated" });
     }
-    const user = await storage.getUser(userId);
-    if (!user || !user.tenantId) {
+    let user = await storage.getUser(userId);
+    if (!user) {
+      return res.status(404).json({ message: "No tenant associated with this user" });
+    }
+    if (!user.tenantId) {
+      const userPayments = await storage.getPaymentsByEmail(user.email);
+      const completedWithTenant = userPayments.find(
+        (p) => p.status === "completed" && p.tenantId
+      );
+      if (completedWithTenant?.tenantId) {
+        await storage.updateUser(user.id, { tenantId: completedWithTenant.tenantId });
+        user = await storage.getUser(userId);
+      }
+    }
+    if (!user.tenantId) {
       return res.status(404).json({ message: "No tenant associated with this user" });
     }
     const tenant = await storage.getTenantWithDetails(user.tenantId);
@@ -3172,7 +3403,7 @@ var researcherRoutes_default = router4;
 import { Router as Router5 } from "express";
 
 // server/services/montypay.ts
-import crypto2 from "crypto";
+import crypto3 from "crypto";
 var MontyPayService = class {
   config;
   constructor() {
@@ -3191,7 +3422,7 @@ var MontyPayService = class {
       }
       return String(value);
     }).join("");
-    return crypto2.createHmac("sha256", this.config.secretKey).update(dataString + this.config.secretKey).digest("hex");
+    return crypto3.createHmac("sha256", this.config.secretKey).update(dataString + this.config.secretKey).digest("hex");
   }
   async createCheckoutSession(params) {
     if (!this.config.merchantKey || !this.config.secretKey) {
@@ -3269,8 +3500,8 @@ var MontyPayService = class {
 var montyPayService = new MontyPayService();
 
 // server/checkoutRoutes.ts
-import crypto3 from "crypto";
-import nodemailer from "nodemailer";
+import crypto4 from "crypto";
+import nodemailer2 from "nodemailer";
 var router5 = Router5();
 var PRICING = {
   starter: { monthly: 9.99, yearly: 95.88 },
@@ -3278,7 +3509,7 @@ var PRICING = {
 };
 function generateOrderNumber() {
   const timestamp2 = Date.now().toString(36);
-  const random = crypto3.randomBytes(4).toString("hex");
+  const random = crypto4.randomBytes(4).toString("hex");
   return `SN-${timestamp2}-${random}`.toUpperCase();
 }
 async function sendWelcomeEmail(email, name, _tenantId) {
@@ -3286,7 +3517,7 @@ async function sendWelcomeEmail(email, name, _tenantId) {
   const smtpHost = process.env.SMTP_HOST || "mail.scholar.name";
   const smtpPort = parseInt(process.env.SMTP_PORT || "587", 10);
   const smtpUser = process.env.SMTP_USER || "noreply@scholar.name";
-  const transporter = nodemailer.createTransport({
+  const transporter = nodemailer2.createTransport({
     host: smtpHost,
     port: smtpPort,
     secure: smtpPort === 465,
@@ -3395,7 +3626,7 @@ router5.post("/webhook", async (req, res) => {
         console.warn("Webhook rejected: missing signature header");
         return res.status(403).send("Forbidden");
       }
-      const expectedSig = crypto3.createHmac("sha256", webhookSecret).update(JSON.stringify(req.body)).digest("hex");
+      const expectedSig = crypto4.createHmac("sha256", webhookSecret).update(JSON.stringify(req.body)).digest("hex");
       if (signature !== expectedSig) {
         console.warn("Webhook rejected: invalid signature");
         return res.status(403).send("Forbidden");
@@ -3502,7 +3733,7 @@ async function tenantResolver(req, res, next) {
 
 // server/routes.ts
 import fetch3 from "node-fetch";
-import nodemailer2 from "nodemailer";
+import nodemailer3 from "nodemailer";
 var updateEmitter = new EventEmitter();
 var sseConnections = /* @__PURE__ */ new Set();
 function adminSessionAuthMiddleware(req, res, next) {
@@ -4417,7 +4648,7 @@ async function registerRoutes(app2) {
       const smtpPort = parseInt(process.env.SMTP_PORT || "465", 10);
       const smtpUser = process.env.SMTP_USER || "info@scholar.name";
       console.log(`[Contact] SMTP Config: host=${smtpHost}, port=${smtpPort}, user=${smtpUser}`);
-      const transporter = nodemailer2.createTransport({
+      const transporter = nodemailer3.createTransport({
         host: smtpHost,
         port: smtpPort,
         secure: smtpPort === 465,
@@ -5005,7 +5236,7 @@ async function registerRoutes(app2) {
       if (!email || !message) {
         return res.status(400).json({ message: "Email and message are required" });
       }
-      const transporter = nodemailer2.createTransport({
+      const transporter = nodemailer3.createTransport({
         host: process.env.SMTP_HOST || "smtp.gmail.com",
         port: parseInt(process.env.SMTP_PORT || "587"),
         secure: process.env.SMTP_SECURE === "true",
@@ -5057,7 +5288,7 @@ async function registerRoutes(app2) {
         "wrong_affiliation": "Wrong affiliation",
         "other": "Other issue"
       };
-      const transporter = nodemailer2.createTransport({
+      const transporter = nodemailer3.createTransport({
         host: process.env.SMTP_HOST || "smtp.gmail.com",
         port: parseInt(process.env.SMTP_PORT || "587"),
         secure: process.env.SMTP_SECURE === "true",
@@ -5160,6 +5391,38 @@ function serveStatic(app2) {
   app2.use("*", (_req, res) => {
     res.sendFile(path2.resolve(distPath, "index.html"));
   });
+}
+
+// server/runMigrations.ts
+async function runMigrations() {
+  if (!pool) {
+    console.log("[migrations] No DB connection \u2014 skipping migrations.");
+    return;
+  }
+  const client = await pool.connect();
+  try {
+    console.log("[migrations] Running schema migrations\u2026");
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS "password_reset_tokens" (
+        "id" varchar PRIMARY KEY DEFAULT gen_random_uuid(),
+        "user_id" varchar NOT NULL REFERENCES "users"("id") ON DELETE CASCADE,
+        "token" varchar(64) UNIQUE NOT NULL,
+        "expires_at" timestamp NOT NULL,
+        "used_at" timestamp,
+        "created_at" timestamp DEFAULT now()
+      );
+    `);
+    await client.query(`CREATE INDEX IF NOT EXISTS "prt_token_idx" ON "password_reset_tokens"("token");`);
+    await client.query(`CREATE INDEX IF NOT EXISTS "prt_user_idx" ON "password_reset_tokens"("user_id");`);
+    await client.query(`ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "email_verified_at" timestamp;`);
+    await client.query(`ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "email_verification_token" varchar(64);`);
+    await client.query(`ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "email_verification_expires_at" timestamp;`);
+    console.log("[migrations] Schema migrations complete.");
+  } catch (err) {
+    console.error("[migrations] Migration error:", err);
+  } finally {
+    client.release();
+  }
 }
 
 // server/services/themeSeed.ts
@@ -5326,6 +5589,7 @@ app.use((req, res, next) => {
   next();
 });
 (async () => {
+  await runMigrations();
   const server = await registerRoutes(app);
   await seedThemesIfEmpty();
   app.use((err, _req, res, _next) => {
@@ -5338,8 +5602,8 @@ app.use((req, res, next) => {
   const port = parseInt(process.env.PORT || "5000", 10);
   server.listen(port, () => {
     log(`serving on port ${port}`);
-    startSyncScheduler(6);
-    log("Sync scheduler started - checking tenants every 6 hours");
+    startSyncScheduler(72);
+    log("Sync scheduler started - checking tenants every 72 hours");
   });
   const shutdown = (signal) => {
     log(`${signal} received \u2014 shutting down gracefully`);

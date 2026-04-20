@@ -14,6 +14,7 @@ import {
   syncLogs,
   profileAnalytics,
   profileAnalyticsDaily,
+  passwordResetTokens,
   type User,
   type UpsertUser,
   type SafeUser,
@@ -47,6 +48,7 @@ import {
   type InsertProfileAnalytics,
   type ProfileAnalyticsDaily,
   type InsertProfileAnalyticsDaily,
+  type PasswordResetToken,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, ne, inArray, asc, sql, gte, lte, count, countDistinct } from "drizzle-orm";
@@ -168,6 +170,15 @@ export interface IStorage {
   // Payment operations
   getAllPayments(): Promise<Payment[]>;
   getPaymentsByEmail(email: string): Promise<Payment[]>;
+
+  // Password reset token operations
+  createPasswordResetToken(userId: string, token: string, expiresAt: Date): Promise<void>;
+  getPasswordResetToken(token: string): Promise<PasswordResetToken | undefined>;
+  markPasswordResetTokenUsed(token: string): Promise<void>;
+
+  // Email verification operations
+  setEmailVerificationToken(userId: string, token: string, expiresAt: Date): Promise<void>;
+  verifyEmailWithToken(token: string): Promise<User | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -882,6 +893,47 @@ export class DatabaseStorage implements IStorage {
     return await db.select().from(payments).where(eq(payments.customerEmail, email)).orderBy(desc(payments.createdAt));
   }
 
+  // ─── Password reset tokens ──────────────────────────────────────────────────
+
+  async createPasswordResetToken(userId: string, token: string, expiresAt: Date): Promise<void> {
+    await db.insert(passwordResetTokens).values({ userId, token, expiresAt });
+  }
+
+  async getPasswordResetToken(token: string): Promise<PasswordResetToken | undefined> {
+    const [row] = await db.select().from(passwordResetTokens).where(eq(passwordResetTokens.token, token));
+    return row;
+  }
+
+  async markPasswordResetTokenUsed(token: string): Promise<void> {
+    await db.update(passwordResetTokens)
+      .set({ usedAt: new Date() })
+      .where(eq(passwordResetTokens.token, token));
+  }
+
+  // ─── Email verification ──────────────────────────────────────────────────────
+
+  async setEmailVerificationToken(userId: string, token: string, expiresAt: Date): Promise<void> {
+    await db.update(users)
+      .set({ emailVerificationToken: token, emailVerificationExpiresAt: expiresAt })
+      .where(eq(users.id, userId));
+  }
+
+  async verifyEmailWithToken(token: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.emailVerificationToken, token));
+    if (!user) return undefined;
+    if (!user.emailVerificationExpiresAt || new Date() > user.emailVerificationExpiresAt) return undefined;
+
+    const [updated] = await db.update(users)
+      .set({
+        emailVerifiedAt: new Date(),
+        emailVerificationToken: null,
+        emailVerificationExpiresAt: null,
+      })
+      .where(eq(users.id, user.id))
+      .returning();
+    return updated;
+  }
+
   async updatePaymentStatus(orderNumber: string, status: PaymentStatus, transactionId?: string): Promise<Payment | undefined> {
     const updates: Partial<Payment> = { status };
     if (transactionId) {
@@ -1154,6 +1206,11 @@ class MemoryStorage {
   async getDefaultTheme() { return undefined; }
   async getPaymentsByEmail(_email: string) { return []; }
   async getAllPayments() { return []; }
+  async createPasswordResetToken(_userId: string, _token: string, _expiresAt: Date) { return; }
+  async getPasswordResetToken(_token: string) { return undefined; }
+  async markPasswordResetTokenUsed(_token: string) { return; }
+  async setEmailVerificationToken(_userId: string, _token: string, _expiresAt: Date) { return; }
+  async verifyEmailWithToken(_token: string) { return undefined; }
 }
 
 export const storage: IStorage = process.env.DATABASE_URL ? new DatabaseStorage() : new MemoryStorage();
