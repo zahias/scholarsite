@@ -110,7 +110,7 @@ export default function AdminUsers() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deletingUser, setDeletingUser] = useState<UserData | null>(null);
 
-  const { data: userData } = useQuery<{ user: CurrentUser }>({
+  const { data: userData, isLoading: userLoading } = useQuery<{ user: CurrentUser }>({
     queryKey: ["/api/auth/me"],
   });
 
@@ -219,6 +219,17 @@ export default function AdminUsers() {
     researchers: usersData?.users?.filter((u) => u.role === "researcher").length || 0,
     active: usersData?.users?.filter((u) => u.isActive).length || 0,
   };
+
+  if (userLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-8">
+        <div className="max-w-6xl mx-auto space-y-6">
+          <Skeleton className="h-20 w-full bg-white/5" />
+          <Skeleton className="h-96 w-full bg-white/5" />
+        </div>
+      </div>
+    );
+  }
 
   if (!userData?.user || userData.user.role !== "admin") {
     navigate("/admin/login");

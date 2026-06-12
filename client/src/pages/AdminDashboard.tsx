@@ -22,6 +22,9 @@ import {
   UserCog,
   TrendingUp,
   BarChart3,
+  CreditCard,
+  RefreshCw,
+  History,
 } from "lucide-react";
 
 interface Tenant {
@@ -66,6 +69,30 @@ interface Analytics {
   };
 }
 
+interface Payment {
+  id: string;
+  orderNumber: string;
+  amount: string;
+  currency: string;
+  status: string;
+  plan: string;
+  billingPeriod: string;
+  customerEmail: string;
+  customerName: string;
+  createdAt: string;
+  completedAt: string | null;
+}
+
+interface SyncLog {
+  tenantId?: string;
+  tenantName?: string;
+  status: string;
+  message?: string;
+  startedAt?: string;
+  completedAt?: string;
+  itemsProcessed?: number;
+}
+
 const statusConfig: Record<string, { icon: any; color: string; bg: string }> = {
   active: { icon: CheckCircle, color: "text-green-400", bg: "bg-green-500/10" },
   pending: { icon: Clock, color: "text-yellow-400", bg: "bg-yellow-500/10" },
@@ -95,6 +122,31 @@ export default function AdminDashboard() {
   const { data: analyticsData } = useQuery<{ analytics: Analytics }>({
     queryKey: ["/api/admin/analytics"],
     enabled: !!userData?.user,
+  });
+
+  const { data: paymentsData, isLoading: paymentsLoading } = useQuery<{ payments: Payment[] }>({
+    queryKey: ["/api/admin/payments"],
+    enabled: !!userData?.user,
+  });
+
+  const { data: syncLogsData, isLoading: syncLogsLoading } = useQuery<{ logs: SyncLog[] }>({
+    queryKey: ["/api/admin/sync/logs"],
+    enabled: !!userData?.user,
+  });
+
+  const runSyncMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest("POST", "/api/admin/sync/run");
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({ title: "Sync completed", description: "Scheduled sync finished successfully." });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/sync/logs"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/tenants"] });
+    },
+    onError: (error: Error) => {
+      toast({ title: "Sync failed", description: error.message, variant: "destructive" });
+    },
   });
 
   const logoutMutation = useMutation({
@@ -134,8 +186,14 @@ export default function AdminDashboard() {
 
   const tenants = tenantsData?.tenants || [];
   const analytics = analyticsData?.analytics;
+  const payments = paymentsData?.payments || [];
+  const syncLogs = syncLogsData?.logs || [];
+  const recentPayments = payments.slice(0, 5);
+  const recentSyncLogs = syncLogs.slice(0, 5);
   const activeTenants = analytics?.tenants.byStatus.active || tenants.filter((t) => t.status === "active").length;
   const pendingTenants = analytics?.tenants.byStatus.pending || tenants.filter((t) => t.status === "pending").length;
+  const completedPayments = payments.filter((payment) => payment.status === "completed");
+  const pendingPayments = payments.filter((payment) => payment.status === "pending");
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
@@ -333,6 +391,110 @@ export default function AdminDashboard() {
               </CardContent>
             </Card>
           </Link>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <Card className="bg-white/5 border-white/10">
+            <CardHeader>
+              <CardTitle className="text-white flex items-center gap-2">
+                <CreditCard className="w-5 h-5 text-slate-400" />
+                Payments
+              </CardTitle>
+              <CardDescription className="text-slate-400">
+                Recent checkout activity and provisioning status
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-3 gap-3">
+                <div className="rounded-lg bg-white/5 border border-white/10 p-3">
+                  <p className="text-xs text-slate-400">Total</p>
+                  <p className="text-xl font-semibold text-white">{payments.length}</p>
+                </div>
+                <div className="rounded-lg bg-green-500/10 border border-green-500/20 p-3">
+                  <p className="text-xs text-green-300">Completed</p>
+                  <p className="text-xl font-semibold text-white">{completedPayments.length}</p>
+                </div>
+                <div className="rounded-lg bg-yellow-500/10 border border-yellow-500/20 p-3">
+                  <p className="text-xs text-yellow-300">Pending</p>
+                  <p className="text-xl font-semibold text-white">{pendingPayments.length}</p>
+                </div>
+              </div>
+              {paymentsLoading ? (
+                <Skeleton className="h-28 bg-white/5" />
+              ) : recentPayments.length === 0 ? (
+                <p className="text-sm text-slate-400 rounded-lg border border-white/10 bg-white/5 p-4">
+                  No payments recorded yet.
+                </p>
+              ) : (
+                <div className="space-y-2">
+                  {recentPayments.map((payment) => (
+                    <div key={payment.id} className="flex items-center justify-between gap-3 rounded-lg bg-white/5 border border-white/10 p-3">
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium text-white truncate">{payment.customerName}</p>
+                        <p className="text-xs text-slate-400 truncate">{payment.customerEmail}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-sm font-semibold text-white">${payment.amount} {payment.currency}</p>
+                        <Badge className={payment.status === "completed" ? "bg-green-500/20 text-green-300" : payment.status === "pending" ? "bg-yellow-500/20 text-yellow-300" : "bg-red-500/20 text-red-300"}>
+                          {payment.status}
+                        </Badge>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card className="bg-white/5 border-white/10">
+            <CardHeader>
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <CardTitle className="text-white flex items-center gap-2">
+                    <History className="w-5 h-5 text-slate-400" />
+                    OpenAlex Sync
+                  </CardTitle>
+                  <CardDescription className="text-slate-400">
+                    Run scheduled syncs and review recent sync activity
+                  </CardDescription>
+                </div>
+                <Button
+                  onClick={() => runSyncMutation.mutate()}
+                  disabled={runSyncMutation.isPending}
+                  className="bg-orange-500 hover:bg-orange-600"
+                  data-testid="button-run-admin-sync"
+                >
+                  <RefreshCw className={`w-4 h-4 mr-2 ${runSyncMutation.isPending ? "animate-spin" : ""}`} />
+                  Sync Now
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {syncLogsLoading ? (
+                <Skeleton className="h-28 bg-white/5" />
+              ) : recentSyncLogs.length === 0 ? (
+                <p className="text-sm text-slate-400 rounded-lg border border-white/10 bg-white/5 p-4">
+                  No sync activity has been recorded in this process.
+                </p>
+              ) : (
+                <div className="space-y-2">
+                  {recentSyncLogs.map((log, index) => (
+                    <div key={`${log.tenantId || "scheduled"}-${log.startedAt || index}`} className="rounded-lg bg-white/5 border border-white/10 p-3">
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="min-w-0">
+                          <p className="text-sm font-medium text-white truncate">{log.tenantName || log.tenantId || "Scheduled sync"}</p>
+                          <p className="text-xs text-slate-400 truncate">{log.message || "Sync run recorded"}</p>
+                        </div>
+                        <Badge className={log.status === "success" || log.status === "completed" ? "bg-green-500/20 text-green-300" : log.status === "failed" ? "bg-red-500/20 text-red-300" : "bg-blue-500/20 text-blue-300"}>
+                          {log.status}
+                        </Badge>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </div>
 
         <div className="flex items-center justify-between">

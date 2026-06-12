@@ -172,6 +172,9 @@ export default function LandingPage() {
   const [showResults, setShowResults] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(-1);
   const [isYearly, setIsYearly] = useState(false);
+  const billingPeriod = isYearly ? "yearly" : "monthly";
+  const checkoutPathForPlan = (planName: string) =>
+    `/checkout?plan=${planName.toLowerCase()}&billing=${billingPeriod}`;
   const [openFaq, setOpenFaq] = useState<number | null>(0);
   const searchRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -886,7 +889,7 @@ export default function LandingPage() {
                   <button
                     className={"w-full py-3 rounded-lg font-semibold text-[14px] transition-all hover:-translate-y-px " + (plan.highlighted ? "btn-gold" : "btn-navy")}
                     data-testid={"button-select-" + plan.name.toLowerCase()}
-                    onClick={() => { window.scrollTo(0, 0); navigate("/signup?plan=" + plan.name.toLowerCase()); }}
+                    onClick={() => { window.scrollTo(0, 0); navigate(checkoutPathForPlan(plan.name)); }}
                   >
                     Get started
                   </button>

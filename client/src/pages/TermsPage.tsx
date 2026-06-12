@@ -195,12 +195,12 @@ export default function TermsPage() {
                 <span style={{ display: "block", fontFamily: "'Newsreader', serif", fontSize: 12, letterSpacing: ".22em", textTransform: "uppercase", color: "#6F5400", fontWeight: 700, marginBottom: 6, fontStyle: "normal" }}>05</span>
                 Paid plans.
               </h2>
-              <PlainEng>Free plan has no time limit. Paid plans auto-renew. Stripe handles payments. 30-day refund on annual plans; monthly plans can be canceled anytime.</PlainEng>
+              <PlainEng>The free trial lasts 14 days. Paid plans keep your public portfolio active after the trial. MontyPay handles online card payments when checkout is enabled.</PlainEng>
               <ul style={{ paddingLeft: 20, margin: "0 0 14px" }}>
-                <li style={{ marginBottom: 8 }}>The free plan has no time limit and includes your profile, OpenAlex sync, and public URL.</li>
+                <li style={{ marginBottom: 8 }}>The free trial lasts 14 days and includes your profile, OpenAlex sync, and public URL while the trial is active.</li>
                 <li style={{ marginBottom: 8 }}>Paid plans (<strong style={{ color: "#0B1F3A", fontWeight: 600 }}>Scholar Pro</strong>, <strong style={{ color: "#0B1F3A", fontWeight: 600 }}>Institution</strong>) unlock analytics, custom domains, multiple authors, and priority support.</li>
-                <li style={{ marginBottom: 8 }}>Paid subscriptions renew automatically unless canceled before the renewal date.</li>
-                <li style={{ marginBottom: 8 }}>All payments are processed by Stripe. We do not store your card details.</li>
+                <li style={{ marginBottom: 8 }}>If your trial or paid period ends without an active plan, your public portfolio becomes inactive until you reactivate.</li>
+                <li style={{ marginBottom: 8 }}>Online payments are processed by MontyPay when checkout is enabled. We do not store your card details.</li>
                 <li style={{ marginBottom: 8 }}>We offer a <strong style={{ color: "#0B1F3A", fontWeight: 600 }}>30-day refund</strong> on annual plans, no questions asked. Monthly plans are non-refundable but can be canceled anytime.</li>
               </ul>
             </section>

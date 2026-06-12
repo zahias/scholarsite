@@ -3,10 +3,12 @@ import bcrypt from "bcryptjs";
 import crypto from "crypto";
 import nodemailer from "nodemailer";
 import { storage } from "./storage";
+import { OpenAlexService } from "./services/openalexApi";
 import { registerUserSchema, loginUserSchema, forgotPasswordSchema, resetPasswordSchema, type SafeUser, type UserRole } from "@shared/schema";
 import { z } from "zod";
 
 const router = Router();
+const openalexService = new OpenAlexService();
 
 // ─── Email helper ───────────────────────────────────────────────────────────
 
@@ -140,10 +142,16 @@ router.post("/register", async (req: Request, res: Response) => {
       console.error("[auth] Failed to send signup email:", err)
     );
 
-    // Provision a free trial tenant immediately (non-blocking — login still succeeds even if this fails)
-    storage.createTrialTenant(user.id, validatedData.firstName, validatedData.lastName || "", validatedData.email).catch((err) =>
-      console.error("[auth] Failed to create trial tenant:", err)
-    );
+    const tenant = await storage.createTrialTenant(user.id, validatedData.firstName, validatedData.lastName || "", validatedData.email, {
+      openalexId: validatedData.openalexId,
+      affiliation: validatedData.affiliation,
+    });
+
+    if (validatedData.openalexId) {
+      openalexService.syncResearcherData(validatedData.openalexId)
+        .then(() => storage.updateTenantProfile(tenant.id, { lastSyncedAt: new Date() }))
+        .catch((err) => console.error("[auth] Failed to sync OpenAlex data after signup:", err));
+    }
 
     // Set session data directly (session.regenerate can cause issues with some session stores)
     req.session.userId = user.id;

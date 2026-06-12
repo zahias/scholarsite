@@ -168,8 +168,13 @@ export interface IStorage {
   aggregateDailyAnalytics(openalexId: string, date: string): Promise<void>;
 
   // Payment operations
+  createPayment(payment: InsertPayment): Promise<Payment>;
+  getPaymentByOrderNumber(orderNumber: string): Promise<Payment | undefined>;
   getAllPayments(): Promise<Payment[]>;
   getPaymentsByEmail(email: string): Promise<Payment[]>;
+  updatePaymentStatus(orderNumber: string, status: PaymentStatus, transactionId?: string): Promise<Payment | undefined>;
+  updatePaymentSessionId(orderNumber: string, sessionId: string): Promise<Payment | undefined>;
+  provisionTenantFromPayment(paymentId: string): Promise<Tenant | undefined>;
 
   // Password reset token operations
   createPasswordResetToken(userId: string, token: string, expiresAt: Date): Promise<void>;
@@ -181,7 +186,10 @@ export interface IStorage {
   verifyEmailWithToken(token: string): Promise<User | undefined>;
 
   // Trial tenant provisioning
-  createTrialTenant(userId: string, firstName: string, lastName: string, email: string): Promise<Tenant>;
+  createTrialTenant(userId: string, firstName: string, lastName: string, email: string, options?: {
+    openalexId?: string;
+    affiliation?: string;
+  }): Promise<Tenant>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -545,7 +553,7 @@ export class DatabaseStorage implements IStorage {
   async upsertResearchTopics(topics: InsertResearchTopic[]): Promise<void> {
     if (topics.length === 0) return;
 
-    await db.transaction(async (tx) => {
+    await db.transaction(async (tx: any) => {
       // Delete existing topics for this researcher
       await tx
         .delete(researchTopics)
@@ -655,7 +663,7 @@ export class DatabaseStorage implements IStorage {
   async upsertAffiliations(affs: InsertAffiliation[]): Promise<void> {
     if (affs.length === 0) return;
 
-    await db.transaction(async (tx) => {
+    await db.transaction(async (tx: any) => {
       // Delete existing affiliations for this researcher
       await tx
         .delete(affiliations)
@@ -879,7 +887,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Payment operations
-  async createPayment(payment: Omit<InsertPayment, 'id'>): Promise<Payment> {
+  async createPayment(payment: InsertPayment): Promise<Payment> {
     const [result] = await db.insert(payments).values({
       ...payment,
       id: generateUUID(),
@@ -937,7 +945,10 @@ export class DatabaseStorage implements IStorage {
     return updated;
   }
 
-  async createTrialTenant(userId: string, firstName: string, lastName: string, email: string): Promise<Tenant> {
+  async createTrialTenant(userId: string, firstName: string, lastName: string, email: string, options?: {
+    openalexId?: string;
+    affiliation?: string;
+  }): Promise<Tenant> {
     const base = `${firstName.toLowerCase().replace(/[^a-z0-9]/g, "")}${lastName ? `-${lastName.toLowerCase().replace(/[^a-z0-9]/g, "")}` : ""}`;
     const uniqueSuffix = crypto.randomBytes(3).toString("hex");
     const subdomain = `${base || "researcher"}-${uniqueSuffix}`.substring(0, 40);
@@ -962,6 +973,9 @@ export class DatabaseStorage implements IStorage {
     await this.updateTenantProfile(tenant.id, {
       tenantId: tenant.id,
       displayName: `${firstName} ${lastName}`.trim(),
+      openalexId: options?.openalexId,
+      currentAffiliation: options?.affiliation,
+      email,
       isPublic: true,
     });
 
@@ -998,6 +1012,7 @@ export class DatabaseStorage implements IStorage {
   async provisionTenantFromPayment(paymentId: string): Promise<Tenant | undefined> {
     const [payment] = await db.select().from(payments).where(eq(payments.id, paymentId));
     if (!payment || payment.status !== 'completed') return undefined;
+    const metadata = payment.metadata as { openalexId?: string; affiliation?: string } | null;
 
     // If a user with this email already exists, upgrade their existing trial tenant
     const existingUser = await this.getUserByEmail(payment.customerEmail);
@@ -1013,7 +1028,15 @@ export class DatabaseStorage implements IStorage {
         status: 'active',
         subscriptionStartDate: new Date(),
         subscriptionEndDate: subscriptionEnd,
+        trialEndsAt: null,
       });
+      if (metadata?.openalexId) {
+        await this.updateTenantProfile(existingUser.tenantId, {
+          openalexId: metadata.openalexId,
+          currentAffiliation: metadata.affiliation,
+          email: payment.customerEmail,
+        });
+      }
       await db.update(payments).set({ tenantId: existingUser.tenantId }).where(eq(payments.id, paymentId));
       return updatedTenant;
     }
@@ -1046,6 +1069,15 @@ export class DatabaseStorage implements IStorage {
       hostname: `${subdomain}.scholar.name`,
       isPrimary: true,
       isSubdomain: true,
+    });
+
+    await this.updateTenantProfile(tenant.id, {
+      tenantId: tenant.id,
+      displayName: payment.customerName,
+      openalexId: metadata?.openalexId,
+      currentAffiliation: metadata?.affiliation,
+      email: payment.customerEmail,
+      isPublic: true,
     });
 
     // Link the tenant to the existing user account if one matches the payment email
@@ -1192,30 +1224,131 @@ class MemoryStorage {
     return undefined;
   }
 
+  async getResearcherProfileByTenant(_tenantId: string) {
+    return undefined;
+  }
+
+  async getAllPublicResearcherProfiles() {
+    return [];
+  }
+
+  async upsertResearcherProfile(_profile: any) {
+    return {} as any;
+  }
+
+  async updateResearcherProfile(_id: string, _updates: any) {
+    return {} as any;
+  }
+
+  async deleteResearcherProfile(_openalexId: string) {
+    return;
+  }
+
   async getOpenalexData(_openalexId: string, _dataType: string) {
     return undefined;
+  }
+
+  async upsertOpenalexData(_data: any) {
+    return {} as any;
   }
 
   async getResearchTopics(_openalexId: string) {
     return [];
   }
 
+  async upsertResearchTopics(_topics: any[]) {
+    return;
+  }
+
   async getPublications(_openalexId: string, _limit?: number) {
     return [];
+  }
+
+  async getPublicationById(_id: string) {
+    return undefined;
+  }
+
+  async getPublicationsByOpenalexId(_openalexId: string) {
+    return [];
+  }
+
+  async upsertPublications(_publications: any[]) {
+    return;
+  }
+
+  async updatePublicationFeatured(_publicationId: string, _isFeatured: boolean) {
+    return undefined;
+  }
+
+  async updatePublicationPdf(_publicationId: string, _pdfUrl: string | null) {
+    return undefined;
   }
 
   async getAffiliations(_openalexId: string) {
     return [];
   }
 
+  async upsertAffiliations(_affiliations: any[]) {
+    return;
+  }
+
+  async getProfileSectionById(_id: string) {
+    return undefined;
+  }
+
+  async getProfileSections(_profileId: string) {
+    return [];
+  }
+
+  async createProfileSection(_section: any) {
+    return {} as any;
+  }
+
+  async updateProfileSection(_id: string, _updates: any) {
+    return undefined;
+  }
+
+  async deleteProfileSection(_id: string) {
+    return;
+  }
+
+  async reorderProfileSections(_sectionIds: string[]) {
+    return;
+  }
+
+  async getSyncLogs(_profileId: string) {
+    return [];
+  }
+
+  async createSyncLog(_log: any) {
+    return { id: 'dev-sync-log' } as any;
+  }
+
+  async updateSyncLog(_id: string, _updates: any) {
+    return undefined;
+  }
+
   // Tenant and user helper stubs
   async getTenantWithDetails(_id: string) { return undefined; }
   async getTenant(_id: string) { return undefined; }
+  async getDomain(_id: string) { return undefined; }
+  async getDomainByHostname(_hostname: string) { return undefined; }
+  async getDomainsByTenant(_tenantId: string) { return []; }
+  async createDomain(_domain: any) { return {} as any; }
+  async updateDomain(_id: string, _updates: any) { return undefined; }
+  async deleteDomain(_id: string) { return; }
   async getUser(_id: string) { return undefined; }
   async getUserByEmail(_email: string) { return undefined; }
+  async getUsersByTenant(_tenantId: string) { return []; }
+  async createUser(_user: any) { return {} as any; }
+  async upsertUser(_user: any) { return {} as any; }
+  async updateUser(_id: string, _updates: any) { return undefined; }
+  async deleteUser(_id: string) { return; }
+  async getAllUsers() { return []; }
+  async getUsersByRole(_role: any) { return []; }
 
   // No-op mutations
-  async updateTenantProfile(_tenantId: string, updates: any) {
+  async updateTenantProfile(_tenantId: string, updates: any): Promise<any> {
     return {
       id: 'dev-tenant',
       displayName: updates.displayName || null,
@@ -1237,11 +1370,40 @@ class MemoryStorage {
   async deleteTenant(_id: string) { return; }
   async getAllSettings() { return []; }
   async getSetting(_key: string) { return undefined; }
-  async upsertSetting(_k: string, _v: string) { return undefined; }
+  async upsertSetting(_k: string, _v: string) { return {} as any; }
+  async getTheme(_id: string) { return undefined; }
+  async getThemeByName(_name: string) { return undefined; }
   async getAllThemes() { return []; }
+  async getActiveThemes() { return []; }
   async getDefaultTheme() { return undefined; }
+  async createTheme(_theme: any) { return {} as any; }
+  async updateTheme(_id: string, _updates: any) { return undefined; }
+  async deleteTheme(_id: string) { return; }
+  async setDefaultTheme(_id: string) { return undefined; }
+  async bulkApplyThemeToTenants(_themeId: string, _tenantIds?: string[]) { return { updated: 0 }; }
+  async getTenantsWithThemeInfo() { return []; }
   async getPaymentsByEmail(_email: string) { return []; }
   async getAllPayments() { return []; }
+  async createPayment(_payment: any) { return {} as any; }
+  async getPaymentByOrderNumber(_orderNumber: string) { return undefined; }
+  async updatePaymentStatus(_orderNumber: string, _status: any, _transactionId?: string) { return undefined; }
+  async updatePaymentSessionId(_orderNumber: string, _sessionId: string) { return undefined; }
+  async provisionTenantFromPayment(_paymentId: string) { return undefined; }
+  async trackAnalyticsEvent(_event: any) { return {} as any; }
+  async getAnalyticsByOpenalexId(_openalexId: string, _startDate?: Date, _endDate?: Date) { return []; }
+  async getAnalyticsSummary(_openalexId: string, _days?: number) {
+    return {
+      totalViews: 0,
+      uniqueVisitors: 0,
+      totalClicks: 0,
+      totalShares: 0,
+      totalDownloads: 0,
+      viewsByDay: [],
+      topReferrers: [],
+      clicksByTarget: [],
+    };
+  }
+  async aggregateDailyAnalytics(_openalexId: string, _date: string) { return; }
   async createPasswordResetToken(_userId: string, _token: string, _expiresAt: Date) { return; }
   async getPasswordResetToken(_token: string) { return undefined; }
   async markPasswordResetTokenUsed(_token: string) { return; }

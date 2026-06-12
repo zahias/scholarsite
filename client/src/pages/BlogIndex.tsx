@@ -48,11 +48,11 @@ const posts = [
 ];
 
 const CATEGORY_COLORS: Record<string, string> = {
-  "Comparison": "#2B5BD7",
-  "Academic Metrics": "#6B3FA0",
-  "How-To Guide": "#2F6D3A",
-  "Career Advice": "#B33A3A",
-  "Tools": "#B87A0A",
+  "Comparison": "#0B1F3A",
+  "Academic Metrics": "#001F41",
+  "How-To Guide": "#7AA874",
+  "Career Advice": "#6F5400",
+  "Tools": "#6F5400",
   "All": "#0B1F3A",
 };
 
@@ -115,7 +115,7 @@ export default function BlogIndex() {
   const [featured, ...rest] = filtered;
 
   return (
-    <div className="min-h-screen flex flex-col" style={{ background: "#fff" }}>
+    <div className="public-page">
       <SEO
         title="Blog — Scholar.name | Research Portfolio & Academic Career Resources"
         description="Practical guides on academic portfolios, research metrics, career visibility, and how to stand out as a researcher online."
@@ -124,18 +124,17 @@ export default function BlogIndex() {
       />
       <GlobalNav mode="landing" />
 
-      <main style={{ flex: 1 }}>
+      <main className="public-main">
         {/* Masthead */}
-        <section style={{ background: "#0B1F3A", padding: "72px 0 56px", position: "relative", overflow: "hidden" }}>
-          <div style={{ position: "absolute", inset: 0, background: "radial-gradient(ellipse at 70% 0%, rgba(255,199,46,.14), transparent 55%), repeating-linear-gradient(0deg, rgba(255,255,255,.025) 0 1px, transparent 1px 52px)", pointerEvents: "none" }} />
-          <div style={{ maxWidth: 1100, margin: "0 auto", padding: "0 32px", position: "relative", zIndex: 1 }}>
-            <span style={{ fontFamily: "'Newsreader', serif", fontSize: 11, letterSpacing: ".22em", textTransform: "uppercase", color: "#FFC72E", fontWeight: 600, display: "block", marginBottom: 16 }}>
+        <section className="public-masthead">
+          <div className="public-masthead-inner" style={{ textAlign: "left" }}>
+            <span className="public-eyebrow">
               The Scholar Journal
             </span>
-            <h1 style={{ fontFamily: "'Newsreader', serif", fontSize: "clamp(36px,5vw,64px)", lineHeight: 1.06, fontWeight: 500, color: "#fff", margin: "0 0 16px", letterSpacing: "-0.022em", maxWidth: 640 }}>
+            <h1 className="public-title" style={{ fontSize: "clamp(36px,5vw,64px)", maxWidth: 640 }}>
               Research, visibility, and <em style={{ fontStyle: "italic", color: "#FFC72E" }}>craft</em>.
             </h1>
-            <p style={{ fontSize: 17, color: "rgba(255,255,255,.7)", maxWidth: 480, lineHeight: 1.55 }}>
+            <p className="public-copy" style={{ maxWidth: 480, margin: 0 }}>
               Practical guides on academic portfolios, research metrics, and career development — for researchers at every stage.
             </p>
           </div>
@@ -143,7 +142,7 @@ export default function BlogIndex() {
 
         {/* Category tabs */}
         <div style={{ borderBottom: "1px solid rgba(11,31,58,.08)", background: "#fff", position: "sticky", top: 60, zIndex: 10 }}>
-          <div style={{ maxWidth: 1100, margin: "0 auto", padding: "0 32px", display: "flex", gap: 4, overflowX: "auto" }}>
+          <div style={{ maxWidth: 1280, margin: "0 auto", padding: "0 32px", display: "flex", gap: 4, overflowX: "auto" }}>
             {allCategories.map((cat) => (
               <button key={cat} onClick={() => setActiveCategory(cat)}
                 style={{
@@ -166,7 +165,8 @@ export default function BlogIndex() {
           </div>
         </div>
 
-        <div style={{ maxWidth: 1100, margin: "0 auto", padding: "48px 32px 72px" }}>
+        <section className="public-section" style={{ paddingTop: 48, paddingBottom: 72 }}>
+        <div className="public-container-lg">
 
           {/* Featured story */}
           {featured && (
@@ -174,8 +174,8 @@ export default function BlogIndex() {
               <div style={{ fontSize: 11, letterSpacing: ".18em", textTransform: "uppercase", color: "#75777E", fontWeight: 600, marginBottom: 16 }}>Featured</div>
               <article
                 onClick={() => { window.scrollTo(0, 0); navigate("/blog/" + featured.slug); }}
-                style={{ display: "grid", gridTemplateColumns: "1fr 1.1fr", borderRadius: 16, overflow: "hidden", border: "1px solid rgba(11,31,58,.08)", cursor: "pointer", transition: "box-shadow .2s" }}
-                className="featured-card"
+                className="public-card featured-card"
+                style={{ display: "grid", gridTemplateColumns: "1fr 1.1fr", overflow: "hidden", cursor: "pointer", transition: "box-shadow .2s" }}
                 onMouseEnter={(e) => (e.currentTarget.style.boxShadow = "0 20px 50px -16px rgba(11,31,58,.18)")}
                 onMouseLeave={(e) => (e.currentTarget.style.boxShadow = "none")}>
                 <style>{`@media (max-width: 720px) { .featured-card { grid-template-columns: 1fr !important; } }`}</style>
@@ -205,8 +205,8 @@ export default function BlogIndex() {
 
           {/* Post grid */}
           {rest.length > 0 && (
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 24 }} className="post-grid">
-              <style>{`@media (max-width: 900px) { .post-grid { grid-template-columns: repeat(2, 1fr) !important; } } @media (max-width: 560px) { .post-grid { grid-template-columns: 1fr !important; } }`}</style>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 24 }} className="post-grid">
+              <style>{`@media (max-width: 1120px) { .post-grid { grid-template-columns: repeat(3, 1fr) !important; } } @media (max-width: 900px) { .post-grid { grid-template-columns: repeat(2, 1fr) !important; } } @media (max-width: 560px) { .post-grid { grid-template-columns: 1fr !important; } }`}</style>
               {rest.map((post) => (
                 <PostCard key={post.slug} post={post} onClick={() => { window.scrollTo(0, 0); navigate("/blog/" + post.slug); }} />
               ))}
@@ -217,6 +217,7 @@ export default function BlogIndex() {
             <p style={{ textAlign: "center", color: "#75777E", padding: "48px 0", fontSize: 15 }}>No articles in this category yet — check back soon.</p>
           )}
         </div>
+        </section>
 
         {/* Newsletter band */}
         <div style={{ background: "#F0F4F8", borderTop: "1px solid rgba(11,31,58,.06)", padding: "60px 32px" }}>

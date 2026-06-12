@@ -926,7 +926,7 @@ var DatabaseStorage = class {
     }).where(eq(users.id, user.id)).returning();
     return updated;
   }
-  async createTrialTenant(userId, firstName, lastName, email) {
+  async createTrialTenant(userId, firstName, lastName, email, options) {
     const base = `${firstName.toLowerCase().replace(/[^a-z0-9]/g, "")}${lastName ? `-${lastName.toLowerCase().replace(/[^a-z0-9]/g, "")}` : ""}`;
     const uniqueSuffix = crypto.randomBytes(3).toString("hex");
     const subdomain = `${base || "researcher"}-${uniqueSuffix}`.substring(0, 40);
@@ -947,6 +947,9 @@ var DatabaseStorage = class {
     await this.updateTenantProfile(tenant.id, {
       tenantId: tenant.id,
       displayName: `${firstName} ${lastName}`.trim(),
+      openalexId: options?.openalexId,
+      currentAffiliation: options?.affiliation,
+      email,
       isPublic: true
     });
     await this.updateUser(userId, { tenantId: tenant.id });
@@ -970,6 +973,7 @@ var DatabaseStorage = class {
   async provisionTenantFromPayment(paymentId) {
     const [payment] = await db.select().from(payments).where(eq(payments.id, paymentId));
     if (!payment || payment.status !== "completed") return void 0;
+    const metadata = payment.metadata;
     const existingUser = await this.getUserByEmail(payment.customerEmail);
     if (existingUser?.tenantId) {
       const subscriptionEnd2 = /* @__PURE__ */ new Date();
@@ -982,8 +986,16 @@ var DatabaseStorage = class {
         plan: payment.plan,
         status: "active",
         subscriptionStartDate: /* @__PURE__ */ new Date(),
-        subscriptionEndDate: subscriptionEnd2
+        subscriptionEndDate: subscriptionEnd2,
+        trialEndsAt: null
       });
+      if (metadata?.openalexId) {
+        await this.updateTenantProfile(existingUser.tenantId, {
+          openalexId: metadata.openalexId,
+          currentAffiliation: metadata.affiliation,
+          email: payment.customerEmail
+        });
+      }
       await db.update(payments).set({ tenantId: existingUser.tenantId }).where(eq(payments.id, paymentId));
       return updatedTenant;
     }
@@ -1010,6 +1022,14 @@ var DatabaseStorage = class {
       hostname: `${subdomain}.scholar.name`,
       isPrimary: true,
       isSubdomain: true
+    });
+    await this.updateTenantProfile(tenant.id, {
+      tenantId: tenant.id,
+      displayName: payment.customerName,
+      openalexId: metadata?.openalexId,
+      currentAffiliation: metadata?.affiliation,
+      email: payment.customerEmail,
+      isPublic: true
     });
     if (existingUser) {
       await this.updateUser(existingUser.id, { tenantId: tenant.id });
@@ -1109,17 +1129,83 @@ var MemoryStorage = class {
   async getResearcherProfileByOpenalexId(_openalexId) {
     return void 0;
   }
+  async getResearcherProfileByTenant(_tenantId) {
+    return void 0;
+  }
+  async getAllPublicResearcherProfiles() {
+    return [];
+  }
+  async upsertResearcherProfile(_profile) {
+    return {};
+  }
+  async updateResearcherProfile(_id, _updates) {
+    return {};
+  }
+  async deleteResearcherProfile(_openalexId) {
+    return;
+  }
   async getOpenalexData(_openalexId, _dataType) {
     return void 0;
+  }
+  async upsertOpenalexData(_data) {
+    return {};
   }
   async getResearchTopics(_openalexId) {
     return [];
   }
+  async upsertResearchTopics(_topics) {
+    return;
+  }
   async getPublications(_openalexId, _limit) {
     return [];
   }
+  async getPublicationById(_id) {
+    return void 0;
+  }
+  async getPublicationsByOpenalexId(_openalexId) {
+    return [];
+  }
+  async upsertPublications(_publications) {
+    return;
+  }
+  async updatePublicationFeatured(_publicationId, _isFeatured) {
+    return void 0;
+  }
+  async updatePublicationPdf(_publicationId, _pdfUrl) {
+    return void 0;
+  }
   async getAffiliations(_openalexId) {
     return [];
+  }
+  async upsertAffiliations(_affiliations) {
+    return;
+  }
+  async getProfileSectionById(_id) {
+    return void 0;
+  }
+  async getProfileSections(_profileId) {
+    return [];
+  }
+  async createProfileSection(_section) {
+    return {};
+  }
+  async updateProfileSection(_id, _updates) {
+    return void 0;
+  }
+  async deleteProfileSection(_id) {
+    return;
+  }
+  async reorderProfileSections(_sectionIds) {
+    return;
+  }
+  async getSyncLogs(_profileId) {
+    return [];
+  }
+  async createSyncLog(_log) {
+    return { id: "dev-sync-log" };
+  }
+  async updateSyncLog(_id, _updates) {
+    return void 0;
   }
   // Tenant and user helper stubs
   async getTenantWithDetails(_id) {
@@ -1128,11 +1214,50 @@ var MemoryStorage = class {
   async getTenant(_id) {
     return void 0;
   }
+  async getDomain(_id) {
+    return void 0;
+  }
+  async getDomainByHostname(_hostname) {
+    return void 0;
+  }
+  async getDomainsByTenant(_tenantId) {
+    return [];
+  }
+  async createDomain(_domain) {
+    return {};
+  }
+  async updateDomain(_id, _updates) {
+    return void 0;
+  }
+  async deleteDomain(_id) {
+    return;
+  }
   async getUser(_id) {
     return void 0;
   }
   async getUserByEmail(_email) {
     return void 0;
+  }
+  async getUsersByTenant(_tenantId) {
+    return [];
+  }
+  async createUser(_user) {
+    return {};
+  }
+  async upsertUser(_user) {
+    return {};
+  }
+  async updateUser(_id, _updates) {
+    return void 0;
+  }
+  async deleteUser(_id) {
+    return;
+  }
+  async getAllUsers() {
+    return [];
+  }
+  async getUsersByRole(_role) {
+    return [];
   }
   // No-op mutations
   async updateTenantProfile(_tenantId, updates) {
@@ -1169,19 +1294,82 @@ var MemoryStorage = class {
     return void 0;
   }
   async upsertSetting(_k, _v) {
+    return {};
+  }
+  async getTheme(_id) {
+    return void 0;
+  }
+  async getThemeByName(_name) {
     return void 0;
   }
   async getAllThemes() {
     return [];
   }
+  async getActiveThemes() {
+    return [];
+  }
   async getDefaultTheme() {
     return void 0;
+  }
+  async createTheme(_theme) {
+    return {};
+  }
+  async updateTheme(_id, _updates) {
+    return void 0;
+  }
+  async deleteTheme(_id) {
+    return;
+  }
+  async setDefaultTheme(_id) {
+    return void 0;
+  }
+  async bulkApplyThemeToTenants(_themeId, _tenantIds) {
+    return { updated: 0 };
+  }
+  async getTenantsWithThemeInfo() {
+    return [];
   }
   async getPaymentsByEmail(_email) {
     return [];
   }
   async getAllPayments() {
     return [];
+  }
+  async createPayment(_payment) {
+    return {};
+  }
+  async getPaymentByOrderNumber(_orderNumber) {
+    return void 0;
+  }
+  async updatePaymentStatus(_orderNumber, _status, _transactionId) {
+    return void 0;
+  }
+  async updatePaymentSessionId(_orderNumber, _sessionId) {
+    return void 0;
+  }
+  async provisionTenantFromPayment(_paymentId) {
+    return void 0;
+  }
+  async trackAnalyticsEvent(_event) {
+    return {};
+  }
+  async getAnalyticsByOpenalexId(_openalexId, _startDate, _endDate) {
+    return [];
+  }
+  async getAnalyticsSummary(_openalexId, _days) {
+    return {
+      totalViews: 0,
+      uniqueVisitors: 0,
+      totalClicks: 0,
+      totalShares: 0,
+      totalDownloads: 0,
+      viewsByDay: [],
+      topReferrers: [],
+      clicksByTarget: []
+    };
+  }
+  async aggregateDailyAnalytics(_openalexId, _date) {
+    return;
   }
   async createPasswordResetToken(_userId, _token, _expiresAt) {
     return;
@@ -1667,6 +1855,7 @@ import crypto2 from "crypto";
 import nodemailer from "nodemailer";
 import { z as z2 } from "zod";
 var router = Router();
+var openalexService = new OpenAlexService();
 function createTransporter() {
   if (!process.env.SMTP_PASSWORD) return null;
   return nodemailer.createTransport({
@@ -1774,9 +1963,13 @@ router.post("/register", async (req, res) => {
     sendSignupEmail(validatedData.email, validatedData.firstName, verificationToken).catch(
       (err) => console.error("[auth] Failed to send signup email:", err)
     );
-    storage.createTrialTenant(user.id, validatedData.firstName, validatedData.lastName || "", validatedData.email).catch(
-      (err) => console.error("[auth] Failed to create trial tenant:", err)
-    );
+    const tenant = await storage.createTrialTenant(user.id, validatedData.firstName, validatedData.lastName || "", validatedData.email, {
+      openalexId: validatedData.openalexId,
+      affiliation: validatedData.affiliation
+    });
+    if (validatedData.openalexId) {
+      openalexService.syncResearcherData(validatedData.openalexId).then(() => storage.updateTenantProfile(tenant.id, { lastSyncedAt: /* @__PURE__ */ new Date() })).catch((err) => console.error("[auth] Failed to sync OpenAlex data after signup:", err));
+    }
     req.session.userId = user.id;
     req.session.userRole = user.role;
     req.session.isAuthenticated = true;
@@ -2257,7 +2450,7 @@ import { z as z4 } from "zod";
 import bcrypt3 from "bcryptjs";
 
 // server/services/syncScheduler.ts
-var openalexService = new OpenAlexService();
+var openalexService2 = new OpenAlexService();
 var syncLogs2 = [];
 var MAX_LOGS = 100;
 var isSyncRunning = false;
@@ -2303,7 +2496,7 @@ async function syncTenant(tenantId, tenantName, openalexId, syncFrequency) {
   };
   try {
     console.log(`[SyncScheduler] Starting sync for tenant: ${tenantName} (${openalexId})`);
-    await openalexService.syncResearcherData(openalexId);
+    await openalexService2.syncResearcherData(openalexId);
     const profile = await storage.getResearcherProfileByTenant(tenantId);
     if (profile) {
       await storage.updateResearcherProfile(profile.id, {
@@ -2464,6 +2657,7 @@ router3.post("/login", async (req, res) => {
       }
       req.session.userId = user.id;
       req.session.userRole = user.role;
+      req.session.isAuthenticated = true;
       req.session.save((saveErr) => {
         if (saveErr) {
           console.error("Session save error:", saveErr);
@@ -2861,8 +3055,72 @@ import multer from "multer";
 import { Client as ObjectStorageClient } from "@replit/object-storage";
 import path from "path";
 import fs from "fs/promises";
+
+// server/billing.ts
+function getTenantAccessState(tenant, now = /* @__PURE__ */ new Date()) {
+  if (tenant.status === "cancelled") return "cancelled";
+  if (tenant.status === "suspended") return "suspended";
+  if (tenant.status === "pending") return "pending";
+  if (tenant.plan === "free" && tenant.trialEndsAt && tenant.trialEndsAt <= now) {
+    return "trial_expired";
+  }
+  if (tenant.plan !== "free" && tenant.subscriptionEndDate && tenant.subscriptionEndDate <= now) {
+    return "subscription_expired";
+  }
+  return "active";
+}
+function tenantHasServiceAccess(tenant, now = /* @__PURE__ */ new Date()) {
+  return getTenantAccessState(tenant, now) === "active";
+}
+function getTenantAccessMessage(state) {
+  switch (state) {
+    case "trial_expired":
+      return "Your free trial has ended. Choose a paid plan to reactivate your public portfolio.";
+    case "subscription_expired":
+      return "Your subscription period has ended. Choose a plan to reactivate your public portfolio.";
+    case "suspended":
+      return "This portfolio is suspended. Contact support to reactivate it.";
+    case "cancelled":
+      return "This portfolio is cancelled.";
+    case "pending":
+      return "This portfolio is pending activation.";
+    case "active":
+    default:
+      return "This portfolio is active.";
+  }
+}
+
+// server/researcherRoutes.ts
 var router4 = Router4();
-var openalexService2 = new OpenAlexService();
+var openalexService3 = new OpenAlexService();
+async function requireResearcherServiceAccess(req, res, next) {
+  try {
+    const userId = req.session?.userId;
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+    const user = await storage.getUser(userId);
+    if (!user?.tenantId) {
+      return res.status(404).json({ message: "No tenant associated with this user" });
+    }
+    const tenant = await storage.getTenant(user.tenantId);
+    if (!tenant) {
+      return res.status(404).json({ message: "Tenant not found" });
+    }
+    const accessState = getTenantAccessState(tenant);
+    if (!tenantHasServiceAccess(tenant)) {
+      return res.status(402).json({
+        message: getTenantAccessMessage(accessState),
+        accessState,
+        upgradeUrl: "/checkout?plan=starter&billing=monthly"
+      });
+    }
+    next();
+  } catch (error) {
+    console.error("Error checking researcher service access:", error);
+    res.status(500).json({ message: "Failed to check account status" });
+  }
+}
 async function saveFileLocally(filename, buffer) {
   const publicDir = path.join(process.cwd(), "public");
   const fullPath = path.join(publicDir, filename);
@@ -2916,12 +3174,27 @@ router4.get("/my-tenant", isAuthenticated, async (req, res) => {
     if (!tenant) {
       return res.status(404).json({ message: "Tenant not found" });
     }
-    res.json({ tenant });
+    const accessState = getTenantAccessState(tenant);
+    res.json({
+      tenant: {
+        ...tenant,
+        accessState,
+        accessMessage: getTenantAccessMessage(accessState),
+        hasServiceAccess: tenantHasServiceAccess(tenant)
+      }
+    });
   } catch (error) {
     console.error("Error getting tenant:", error);
     res.status(500).json({ message: "Failed to get tenant" });
   }
 });
+router4.use((req, _res, next) => {
+  if (/^\/[^/]+\/data$/.test(req.path)) {
+    return next("router");
+  }
+  next();
+});
+router4.use(isAuthenticated, requireResearcherServiceAccess);
 var updateProfileSchema = z5.object({
   openalexId: z5.string().optional(),
   displayName: z5.string().nullable().optional(),
@@ -2994,7 +3267,7 @@ router4.post("/sync", isAuthenticated, async (req, res) => {
         (_, reject) => setTimeout(() => reject(new Error("Sync timed out after 45 seconds")), 45e3)
       );
       await Promise.race([
-        openalexService2.syncResearcherData(tenant.profile.openalexId),
+        openalexService3.syncResearcherData(tenant.profile.openalexId),
         timeoutPromise
       ]);
       await storage.updateSyncLog(syncLog.id, {
@@ -3720,7 +3993,10 @@ router5.get("/status/:orderNumber", async (req, res) => {
     res.json({
       orderNumber: payment.orderNumber,
       status: payment.status,
-      plan: payment.plan
+      plan: payment.plan,
+      amount: payment.amount,
+      currency: payment.currency,
+      billingPeriod: payment.billingPeriod
     });
   } catch (error) {
     console.error("Payment status check failed:", error);
@@ -3758,7 +4034,7 @@ async function tenantResolver(req, res, next) {
       return next();
     }
     const tenant = await storage.getTenant(domain.tenantId);
-    if (!tenant || tenant.status === "cancelled" || tenant.status === "suspended") {
+    if (!tenant || !tenantHasServiceAccess(tenant)) {
       req.isMarketingSite = true;
       return next();
     }
@@ -3779,8 +4055,12 @@ import nodemailer3 from "nodemailer";
 var updateEmitter = new EventEmitter();
 var sseConnections = /* @__PURE__ */ new Set();
 function adminSessionAuthMiddleware(req, res, next) {
-  if (req.session?.isAdmin) {
+  if (req.session?.userId && req.session?.isAuthenticated && req.session?.userRole === "admin") {
     console.log(`Admin web access: ${req.method} ${req.path} from ${req.ip}`);
+    return next();
+  }
+  if (req.session?.isAdmin) {
+    console.log(`Admin legacy web access: ${req.method} ${req.path} from ${req.ip}`);
     return next();
   }
   const authHeader = req.headers.authorization;
@@ -3801,12 +4081,15 @@ function adminSessionAuthMiddleware(req, res, next) {
 }
 function isAuthenticated2(req) {
   const adminToken = process.env.ADMIN_API_TOKEN;
-  if (!adminToken) return false;
+  if (req.session?.userId && req.session?.isAuthenticated && req.session?.userRole === "admin") {
+    return true;
+  }
   if (req.session?.isAdmin) {
     return true;
   }
   const authHeader = req.headers.authorization;
   if (authHeader && authHeader.startsWith("Bearer ")) {
+    if (!adminToken) return false;
     const token = authHeader.substring(7);
     return token === adminToken;
   }
@@ -3818,7 +4101,7 @@ var adminRateLimit = (() => {
   const MAX_REQUESTS = 100;
   setInterval(() => {
     const now = Date.now();
-    for (const [ip, data] of requests) {
+    for (const [ip, data] of Array.from(requests.entries())) {
       if (now > data.resetTime) requests.delete(ip);
     }
   }, 60 * 60 * 1e3);
@@ -3844,7 +4127,7 @@ var publicWriteRateLimit = (() => {
   const MAX_REQUESTS = 20;
   setInterval(() => {
     const now = Date.now();
-    for (const [ip, data] of requests) {
+    for (const [ip, data] of Array.from(requests.entries())) {
       if (now > data.resetTime) requests.delete(ip);
     }
   }, 60 * 60 * 1e3);
@@ -4171,7 +4454,7 @@ function escapeCSV(value) {
   return value;
 }
 async function registerRoutes(app2) {
-  const openalexService3 = new OpenAlexService();
+  const openalexService4 = new OpenAlexService();
   app2.use(tenantResolver);
   app2.use("/api/auth", authRouter);
   app2.use("/api/admin", adminRouter);
@@ -4285,6 +4568,7 @@ async function registerRoutes(app2) {
           tenant: null
         });
       }
+      const accessState = getTenantAccessState(tenant);
       const profile = await storage.getResearcherProfileByTenant(tenant.id);
       return res.json({
         isTenantSite: true,
@@ -4297,7 +4581,9 @@ async function registerRoutes(app2) {
           accentColor: tenant.accentColor
         },
         hasProfile: !!profile?.openalexId,
-        openalexId: profile?.openalexId || null
+        openalexId: profile?.openalexId || null,
+        accessState,
+        accessMessage: getTenantAccessMessage(accessState)
       });
     } catch (error) {
       console.error("Error getting site context:", error);
@@ -4313,6 +4599,15 @@ async function registerRoutes(app2) {
       const tenant = req.tenant;
       if (!tenant) {
         return res.status(404).json({ message: "No tenant found for this domain" });
+      }
+      const accessState = getTenantAccessState(tenant);
+      if (!tenantHasServiceAccess(tenant)) {
+        return res.status(402).json({
+          message: getTenantAccessMessage(accessState),
+          accessState,
+          tenantName: tenant.name,
+          tenantStatus: tenant.status
+        });
       }
       const profile = await storage.getResearcherProfileByTenant(tenant.id);
       if (!profile || !profile.openalexId) {
@@ -4364,6 +4659,15 @@ async function registerRoutes(app2) {
       const preview = req.query.preview === "true";
       const profile = await storage.getResearcherProfileByOpenalexId(openalexId);
       if (profile && profile.isPublic) {
+        const tenant = await storage.getTenant(profile.tenantId);
+        const accessState = tenant ? getTenantAccessState(tenant) : "cancelled";
+        if (!tenant || !tenantHasServiceAccess(tenant)) {
+          return res.status(402).json({
+            message: getTenantAccessMessage(accessState),
+            accessState,
+            isPreview: false
+          });
+        }
         const researcherData = await storage.getOpenalexData(openalexId, "researcher");
         const researchTopics2 = await storage.getResearchTopics(openalexId);
         const publications2 = await storage.getPublications(openalexId);
@@ -4389,8 +4693,8 @@ async function registerRoutes(app2) {
         });
       }
       try {
-        const researcher = await openalexService3.getResearcher(openalexId);
-        const works = await openalexService3.getResearcherWorks(openalexId);
+        const researcher = await openalexService4.getResearcher(openalexId);
+        const works = await openalexService4.getResearcherWorks(openalexId);
         const topics = (researcher.topics || []).slice(0, 10).map((topic) => ({
           displayName: topic.display_name,
           subfield: topic.subfield?.display_name || null,
@@ -4406,7 +4710,7 @@ async function registerRoutes(app2) {
           let cleaned = title.replace(/<[^>]*>/g, "").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&amp;/g, "&").replace(/&quot;/g, '"').replace(/&#?\w+;/g, "").replace(/\s+/g, " ").trim();
           return cleaned || "Untitled";
         };
-        const publications2 = works.results.slice(0, 500).map((work) => ({
+        const publications2 = works.results.slice(0, 3).map((work) => ({
           id: work.id || "",
           title: normalizeTitle(work.display_name || work.title),
           authorNames: work.authorships?.map((a) => a.author?.display_name).filter(Boolean).join(", ") || null,
@@ -4508,7 +4812,7 @@ async function registerRoutes(app2) {
       const profile = await storage.upsertResearcherProfile(profileData);
       if (profile.openalexId) {
         broadcastResearcherUpdate(profile.openalexId, "create");
-        openalexService3.syncResearcherData(profile.openalexId).catch((error) => {
+        openalexService4.syncResearcherData(profile.openalexId).catch((error) => {
           console.error(`Failed to sync OpenAlex data for ${profile.openalexId}:`, error);
         });
       }
@@ -4575,7 +4879,7 @@ async function registerRoutes(app2) {
         return res.status(404).json({ message: "Researcher profile not found" });
       }
       if (profile.openalexId) {
-        await openalexService3.syncResearcherData(profile.openalexId);
+        await openalexService4.syncResearcherData(profile.openalexId);
       }
       await storage.updateResearcherProfile(profile.id, {
         lastSyncedAt: /* @__PURE__ */ new Date()
@@ -4619,7 +4923,7 @@ async function registerRoutes(app2) {
   app2.get("/api/openalex/search/:openalexId", async (req, res) => {
     try {
       const { openalexId } = req.params;
-      const data = await openalexService3.getResearcher(openalexId);
+      const data = await openalexService4.getResearcher(openalexId);
       res.json(data);
     } catch (error) {
       console.error("Error searching OpenAlex:", error);
@@ -4629,7 +4933,7 @@ async function registerRoutes(app2) {
   app2.get("/api/openalex/author/:openalexId", async (req, res) => {
     try {
       const { openalexId } = req.params;
-      const data = await openalexService3.getResearcher(openalexId);
+      const data = await openalexService4.getResearcher(openalexId);
       res.json(data);
     } catch (error) {
       console.error("Error fetching OpenAlex author:", error);

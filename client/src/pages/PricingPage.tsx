@@ -42,9 +42,12 @@ export default function PricingPage() {
   const [, navigate] = useLocation();
   const [isYearly, setIsYearly] = useState(false);
   useEffect(() => { window.scrollTo(0, 0); }, []);
+  const billingPeriod = isYearly ? "yearly" : "monthly";
+  const checkoutPathForPlan = (planName: string) =>
+    `/checkout?plan=${planName.toLowerCase()}&billing=${billingPeriod}`;
 
   return (
-    <div className="min-h-screen flex flex-col" style={{ background: "#fff" }}>
+    <div className="public-page">
       <SEO
         title="Pricing — Scholar.name"
         description="Simple, transparent pricing for professional research portfolios."
@@ -53,27 +56,26 @@ export default function PricingPage() {
       />
       <GlobalNav mode="landing" />
 
-      <main style={{ flex: 1 }}>
+      <main className="public-main">
         {/* Hero */}
-        <section style={{ background: "#0B1F3A", padding: "72px 0 56px", position: "relative", overflow: "hidden" }}>
-          <div style={{ position: "absolute", inset: 0, background: "radial-gradient(ellipse at 70% 0%, rgba(255,199,46,.14), transparent 55%), repeating-linear-gradient(0deg, rgba(255,255,255,.025) 0 1px, transparent 1px 52px)", pointerEvents: "none" }} />
-          <div style={{ maxWidth: 720, margin: "0 auto", padding: "0 32px", position: "relative", zIndex: 1, textAlign: "center" }}>
-            <span style={{ fontFamily: "'Newsreader', serif", fontSize: 11, letterSpacing: ".22em", textTransform: "uppercase", color: "#FFC72E", fontWeight: 600, display: "block", marginBottom: 16 }}>Pricing</span>
-            <h1 style={{ fontFamily: "'Newsreader', serif", fontSize: "clamp(32px,5vw,56px)", lineHeight: 1.08, fontWeight: 500, color: "#fff", margin: "0 0 16px", letterSpacing: "-0.02em" }}>
+        <section className="public-masthead">
+          <div className="public-masthead-inner">
+            <span className="public-eyebrow">Pricing</span>
+            <h1 className="public-title">
               Simple, transparent pricing
             </h1>
-            <p style={{ fontSize: 17, color: "rgba(255,255,255,.7)", lineHeight: 1.55 }}>
+            <p className="public-copy">
               Choose a plan and your portfolio goes live in minutes.
             </p>
           </div>
         </section>
 
         {/* Toggle + Plans */}
-        <section style={{ background: "#F0F4F8", padding: "64px 24px 80px" }}>
-          <div style={{ maxWidth: 760, margin: "0 auto" }}>
+        <section className="public-section">
+          <div className="public-container-lg">
 
             {/* Monthly / Yearly toggle */}
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 12, marginBottom: 48 }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 12, marginBottom: 32 }}>
               <span style={{ fontSize: 14, fontWeight: isYearly ? 400 : 600, color: isYearly ? "#75777E" : "#0B1F3A", transition: "color .15s" }}>Monthly</span>
               <button
                 onClick={() => setIsYearly(!isYearly)}
@@ -99,7 +101,7 @@ export default function PricingPage() {
             </div>
 
             {/* Free trial banner */}
-            <div style={{ maxWidth: 720, margin: "0 auto 28px", padding: "28px 32px", borderRadius: 16, border: "1.5px dashed rgba(11,31,58,.18)", background: "rgba(240,244,248,.7)", display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 24, flexWrap: "wrap" }}>
+            <div className="public-subtle-card" style={{ margin: "0 0 28px", padding: "28px 32px", borderStyle: "dashed", display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 24, flexWrap: "wrap" }}>
               <div>
                 <div style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "3px 10px", borderRadius: 999, fontSize: 12, fontWeight: 600, background: "rgba(47,109,58,.1)", color: "#2F6D3A", border: "1px solid rgba(47,109,58,.18)", marginBottom: 8 }}>
                   <Check style={{ width: 12, height: 12, flexShrink: 0 }} />
@@ -109,7 +111,8 @@ export default function PricingPage() {
                 <p style={{ fontSize: 13.5, color: "#75777E", margin: 0 }}>Full access to all features. Your portfolio goes live immediately. Choose a paid plan when you&rsquo;re ready.</p>
               </div>
               <button
-                style={{ background: "#0B1F3A", color: "#fff", border: "none", borderRadius: 8, padding: "10px 22px", fontSize: 14, fontWeight: 600, cursor: "pointer", flexShrink: 0 }}
+                className="btn-navy"
+                style={{ border: "none", padding: "10px 22px", fontSize: 14, cursor: "pointer", flexShrink: 0 }}
                 onClick={() => { window.scrollTo(0, 0); navigate("/signup"); }}
               >
                 Start free trial
@@ -117,28 +120,15 @@ export default function PricingPage() {
             </div>
 
             {/* Plan cards */}
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }} className="pricing-grid">
-              <style>{`@media (max-width: 600px) { .pricing-grid { grid-template-columns: 1fr !important; } }`}</style>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 24 }} className="pricing-grid">
+              <style>{`@media (max-width: 760px) { .pricing-grid { grid-template-columns: 1fr !important; } }`}</style>
               {plans.map((plan, i) => (
                 <div
                   key={i}
-                  style={{
-                    background: plan.highlighted ? "#0B1F3A" : "#fff",
-                    borderRadius: 20,
-                    border: plan.highlighted ? "none" : "1px solid rgba(11,31,58,.08)",
-                    padding: "32px 28px",
-                    position: "relative",
-                    boxShadow: plan.highlighted ? "0 20px 60px -16px rgba(11,31,58,.35)" : "none",
-                    overflow: "visible",
-                  }}
+                  className={plan.highlighted ? "plan-card plan-card-featured" : "plan-card"}
                 >
-                  {/* Highlighted bg decoration */}
                   {plan.highlighted && (
-                    <div style={{ position: "absolute", inset: 0, borderRadius: 20, background: "radial-gradient(ellipse at 80% 0%, rgba(255,199,46,.2), transparent 55%)", pointerEvents: "none" }} />
-                  )}
-
-                  {plan.highlighted && (
-                    <div style={{ position: "absolute", top: -12, left: "50%", transform: "translateX(-50%)", background: "#FFC72E", color: "#6F5400", fontSize: 11, fontWeight: 700, letterSpacing: ".1em", textTransform: "uppercase", padding: "4px 12px", borderRadius: 999 }}>
+                    <div className="plan-badge">
                       Most Popular
                     </div>
                   )}
@@ -171,11 +161,10 @@ export default function PricingPage() {
                     </ul>
 
                     <button
-                      onClick={() => { window.scrollTo(0, 0); navigate(`/signup?plan=${plan.name.toLowerCase()}`); }}
+                      onClick={() => { window.scrollTo(0, 0); navigate(checkoutPathForPlan(plan.name)); }}
+                      className={plan.highlighted ? "btn-gold" : "btn-navy"}
                       style={{
-                        width: "100%", padding: "12px 20px", borderRadius: 10, fontSize: 14.5, fontWeight: 700, fontFamily: "inherit", cursor: "pointer", border: "none",
-                        background: plan.highlighted ? "#FFC72E" : "#0B1F3A",
-                        color: plan.highlighted ? "#6F5400" : "#fff",
+                        width: "100%", padding: "12px 20px", fontSize: 14.5, fontFamily: "inherit", cursor: "pointer", border: "none",
                       }}
                     >
                       Get Started
@@ -192,7 +181,7 @@ export default function PricingPage() {
         </section>
 
         {/* Bottom CTA */}
-        <section style={{ background: "#fff", padding: "56px 24px", textAlign: "center", borderTop: "1px solid rgba(11,31,58,.06)" }}>
+        <section style={{ background: "var(--surface-container-lowest)", padding: "56px 24px", textAlign: "center", borderTop: "1px solid rgba(11,31,58,.06)" }}>
           <div style={{ maxWidth: 480, margin: "0 auto" }}>
             <h2 style={{ fontFamily: "'Newsreader', serif", fontSize: "clamp(22px,3vw,30px)", fontWeight: 500, color: "#0B1F3A", margin: "0 0 24px", letterSpacing: "-0.015em" }}>
               Have questions before you start?
@@ -200,7 +189,7 @@ export default function PricingPage() {
             <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap" }}>
               <button
                 onClick={() => { window.scrollTo(0, 0); navigate("/faq"); }}
-                style={{ padding: "10px 22px", background: "#fff", color: "#0B1F3A", border: "1px solid rgba(11,31,58,.14)", borderRadius: 9, fontSize: 14, fontWeight: 600, fontFamily: "inherit", cursor: "pointer" }}>
+                style={{ padding: "10px 22px", background: "var(--surface-container-lowest)", color: "var(--primary-container)", border: "1px solid rgba(11,31,58,.14)", borderRadius: 9, fontSize: 14, fontWeight: 600, fontFamily: "inherit", cursor: "pointer" }}>
                 Read the FAQ →
               </button>
               <button

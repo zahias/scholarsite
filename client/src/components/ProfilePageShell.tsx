@@ -104,10 +104,10 @@ export default function ProfilePageShell({
       </div>
 
       {/* ── Identity card ── */}
-      <div style={{ maxWidth: 860, margin: "0 auto", padding: "0 24px" }}>
+      <div className="profile-wide-container">
         <div
           id={identityCardId ?? "overview"}
-          style={{ marginTop: -90, position: "relative", zIndex: 10, background: "#fff", borderRadius: 20, border: "1px solid rgba(11,31,58,.08)", boxShadow: "0 20px 60px -20px rgba(11,31,58,.18)", padding: "28px 36px 32px", textAlign: "center" }}
+          style={{ maxWidth: 980, margin: "-90px auto 0", position: "relative", zIndex: 10, background: "#fff", borderRadius: 20, border: "1px solid rgba(11,31,58,.08)", boxShadow: "0 20px 60px -20px rgba(11,31,58,.18)", padding: "28px 36px 32px", textAlign: "center" }}
         >
           {/* Avatar */}
           <div style={{ margin: "0 auto 16px", width: 120, height: 120 }}>
@@ -154,6 +154,7 @@ export default function ProfilePageShell({
           )}
 
           {/* Social icons */}
+          {!isPreview && (
           <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, marginBottom: 20, flexWrap: "wrap" }}>
             {orcidUrl && <a href={orcidUrl} target="_blank" rel="noopener noreferrer" title="ORCID" style={socialBtn}><SiOrcid size={15} /></a>}
             {googleScholarUrl && <a href={googleScholarUrl} target="_blank" rel="noopener noreferrer" title="Google Scholar" style={socialBtn}><SiGooglescholar size={15} /></a>}
@@ -168,8 +169,10 @@ export default function ProfilePageShell({
               </a>
             )}
           </div>
+          )}
 
           {/* Action buttons — callers inject custom buttons via actionsSlot */}
+          {!isPreview ? (
           <div style={{ display: "flex", gap: 8, justifyContent: "center", flexWrap: "wrap" }}>
             {cvUrl && cvUrl !== "#cv-placeholder" ? (
               <a href={cvUrl} target="_blank" rel="noopener noreferrer" data-testid="link-cv"
@@ -189,6 +192,11 @@ export default function ProfilePageShell({
             )}
             {actionsSlot}
           </div>
+          ) : (
+            <div style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "8px 16px", border: "1px solid rgba(255,199,46,.32)", borderRadius: 999, fontSize: 13, fontWeight: 600, color: "#6F5400", background: "rgba(255,199,46,.12)" }}>
+              Preview mode: full links and tools unlock after claiming
+            </div>
+          )}
         </div>
 
         {/* ── Stats grid ── */}

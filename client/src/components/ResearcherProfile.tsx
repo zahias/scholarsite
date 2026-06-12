@@ -24,7 +24,7 @@ import { Badge } from "@/components/ui/badge";
 import { useRealtimeUpdates } from "@/hooks/useRealtimeUpdates";
 import type { ResearcherProfile as ResearcherProfileType } from "@shared/schema";
 import { useMemo, useState, useEffect, useCallback } from "react";
-import { User, UserX, FileText } from "lucide-react";
+import { BarChart3, FileText, Lock, User, UserX } from "lucide-react";
 import EmptyState from "@/components/EmptyState";
 
 // Analytics tracking helper
@@ -44,6 +44,94 @@ const trackProfileEvent = async (openalexId: string, eventType: string, eventTar
     console.debug("Analytics tracking failed:", error);
   }
 };
+
+function PreviewInsightsTeaser() {
+  return (
+    <div className="space-y-4" data-testid="preview-locked-teaser">
+      <div className="public-subtle-card" style={{ padding: 24, borderStyle: "dashed" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
+          <span style={{ width: 34, height: 34, borderRadius: 9, background: "rgba(255,199,46,.16)", display: "grid", placeItems: "center", flexShrink: 0 }}>
+            <Lock size={16} style={{ color: "#6F5400" }} />
+          </span>
+          <div>
+            <h3 style={{ fontFamily: "'Newsreader', serif", fontSize: 20, fontWeight: 500, color: "#0B1F3A", margin: 0 }}>
+              Full research profile locked
+            </h3>
+            <p style={{ fontSize: 13.5, color: "#75777E", margin: "2px 0 0" }}>
+              Claiming unlocks complete insights, all publications, export tools, links, themes, and sharing assets.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div className="grid md:grid-cols-3 gap-4">
+        {["Research journey", "Topic map", "Collaborator network"].map((label) => (
+          <div key={label} className="public-card" style={{ padding: 18, minHeight: 108, position: "relative", overflow: "hidden" }}>
+            <BarChart3 size={18} style={{ color: "#FFC72E", marginBottom: 12 }} />
+            <p style={{ fontWeight: 600, color: "#0B1F3A", margin: 0, fontSize: 14 }}>{label}</p>
+            <p style={{ color: "#75777E", margin: "6px 0 0", fontSize: 12.5, lineHeight: 1.5 }}>
+              Preview available after claiming.
+            </p>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function PreviewPublicationsTeaser({ publications = [] }: { publications?: any[] }) {
+  const samplePublications = publications.slice(0, 3);
+
+  if (samplePublications.length === 0) {
+    return (
+      <div className="public-subtle-card" style={{ padding: 24, borderStyle: "dashed" }}>
+        <h3 style={{ fontFamily: "'Newsreader', serif", fontSize: 20, fontWeight: 500, color: "#0B1F3A", margin: "0 0 8px" }}>
+          Publication list locked
+        </h3>
+        <p style={{ color: "#75777E", margin: 0, fontSize: 13.5 }}>
+          Full publication search, filters, links, and export tools unlock after claiming.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="public-card" style={{ padding: 24 }} data-testid="preview-publication-teaser">
+      <div style={{ display: "flex", justifyContent: "space-between", gap: 16, alignItems: "center", marginBottom: 18 }}>
+        <div>
+          <h3 style={{ fontFamily: "'Newsreader', serif", fontSize: 22, fontWeight: 500, color: "#0B1F3A", margin: 0 }}>
+            Publication sample
+          </h3>
+          <p style={{ color: "#75777E", margin: "4px 0 0", fontSize: 13.5 }}>
+            A small sample is shown. Full search, filters, links, and exports unlock after claiming.
+          </p>
+        </div>
+        <span style={{ fontSize: 12, color: "#6F5400", background: "rgba(255,199,46,.14)", border: "1px solid rgba(255,199,46,.28)", borderRadius: 999, padding: "5px 10px", fontWeight: 700 }}>
+          Teaser
+        </span>
+      </div>
+      <div className="space-y-3">
+        {samplePublications.map((publication, index) => (
+          <div key={publication.id || index} style={{ border: "1px solid rgba(11,31,58,.08)", borderRadius: 12, padding: 16, background: "#fff" }}>
+            <h4 style={{ fontFamily: "'Newsreader', serif", fontSize: 17, fontWeight: 500, color: "#0B1F3A", margin: "0 0 6px", lineHeight: 1.35 }}>
+              {publication.title}
+            </h4>
+            <p style={{ color: "#75777E", margin: "0 0 10px", fontSize: 13, lineHeight: 1.45 }}>
+              {[publication.journal, publication.publicationYear].filter(Boolean).join(" · ")}
+            </p>
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+              {(publication.topics || []).slice(0, 2).map((topic: string) => (
+                <span key={topic} style={{ background: "rgba(11,31,58,.06)", color: "#44474D", borderRadius: 999, padding: "3px 8px", fontSize: 11.5 }}>
+                  {topic}
+                </span>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 function ResearcherProfileContent() {
   const { id } = useParams();
@@ -117,7 +205,7 @@ function ResearcherProfileContent() {
         <div style={{ height: 240, background: "linear-gradient(135deg, #081529, #0B1F3A, #142850)", position: "relative", overflow: "hidden" }}>
           <div style={{ position: "absolute", inset: 0, background: "radial-gradient(ellipse at 70% 0%, rgba(255,199,46,.1), transparent 55%)" }} />
         </div>
-        <div style={{ maxWidth: 860, margin: "-90px auto 0", padding: "0 24px", position: "relative", zIndex: 1 }}>
+        <div className="profile-wide-container" style={{ marginTop: -90, position: "relative", zIndex: 1 }}>
           <div style={{ background: "#fff", borderRadius: 20, border: "1px solid rgba(11,31,58,.08)", boxShadow: "0 20px 60px -20px rgba(11,31,58,.14)", padding: "28px 36px 32px", textAlign: "center" }}>
             <div style={{ width: 120, height: 120, borderRadius: "50%", background: "#E4E9F7", margin: "0 auto 16px", animation: "pulse 1.5s ease-in-out infinite" }} />
             <div style={{ height: 24, background: "#E4E9F7", borderRadius: 8, width: 220, margin: "0 auto 10px" }} />
@@ -133,14 +221,24 @@ function ResearcherProfileContent() {
 
   // ── Error / no profile ─────────────────────────────────────────────────────
   if (error || !researcherData || !researcherData.profile) {
+    const errorMessage = error instanceof Error ? error.message : "";
+    const isInactiveProfile = errorMessage.includes("trial_expired") || errorMessage.includes("subscription_expired") || errorMessage.startsWith("402:");
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen" style={{ background: "var(--surface-container-low)" }}>
         <Navigation researcherName="Researcher Profile" />
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
           <EmptyState
-            icon={UserX}
-            title="No Profile Available"
-            description="The researcher profile you're looking for doesn't exist or isn't public yet."
+            icon={isInactiveProfile ? Lock : UserX}
+            title={isInactiveProfile ? "Profile inactive" : "No profile available"}
+            description={isInactiveProfile
+              ? "This public portfolio is inactive because its trial or paid period has ended."
+              : "This researcher profile does not exist or has not been made public yet."
+            }
+            headingLevel="h1"
+            action={{
+              label: isInactiveProfile ? "View plans" : "Back to Scholar.name",
+              onClick: () => navigate(isInactiveProfile ? "/pricing" : "/"),
+            }}
           />
         </div>
       </div>
@@ -148,6 +246,7 @@ function ResearcherProfileContent() {
   }
 
   const displayName = profile?.displayName || researcher?.display_name || "Researcher";
+  const isPreview = !!researcherData?.isPreview;
 
   // ── Main render ────────────────────────────────────────────────────────────
   return (
@@ -167,7 +266,7 @@ function ResearcherProfileContent() {
       <ProfilePageShell
         displayName={displayName}
         title={profile?.title}
-        isPreview={researcherData?.isPreview}
+        isPreview={isPreview}
         affiliation={profile?.currentAffiliation || researcher?.last_known_institutions?.[0]?.display_name}
         bio={profile?.bio}
         profileImageUrl={profile?.profileImageUrl}
@@ -184,7 +283,7 @@ function ResearcherProfileContent() {
         citedByCount={researcher?.cited_by_count}
         hIndex={researcher?.summary_stats?.h_index}
         i10Index={researcher?.summary_stats?.i10_index}
-        actionsSlot={
+        actionsSlot={!isPreview ? (
           <ResearchPassport
             openalexId={openalexId}
             name={displayName}
@@ -194,13 +293,13 @@ function ResearcherProfileContent() {
             citationCount={researcher?.cited_by_count || 0}
             profileUrl={typeof window !== "undefined" ? window.location.href : ""}
           />
-        }
+        ) : undefined}
       />
 
       {/* ── Section components (all custom / researcher-specific) ── */}
 
-      {(researcherData?.isPreview || profile?.bio) && (
-        <div style={{ maxWidth: 860, margin: "0 auto", padding: "0 24px" }}>
+      {(isPreview || profile?.bio) && (
+        <div className="profile-wide-container">
           <CollapsibleSection id="about" title="About" icon={<User size={18} />} defaultOpen={true} mobileDefaultOpen={true}>
             <p className="text-sm md:text-base text-muted-foreground leading-relaxed" data-testid="text-bio">
               {profile?.bio ? profile.bio : (
@@ -215,29 +314,37 @@ function ResearcherProfileContent() {
       )}
 
       {researcherData?.profileSections && researcherData.profileSections.length > 0 && (
-        <div style={{ maxWidth: 860, margin: "0 auto", padding: "0 24px" }}>
+        <div className="profile-wide-container">
           <ProfileSections sections={researcherData.profileSections} />
         </div>
       )}
 
-      <div style={{ maxWidth: 860, margin: "0 auto", padding: "0 24px" }}>
-        <ResearchInsights
-          openalexId={openalexId}
-          researcherData={researcherData}
-          researcherName={displayName}
-        />
+      <div className="profile-wide-container">
+        {isPreview ? (
+          <PreviewInsightsTeaser />
+        ) : (
+          <ResearchInsights
+            openalexId={openalexId}
+            researcherData={researcherData}
+            researcherName={displayName}
+          />
+        )}
 
         <CollapsibleSection
           id="publications" title="Publications"
           icon={<FileText size={18} />}
           defaultOpen={true} mobileDefaultOpen={false}>
-          <Publications openalexId={openalexId} inline />
+          {isPreview ? (
+            <PreviewPublicationsTeaser publications={researcherData.publications} />
+          ) : (
+            <Publications openalexId={openalexId} inline />
+          )}
         </CollapsibleSection>
       </div>
 
       {/* Footer */}
       <footer style={{ background: "#0B1F3A", padding: "28px 32px", marginTop: 16 }}>
-        <div style={{ maxWidth: 860, margin: "0 auto", display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+          <div className="profile-wide-container" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
           <p style={{ color: "rgba(255,255,255,.5)", fontSize: 13, margin: 0 }}>
             © {new Date().getFullYear()} Scholar.name. All rights reserved.
           </p>
@@ -247,13 +354,13 @@ function ResearcherProfileContent() {
                 Last sync: {new Date(researcherData.lastSynced).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
               </p>
             )}
-            <ReportIssue openalexId={openalexId} researcherName={displayName} />
+            {!isPreview && <ReportIssue openalexId={openalexId} researcherName={displayName} />}
           </div>
         </div>
       </footer>
 
       {/* Sticky Claim Profile CTA — desktop, preview mode only */}
-      {researcherData?.isPreview && (
+      {isPreview && (
         <div className="fixed bottom-0 left-0 right-0 z-50 bg-primary shadow-lg border-t border-primary/20 md:block hidden" data-testid="banner-claim-profile">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
             <div className="flex items-center justify-between gap-4">
@@ -276,7 +383,7 @@ function ResearcherProfileContent() {
       )}
 
       {/* Mobile sticky CTA — preview mode only */}
-      {researcherData?.isPreview && (
+      {isPreview && (
         <div className="fixed bottom-[72px] left-0 right-0 z-40 bg-primary shadow-lg border-t border-primary/20 md:hidden" data-testid="banner-claim-profile-mobile">
           <div className="px-4 py-3">
             <div className="flex flex-col gap-2 text-center">
@@ -291,8 +398,8 @@ function ResearcherProfileContent() {
         </div>
       )}
 
-      <MobileBottomNav />
-      <ThemeSwitcher isPreview={researcherData?.isPreview} />
+      {!isPreview && <MobileBottomNav />}
+      {!isPreview && <ThemeSwitcher />}
     </div>
   );
 }

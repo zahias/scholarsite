@@ -23,7 +23,7 @@ export default function FaqPage() {
   useEffect(() => { window.scrollTo(0, 0); }, []);
 
   return (
-    <div className="min-h-screen flex flex-col" style={{ background: "#fff" }}>
+    <div className="public-page">
       <SEO
         title="FAQ — Scholar.name"
         description="Frequently asked questions about Scholar.name — data sources, pricing, custom domains, cancellation, and more."
@@ -33,24 +33,39 @@ export default function FaqPage() {
       />
       <GlobalNav mode="landing" />
 
-      <main style={{ flex: 1 }}>
+      <main className="public-main">
         {/* Hero */}
-        <section style={{ background: "#0B1F3A", padding: "72px 0 56px", position: "relative", overflow: "hidden" }}>
-          <div style={{ position: "absolute", inset: 0, background: "radial-gradient(ellipse at 70% 0%, rgba(255,199,46,.14), transparent 55%), repeating-linear-gradient(0deg, rgba(255,255,255,.025) 0 1px, transparent 1px 52px)", pointerEvents: "none" }} />
-          <div style={{ maxWidth: 720, margin: "0 auto", padding: "0 32px", position: "relative", zIndex: 1, textAlign: "center" }}>
-            <span style={{ fontFamily: "'Newsreader', serif", fontSize: 11, letterSpacing: ".22em", textTransform: "uppercase", color: "#FFC72E", fontWeight: 600, display: "block", marginBottom: 16 }}>Support</span>
-            <h1 style={{ fontFamily: "'Newsreader', serif", fontSize: "clamp(32px,5vw,56px)", lineHeight: 1.08, fontWeight: 500, color: "#fff", margin: "0 0 16px", letterSpacing: "-0.02em" }}>
+        <section className="public-masthead">
+          <div className="public-masthead-inner">
+            <span className="public-eyebrow">Support</span>
+            <h1 className="public-title">
               Frequently asked questions
             </h1>
-            <p style={{ fontSize: 17, color: "rgba(255,255,255,.7)", lineHeight: 1.55, margin: 0 }}>
+            <p className="public-copy">
               Everything you need to know about Scholar.name.
             </p>
           </div>
         </section>
 
         {/* FAQ accordion */}
-        <section style={{ background: "#F0F4F8", padding: "64px 24px 80px" }}>
-          <div style={{ maxWidth: 720, margin: "0 auto" }}>
+        <section className="public-section">
+          <div className="public-container-lg public-aside-grid">
+            <aside className="public-subtle-card" style={{ padding: 28, position: "sticky", top: 92 }}>
+              <Sparkles size={22} style={{ color: "#6F5400", marginBottom: 16 }} />
+              <h2 style={{ fontFamily: "'Newsreader', serif", fontSize: 26, fontWeight: 500, color: "#0B1F3A", margin: "0 0 10px" }}>
+                Quick answers before you launch
+              </h2>
+              <p style={{ fontSize: 14.5, color: "#44474D", lineHeight: 1.65, margin: "0 0 20px" }}>
+                Browse setup, billing, data, and portfolio questions. If you need institution-level help, contact us directly.
+              </p>
+              <button
+                onClick={() => { window.scrollTo(0, 0); navigate("/contact"); }}
+                style={{ padding: "10px 18px", background: "#0B1F3A", color: "#fff", border: "none", borderRadius: 9, fontSize: 14, fontWeight: 600, fontFamily: "inherit", cursor: "pointer" }}
+              >
+                Contact Us
+              </button>
+            </aside>
+            <div>
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
               {faqs.map((faq, index) => (
                 <div
@@ -96,9 +111,8 @@ export default function FaqPage() {
             </div>
 
             {/* Still have questions CTA band */}
-            <div style={{ marginTop: 48, background: "#0B1F3A", borderRadius: 16, padding: "40px 36px", textAlign: "center", position: "relative", overflow: "hidden" }}>
-              <div style={{ position: "absolute", inset: 0, background: "radial-gradient(ellipse at 70% 0%, rgba(255,199,46,.15), transparent 55%)", pointerEvents: "none" }} />
-              <div style={{ position: "relative" }}>
+            <div className="public-cta-band" style={{ marginTop: 48, borderRadius: 16, padding: "40px 36px", textAlign: "center" }}>
+              <div className="public-cta-content">
                 <h2 style={{ fontFamily: "'Newsreader', serif", fontSize: "clamp(20px,3vw,26px)", fontWeight: 500, color: "#fff", margin: "0 0 10px", letterSpacing: "-0.01em" }}>
                   Still have questions?
                 </h2>
@@ -118,6 +132,7 @@ export default function FaqPage() {
                   </button>
                 </div>
               </div>
+            </div>
             </div>
           </div>
         </section>

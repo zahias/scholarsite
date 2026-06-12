@@ -99,7 +99,7 @@ export default function ContactPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="public-page">
       <SEO
         title="Enterprise & Institutions — Scholar.name"
         description="Bring Scholar.name to your entire department or institution. Contact us for group and enterprise pricing."
@@ -108,10 +108,11 @@ export default function ContactPage() {
       />
       <GlobalNav mode="landing" hideSignup hideLogin />
 
-      <div className="max-w-3xl mx-auto px-4 py-12">
+      <main className="public-main public-section">
+      <div className="public-container-lg">
         <Button
           variant="ghost"
-          className="mb-6"
+          className="mb-8"
           onClick={() => navigate("/")}
           data-testid="button-back-landing"
         >
@@ -119,44 +120,45 @@ export default function ContactPage() {
           Back to Home
         </Button>
 
-        {/* Individual signup nudge */}
-        <div className="flex items-center gap-3 mb-8 p-4 rounded-xl bg-blue-50 border border-blue-100">
-          <ArrowRight className="w-5 h-5 text-blue-500 flex-shrink-0" />
-          <p className="text-sm text-blue-800">
-            <strong>Signing up as an individual researcher?</strong>{" "}
-            <Link href="/signup" className="underline font-medium hover:text-blue-900">
-              Create your portfolio directly →
-            </Link>
-          </p>
-        </div>
-
-        <div className="text-center mb-10">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 mb-4 rounded-full border border-primary/20 bg-primary/5 text-sm text-primary font-medium">
-            <Building2 className="w-4 h-4" />
-            Enterprise &amp; Institutions
-          </div>
-          <h1 className="text-3xl sm:text-4xl font-bold mb-4">Bring Scholar.name to your institution</h1>
-          <p className="text-lg text-muted-foreground max-w-xl mx-auto">
-            Streamline research visibility for your entire department. Custom onboarding, group pricing, and dedicated support.
-          </p>
-        </div>
-
-        {/* Benefits grid */}
-        <div className="grid sm:grid-cols-3 gap-4 mb-10">
-          {[
-            { icon: Users, title: "Group onboarding", desc: "We help migrate your department's profiles" },
-            { icon: Building2, title: "Custom branding", desc: "Match your institution's visual identity" },
-            { icon: Send, title: "Dedicated support", desc: "Priority email and phone support" },
-          ].map((b) => (
-            <div key={b.title} className="p-4 rounded-xl bg-slate-50 border border-slate-100 text-center">
-              <b.icon className="w-6 h-6 mx-auto mb-2 text-primary" />
-              <p className="font-semibold text-sm">{b.title}</p>
-              <p className="text-xs text-muted-foreground mt-1">{b.desc}</p>
+        <div className="public-wide-split">
+          <div>
+            <div className="scholar-nudge flex items-center gap-3 mb-8 p-4 rounded-xl">
+              <ArrowRight className="w-5 h-5 flex-shrink-0" />
+              <p className="text-sm">
+                <strong>Signing up as an individual researcher?</strong>{" "}
+                <Link href="/signup" className="underline font-medium">
+                  Create your portfolio directly →
+                </Link>
+              </p>
             </div>
-          ))}
-        </div>
 
-        <Card>
+            <div className="mb-10">
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 mb-5 rounded-full border border-primary/20 bg-primary/5 text-sm text-primary font-medium">
+                <Building2 className="w-4 h-4" />
+                Enterprise &amp; Institutions
+              </div>
+              <h1 className="text-3xl sm:text-5xl font-bold mb-5 leading-tight">Bring Scholar.name to your institution</h1>
+              <p className="text-lg text-muted-foreground public-text-measure">
+                Streamline research visibility for your department with custom onboarding, group pricing, and dedicated support.
+              </p>
+            </div>
+
+            <div className="grid sm:grid-cols-3 lg:grid-cols-1 gap-4">
+              {[
+                { icon: Users, title: "Group onboarding", desc: "We help migrate your department's profiles and set launch priorities." },
+                { icon: Building2, title: "Custom branding", desc: "Match your institution's visual identity across researcher portfolios." },
+                { icon: Send, title: "Dedicated support", desc: "Priority support for setup, rollout, and ongoing profile questions." },
+              ].map((b) => (
+                <div key={b.title} className="p-5 rounded-xl bg-white border border-slate-100">
+                  <b.icon className="w-6 h-6 mb-3 text-primary" />
+                  <p className="font-semibold text-sm">{b.title}</p>
+                  <p className="text-xs text-muted-foreground mt-1 leading-relaxed">{b.desc}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+        <Card className="public-card">
           <CardHeader>
             <CardTitle>Tell us about your institution</CardTitle>
             <CardDescription>
@@ -263,7 +265,9 @@ export default function ContactPage() {
             </p>
           </CardContent>
         </Card>
+        </div>
       </div>
+      </main>
     </div>
   );
 }

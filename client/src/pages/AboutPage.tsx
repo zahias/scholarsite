@@ -10,7 +10,7 @@ export default function AboutPage() {
   useEffect(() => { window.scrollTo(0, 0); }, []);
 
   return (
-    <div className="min-h-screen flex flex-col" style={{ background: "#fff" }}>
+    <div className="public-page">
       <SEO
         title="About Scholar.name — Our Mission & Team"
         description="Learn about Scholar.name, our mission to help researchers showcase their work, how we source data, and our commitment to accuracy and privacy."
@@ -18,34 +18,33 @@ export default function AboutPage() {
       />
       <GlobalNav mode="landing" />
 
-      <main style={{ flex: 1 }}>
+      <main className="public-main">
         {/* Hero */}
-        <section style={{ background: "#0B1F3A", padding: "72px 0 56px", position: "relative", overflow: "hidden" }}>
-          <div style={{ position: "absolute", inset: 0, background: "radial-gradient(ellipse at 70% 0%, rgba(255,199,46,.14), transparent 55%), repeating-linear-gradient(0deg, rgba(255,255,255,.025) 0 1px, transparent 1px 52px)", pointerEvents: "none" }} />
-          <div style={{ maxWidth: 720, margin: "0 auto", padding: "0 32px", position: "relative", zIndex: 1, textAlign: "center" }}>
-            <span style={{ fontFamily: "'Newsreader', serif", fontSize: 11, letterSpacing: ".22em", textTransform: "uppercase", color: "#FFC72E", fontWeight: 600, display: "block", marginBottom: 16 }}>About Us</span>
-            <h1 style={{ fontFamily: "'Newsreader', serif", fontSize: "clamp(32px,5vw,56px)", lineHeight: 1.08, fontWeight: 500, color: "#fff", margin: "0 0 16px", letterSpacing: "-0.02em" }}>
+        <section className="public-masthead">
+          <div className="public-masthead-inner">
+            <span className="public-eyebrow">About Us</span>
+            <h1 className="public-title">
               Helping researchers showcase their work
             </h1>
-            <p style={{ fontSize: 17, color: "rgba(255,255,255,.7)", lineHeight: 1.55, maxWidth: 540, margin: "0 auto" }}>
+            <p className="public-copy">
               Scholar.name was built to solve a simple problem: researchers deserve better than a bare Google Scholar listing or an outdated faculty page.
             </p>
           </div>
         </section>
 
-        <section style={{ background: "#F0F4F8", padding: "64px 24px 80px" }}>
-          <div style={{ maxWidth: 800, margin: "0 auto", display: "flex", flexDirection: "column", gap: 20 }}>
+        <section className="public-section">
+          <div className="public-container-lg" style={{ display: "flex", flexDirection: "column", gap: 20 }}>
 
             {/* Mission */}
-            <div style={{ background: "#fff", borderRadius: 16, border: "1px solid rgba(11,31,58,.08)", padding: "32px 32px" }}>
+            <div style={{ background: "#fff", borderRadius: 16, border: "1px solid rgba(11,31,58,.08)", padding: "36px 40px" }}>
               <span style={{ fontSize: 11, letterSpacing: ".18em", textTransform: "uppercase", color: "#FFC72E", fontWeight: 700, display: "block", marginBottom: 12 }}>Our Mission</span>
               <h2 style={{ fontFamily: "'Newsreader', serif", fontSize: "clamp(20px,2.5vw,26px)", fontWeight: 500, color: "#0B1F3A", margin: "0 0 14px", letterSpacing: "-0.01em" }}>
                 Built by researchers, for researchers
               </h2>
-              <p style={{ fontSize: 15.5, color: "#44474D", lineHeight: 1.7, margin: "0 0 12px" }}>
+              <p className="public-text-measure" style={{ fontSize: 15.5, color: "#44474D", lineHeight: 1.7, margin: "0 0 12px" }}>
                 Scholar.name was created by academics who were frustrated with the lack of good options for presenting research online. We understand the academic world because we live it — the pressure to publish, the need to stand out for grants and positions, and the desire to have your work recognized.
               </p>
-              <p style={{ fontSize: 15.5, color: "#44474D", lineHeight: 1.7, margin: 0 }}>
+              <p className="public-text-measure" style={{ fontSize: 15.5, color: "#44474D", lineHeight: 1.7, margin: 0 }}>
                 We believe every researcher should have a professional, up-to-date portfolio that reflects their contributions to science — without spending hours maintaining it manually.
               </p>
             </div>
@@ -147,9 +146,8 @@ export default function AboutPage() {
             </div>
 
             {/* CTA band */}
-            <div style={{ background: "#0B1F3A", borderRadius: 16, padding: "44px 36px", textAlign: "center", position: "relative", overflow: "hidden" }}>
-              <div style={{ position: "absolute", inset: 0, background: "radial-gradient(ellipse at 70% 0%, rgba(255,199,46,.15), transparent 55%)", pointerEvents: "none" }} />
-              <div style={{ position: "relative" }}>
+            <div className="public-cta-band" style={{ borderRadius: 16, padding: "44px 36px", textAlign: "center" }}>
+              <div className="public-cta-content">
                 <h2 style={{ fontFamily: "'Newsreader', serif", fontSize: "clamp(22px,3vw,30px)", fontWeight: 500, color: "#fff", margin: "0 0 10px", letterSpacing: "-0.01em" }}>
                   Ready to create your portfolio?
                 </h2>

@@ -218,6 +218,9 @@ router.get('/status/:orderNumber', async (req: Request, res: Response) => {
       orderNumber: payment.orderNumber,
       status: payment.status,
       plan: payment.plan,
+      amount: payment.amount,
+      currency: payment.currency,
+      billingPeriod: payment.billingPeriod,
     });
   } catch (error) {
     console.error('Payment status check failed:', error);

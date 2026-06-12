@@ -1101,6 +1101,86 @@
 }
 
 /* ── Observatory: Auth pages ──────────────────────────────── */
+.auth-page-shell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background:
+    radial-gradient(ellipse at 80% 8%, rgba(255, 199, 46, 0.1), transparent 44%),
+    radial-gradient(ellipse at 14% 88%, rgba(11, 31, 58, 0.07), transparent 46%),
+    var(--surface-container-low);
+}
+
+.auth-center {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 24px;
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 440px;
+  background: var(--surface-container-lowest);
+  border: 1px solid rgba(11, 31, 58, 0.08);
+  border-radius: 16px;
+  box-shadow: 0 24px 60px -20px rgba(11, 31, 58, 0.16);
+}
+
+.auth-mark {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  margin: 0 auto 16px;
+  background: var(--primary-container);
+  color: var(--secondary-container);
+}
+
+.auth-title {
+  font-family: var(--font-serif);
+  font-size: 26px;
+  font-weight: 500;
+  line-height: 1.1;
+  letter-spacing: 0;
+  color: var(--primary-container);
+  margin: 0 0 6px;
+}
+
+.auth-copy {
+  color: var(--on-surface-variant);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.admin-auth-page {
+  background:
+    radial-gradient(ellipse at 78% 6%, rgba(255, 199, 46, 0.12), transparent 42%),
+    linear-gradient(135deg, #081529 0%, var(--primary-container) 55%, var(--tertiary-container) 100%);
+}
+
+.admin-auth-card {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.14);
+  box-shadow: 0 24px 70px -24px rgba(0, 0, 0, 0.38);
+  backdrop-filter: blur(18px);
+}
+
+.admin-auth-card .auth-mark {
+  background: rgba(255, 199, 46, 0.16);
+  color: var(--secondary-container);
+}
+
+.admin-auth-card .auth-title {
+  color: #ffffff;
+}
+
+.admin-auth-card .auth-copy {
+  color: rgba(255, 255, 255, 0.68);
+}
+
 .auth-backdrop {
   position: absolute;
   inset: 0;
@@ -1123,6 +1203,248 @@
   flex: 1;
   height: 1px;
   background: rgba(11,31,58,.1);
+}
+
+.empty-state-panel {
+  background: var(--surface-container-lowest);
+  border: 1px solid rgba(11, 31, 58, 0.08);
+  border-radius: 16px;
+  box-shadow: 0 24px 60px -24px rgba(11, 31, 58, 0.16);
+}
+
+.empty-state-icon {
+  background: rgba(11, 31, 58, 0.06);
+  color: var(--primary-container);
+}
+
+.scholar-nudge {
+  background: rgba(255, 199, 46, 0.12);
+  border: 1px solid rgba(255, 199, 46, 0.28);
+  color: var(--primary-container);
+}
+
+.scholar-nudge svg {
+  color: var(--on-secondary-container);
+}
+
+.scholar-nudge a {
+  color: var(--primary-container);
+  text-decoration-color: var(--secondary-container);
+  text-underline-offset: 3px;
+}
+
+/* ── Observatory: Public page system ─────────────────────── */
+.public-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--surface-container-lowest);
+}
+
+.public-main {
+  flex: 1;
+}
+
+.public-masthead {
+  background: var(--primary-container);
+  padding: 72px 0 56px;
+  position: relative;
+  overflow: hidden;
+}
+
+.public-masthead::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 70% 0%, rgba(255, 199, 46, 0.14), transparent 55%),
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.025) 0 1px, transparent 1px 52px);
+  pointer-events: none;
+}
+
+.public-masthead-inner {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 0 32px;
+  position: relative;
+  z-index: 1;
+  text-align: center;
+}
+
+.public-eyebrow {
+  font-family: var(--font-serif);
+  font-size: 11px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--secondary-container);
+  font-weight: 600;
+  display: block;
+  margin-bottom: 16px;
+}
+
+.public-title {
+  font-family: var(--font-serif);
+  font-size: clamp(32px, 5vw, 56px);
+  line-height: 1.08;
+  font-weight: 500;
+  color: #ffffff;
+  margin: 0 0 16px;
+  letter-spacing: 0;
+}
+
+.public-copy {
+  font-size: 17px;
+  color: rgba(255, 255, 255, 0.7);
+  line-height: 1.55;
+  max-width: 640px;
+  margin: 0 auto;
+}
+
+.public-section {
+  background: var(--surface-container-low);
+  padding: 72px 32px 88px;
+}
+
+.public-container-sm {
+  max-width: 920px;
+  margin: 0 auto;
+}
+
+.public-container-md {
+  max-width: 1080px;
+  margin: 0 auto;
+}
+
+.public-container-lg {
+  max-width: 1280px;
+  margin: 0 auto;
+}
+
+.public-container-xl {
+  max-width: 1440px;
+  margin: 0 auto;
+}
+
+.public-text-measure {
+  max-width: 680px;
+}
+
+.public-wide-split {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  gap: 32px;
+  align-items: start;
+}
+
+.public-aside-grid {
+  display: grid;
+  grid-template-columns: minmax(260px, 0.34fr) minmax(0, 1fr);
+  gap: 32px;
+  align-items: start;
+}
+
+.profile-wide-container {
+  width: min(1180px, calc(100% - 48px));
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.profile-readable {
+  max-width: 760px;
+}
+
+.public-card {
+  background: var(--surface-container-lowest);
+  border: 1px solid rgba(11, 31, 58, 0.08);
+  border-radius: 16px;
+  box-shadow: 0 12px 32px -24px rgba(11, 31, 58, 0.18);
+}
+
+.public-subtle-card {
+  background: rgba(255, 255, 255, 0.62);
+  border: 1px solid rgba(11, 31, 58, 0.08);
+  border-radius: 14px;
+}
+
+.public-cta-band {
+  background: var(--primary-container);
+  position: relative;
+  overflow: hidden;
+}
+
+@media (max-width: 900px) {
+  .public-wide-split,
+  .public-aside-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .public-section {
+    padding-left: 24px;
+    padding-right: 24px;
+  }
+}
+
+@media (max-width: 560px) {
+  .public-masthead-inner,
+  .public-section {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+
+  .profile-wide-container {
+    width: calc(100% - 32px);
+  }
+}
+
+.public-cta-band::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 70% 0%, rgba(255, 199, 46, 0.15), transparent 55%);
+  pointer-events: none;
+}
+
+.public-cta-content {
+  position: relative;
+}
+
+.plan-card {
+  background: var(--surface-container-lowest);
+  border: 1px solid rgba(11, 31, 58, 0.08);
+  border-radius: 16px;
+  padding: 32px 28px;
+  position: relative;
+  overflow: visible;
+}
+
+.plan-card-featured {
+  background: var(--primary-container);
+  border-color: transparent;
+  box-shadow: 0 20px 60px -16px rgba(11, 31, 58, 0.35);
+}
+
+.plan-card-featured::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 16px;
+  background: radial-gradient(ellipse at 80% 0%, rgba(255, 199, 46, 0.2), transparent 55%);
+  pointer-events: none;
+}
+
+.plan-badge {
+  position: absolute;
+  top: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--secondary-container);
+  color: var(--on-secondary-container);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 4px 12px;
+  border-radius: 999px;
 }
 
 /* ── Observatory: Mobile responsive fixes ────────────────── */

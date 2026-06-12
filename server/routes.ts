@@ -15,6 +15,7 @@ import tenantRouter from "./tenantRoutes";
 import researcherRouter from "./researcherRoutes";
 import checkoutRouter from "./checkoutRoutes";
 import { tenantResolver } from "./tenantMiddleware";
+import { getTenantAccessMessage, getTenantAccessState, tenantHasServiceAccess } from "./billing";
 import fetch from "node-fetch";
 import nodemailer from "nodemailer";
 
@@ -68,10 +69,15 @@ function adminAuthMiddleware(req: Request, res: Response, next: NextFunction) {
 
 // Session-based admin authentication middleware (for web interface)
 function adminSessionAuthMiddleware(req: Request, res: Response, next: NextFunction) {
-  // Check session first
-  if ((req.session as any)?.isAdmin) {
+  // Check the shared UI auth session first.
+  if (req.session?.userId && req.session?.isAuthenticated && req.session?.userRole === 'admin') {
     // Log admin operation for audit trail
     console.log(`Admin web access: ${req.method} ${req.path} from ${req.ip}`);
+    return next();
+  }
+
+  if ((req.session as any)?.isAdmin) {
+    console.log(`Admin legacy web access: ${req.method} ${req.path} from ${req.ip}`);
     return next();
   }
 
@@ -99,7 +105,10 @@ function adminSessionAuthMiddleware(req: Request, res: Response, next: NextFunct
 // Helper function to check if request is authenticated
 function isAuthenticated(req: Request): boolean {
   const adminToken = process.env.ADMIN_API_TOKEN;
-  if (!adminToken) return false;
+
+  if (req.session?.userId && req.session?.isAuthenticated && req.session?.userRole === 'admin') {
+    return true;
+  }
 
   // Check session
   if ((req.session as any)?.isAdmin) {
@@ -109,6 +118,7 @@ function isAuthenticated(req: Request): boolean {
   // Check Bearer token
   const authHeader = req.headers.authorization;
   if (authHeader && authHeader.startsWith('Bearer ')) {
+    if (!adminToken) return false;
     const token = authHeader.substring(7);
     return token === adminToken;
   }
@@ -125,7 +135,7 @@ const adminRateLimit = (() => {
   // Periodic cleanup to prevent memory leak
   setInterval(() => {
     const now = Date.now();
-    for (const [ip, data] of requests) {
+    for (const [ip, data] of Array.from(requests.entries())) {
       if (now > data.resetTime) requests.delete(ip);
     }
   }, 60 * 60 * 1000); // cleanup every hour
@@ -159,7 +169,7 @@ const publicWriteRateLimit = (() => {
   // Periodic cleanup to prevent memory leak
   setInterval(() => {
     const now = Date.now();
-    for (const [ip, data] of requests) {
+    for (const [ip, data] of Array.from(requests.entries())) {
       if (now > data.resetTime) requests.delete(ip);
     }
   }, 60 * 60 * 1000); // cleanup every hour
@@ -699,6 +709,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
+      const accessState = getTenantAccessState(tenant);
+
       // Get the researcher profile for this tenant
       const profile = await storage.getResearcherProfileByTenant(tenant.id);
 
@@ -713,7 +725,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           accentColor: tenant.accentColor,
         },
         hasProfile: !!profile?.openalexId,
-        openalexId: profile?.openalexId || null
+        openalexId: profile?.openalexId || null,
+        accessState,
+        accessMessage: getTenantAccessMessage(accessState),
       });
     } catch (error) {
       console.error("Error getting site context:", error);
@@ -732,6 +746,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       if (!tenant) {
         return res.status(404).json({ message: "No tenant found for this domain" });
+      }
+
+      const accessState = getTenantAccessState(tenant);
+      if (!tenantHasServiceAccess(tenant)) {
+        return res.status(402).json({
+          message: getTenantAccessMessage(accessState),
+          accessState,
+          tenantName: tenant.name,
+          tenantStatus: tenant.status,
+        });
       }
 
       const profile = await storage.getResearcherProfileByTenant(tenant.id);
@@ -797,6 +821,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // If profile exists and is public, use cached data
       if (profile && profile.isPublic) {
+        const tenant = await storage.getTenant(profile.tenantId);
+        const accessState = tenant ? getTenantAccessState(tenant) : "cancelled";
+        if (!tenant || !tenantHasServiceAccess(tenant)) {
+          return res.status(402).json({
+            message: getTenantAccessMessage(accessState),
+            accessState,
+            isPreview: false,
+          });
+        }
+
         const researcherData = await storage.getOpenalexData(openalexId, 'researcher');
         const researchTopics = await storage.getResearchTopics(openalexId);
         const publications = await storage.getPublications(openalexId);
@@ -864,9 +898,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return cleaned || 'Untitled';
         };
 
-        // Transform publications to match expected format (matching the Publication interface in frontend)
-        // Limit to 500 for preview mode to avoid very large payloads (full data available after profile creation)
-        const publications = works.results.slice(0, 500).map((work: any) => ({
+        // Transform a small publication sample for preview. Full data is available after profile creation.
+        const publications = works.results.slice(0, 3).map((work: any) => ({
           id: work.id || '',
           title: normalizeTitle(work.display_name || work.title),
           authorNames: work.authorships?.map((a: any) => a.author?.display_name).filter(Boolean).join(', ') || null,

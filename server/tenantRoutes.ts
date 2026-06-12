@@ -47,6 +47,7 @@ router.post("/login", async (req: Request, res: Response) => {
       // Set session data
       req.session.userId = user.id;
       req.session.userRole = user.role;
+      req.session.isAuthenticated = true;
 
       req.session.save((saveErr) => {
         if (saveErr) {

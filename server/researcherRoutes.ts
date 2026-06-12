@@ -5,12 +5,46 @@ import multer from "multer";
 import { Client as ObjectStorageClient } from "@replit/object-storage";
 import { storage } from "./storage";
 import { OpenAlexService } from "./services/openalexApi";
-import type { Request, Response } from "express";
+import type { NextFunction, Request, Response } from "express";
 import path from "path";
 import fs from "fs/promises";
+import { getTenantAccessMessage, getTenantAccessState, tenantHasServiceAccess } from "./billing";
 
 const router = Router();
 const openalexService = new OpenAlexService();
+
+async function requireResearcherServiceAccess(req: Request, res: Response, next: NextFunction) {
+  try {
+    const userId = req.session?.userId;
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    const user = await storage.getUser(userId);
+    if (!user?.tenantId) {
+      return res.status(404).json({ message: "No tenant associated with this user" });
+    }
+
+    const tenant = await storage.getTenant(user.tenantId);
+    if (!tenant) {
+      return res.status(404).json({ message: "Tenant not found" });
+    }
+
+    const accessState = getTenantAccessState(tenant);
+    if (!tenantHasServiceAccess(tenant)) {
+      return res.status(402).json({
+        message: getTenantAccessMessage(accessState),
+        accessState,
+        upgradeUrl: "/checkout?plan=starter&billing=monthly",
+      });
+    }
+
+    next();
+  } catch (error) {
+    console.error("Error checking researcher service access:", error);
+    res.status(500).json({ message: "Failed to check account status" });
+  }
+}
 
 // Local file storage helper for when object storage is not configured
 async function saveFileLocally(filename: string, buffer: Buffer): Promise<string> {
@@ -86,12 +120,29 @@ router.get("/my-tenant", isAuthenticated, async (req: Request, res: Response) =>
       return res.status(404).json({ message: "Tenant not found" });
     }
 
-    res.json({ tenant });
+    const accessState = getTenantAccessState(tenant);
+    res.json({
+      tenant: {
+        ...tenant,
+        accessState,
+        accessMessage: getTenantAccessMessage(accessState),
+        hasServiceAccess: tenantHasServiceAccess(tenant),
+      },
+    });
   } catch (error: unknown) {
     console.error("Error getting tenant:", error);
     res.status(500).json({ message: "Failed to get tenant" });
   }
 });
+
+router.use((req: Request, _res: Response, next: NextFunction) => {
+  if (/^\/[^/]+\/data$/.test(req.path)) {
+    return next("router");
+  }
+  next();
+});
+
+router.use(isAuthenticated, requireResearcherServiceAccess);
 
 const updateProfileSchema = z.object({
   openalexId: z.string().optional(),

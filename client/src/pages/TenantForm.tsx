@@ -13,8 +13,9 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDes
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Plus, Trash2, Globe, User, CheckCircle, Save, BookOpen } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, Globe, User, CheckCircle, Save, BookOpen, RefreshCw } from "lucide-react";
 
 const tenantSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -54,6 +55,14 @@ interface Tenant {
   profile: { id: string; openalexId: string | null } | null;
 }
 
+interface CurrentUser {
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  role: string;
+}
+
 export default function TenantFormPage() {
   const [, navigate] = useLocation();
   const [, params] = useRoute("/admin/tenants/:id");
@@ -65,9 +74,13 @@ export default function TenantFormPage() {
   const [newUser, setNewUser] = useState({ email: "", password: "", firstName: "", lastName: "" });
   const [openalexId, setOpenalexId] = useState("");
 
+  const { data: userData, isLoading: userLoading } = useQuery<{ user: CurrentUser }>({
+    queryKey: ["/api/auth/me"],
+  });
+
   const { data: tenantData, isLoading } = useQuery<{ tenant: Tenant }>({
     queryKey: ["/api/admin/tenants", tenantId],
-    enabled: !!tenantId,
+    enabled: !!tenantId && userData?.user?.role === "admin",
   });
 
   const tenant = tenantData?.tenant;
@@ -200,6 +213,24 @@ export default function TenantFormPage() {
     },
   });
 
+  const syncTenantMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest("POST", `/api/admin/tenants/${tenantId}/sync`);
+      return response.json();
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "Sync complete",
+        description: data.message || "Tenant data was synced from OpenAlex.",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/tenants", tenantId] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/sync/logs"] });
+    },
+    onError: (error: any) => {
+      toast({ title: "Sync failed", description: error.message, variant: "destructive" });
+    },
+  });
+
   // Sync openalexId state when tenant data loads
   const currentOpenalexId = tenant?.profile?.openalexId || "";
   useEffect(() => {
@@ -216,17 +247,22 @@ export default function TenantFormPage() {
     }
   };
 
-  if (!isNew && isLoading) {
+  if (userLoading || (!isNew && isLoading)) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-8">
         <div className="max-w-4xl mx-auto">
-          <div className="animate-pulse space-y-4">
-            <div className="h-8 w-48 bg-white/5 rounded"></div>
-            <div className="h-96 bg-white/5 rounded"></div>
+          <div className="space-y-4">
+            <Skeleton className="h-8 w-48 bg-white/5" />
+            <Skeleton className="h-96 bg-white/5" />
           </div>
         </div>
       </div>
     );
+  }
+
+  if (!userData?.user || userData.user.role !== "admin") {
+    navigate("/admin/login");
+    return null;
   }
 
   return (
@@ -547,6 +583,22 @@ export default function TenantFormPage() {
                 <p className="text-xs text-slate-500">
                   Find the OpenAlex ID by searching on openalex.org. The ID starts with "A" followed by numbers.
                 </p>
+                <Separator className="bg-white/10" />
+                <div className="flex items-center justify-between gap-3 rounded-lg bg-white/5 border border-white/10 p-3">
+                  <div>
+                    <p className="text-sm font-medium text-white">Sync publications and metrics</p>
+                    <p className="text-xs text-slate-400">Fetch the latest data for this tenant from OpenAlex.</p>
+                  </div>
+                  <Button
+                    onClick={() => syncTenantMutation.mutate()}
+                    disabled={!tenant.profile?.openalexId || syncTenantMutation.isPending}
+                    className="bg-blue-500 hover:bg-blue-600"
+                    data-testid="button-sync-tenant"
+                  >
+                    <RefreshCw className={`w-4 h-4 mr-2 ${syncTenantMutation.isPending ? "animate-spin" : ""}`} />
+                    Sync Now
+                  </Button>
+                </div>
               </CardContent>
             </Card>
 

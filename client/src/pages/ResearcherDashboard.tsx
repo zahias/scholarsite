@@ -38,6 +38,8 @@ import {
   History,
   Clock,
   XCircle,
+  ArrowUp,
+  ArrowDown,
 } from "lucide-react";
 
 // ───── Types ─────
@@ -87,6 +89,9 @@ interface TenantData {
   plan: string;
   status: string;
   trialEndsAt: string | null;
+  accessState?: string;
+  accessMessage?: string;
+  hasServiceAccess?: boolean;
   primaryColor: string | null;
   accentColor: string | null;
   domains: Domain[];
@@ -255,26 +260,29 @@ export default function ResearcherDashboard() {
     enabled: activeTab === "settings",
   });
 
+  const tenantHasAccess = tenantData?.tenant?.hasServiceAccess !== false;
+
   // PERF-1: Lazy-load per active tab
   const { data: publicationsData } = useQuery<{
     publications: Publication[];
   }>({
     queryKey: ["/api/researcher/publications"],
     enabled:
+      tenantHasAccess &&
       !!tenantData?.tenant?.profile?.openalexId &&
       activeTab === "publications",
   });
 
   const { data: sectionsData } = useQuery<{ sections: ProfileSection[] }>({
     queryKey: ["/api/researcher/sections"],
-    enabled: !!tenantData?.tenant?.profile && activeTab === "sections",
+    enabled: tenantHasAccess && !!tenantData?.tenant?.profile && activeTab === "sections",
   });
 
   const { data: syncLogsData, refetch: refetchSyncLogs } = useQuery<{
     logs: SyncLog[];
   }>({
     queryKey: ["/api/researcher/sync-logs"],
-    enabled: !!tenantData?.tenant?.profile && activeTab === "sync",
+    enabled: tenantHasAccess && !!tenantData?.tenant?.profile && activeTab === "sync",
   });
 
   // ───── Populate form from server data ─────
@@ -716,6 +724,7 @@ export default function ResearcherDashboard() {
       id: string;
       title?: string;
       content?: string;
+      sectionType?: string;
       isVisible?: boolean;
     }) => {
       const response = await apiRequest(
@@ -761,6 +770,33 @@ export default function ResearcherDashboard() {
       });
       queryClient.invalidateQueries({
         queryKey: ["/api/researcher/sections"],
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const reorderSectionsMutation = useMutation({
+    mutationFn: async (sectionIds: string[]) => {
+      const response = await apiRequest(
+        "POST",
+        "/api/researcher/sections/reorder",
+        { sectionIds },
+      );
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["/api/researcher/sections"],
+      });
+      toast({
+        title: "Sections reordered",
+        description: "Your section order has been saved.",
       });
     },
     onError: (error: Error) => {
@@ -883,6 +919,21 @@ export default function ResearcherDashboard() {
     [updateProfileMutation, tenantData],
   );
 
+  const handleMoveSection = useCallback(
+    (sectionId: string, direction: -1 | 1) => {
+      const sections = sectionsData?.sections || [];
+      const currentIndex = sections.findIndex((section) => section.id === sectionId);
+      const nextIndex = currentIndex + direction;
+      if (currentIndex < 0 || nextIndex < 0 || nextIndex >= sections.length) return;
+
+      const reordered = [...sections];
+      const [section] = reordered.splice(currentIndex, 1);
+      reordered.splice(nextIndex, 0, section);
+      reorderSectionsMutation.mutate(reordered.map((item) => item.id));
+    },
+    [reorderSectionsMutation, sectionsData?.sections],
+  );
+
   // ───── Style constants ─────
 
   const inputStyle: React.CSSProperties = {
@@ -1003,6 +1054,9 @@ export default function ResearcherDashboard() {
   }
 
   const tenant = tenantData?.tenant;
+  const upgradeUrl = "/checkout?plan=starter&billing=monthly";
+  const serviceLocked = tenant?.hasServiceAccess === false;
+  const serviceLockedMessage = tenant?.accessMessage || "Choose a plan to reactivate your portfolio tools.";
   const profile = tenant?.profile;
   const primaryDomain =
     tenant?.domains?.find((d) => d.isPrimary) || tenant?.domains?.[0];
@@ -1094,7 +1148,7 @@ export default function ResearcherDashboard() {
                 🔔 Your free trial has ended. Choose a plan to keep your portfolio live.
               </span>
               <button
-                onClick={() => { window.scrollTo(0, 0); navigate("/contact"); }}
+                onClick={() => { window.scrollTo(0, 0); navigate(upgradeUrl); }}
                 style={{ fontSize: 13, fontWeight: 600, color: "#fff", background: "#E65100", border: "none", borderRadius: 6, padding: "4px 14px", cursor: "pointer" }}
               >
                 Choose a plan →
@@ -1109,7 +1163,7 @@ export default function ResearcherDashboard() {
                 ⏳ <strong>{daysLeft} day{daysLeft !== 1 ? "s" : ""}</strong> left in your free trial.
               </span>
               <button
-                onClick={() => { window.scrollTo(0, 0); navigate("/contact"); }}
+                onClick={() => { window.scrollTo(0, 0); navigate(upgradeUrl); }}
                 style={{ fontSize: 13, fontWeight: 600, color: "#0B1F3A", background: "#FFC72E", border: "none", borderRadius: 6, padding: "4px 14px", cursor: "pointer" }}
               >
                 Upgrade now →
@@ -1123,7 +1177,7 @@ export default function ResearcherDashboard() {
               🎉 Free trial active — <strong>{daysLeft} days</strong> remaining.
             </span>
             <button
-              onClick={() => { window.scrollTo(0, 0); navigate("/contact"); }}
+              onClick={() => { window.scrollTo(0, 0); navigate(upgradeUrl); }}
               style={{ fontSize: 12, color: "#0B1F3A", background: "transparent", border: "1px solid rgba(11,31,58,.25)", borderRadius: 5, padding: "2px 10px", cursor: "pointer" }}
             >
               Upgrade
@@ -1146,10 +1200,37 @@ export default function ResearcherDashboard() {
           <p style={{ fontSize: 14, color: "#75777E", margin: 0 }}>
             {authorData?.cited_by_count
               ? `Your portfolio has ${authorData.cited_by_count.toLocaleString()} total citations across ${authorData.works_count?.toLocaleString() || "your"} publications.`
-              : "Your research portfolio is ready to grow."}
+            : "Your research portfolio is ready to grow."}
           </p>
         </div>
 
+        {serviceLocked ? (
+          <div style={{ ...cardStyle, border: "1px solid rgba(239,68,68,.18)" }}>
+            <div style={{ ...cardHeaderStyle, background: "rgba(239,68,68,.06)" }}>
+              <div style={cardTitleStyle}>
+                <Lock size={17} style={{ color: "#b91c1c" }} />
+                Portfolio tools are locked
+              </div>
+              <div style={cardDescStyle}>
+                {serviceLockedMessage}
+              </div>
+            </div>
+            <div style={{ ...cardBodyStyle, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
+              <div>
+                <p style={{ fontSize: 14, fontWeight: 600, color: "#0B1F3A", margin: "0 0 4px" }}>
+                  Upgrade to continue managing your profile.
+                </p>
+                <p style={{ fontSize: 13, color: "#75777E", margin: 0 }}>
+                  Profile editing, sync, publications, CV uploads, themes, QR code, and sharing tools reactivate after payment.
+                </p>
+              </div>
+              <button onClick={() => navigate(upgradeUrl)} style={btnPrimary()}>
+                Choose a plan
+              </button>
+            </div>
+          </div>
+        ) : (
+          <>
         {/* ═══════ Profile Completion Card ═══════ */}
         {(() => {
           const steps = [
@@ -1703,7 +1784,7 @@ export default function ResearcherDashboard() {
                       {editingSectionId ? (
                         <>
                           <button
-                            onClick={() => updateSectionMutation.mutate({ id: editingSectionId, title: sectionTitle, content: sectionContent })}
+                            onClick={() => updateSectionMutation.mutate({ id: editingSectionId, title: sectionTitle, content: sectionContent, sectionType })}
                             disabled={!sectionTitle || !sectionContent || updateSectionMutation.isPending}
                             style={btnPrimary(!sectionTitle || !sectionContent || updateSectionMutation.isPending)}
                           >
@@ -1740,7 +1821,7 @@ export default function ResearcherDashboard() {
                       </div>
                     ) : (
                       <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                        {sectionsData.sections.map((section) => (
+                        {sectionsData.sections.map((section, index) => (
                           <div key={section.id} style={{ display: "flex", alignItems: "flex-start", gap: 10, padding: "14px 14px", borderRadius: 10, border: "1px solid rgba(11,31,58,.08)", background: "#F8F9FA" }}>
                             <GripVertical size={15} style={{ color: "#75777E", marginTop: 2, flexShrink: 0 }} />
                             <div style={{ flex: 1, minWidth: 0 }}>
@@ -1754,6 +1835,22 @@ export default function ResearcherDashboard() {
                               </p>
                             </div>
                             <div style={{ display: "flex", alignItems: "center", gap: 2, flexShrink: 0 }}>
+                              <button
+                                style={{ ...btnIcon(), opacity: index === 0 || reorderSectionsMutation.isPending ? 0.45 : 1 }}
+                                aria-label={`Move "${section.title}" up`}
+                                disabled={index === 0 || reorderSectionsMutation.isPending}
+                                onClick={() => handleMoveSection(section.id, -1)}
+                              >
+                                <ArrowUp size={14} />
+                              </button>
+                              <button
+                                style={{ ...btnIcon(), opacity: index === sectionsData.sections.length - 1 || reorderSectionsMutation.isPending ? 0.45 : 1 }}
+                                aria-label={`Move "${section.title}" down`}
+                                disabled={index === sectionsData.sections.length - 1 || reorderSectionsMutation.isPending}
+                                onClick={() => handleMoveSection(section.id, 1)}
+                              >
+                                <ArrowDown size={14} />
+                              </button>
                               <button
                                 style={btnIcon()}
                                 aria-label={`Edit "${section.title}"`}
@@ -2158,6 +2255,8 @@ export default function ResearcherDashboard() {
             </div>
           )}
         </div>
+          </>
+        )}
       </main>
 
       <GlobalFooter mode="app" />

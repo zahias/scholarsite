@@ -1,4 +1,4 @@
-import { Switch, Route } from "wouter";
+import { Switch, Route, useLocation } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider, useQuery } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -135,6 +135,28 @@ function PageFallback() {
   );
 }
 
+function RouteScopedChatWidget() {
+  const [location] = useLocation();
+  const hiddenPrefixes = [
+    "/login",
+    "/signup",
+    "/forgot-password",
+    "/reset-password",
+    "/verify-email",
+    "/dashboard/login",
+    "/admin/login",
+    "/checkout",
+    "/contact",
+    "/researcher",
+  ];
+
+  if (hiddenPrefixes.some((prefix) => location === prefix || location.startsWith(`${prefix}/`))) {
+    return null;
+  }
+
+  return <ChatWidget />;
+}
+
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
@@ -143,7 +165,7 @@ function App() {
           <ErrorBoundary>
             <Suspense fallback={<PageFallback />}>
               <Toaster />
-              <ChatWidget />
+              <RouteScopedChatWidget />
               <Router />
             </Suspense>
           </ErrorBoundary>

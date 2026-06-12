@@ -69,12 +69,12 @@ Never use raw Tailwind color classes without a `dark:` variant:
 | Role | Font | Weight | Size Range |
 |------|------|--------|------------|
 | UI text | Inter | 400, 500, 600, 700 | System scale |
-| Publication titles | Source Serif 4 | 600 | `text-lg` |
+| Publication titles | Newsreader | 600 | `text-lg` |
 | Headings | Inter | 700 | `text-xl` → `text-4xl` |
 | Body | Inter | 400 | `text-sm` → `text-base` |
 | Captions | Inter | 500 | `text-xs` |
 
-Fonts loaded via Google Fonts `@import` in `client/src/index.css`.
+Fonts loaded via Google Fonts `@import` in `client/src/index.css`. The active display serif is `Newsreader`; do not introduce a second serif without approval.
 
 ---
 
@@ -135,6 +135,36 @@ Centered card with:
 | Primary CTA | `.btn-premium` | Hero, signup |
 | Secondary | `variant="outline"` | Supporting actions |
 | Ghost | `variant="ghost"` | Nav, back links |
+
+### Route Shells
+
+Use shared shell classes for repeated page types. Do not hand-roll new page backgrounds or auth cards.
+
+| Surface | Class | Usage |
+|---------|-------|-------|
+| Auth page background | `.auth-page-shell` | Login, signup, password reset, researcher login |
+| Auth content centering | `.auth-center` | Centers form/card surfaces |
+| Auth card | `.auth-card` | Primary form container |
+| Auth mark | `.auth-mark` | Brand/icon mark above auth headings |
+| Admin auth background | `.admin-auth-page` | Admin-only login shell |
+| Admin auth card | `.admin-auth-card` | Dark admin login card |
+| Empty state panel | `.empty-state-panel` | No data, missing profile, empty lists |
+| Empty state icon | `.empty-state-icon` | Lucide icon container for empty states |
+| Brand nudge | `.scholar-nudge` | Low-priority contextual guidance banner |
+| Public page shell | `.public-page` + `.public-main` | Marketing/content pages |
+| Public masthead | `.public-masthead` + `.public-masthead-inner` | Top hero for public subpages |
+| Public typography | `.public-eyebrow`, `.public-title`, `.public-copy` | Public masthead hierarchy |
+| Public section | `.public-section` | Standard content band after masthead |
+| Public containers | `.public-container-sm/md/lg` | Reusable page widths |
+| Public cards | `.public-card`, `.public-subtle-card` | Standard content/pricing/editorial cards |
+| Public CTA band | `.public-cta-band` + `.public-cta-content` | Dark CTA bands |
+| Pricing card | `.plan-card`, `.plan-card-featured`, `.plan-badge` | Pricing plan cards |
+
+### Chat Visibility
+
+`ChatWidget` is routed through `RouteScopedChatWidget` in `client/src/App.tsx`.
+
+Hide chat on high-focus or support-intent surfaces: auth pages, password pages, admin login, checkout, contact, and public researcher profile routes. Show chat on marketing/content pages where it supports discovery without competing with the primary form action.
 
 ---
 

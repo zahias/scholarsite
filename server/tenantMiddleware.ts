@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import { storage } from "./storage";
 import type { Tenant, Domain } from "@shared/schema";
+import { tenantHasServiceAccess } from "./billing";
 
 declare global {
   namespace Express {
@@ -49,7 +50,7 @@ export async function tenantResolver(
 
     const tenant = await storage.getTenant(domain.tenantId);
 
-    if (!tenant || tenant.status === "cancelled" || tenant.status === "suspended") {
+    if (!tenant || !tenantHasServiceAccess(tenant)) {
       req.isMarketingSite = true;
       return next();
     }

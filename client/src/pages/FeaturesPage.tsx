@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
 import SEO from "@/components/SEO";
 import GlobalNav from "@/components/GlobalNav";
@@ -55,7 +55,7 @@ export default function FeaturesPage() {
   useEffect(() => { window.scrollTo(0, 0); }, []);
 
   return (
-    <div className="min-h-screen flex flex-col" style={{ background: "#fff" }}>
+    <div className="public-page">
       <SEO
         title="Features — Scholar.name"
         description="Auto-syncing publications, citation analytics, customizable themes, and more. See everything Scholar.name offers researchers."
@@ -64,26 +64,25 @@ export default function FeaturesPage() {
       />
       <GlobalNav mode="landing" />
 
-      <main style={{ flex: 1 }}>
+      <main className="public-main">
         {/* Hero */}
-        <section style={{ background: "#0B1F3A", padding: "72px 0 56px", position: "relative", overflow: "hidden" }}>
-          <div style={{ position: "absolute", inset: 0, background: "radial-gradient(ellipse at 70% 0%, rgba(255,199,46,.14), transparent 55%), repeating-linear-gradient(0deg, rgba(255,255,255,.025) 0 1px, transparent 1px 52px)", pointerEvents: "none" }} />
-          <div style={{ maxWidth: 720, margin: "0 auto", padding: "0 32px", position: "relative", zIndex: 1, textAlign: "center" }}>
-            <span style={{ fontFamily: "'Newsreader', serif", fontSize: 11, letterSpacing: ".22em", textTransform: "uppercase", color: "#FFC72E", fontWeight: 600, display: "block", marginBottom: 16 }}>Platform</span>
-            <h1 style={{ fontFamily: "'Newsreader', serif", fontSize: "clamp(32px,5vw,56px)", lineHeight: 1.08, fontWeight: 500, color: "#fff", margin: "0 0 16px", letterSpacing: "-0.02em" }}>
+        <section className="public-masthead">
+          <div className="public-masthead-inner" style={{ textAlign: "left" }}>
+            <span className="public-eyebrow">Platform</span>
+            <h1 className="public-title">
               Everything you need to showcase your research
             </h1>
-            <p style={{ fontSize: 17, color: "rgba(255,255,255,.7)", lineHeight: 1.55, maxWidth: 520, margin: "0 auto" }}>
+            <p className="public-copy" style={{ maxWidth: 640, margin: 0 }}>
               From automatic publication syncing to downloadable Research Passports — built by academics, for academics.
             </p>
           </div>
         </section>
 
         {/* Feature grid */}
-        <section style={{ background: "#F0F4F8", padding: "64px 24px 72px" }}>
-          <div style={{ maxWidth: 1100, margin: "0 auto" }}>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 20 }} className="features-grid">
-              <style>{`@media (max-width: 900px) { .features-grid { grid-template-columns: repeat(2, 1fr) !important; } } @media (max-width: 560px) { .features-grid { grid-template-columns: 1fr !important; } }`}</style>
+        <section className="public-section" style={{ paddingBottom: 72 }}>
+          <div className="public-container-lg">
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 20 }} className="features-grid">
+              <style>{`@media (max-width: 1120px) { .features-grid { grid-template-columns: repeat(3, 1fr) !important; } } @media (max-width: 900px) { .features-grid { grid-template-columns: repeat(2, 1fr) !important; } } @media (max-width: 560px) { .features-grid { grid-template-columns: 1fr !important; } }`}</style>
               {features.map((f, i) => {
                 const color = ICON_COLORS[i % ICON_COLORS.length];
                 return (
@@ -95,9 +94,8 @@ export default function FeaturesPage() {
         </section>
 
         {/* CTA band */}
-        <div style={{ background: "#0B1F3A", padding: "64px 32px", textAlign: "center", position: "relative", overflow: "hidden" }}>
-          <div style={{ position: "absolute", inset: 0, background: "radial-gradient(ellipse at 70% 0%, rgba(255,199,46,.15), transparent 55%)", pointerEvents: "none" }} />
-          <div style={{ position: "relative", maxWidth: 520, margin: "0 auto" }}>
+        <div className="public-cta-band" style={{ padding: "64px 32px", textAlign: "center" }}>
+          <div className="public-cta-content" style={{ maxWidth: 520, margin: "0 auto" }}>
             <h2 style={{ fontFamily: "'Newsreader', serif", fontSize: "clamp(24px,3vw,36px)", fontWeight: 500, color: "#fff", margin: "0 0 12px", letterSpacing: "-0.015em" }}>
               Ready to build your portfolio?
             </h2>
@@ -146,6 +144,3 @@ function FeatureCard({ f, color }: { f: (typeof features)[number]; color: string
     </div>
   );
 }
-
-// useState import needed for FeatureCard hover
-import { useState } from "react";

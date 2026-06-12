@@ -169,10 +169,10 @@ export default function PrivacyPage() {
                 <span style={{ display: "block", fontFamily: "'Newsreader', serif", fontSize: 12, letterSpacing: ".22em", textTransform: "uppercase", color: "#6F5400", fontWeight: 700, marginBottom: 6, fontStyle: "normal" }}>03</span>
                 Sharing
               </h2>
-              <PlainEng>We never sell your data. Your public profile is visible to anyone who visits scholar.name/you. We use Stripe for payments and standard cloud providers for hosting.</PlainEng>
+              <PlainEng>We never sell your data. Your public profile is visible while your trial or paid plan is active. We use MontyPay for online payments and standard cloud providers for hosting.</PlainEng>
               <ul style={{ paddingLeft: 20, margin: "0 0 14px" }}>
                 <li style={{ marginBottom: 8 }}><strong style={{ color: "#0B1F3A", fontWeight: 600 }}>Public profile</strong> — your researcher page is publicly accessible at your scholar.name URL.</li>
-                <li style={{ marginBottom: 8 }}><strong style={{ color: "#0B1F3A", fontWeight: 600 }}>Service providers</strong> — we share data with sub-processors (hosting, analytics, email delivery, payment via Stripe) under data-processing agreements.</li>
+                <li style={{ marginBottom: 8 }}><strong style={{ color: "#0B1F3A", fontWeight: 600 }}>Service providers</strong> — we share data with sub-processors (hosting, analytics, email delivery, payment via MontyPay) under data-processing agreements.</li>
                 <li style={{ marginBottom: 8 }}><strong style={{ color: "#0B1F3A", fontWeight: 600 }}>Legal</strong> — we may disclose data if required by law or to protect legal rights.</li>
                 <li style={{ marginBottom: 8 }}><strong style={{ color: "#0B1F3A", fontWeight: 600 }}>Business transfer</strong> — in a merger or acquisition, data may transfer with appropriate notice to you.</li>
               </ul>

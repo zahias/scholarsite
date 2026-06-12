@@ -39,7 +39,7 @@ export default function GlobalNav({
       <>
       <a href="#main-content" className="skip-link">Skip to main content</a>
       <nav className="sticky top-0 z-50 glass-nav" aria-label="Main navigation">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             {/* Logo */}
             <Link href="/" onClick={handleNavClick} className="flex items-center cursor-pointer" data-testid="link-logo">
@@ -170,7 +170,7 @@ export default function GlobalNav({
   if (mode === "app") {
     return (
       <nav className="sticky top-0 z-40 glass-nav" aria-label="App navigation">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-14">
             <Link href="/dashboard" onClick={handleNavClick} className="flex items-center cursor-pointer" data-testid="link-app-logo">
                 <BookOpen className="h-5 w-5 text-primary-container mr-2" />
@@ -199,7 +199,7 @@ export default function GlobalNav({
   if (mode === "auth") {
     return (
       <nav className="sticky top-0 z-40 glass-nav" aria-label="Authentication navigation">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-14">
             <Link href="/" onClick={handleNavClick} className="flex items-center cursor-pointer" data-testid="link-auth-logo">
                 <BookOpen className="h-5 w-5 text-primary-container mr-2" />

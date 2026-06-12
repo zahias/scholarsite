@@ -14,7 +14,7 @@ export default function GlobalFooter({ mode = "landing" }: GlobalFooterProps) {
 
   return (
     <footer className="bg-primary-container text-white py-12">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
         {mode === "landing" ? (
           <>
             <div className="grid md:grid-cols-4 gap-8 mb-8">

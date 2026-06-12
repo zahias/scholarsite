@@ -7,10 +7,11 @@ import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
 import { Lock, Mail, GraduationCap } from "lucide-react";
+import SEO from "@/components/SEO";
 
 const loginSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -65,14 +66,21 @@ export default function AdminLogin() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center p-4">
-      <Card className="w-full max-w-md bg-white/5 backdrop-blur-lg border-white/10">
+    <div className="auth-page-shell admin-auth-page">
+      <SEO
+        title="Admin Sign In — Scholar.name"
+        description="Sign in to manage Scholar.name customer sites."
+        url="https://scholar.name/admin/login"
+        type="website"
+      />
+      <div className="auth-center">
+      <Card className="auth-card admin-auth-card">
         <CardHeader className="text-center">
-          <div className="mx-auto w-12 h-12 bg-orange-500/20 rounded-xl flex items-center justify-center mb-4">
-            <GraduationCap className="w-6 h-6 text-orange-400" />
+          <div className="auth-mark">
+            <GraduationCap className="w-6 h-6" />
           </div>
-          <CardTitle className="text-2xl text-white">Scholar.name Admin</CardTitle>
-          <CardDescription className="text-slate-400">
+          <h1 className="auth-title">Scholar.name Admin</h1>
+          <CardDescription className="auth-copy">
             Sign in to manage customer sites
           </CardDescription>
         </CardHeader>
@@ -125,7 +133,8 @@ export default function AdminLogin() {
               />
               <Button
                 type="submit"
-                className="w-full bg-orange-500 hover:bg-orange-600 text-white"
+                variant="primary-cta"
+                className="w-full"
                 disabled={loginMutation.isPending}
                 data-testid="button-login"
               >
@@ -135,6 +144,7 @@ export default function AdminLogin() {
           </Form>
         </CardContent>
       </Card>
+      </div>
     </div>
   );
 }

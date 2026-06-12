@@ -6,7 +6,6 @@ import { z } from "zod";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Loader2, Shield, Check } from "lucide-react";
-import { apiRequest } from "@/lib/queryClient";
 import GlobalNav from "@/components/GlobalNav";
 import SEO from "@/components/SEO";
 
@@ -55,10 +54,17 @@ export default function CheckoutPage() {
 
   const checkoutMutation = useMutation({
     mutationFn: async (data: CheckoutFormData) => {
-      const response = await apiRequest("POST", "/api/checkout/create-session", {
-        ...data, plan, billingPeriod, openalexId,
+      const response = await fetch("/api/checkout/create-session", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ ...data, plan, billingPeriod, openalexId }),
       });
-      return response.json();
+      const payload = await response.json();
+      if (!response.ok && !payload.fallbackUrl) {
+        throw new Error(payload.message || "Failed to create checkout session");
+      }
+      return payload;
     },
     onSuccess: (data) => {
       if (data.redirectUrl) window.location.href = data.redirectUrl;

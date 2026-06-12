@@ -117,7 +117,7 @@ export default function SignupPage() {
   const { toast } = useToast();
 
   const [step, setStep] = useState(1);
-  const totalSteps = 3;
+  const totalSteps = 2;
 
   const [showPassword, setShowPassword] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -191,7 +191,7 @@ export default function SignupPage() {
         }));
       }
       setIsSuccess(true);
-      toast({ title: "Account created!", description: "Your 14-day free trial is active. Redirecting to your dashboard…" });
+      toast({ title: "Account created!", description: "Your 14-day free trial is active and your portfolio is being prepared." });
       setTimeout(() => navigate("/dashboard"), 1500);
     },
     onError: (error: Error) => {
@@ -222,8 +222,8 @@ export default function SignupPage() {
   // Success state
   if (isSuccess) {
     return (
-      <div style={{ minHeight: "100vh", background: "#F0F4F8", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 24 }}>
-        <div style={{ background: "#fff", borderRadius: 16, border: "1px solid rgba(11,31,58,.08)", padding: "48px 36px", maxWidth: 400, width: "100%", textAlign: "center", boxShadow: "0 24px 60px -20px rgba(11,31,58,.14)" }}>
+      <div className="auth-page-shell" style={{ alignItems: "center", justifyContent: "center", padding: 24 }}>
+        <div className="auth-card" style={{ padding: "48px 36px", maxWidth: 400, textAlign: "center" }}>
           <div style={{ width: 64, height: 64, borderRadius: "50%", background: "#DDF2E4", display: "grid", placeItems: "center", margin: "0 auto 20px" }}>
             <CheckCircle size={32} style={{ color: "#2F6D3A" }} />
           </div>
@@ -261,7 +261,7 @@ export default function SignupPage() {
   };
 
   return (
-    <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", background: "#F0F4F8" }}>
+    <div className="auth-page-shell">
       <SEO
         title="Sign Up — Scholar.name"
         description="Create your free academic portfolio on Scholar.name. Showcase publications, citations, and career milestones."

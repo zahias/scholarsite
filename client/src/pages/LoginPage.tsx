@@ -57,7 +57,7 @@ export default function LoginPage() {
   const onSubmit = (data: LoginFormData) => loginMutation.mutate(data);
 
   return (
-    <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", background: "#F0F4F8" }}>
+    <div className="auth-page-shell">
       <SEO
         title="Sign In — Scholar.name"
         description="Sign in to manage your academic portfolio on Scholar.name."
@@ -100,7 +100,7 @@ export default function LoginPage() {
         </div>
 
         {/* Card */}
-        <div style={{ position: "relative", zIndex: 1, width: "100%", maxWidth: 440, background: "#fff", borderRadius: 16, border: "1px solid rgba(11,31,58,.08)", boxShadow: "0 24px 60px -20px rgba(11,31,58,.16)", padding: "36px 36px 28px" }}>
+        <div className="auth-card" style={{ position: "relative", zIndex: 1, padding: "36px 36px 28px" }}>
 
           {/* Header */}
           <div style={{ textAlign: "center", marginBottom: 28 }}>

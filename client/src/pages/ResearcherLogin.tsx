@@ -6,7 +6,7 @@ import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
 import GlobalNav from "@/components/GlobalNav";
@@ -66,7 +66,7 @@ export default function ResearcherLogin() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex flex-col">
+    <div className="auth-page-shell">
       <SEO
         title="Sign In — Scholar.name"
         description="Sign in to manage your academic portfolio on Scholar.name."
@@ -74,14 +74,14 @@ export default function ResearcherLogin() {
         type="website"
       />
       <GlobalNav mode="auth" />
-      <div className="flex-1 flex items-center justify-center p-4">
-      <Card className="w-full max-w-md shadow-lg">
+      <div className="auth-center">
+      <Card className="auth-card">
         <CardHeader className="text-center">
-          <div className="mx-auto w-12 h-12 bg-gradient-to-br from-[#0B1F3A] to-[#233F5F] rounded-xl flex items-center justify-center mb-4">
-            <GraduationCap className="w-6 h-6 text-white" />
+          <div className="auth-mark">
+            <GraduationCap className="w-6 h-6" />
           </div>
-          <CardTitle className="text-2xl">Scholar.name</CardTitle>
-          <CardDescription>
+          <h1 className="auth-title">Scholar.name</h1>
+          <CardDescription className="auth-copy">
             Sign in to manage your academic portfolio
           </CardDescription>
         </CardHeader>
@@ -137,7 +137,8 @@ export default function ResearcherLogin() {
               />
               <Button
                 type="submit"
-                className="w-full bg-[#0B1F3A] hover:bg-[#1a3a5c]"
+                variant="nav-cta"
+                className="w-full"
                 disabled={loginMutation.isPending}
                 data-testid="button-login"
               >
@@ -147,7 +148,7 @@ export default function ResearcherLogin() {
           </Form>
           <p className="mt-6 text-center text-sm text-slate-500">
             Need an account?{" "}
-            <a href="/contact" className="text-[#F2994A] hover:underline">
+            <a href="/contact" className="font-medium text-primary-container underline decoration-secondary-container underline-offset-2">
               Contact us
             </a>
           </p>
