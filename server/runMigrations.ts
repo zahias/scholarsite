@@ -36,6 +36,16 @@ export async function runMigrations(): Promise<void> {
     await run("users.email_verification_token", `ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "email_verification_token" varchar(64);`);
     await run("users.email_verification_expires_at", `ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "email_verification_expires_at" timestamp;`);
 
+    // ── 1b. sessions table — required by connect-pg-simple for auth login/signup ──
+    await run("create sessions", `
+      CREATE TABLE IF NOT EXISTS "sessions" (
+        "sid" varchar PRIMARY KEY NOT NULL,
+        "sess" jsonb NOT NULL,
+        "expire" timestamp NOT NULL
+      );
+    `);
+    await run("sessions_expire_idx", `CREATE INDEX IF NOT EXISTS "IDX_session_expire" ON "sessions"("expire");`);
+
     // ── 2. tenants table — trial support ──
     await run("tenants.trial_ends_at", `ALTER TABLE "tenants" ADD COLUMN IF NOT EXISTS "trial_ends_at" timestamp;`);
 

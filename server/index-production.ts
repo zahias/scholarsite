@@ -6,6 +6,7 @@ import { registerRoutes } from "./routes";
 import { serveStatic, log } from "./static";
 import { startSyncScheduler, stopSyncScheduler } from "./services/syncScheduler";
 import { seedThemesIfEmpty } from "./services/themeSeed";
+import { runMigrations } from "./runMigrations";
 import { pool } from "./db";
 
 const app = express();
@@ -35,7 +36,7 @@ app.use(session({
   store: new PgSession({
     pool: pool,
     tableName: 'sessions',
-    createTableIfMissing: false
+    createTableIfMissing: true
   }),
   secret: process.env.SESSION_SECRET || 'research-profile-admin-secret-key',
   resave: false,
@@ -80,6 +81,7 @@ app.use((req, res, next) => {
 });
 
 (async () => {
+  await runMigrations();
   const server = await registerRoutes(app);
 
   await seedThemesIfEmpty();

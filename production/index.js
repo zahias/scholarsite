@@ -5847,6 +5847,57 @@ async function seedThemesIfEmpty() {
   }
 }
 
+// server/runMigrations.ts
+async function runMigrations() {
+  if (!pool) {
+    console.log("[migrations] No DB connection \u2014 skipping migrations.");
+    return;
+  }
+  const client = await pool.connect();
+  const run = async (label, sql4) => {
+    try {
+      await client.query(sql4);
+      console.log(`[migrations] \u2713 ${label}`);
+    } catch (err) {
+      if (["42701", "42P07"].includes(err.code)) {
+        console.log(`[migrations] ~ ${label} (already applied)`);
+      } else {
+        console.error(`[migrations] \u2717 ${label}:`, err.message);
+      }
+    }
+  };
+  try {
+    console.log("[migrations] Running schema migrations\u2026");
+    await run("users.email_verified_at", `ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "email_verified_at" timestamp;`);
+    await run("users.email_verification_token", `ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "email_verification_token" varchar(64);`);
+    await run("users.email_verification_expires_at", `ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "email_verification_expires_at" timestamp;`);
+    await run("create sessions", `
+      CREATE TABLE IF NOT EXISTS "sessions" (
+        "sid" varchar PRIMARY KEY NOT NULL,
+        "sess" jsonb NOT NULL,
+        "expire" timestamp NOT NULL
+      );
+    `);
+    await run("sessions_expire_idx", `CREATE INDEX IF NOT EXISTS "IDX_session_expire" ON "sessions"("expire");`);
+    await run("tenants.trial_ends_at", `ALTER TABLE "tenants" ADD COLUMN IF NOT EXISTS "trial_ends_at" timestamp;`);
+    await run("create password_reset_tokens", `
+      CREATE TABLE IF NOT EXISTS "password_reset_tokens" (
+        "id" varchar PRIMARY KEY DEFAULT gen_random_uuid(),
+        "user_id" varchar NOT NULL REFERENCES "users"("id") ON DELETE CASCADE,
+        "token" varchar(64) UNIQUE NOT NULL,
+        "expires_at" timestamp NOT NULL,
+        "used_at" timestamp,
+        "created_at" timestamp DEFAULT now()
+      );
+    `);
+    await run("prt_token_idx", `CREATE INDEX IF NOT EXISTS "prt_token_idx" ON "password_reset_tokens"("token");`);
+    await run("prt_user_idx", `CREATE INDEX IF NOT EXISTS "prt_user_idx" ON "password_reset_tokens"("user_id");`);
+    console.log("[migrations] Schema migrations complete.");
+  } finally {
+    client.release();
+  }
+}
+
 // server/index-production.ts
 var app = express2();
 app.set("trust proxy", 1);
@@ -5867,7 +5918,7 @@ app.use(session({
   store: new PgSession({
     pool,
     tableName: "sessions",
-    createTableIfMissing: false
+    createTableIfMissing: true
   }),
   secret: process.env.SESSION_SECRET || "research-profile-admin-secret-key",
   resave: false,
@@ -5905,6 +5956,7 @@ app.use((req, res, next) => {
   next();
 });
 (async () => {
+  await runMigrations();
   const server = await registerRoutes(app);
   await seedThemesIfEmpty();
   app.use((err, _req, res, _next) => {
