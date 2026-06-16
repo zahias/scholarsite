@@ -28,6 +28,13 @@ jobs:
             git clean -fd
             
             echo "📋 Syncing production files..."
+            echo "🧼 Removing stale runtime artifacts..."
+            rm -rf /home/bannwebs/scholarsite/dist
+            rm -rf /home/bannwebs/scholarsite/__MACOSX
+            rm -f /home/bannwebs/scholarsite/server.js
+            rm -f /home/bannwebs/scholarsite/index.js.bak
+            rm -f /home/bannwebs/scholarsite/package-lock.json.bak.*
+            rm -rf /home/bannwebs/scholarsite/node_modules.bak.*
             cp -rf production/* /home/bannwebs/scholarsite/
             rm -rf /home/bannwebs/scholarsite/public/assets/*
             cp -rf production/public/assets/* /home/bannwebs/scholarsite/public/assets/

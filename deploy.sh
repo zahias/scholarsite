@@ -4,7 +4,7 @@
 # Usage: ./deploy.sh
 # 
 # This builds the production files into the production/ folder.
-# Then commit and push to GitHub, and run deploy.sh on A2.
+# Then commit and push to main; GitHub Actions deploys production/ to A2.
 
 set -e
 
@@ -30,4 +30,4 @@ echo "✅ Build complete!"
 echo ""
 echo "Next steps:"
 echo "  1. Commit and push to GitHub (use Git pane)"
-echo "  2. On A2, run: ./deploy.sh"
+echo "  2. Push to main; GitHub Actions deploys production/ to A2"
