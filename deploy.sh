@@ -19,6 +19,7 @@ rm -rf production/*
 mkdir -p production
 cp -r dist/public production/
 cp dist/index.js production/
+perl -pi -e 's/[ \t]+$//' production/index.js
 if [ -f dist/a2-starter.cjs ]; then
   cp dist/a2-starter.cjs production/
 elif [ -f a2-starter.cjs ]; then

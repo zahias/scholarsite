@@ -22,6 +22,37 @@ SESSION_SECRET=<long-random-secret>
 
 Launch-critical auth and signup will fail if `DATABASE_URL` cannot connect. A healthy deployment should return `200` from `/api/health`.
 
+## A2 Node.js App Settings
+
+Use the cPanel Node.js page with these settings:
+
+```text
+Application root: scholarsite
+Application URL: scholar.name
+Application startup file: a2-starter.cjs
+Application mode: Production
+Node.js version: 18.x
+```
+
+Do not click **Run NPM Install** in cPanel during normal deploys. Production builds are generated locally and committed into `production/`, then GitHub Actions copies the built files to A2. Running package installation on A2 can exhaust the shared-hosting NPROC limit.
+
+If dependencies ever must be repaired directly on A2, stop the app first and use a single-threaded production install:
+
+```bash
+cd ~/scholarsite
+npm ci --omit=dev --jobs=1
+```
+
+The preferred production backend bundle includes runtime dependencies in `index.js`, so `node_modules` should not be treated as the normal deployment mechanism.
+
+If GitHub Actions fails with `ssh: unexpected packet in response to channel open: <nil>`, check for stuck Passenger/Node processes before rerunning the deploy:
+
+```bash
+ps -u bannwebs -o pid,ppid,stat,etime,comm,args | grep -E 'node|lsnode|passenger'
+```
+
+Kill only stale Scholar.name app processes, then restart the app once from cPanel and rerun the failed GitHub Actions workflow.
+
 ## Email
 
 Email-backed flows need SMTP settings:
