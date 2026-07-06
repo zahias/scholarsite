@@ -21,7 +21,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
-import { useRealtimeUpdates } from "@/hooks/useRealtimeUpdates";
 import type { ResearcherProfile as ResearcherProfileType } from "@shared/schema";
 import { useMemo, useState, useEffect, useCallback } from "react";
 import { BarChart3, BookOpen, FileText, Home, Lock, User, UserX } from "lucide-react";
@@ -57,8 +56,6 @@ function ResearcherProfileContent() {
   const [, navigate] = useLocation();
 
   const { themeConfig } = useProfileTheme();
-  const { isConnected } = useRealtimeUpdates();
-
   const { data: researcherData, isLoading, error } = useQuery<{
     profile: any;
     researcher: any;

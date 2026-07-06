@@ -5,6 +5,10 @@ on:
     branches:
       - main
 
+concurrency:
+  group: a2-production-deploy
+  cancel-in-progress: false
+
 jobs:
   deploy:
     runs-on: ubuntu-latest

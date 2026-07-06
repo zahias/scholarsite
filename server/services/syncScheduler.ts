@@ -1,4 +1,5 @@
 import { storage } from "../storage";
+import { pool } from "../db";
 import { OpenAlexService } from "./openalexApi";
 
 const openalexService = new OpenAlexService();
@@ -17,6 +18,15 @@ interface SyncLog {
 const syncLogs: SyncLog[] = [];
 const MAX_LOGS = 100;
 let isSyncRunning = false;
+const SYNC_LOCK_NAMESPACE = 193648267;
+const SYNC_LOCK_ID = 1;
+
+export interface ScheduledSyncStats {
+  synced: number;
+  skipped: number;
+  errors: number;
+  alreadyRunning: boolean;
+}
 
 function addSyncLog(log: SyncLog) {
   syncLogs.unshift(log);
@@ -83,16 +93,40 @@ async function syncTenant(tenantId: string, tenantName: string, openalexId: stri
   return log;
 }
 
-export async function runScheduledSync(): Promise<{ synced: number; skipped: number; errors: number }> {
+export async function runScheduledSync(): Promise<ScheduledSyncStats> {
   if (isSyncRunning) {
     console.log('[SyncScheduler] Sync already running, skipping this tick');
-    return { synced: 0, skipped: 0, errors: 0 };
+    return { synced: 0, skipped: 0, errors: 0, alreadyRunning: true };
+  }
+
+  if (!pool) {
+    throw new Error('Database unavailable for scheduled synchronization');
+  }
+
+  const lockClient = await pool.connect();
+  let lockAcquired = false;
+
+  try {
+    const lockResult = await lockClient.query(
+      'SELECT pg_try_advisory_lock($1, $2) AS acquired',
+      [SYNC_LOCK_NAMESPACE, SYNC_LOCK_ID],
+    );
+    lockAcquired = lockResult.rows[0]?.acquired === true;
+  } catch (error) {
+    lockClient.release();
+    throw error;
+  }
+
+  if (!lockAcquired) {
+    lockClient.release();
+    console.log('[SyncScheduler] Another process owns the synchronization lock');
+    return { synced: 0, skipped: 0, errors: 0, alreadyRunning: true };
   }
 
   console.log('[SyncScheduler] Starting scheduled sync check...');
   isSyncRunning = true;
 
-  const stats = { synced: 0, skipped: 0, errors: 0 };
+  const stats: ScheduledSyncStats = { synced: 0, skipped: 0, errors: 0, alreadyRunning: false };
 
   try {
     const allTenants = await storage.getAllTenants();
@@ -153,46 +187,17 @@ export async function runScheduledSync(): Promise<{ synced: number; skipped: num
     console.log(`[SyncScheduler] Sync check complete. Synced: ${stats.synced}, Skipped: ${stats.skipped}, Errors: ${stats.errors}`);
   } catch (error) {
     console.error('[SyncScheduler] Error running scheduled sync:', error);
+    throw error;
   } finally {
     isSyncRunning = false;
+    try {
+      await lockClient.query('SELECT pg_advisory_unlock($1, $2)', [SYNC_LOCK_NAMESPACE, SYNC_LOCK_ID]);
+    } finally {
+      lockClient.release();
+    }
   }
 
   return stats;
-}
-
-let schedulerInterval: NodeJS.Timeout | null = null;
-
-export function startSyncScheduler(intervalHours: number = 24): void {
-  if (schedulerInterval) {
-    console.log('[SyncScheduler] Scheduler already running');
-    return;
-  }
-
-  const intervalMs = intervalHours * 60 * 60 * 1000;
-
-  console.log(`[SyncScheduler] Starting scheduler with ${intervalHours} hour interval`);
-
-  // Delay first run by 5 minutes to let the server fully settle after startup
-  // .unref() allows graceful shutdown without being blocked by this timer
-  setTimeout(() => {
-    runScheduledSync();
-  }, 5 * 60 * 1000).unref();
-
-  schedulerInterval = setInterval(() => {
-    runScheduledSync();
-  }, intervalMs);
-  // .unref() prevents this interval from keeping a zombie process alive if the HTTP server closes
-  schedulerInterval.unref();
-
-  console.log('[SyncScheduler] Scheduler started');
-}
-
-export function stopSyncScheduler(): void {
-  if (schedulerInterval) {
-    clearInterval(schedulerInterval);
-    schedulerInterval = null;
-    console.log('[SyncScheduler] Scheduler stopped');
-  }
 }
 
 export async function forceSyncTenant(tenantId: string): Promise<SyncLog | null> {

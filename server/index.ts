@@ -4,7 +4,6 @@ import session from "express-session";
 import connectPgSimple from "connect-pg-simple";
 import { registerRoutes } from "./routes";
 import { serveStatic, log } from "./static";
-import { startSyncScheduler, stopSyncScheduler } from "./services/syncScheduler";
 import { runMigrations } from "./runMigrations";
 
 // Log environment configuration status at startup
@@ -107,10 +106,6 @@ app.use((req, res, next) => {
   if (process.env.NODE_ENV === 'production') {
     server.listen(port, () => {
       log(`serving on port ${port}`);
-      
-      // Start the automated sync scheduler (checks every hour)
-      startSyncScheduler(24);
-      log('Sync scheduler started - checking monthly eligibility every 24 hours');
     });
   } else {
     // Attach a one-time error handler to fall back to localhost binding
@@ -121,8 +116,6 @@ app.use((req, res, next) => {
         // Try fallback to simple listen on port (localhost)
         server.listen(port, () => {
           log(`serving on port ${port} (localhost)`);
-          startSyncScheduler(24);
-          log('Sync scheduler started - checking monthly eligibility every 24 hours');
         });
       } else {
         // Unknown error - rethrow after logging
@@ -141,15 +134,12 @@ app.use((req, res, next) => {
       // Remove the error handler if listen succeeded
       server.removeListener('error', onError);
       log(`serving on port ${port}`);
-      startSyncScheduler(24);
-      log('Sync scheduler started - checking monthly eligibility every 24 hours');
     });
   }
 
   // Graceful shutdown
   const shutdown = (signal: string) => {
     log(`${signal} received — shutting down gracefully`);
-    stopSyncScheduler();
     server.close(() => {
       log('HTTP server closed');
       process.exit(0);

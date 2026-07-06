@@ -1,6 +1,6 @@
 import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
-import { EventEmitter } from "events";
+import { timingSafeEqual } from "crypto";
 import { storage } from "./storage";
 import { OpenAlexService } from "./services/openalexApi";
 import { insertResearcherProfileSchema, updateResearcherProfileSchema, insertThemeSchema, updateThemeSchema, type ResearchTopic, type Publication, type Affiliation } from "@shared/schema";
@@ -18,17 +18,21 @@ import { tenantResolver } from "./tenantMiddleware";
 import { getTenantAccessMessage, getTenantAccessState, tenantHasServiceAccess } from "./billing";
 import fetch from "node-fetch";
 import nodemailer from "nodemailer";
+import { runScheduledSync } from "./services/syncScheduler";
 
-// Event emitter for real-time updates
-const updateEmitter = new EventEmitter();
+function hasValidJobToken(req: Request): boolean {
+  const configuredToken = process.env.SYNC_JOB_TOKEN;
+  const authorization = req.get('authorization');
+  const providedToken = authorization?.startsWith('Bearer ')
+    ? authorization.slice('Bearer '.length)
+    : '';
 
-// SSE connection management
-interface SSEConnection {
-  res: Response;
-  openalexId?: string;
+  if (!configuredToken || !providedToken) return false;
+
+  const configured = Buffer.from(configuredToken);
+  const provided = Buffer.from(providedToken);
+  return configured.length === provided.length && timingSafeEqual(configured, provided);
 }
-
-const sseConnections = new Set<SSEConnection>();
 
 // Admin authentication middleware (for API endpoints - requires Bearer token)
 function adminAuthMiddleware(req: Request, res: Response, next: NextFunction) {
@@ -420,36 +424,6 @@ function generateStaticHTML(data: any): string {
 </html>`;
 }
 
-// Helper function to broadcast data updates
-function broadcastResearcherUpdate(openalexId: string, updateType: 'profile' | 'sync' | 'create') {
-  // Emit to event listeners
-  updateEmitter.emit('researcher-update', { openalexId, updateType, timestamp: new Date().toISOString() });
-
-  // Send SSE to connected clients
-  const message = JSON.stringify({ openalexId, updateType, timestamp: new Date().toISOString() });
-
-  for (const connection of Array.from(sseConnections)) {
-    try {
-      connection.res.write(`data: ${message}\n\n`);
-    } catch (error) {
-      // Remove failed connections
-      sseConnections.delete(connection);
-    }
-  }
-}
-
-// Clean up closed SSE connections
-function cleanupSSEConnections() {
-  for (const connection of Array.from(sseConnections)) {
-    if (connection.res.destroyed || connection.res.finished) {
-      sseConnections.delete(connection);
-    }
-  }
-}
-
-// Clean up connections every 30 seconds
-setInterval(cleanupSSEConnections, 120000); // Cleanup every 2 min (heartbeat already prunes dead connections)
-
 // Bibliography export format generators
 function generateBibTeX(publications: Publication[]): string {
   // Map OpenAlex publication types to valid BibTeX entry types
@@ -685,73 +659,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Checkout routes for payment processing
   app.use("/api/checkout", checkoutRouter);
-
-  // Server-Sent Events endpoint for real-time updates
-  app.get('/api/events', (req, res) => {
-    console.log('📡 New SSE connection request from:', req.ip);
-
-    try {
-      // Set proper SSE headers - minimal approach
-      const origin = req.headers.origin || req.headers.host || '';
-      res.writeHead(200, {
-        'Content-Type': 'text/event-stream',
-        'Cache-Control': 'no-cache',
-        'Connection': 'keep-alive',
-        'Access-Control-Allow-Origin': origin,
-        'Access-Control-Allow-Credentials': 'true',
-      });
-
-      // Send initial connection message immediately
-      res.write(`data: ${JSON.stringify({ type: 'connected', timestamp: new Date().toISOString() })}\n\n`);
-      console.log('✅ SSE connection established, sent initial message');
-
-      // Store connection
-      const connection: SSEConnection = { res };
-      sseConnections.add(connection);
-      console.log(`📊 Total SSE connections: ${sseConnections.size}`);
-
-      // Keep connection alive with heartbeat  
-      const heartbeat = setInterval(() => {
-        try {
-          // Check socket health for aggressive stale-connection pruning
-          const socketHealthy = req.socket && !req.socket.destroyed && req.socket.writable;
-
-          if (!res.destroyed && !res.finished && socketHealthy) {
-            res.write(`data: ${JSON.stringify({ type: 'heartbeat', timestamp: new Date().toISOString() })}\n\n`);
-          } else {
-            console.log('🧹 Cleaning up dead SSE connection');
-            clearInterval(heartbeat);
-            sseConnections.delete(connection);
-            if (req.socket && !req.socket.destroyed) {
-              req.socket.destroy();
-            }
-          }
-        } catch (error) {
-          console.error('❌ SSE heartbeat error:', error);
-          clearInterval(heartbeat);
-          sseConnections.delete(connection);
-        }
-      }, 60000); // Heartbeat every 60s to reduce per-connection setInterval load
-
-      // Handle client disconnect
-      req.on('close', () => {
-        console.log('🔌 SSE client disconnected');
-        clearInterval(heartbeat);
-        sseConnections.delete(connection);
-        console.log(`📊 Remaining SSE connections: ${sseConnections.size}`);
-      });
-
-      req.on('error', (error) => {
-        console.error('❌ SSE request error:', error);
-        clearInterval(heartbeat);
-        sseConnections.delete(connection);
-      });
-
-    } catch (error) {
-      console.error('❌ Failed to establish SSE connection:', error);
-      res.status(500).end();
-    }
-  });
 
   // Public objects endpoint - serves files from object storage public directories
   app.get('/public-objects/:filePath(*)', async (req, res) => {
@@ -1043,10 +950,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
       const profile = await storage.upsertResearcherProfile(profileData);
 
-      // Broadcast update to connected clients
       if (profile.openalexId) {
-        broadcastResearcherUpdate(profile.openalexId, 'create');
-
         // Trigger initial data sync from OpenAlex (non-blocking)
         openalexService.syncResearcherData(profile.openalexId).catch(error => {
           console.error(`Failed to sync OpenAlex data for ${profile.openalexId}:`, error);
@@ -1085,9 +989,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       const updatedProfile = await storage.updateResearcherProfile(profile.id, updates);
-
-      // Broadcast update to connected clients
-      broadcastResearcherUpdate(openalexId, 'profile');
 
       res.json(updatedProfile);
     } catch (error) {
@@ -1144,9 +1045,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         lastSyncedAt: new Date()
       });
 
-      // Broadcast sync update to connected clients
-      broadcastResearcherUpdate(openalexId, 'sync');
-
       res.json({ message: "Data sync completed successfully" });
     } catch (error) {
       console.error("Error syncing researcher data:", error);
@@ -1177,23 +1075,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to delete researcher profile" });
     }
   });
-
-  // Test endpoint to manually trigger SSE updates (for debugging — disabled in production)
-  if (process.env.NODE_ENV !== 'production') {
-    app.post('/api/test/broadcast/:openalexId', (req, res) => {
-      const { openalexId } = req.params;
-      console.log(`🧪 Test broadcast triggered for researcher: ${openalexId}`);
-
-      // Broadcast test update
-      broadcastResearcherUpdate(openalexId, 'profile');
-
-      res.json({
-        message: `Test broadcast sent for researcher ${openalexId}`,
-        connectionsNotified: sseConnections.size,
-        timestamp: new Date().toISOString()
-      });
-    });
-  }
 
   // Search researchers by OpenAlex ID (public)
   app.get('/api/openalex/search/:openalexId', async (req, res) => {
@@ -1291,6 +1172,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ status: 'ok', timestamp: new Date().toISOString(), tenants: tenants.length });
     } catch (error) {
       res.status(503).json({ status: 'error', message: 'Database unreachable' });
+    }
+  });
+
+  app.post('/api/internal/jobs/openalex-sync', async (req, res) => {
+    if (!process.env.SYNC_JOB_TOKEN) {
+      console.error('[SyncJob] SYNC_JOB_TOKEN is not configured');
+      return res.status(503).json({ message: 'Scheduled synchronization is not configured' });
+    }
+
+    if (!hasValidJobToken(req)) {
+      return res.status(401).json({ message: 'Invalid job token' });
+    }
+
+    try {
+      const stats = await runScheduledSync();
+      if (stats.alreadyRunning) {
+        return res.status(409).json({ message: 'Synchronization already running', ...stats });
+      }
+      return res.json({ message: 'Scheduled synchronization completed', ...stats });
+    } catch (error) {
+      console.error('[SyncJob] Scheduled synchronization failed:', error);
+      return res.status(500).json({ message: 'Scheduled synchronization failed' });
     }
   });
 
@@ -1728,9 +1631,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         cvUrl: cvUrl,
       });
 
-      // Broadcast update to connected clients
-      broadcastResearcherUpdate(openalexId, 'profile');
-
       res.json({
         message: 'CV uploaded successfully',
         cvUrl: cvUrl,
@@ -1802,9 +1702,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       await storage.updateResearcherProfile(profile.id, {
         profileImageUrl: profileImageUrl,
       });
-
-      // Broadcast update to connected clients
-      broadcastResearcherUpdate(openalexId, 'profile');
 
       res.json({
         message: 'Profile image uploaded successfully',
@@ -2214,6 +2111,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error('Error handling issue report:', error);
       res.status(500).json({ message: 'Failed to submit report' });
     }
+  });
+
+  app.use('/api', (_req, res) => {
+    res.status(404).json({ message: 'API endpoint not found' });
   });
 
   const httpServer = createServer(app);

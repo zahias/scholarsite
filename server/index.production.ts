@@ -4,7 +4,6 @@ import session from "express-session";
 import connectPgSimple from "connect-pg-simple";
 import { registerRoutes } from "./routes";
 import { serveStatic, log } from "./static";
-import { startSyncScheduler, stopSyncScheduler } from "./services/syncScheduler";
 
 const app = express();
 
@@ -87,16 +86,11 @@ app.use((req, res, next) => {
   
   server.listen(port, () => {
     log(`serving on port ${port}`);
-    
-    // Start the automated sync scheduler (checks every hour)
-    startSyncScheduler(24);
-    log('Sync scheduler started - checking monthly eligibility every 24 hours');
   });
 
   // Graceful shutdown
   const shutdown = (signal: string) => {
     log(`${signal} received — shutting down gracefully`);
-    stopSyncScheduler();
     server.close(() => {
       log('HTTP server closed');
       process.exit(0);
