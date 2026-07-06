@@ -38,6 +38,13 @@ function hasValidJobToken(req: Request): boolean {
   return configured.length === provided.length && timingSafeEqual(configured, provided);
 }
 
+function tokensMatch(configured: string | undefined, provided: string | undefined): boolean {
+  if (!configured || !provided) return false;
+  const configuredBuf = Buffer.from(configured);
+  const providedBuf = Buffer.from(provided);
+  return configuredBuf.length === providedBuf.length && timingSafeEqual(configuredBuf, providedBuf);
+}
+
 // Admin authentication middleware (for API endpoints - requires Bearer token)
 function adminAuthMiddleware(req: Request, res: Response, next: NextFunction) {
   // Check for admin API token
@@ -55,7 +62,7 @@ function adminAuthMiddleware(req: Request, res: Response, next: NextFunction) {
   }
 
   const token = authHeader.substring(7); // Remove 'Bearer ' prefix
-  if (token !== adminToken) {
+  if (!tokensMatch(adminToken, token)) {
     console.warn(`Invalid admin token attempt from ${req.ip} to ${req.path}`);
     return res.status(403).json({ message: 'Invalid admin token' });
   }
@@ -98,7 +105,7 @@ function adminSessionAuthMiddleware(req: Request, res: Response, next: NextFunct
       return res.status(500).json({ message: 'Admin authentication not configured' });
     }
     const token = authHeader.substring(7); // Remove 'Bearer ' prefix
-    if (token === adminToken) {
+    if (tokensMatch(adminToken, token)) {
       // Set session for future requests
       (req.session as any).isAdmin = true;
       console.log(`Admin operation: ${req.method} ${req.path} from ${req.ip}`);
@@ -128,7 +135,7 @@ function isAuthenticated(req: Request): boolean {
   if (authHeader && authHeader.startsWith('Bearer ')) {
     if (!adminToken) return false;
     const token = authHeader.substring(7);
-    return token === adminToken;
+    return tokensMatch(adminToken, token);
   }
 
   return false;
@@ -1226,6 +1233,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (database.missingColumns.length > 0) {
         console.error(`[DatabaseHealth] Missing required columns: ${database.missingColumns.join(", ")}`);
       }
+      if (database.missingConstraints.length > 0) {
+        console.error(`[DatabaseHealth] Missing required unique constraints: ${database.missingConstraints.join(", ")}`);
+      }
       return res.status(503).json({
         status: 'error',
         category: database.category,
@@ -1713,17 +1723,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Configure multer for profile image upload
+  // Explicit whitelist — do not accept image/svg+xml: an uploaded SVG is served
+  // back to browsers and can carry inline <script>, making "any image/* mimetype"
+  // a stored-XSS vector.
+  const IMAGE_MIME_EXTENSIONS: Record<string, string> = {
+    'image/jpeg': 'jpg',
+    'image/png': 'png',
+    'image/webp': 'webp',
+    'image/gif': 'gif',
+  };
   const uploadImage = multer({
     storage: multer.memoryStorage(),
     limits: {
       fileSize: 5 * 1024 * 1024, // 5MB limit for images
     },
     fileFilter: (_req, file, cb) => {
-      // Only allow image files
-      if (file.mimetype.startsWith('image/')) {
+      if (Object.prototype.hasOwnProperty.call(IMAGE_MIME_EXTENSIONS, file.mimetype)) {
         cb(null, true);
       } else {
-        cb(new Error('Only image files are allowed'));
+        cb(new Error('Only JPEG, PNG, WEBP, and GIF images are allowed'));
       }
     },
   });
@@ -1751,7 +1769,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const objectStorage = new ObjectStorageClient({ bucketId: storageBucketId });
 
       // Generate unique filename for public directory with proper extension
-      const fileExtension = req.file.mimetype.split('/')[1];
+      // fileFilter above already rejects anything not in IMAGE_MIME_EXTENSIONS
+      const fileExtension = IMAGE_MIME_EXTENSIONS[req.file.mimetype] || 'jpg';
       const filename = `public/profile-images/${openalexId}-profile-${Date.now()}.${fileExtension}`;
 
       // Upload file using Replit Object Storage

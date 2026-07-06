@@ -1,16 +1,13 @@
 import { Router, Request, Response } from 'express';
 import { montyPayService } from './services/montypay';
 import { checkoutSessionSchema } from '@shared/schema';
+import { PRICING } from '@shared/pricing';
 import { storage } from './storage';
 import crypto from 'crypto';
 import nodemailer from 'nodemailer';
+import { renderEmailHtml } from './emailTemplates';
 
 const router = Router();
-
-const PRICING = {
-  starter: { monthly: 9.99, yearly: 95.88 },
-  pro: { monthly: 19.99, yearly: 191.88 },
-};
 
 function generateOrderNumber(): string {
   const timestamp = Date.now().toString(36);
@@ -19,7 +16,10 @@ function generateOrderNumber(): string {
 }
 
 async function sendWelcomeEmail(email: string, name: string, _tenantId: string): Promise<void> {
-  if (!process.env.SMTP_PASSWORD) return;
+  if (!process.env.SMTP_PASSWORD) {
+    console.error(`[checkout] SMTP not configured (SMTP_PASSWORD unset) — welcome email to ${email} was not sent`);
+    return;
+  }
   const smtpHost = process.env.SMTP_HOST || 'mail.scholar.name';
   const smtpPort = parseInt(process.env.SMTP_PORT || '587', 10);
   const smtpUser = process.env.SMTP_USER || 'noreply@scholar.name';
@@ -51,6 +51,21 @@ async function sendWelcomeEmail(email: string, name: string, _tenantId: string):
       '',
       'The Scholar.name team',
     ].join('\n'),
+    html: renderEmailHtml({
+      preheader: 'Your Scholar.name portfolio is now active.',
+      heading: `Welcome, ${firstName}!`,
+      bodyHtml: `
+        <p style="margin:0 0 14px;">Your Scholar.name portfolio is now active. Log in to your dashboard to:</p>
+        <ul style="margin:0 0 14px; padding-left:20px;">
+          <li>Update your profile and bio</li>
+          <li>Feature your best publications</li>
+          <li>Track visitor analytics</li>
+        </ul>
+        <p style="margin:0;">Questions? Just reply to this email.</p>
+      `,
+      ctaLabel: 'Go to dashboard',
+      ctaUrl: 'https://scholar.name/dashboard/login',
+    }),
   });
 }
 
@@ -138,27 +153,32 @@ router.post('/create-session', async (req: Request, res: Response) => {
 
 router.post('/webhook', async (req: Request, res: Response) => {
   try {
-    // C1: Verify webhook authenticity via shared secret
-    const webhookSecret = process.env.WEBHOOK_SECRET;
-    if (webhookSecret) {
-      const rawSig = req.headers['x-webhook-signature'] || req.headers['x-signature'];
-      const signature = Array.isArray(rawSig) ? rawSig[0] : rawSig;
-      if (!signature) {
-        console.warn('Webhook rejected: missing signature header');
-        return res.status(403).send('Forbidden');
-      }
-      const expectedSig = crypto.createHmac('sha256', webhookSecret)
-        .update(JSON.stringify(req.body))
-        .digest('hex');
-      // Use constant-time comparison to prevent timing attacks
-      const expectedBuf = Buffer.from(expectedSig, 'hex');
-      const receivedBuf = Buffer.from(signature, 'hex');
-      if (expectedBuf.length !== receivedBuf.length || !crypto.timingSafeEqual(expectedBuf, receivedBuf)) {
-        console.warn('Webhook rejected: invalid signature');
-        return res.status(403).send('Forbidden');
-      }
-    } else if (process.env.NODE_ENV === 'production') {
-      console.warn('WARNING: WEBHOOK_SECRET not set — webhook signature verification disabled');
+    // C1: Verify webhook authenticity via shared secret.
+    // PRODUCTION_ENV.md documents MONTYPAY_WEBHOOK_SECRET; accept the older
+    // WEBHOOK_SECRET name too in case that's what's already configured live.
+    const webhookSecret = process.env.MONTYPAY_WEBHOOK_SECRET || process.env.WEBHOOK_SECRET;
+    if (!webhookSecret) {
+      // Fail closed: an unsigned webhook endpoint lets anyone forge a "payment completed"
+      // event and provision a paid tenant for free. Refuse rather than process unverified.
+      console.error('WEBHOOK_SECRET not set — rejecting webhook to avoid processing unverified payment events');
+      return res.status(503).send('Webhook verification not configured');
+    }
+
+    const rawSig = req.headers['x-webhook-signature'] || req.headers['x-signature'];
+    const signature = Array.isArray(rawSig) ? rawSig[0] : rawSig;
+    if (!signature) {
+      console.warn('Webhook rejected: missing signature header');
+      return res.status(403).send('Forbidden');
+    }
+    const expectedSig = crypto.createHmac('sha256', webhookSecret)
+      .update(JSON.stringify(req.body))
+      .digest('hex');
+    // Use constant-time comparison to prevent timing attacks
+    const expectedBuf = Buffer.from(expectedSig, 'hex');
+    const receivedBuf = Buffer.from(signature, 'hex');
+    if (expectedBuf.length !== receivedBuf.length || !crypto.timingSafeEqual(expectedBuf, receivedBuf)) {
+      console.warn('Webhook rejected: invalid signature');
+      return res.status(403).send('Forbidden');
     }
 
     const payload = req.body;

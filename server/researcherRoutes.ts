@@ -53,7 +53,11 @@ async function saveFileLocally(filename: string, buffer: Buffer): Promise<string
   const dir = path.dirname(fullPath);
 
   await fs.mkdir(dir, { recursive: true });
-  await fs.writeFile(fullPath, buffer);
+  // 'wx' = O_CREAT | O_EXCL: refuses to write if anything (file or symlink) already
+  // exists at this path, closing the TOCTOU window between mkdir and writeFile where
+  // an attacker could plant a symlink. Every caller includes a Date.now() timestamp
+  // in the filename, so a genuine collision here would be anomalous, not routine.
+  await fs.writeFile(fullPath, buffer, { flag: 'wx' });
 
   return `/${filename}`;
 }
@@ -68,16 +72,26 @@ async function deleteFileLocally(filename: string): Promise<void> {
   }
 }
 
+// Explicit whitelist — do not accept image/svg+xml: an uploaded SVG is served
+// back to browsers and can carry inline <script>, making "any image/* mimetype"
+// a stored-XSS vector.
+const IMAGE_MIME_EXTENSIONS: Record<string, string> = {
+  'image/jpeg': 'jpg',
+  'image/png': 'png',
+  'image/webp': 'webp',
+  'image/gif': 'gif',
+};
+
 const uploadImage = multer({
   storage: multer.memoryStorage(),
   limits: {
     fileSize: 5 * 1024 * 1024, // 5MB limit
   },
   fileFilter: (_req, file, cb) => {
-    if (file.mimetype.startsWith('image/')) {
+    if (Object.prototype.hasOwnProperty.call(IMAGE_MIME_EXTENSIONS, file.mimetype)) {
       cb(null, true);
     } else {
-      cb(new Error('Only image files are allowed'));
+      cb(new Error('Only JPEG, PNG, WEBP, and GIF images are allowed'));
     }
   },
 });
@@ -282,7 +296,8 @@ router.post("/upload-photo", isAuthenticated, uploadImage.single('photo'), async
       return res.status(404).json({ message: "Profile not found" });
     }
 
-    const fileExtension = req.file.mimetype.split('/')[1];
+    // fileFilter above already rejects anything not in IMAGE_MIME_EXTENSIONS
+    const fileExtension = IMAGE_MIME_EXTENSIONS[req.file.mimetype] || 'jpg';
     const filename = `uploads/profile-images/${user.tenantId}-profile-${Date.now()}.${fileExtension}`;
     let profileImageUrl: string;
 

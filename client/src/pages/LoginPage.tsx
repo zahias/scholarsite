@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { useMutation } from "@tanstack/react-query";
-import { useForm } from "react-hook-form";
+import { useForm, type ControllerRenderProps } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, useFormField } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
 import SEO from "@/components/SEO";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
@@ -15,6 +15,33 @@ const loginSchema = z.object({
 });
 
 type LoginFormData = z.infer<typeof loginSchema>;
+
+// FormControl's Slot only forwards id/aria-describedby to its direct child, but the
+// show/hide toggle needs a wrapping <div>. useFormField() must be called from a
+// component actually rendered inside <FormItem>'s subtree (context is tree-position
+// based, not call-order based) — hence this is its own component, not inline logic.
+function PasswordField({ showPassword, onToggleShow, field }: {
+  showPassword: boolean;
+  onToggleShow: () => void;
+  field: ControllerRenderProps<LoginFormData, "password">;
+}) {
+  const { formItemId, formDescriptionId, formMessageId, error } = useFormField();
+  return (
+    <div style={{ position: "relative" }}>
+      <input type={showPassword ? "text" : "password"} placeholder="••••••••" autoComplete="current-password"
+        id={formItemId}
+        aria-describedby={!error ? formDescriptionId : `${formDescriptionId} ${formMessageId}`}
+        aria-invalid={!!error}
+        style={{ width: "100%", padding: "10px 40px 10px 12px", fontSize: 14.5, fontFamily: "inherit", color: "#171C1F", background: "#fff", border: "1px solid rgba(11,31,58,.14)", borderRadius: 8, outline: "none" }}
+        {...field} />
+      <button type="button" aria-label={showPassword ? "Hide password" : "Show password"}
+        onClick={onToggleShow}
+        style={{ position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "#75777E", padding: 2 }}>
+        {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+      </button>
+    </div>
+  );
+}
 
 export default function LoginPage() {
   const [, navigate] = useLocation();
@@ -147,18 +174,7 @@ export default function LoginPage() {
                     <FormLabel style={{ fontSize: 13, color: "#0B1F3A", fontWeight: 500 }}>Password</FormLabel>
                     <a href="/forgot-password" style={{ fontSize: 12, color: "#44474D", textDecoration: "underline", textDecorationColor: "#FFC72E", textUnderlineOffset: 2 }}>Forgot password?</a>
                   </div>
-                  <FormControl>
-                    <div style={{ position: "relative" }}>
-                      <input type={showPassword ? "text" : "password"} placeholder="••••••••" autoComplete="current-password"
-                        style={{ width: "100%", padding: "10px 40px 10px 12px", fontSize: 14.5, fontFamily: "inherit", color: "#171C1F", background: "#fff", border: "1px solid rgba(11,31,58,.14)", borderRadius: 8, outline: "none" }}
-                        {...field} />
-                      <button type="button" aria-label={showPassword ? "Hide password" : "Show password"}
-                        onClick={() => setShowPassword(!showPassword)}
-                        style={{ position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "#75777E", padding: 2 }}>
-                        {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                      </button>
-                    </div>
-                  </FormControl>
+                  <PasswordField showPassword={showPassword} onToggleShow={() => setShowPassword(!showPassword)} field={field} />
                   <FormMessage />
                 </FormItem>
               )} />

@@ -14,6 +14,17 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, Plus, Trash2, Globe, User, CheckCircle, Save, BookOpen, RefreshCw } from "lucide-react";
 
@@ -136,6 +147,20 @@ export default function TenantFormPage() {
     },
   });
 
+  const deleteTenantMutation = useMutation({
+    mutationFn: async () => {
+      await apiRequest("DELETE", `/api/admin/tenants/${tenantId}`);
+    },
+    onSuccess: () => {
+      toast({ title: "Customer deleted", description: "The tenant and all associated data were removed." });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/tenants"] });
+      navigate("/admin");
+    },
+    onError: (error: any) => {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    },
+  });
+
   const addDomainMutation = useMutation({
     mutationFn: async (hostname: string) => {
       const response = await apiRequest("POST", `/api/admin/tenants/${tenantId}/domains`, {
@@ -249,11 +274,11 @@ export default function TenantFormPage() {
 
   if (userLoading || (!isNew && isLoading)) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-8">
+      <div className="min-h-screen bg-background p-8">
         <div className="max-w-4xl mx-auto">
           <div className="space-y-4">
-            <Skeleton className="h-8 w-48 bg-white/5" />
-            <Skeleton className="h-96 bg-white/5" />
+            <Skeleton className="h-8 w-48 bg-muted" />
+            <Skeleton className="h-96 bg-muted" />
           </div>
         </div>
       </div>
@@ -266,16 +291,16 @@ export default function TenantFormPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-4 md:p-8">
+    <div className="min-h-screen bg-background p-4 md:p-8">
       <div className="max-w-4xl mx-auto space-y-6">
         <div className="flex items-center gap-4">
           <Link href="/admin">
-            <Button variant="ghost" size="icon" className="text-slate-400 hover:text-white">
+            <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground">
               <ArrowLeft className="w-5 h-5" />
             </Button>
           </Link>
           <div>
-            <h1 className="text-2xl font-bold text-white">
+            <h1 className="text-2xl font-bold text-foreground">
               {isNew ? "New Customer" : tenant?.name}
             </h1>
             {!isNew && tenant && (
@@ -283,24 +308,53 @@ export default function TenantFormPage() {
                 <Badge
                   className={
                     tenant.status === "active"
-                      ? "bg-green-500/20 text-green-300"
+                      ? "bg-green-500/20 text-green-600"
                       : tenant.status === "pending"
-                      ? "bg-yellow-500/20 text-yellow-300"
-                      : "bg-slate-500/20 text-slate-300"
+                      ? "bg-yellow-500/20 text-yellow-600"
+                      : "bg-slate-500/20 text-muted-foreground"
                   }
                 >
                   {tenant.status}
                 </Badge>
-                <Badge className="bg-purple-500/20 text-purple-300">{tenant.plan}</Badge>
+                <Badge className="bg-purple-500/20 text-purple-600">{tenant.plan}</Badge>
               </div>
             )}
           </div>
+          {!isNew && tenant && (
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="outline" className="ml-auto text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700" data-testid="button-delete-tenant">
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  Delete Customer
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Delete {tenant.name}?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This permanently deletes the tenant, its domains, users, researcher profile, publications, and synced OpenAlex data. This cannot be undone.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={() => deleteTenantMutation.mutate()}
+                    disabled={deleteTenantMutation.isPending}
+                    className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
+                    data-testid="button-confirm-delete-tenant"
+                  >
+                    {deleteTenantMutation.isPending ? "Deleting..." : "Delete permanently"}
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          )}
         </div>
 
-        <Card className="bg-white/5 border-white/10">
+        <Card className="bg-card border-border">
           <CardHeader>
-            <CardTitle className="text-white">Customer Details</CardTitle>
-            <CardDescription className="text-slate-400">
+            <CardTitle className="text-foreground">Customer Details</CardTitle>
+            <CardDescription className="text-muted-foreground">
               Basic information about this customer site
             </CardDescription>
           </CardHeader>
@@ -312,12 +366,12 @@ export default function TenantFormPage() {
                   name="name"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-slate-300">Site Name</FormLabel>
+                      <FormLabel className="text-muted-foreground">Site Name</FormLabel>
                       <FormControl>
                         <Input
                           {...field}
                           placeholder="Dr. John Smith Portfolio"
-                          className="bg-white/5 border-white/10 text-white"
+                          className="bg-card border-border text-foreground"
                           data-testid="input-name"
                         />
                       </FormControl>
@@ -332,10 +386,10 @@ export default function TenantFormPage() {
                     name="plan"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-slate-300">Plan</FormLabel>
+                        <FormLabel className="text-muted-foreground">Plan</FormLabel>
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
-                            <SelectTrigger className="bg-white/5 border-white/10 text-white">
+                            <SelectTrigger className="bg-card border-border text-foreground">
                               <SelectValue placeholder="Select plan" />
                             </SelectTrigger>
                           </FormControl>
@@ -355,13 +409,13 @@ export default function TenantFormPage() {
                     name="contactEmail"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-slate-300">Contact Email</FormLabel>
+                        <FormLabel className="text-muted-foreground">Contact Email</FormLabel>
                         <FormControl>
                           <Input
                             {...field}
                             type="email"
                             placeholder="contact@example.com"
-                            className="bg-white/5 border-white/10 text-white"
+                            className="bg-card border-border text-foreground"
                             data-testid="input-contact-email"
                           />
                         </FormControl>
@@ -376,12 +430,12 @@ export default function TenantFormPage() {
                   name="notes"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-slate-300">Notes</FormLabel>
+                      <FormLabel className="text-muted-foreground">Notes</FormLabel>
                       <FormControl>
                         <Textarea
                           {...field}
                           placeholder="Internal notes about this customer..."
-                          className="bg-white/5 border-white/10 text-white min-h-[80px]"
+                          className="bg-card border-border text-foreground min-h-[80px]"
                           data-testid="input-notes"
                         />
                       </FormControl>
@@ -406,13 +460,13 @@ export default function TenantFormPage() {
 
         {!isNew && tenant && (
           <>
-            <Card className="bg-white/5 border-white/10">
+            <Card className="bg-card border-border">
               <CardHeader>
-                <CardTitle className="text-white flex items-center gap-2">
+                <CardTitle className="text-foreground flex items-center gap-2">
                   <Globe className="w-5 h-5" />
                   Domains
                 </CardTitle>
-                <CardDescription className="text-slate-400">
+                <CardDescription className="text-muted-foreground">
                   Custom domains for this customer's site
                 </CardDescription>
               </CardHeader>
@@ -420,20 +474,20 @@ export default function TenantFormPage() {
                 {tenant.domains.map((domain) => (
                   <div
                     key={domain.id}
-                    className="flex items-center justify-between p-3 bg-white/5 rounded-lg"
+                    className="flex items-center justify-between p-3 bg-card rounded-lg"
                   >
                     <div className="flex items-center gap-2">
-                      <Globe className="w-4 h-4 text-slate-400" />
-                      <span className="text-white">{domain.hostname}</span>
+                      <Globe className="w-4 h-4 text-muted-foreground" />
+                      <span className="text-foreground">{domain.hostname}</span>
                       {domain.isPrimary && (
-                        <Badge className="bg-green-500/20 text-green-300">Primary</Badge>
+                        <Badge className="bg-green-500/20 text-green-600">Primary</Badge>
                       )}
                     </div>
                     <Button
                       variant="ghost"
                       size="icon"
                       onClick={() => deleteDomainMutation.mutate(domain.id)}
-                      className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                      className="text-red-600 hover:text-red-600 hover:bg-red-500/10"
                       data-testid={`button-delete-domain-${domain.id}`}
                     >
                       <Trash2 className="w-4 h-4" />
@@ -446,7 +500,7 @@ export default function TenantFormPage() {
                     value={newDomain}
                     onChange={(e) => setNewDomain(e.target.value)}
                     placeholder="drsmith.scholarname.com or dr-smith.com"
-                    className="bg-white/5 border-white/10 text-white"
+                    className="bg-card border-border text-foreground"
                     data-testid="input-new-domain"
                   />
                   <Button
@@ -462,13 +516,13 @@ export default function TenantFormPage() {
               </CardContent>
             </Card>
 
-            <Card className="bg-white/5 border-white/10">
+            <Card className="bg-card border-border">
               <CardHeader>
-                <CardTitle className="text-white flex items-center gap-2">
+                <CardTitle className="text-foreground flex items-center gap-2">
                   <User className="w-5 h-5" />
                   Users
                 </CardTitle>
-                <CardDescription className="text-slate-400">
+                <CardDescription className="text-muted-foreground">
                   Login credentials for this customer
                 </CardDescription>
               </CardHeader>
@@ -476,32 +530,32 @@ export default function TenantFormPage() {
                 {tenant.users.map((user) => (
                   <div
                     key={user.id}
-                    className="flex items-center justify-between p-3 bg-white/5 rounded-lg"
+                    className="flex items-center justify-between p-3 bg-card rounded-lg"
                   >
                     <div>
-                      <p className="text-white">
+                      <p className="text-foreground">
                         {user.firstName} {user.lastName}
                       </p>
-                      <p className="text-sm text-slate-400">{user.email}</p>
+                      <p className="text-sm text-muted-foreground">{user.email}</p>
                     </div>
                   </div>
                 ))}
 
-                <Separator className="bg-white/10" />
+                <Separator className="bg-border" />
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <Input
                     value={newUser.firstName}
                     onChange={(e) => setNewUser({ ...newUser, firstName: e.target.value })}
                     placeholder="First name"
-                    className="bg-white/5 border-white/10 text-white"
+                    className="bg-card border-border text-foreground"
                     data-testid="input-new-user-firstname"
                   />
                   <Input
                     value={newUser.lastName}
                     onChange={(e) => setNewUser({ ...newUser, lastName: e.target.value })}
                     placeholder="Last name"
-                    className="bg-white/5 border-white/10 text-white"
+                    className="bg-card border-border text-foreground"
                     data-testid="input-new-user-lastname"
                   />
                   <Input
@@ -509,7 +563,7 @@ export default function TenantFormPage() {
                     onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
                     type="email"
                     placeholder="Email"
-                    className="bg-white/5 border-white/10 text-white"
+                    className="bg-card border-border text-foreground"
                     data-testid="input-new-user-email"
                   />
                   <Input
@@ -517,7 +571,7 @@ export default function TenantFormPage() {
                     onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
                     type="password"
                     placeholder="Password (min 8 chars)"
-                    className="bg-white/5 border-white/10 text-white"
+                    className="bg-card border-border text-foreground"
                     data-testid="input-new-user-password"
                   />
                 </div>
@@ -545,20 +599,20 @@ export default function TenantFormPage() {
               </CardContent>
             </Card>
 
-            <Card className="bg-white/5 border-white/10">
+            <Card className="bg-card border-border">
               <CardHeader>
-                <CardTitle className="text-white flex items-center gap-2">
+                <CardTitle className="text-foreground flex items-center gap-2">
                   <BookOpen className="w-5 h-5" />
                   OpenAlex Profile
                 </CardTitle>
-                <CardDescription className="text-slate-400">
+                <CardDescription className="text-muted-foreground">
                   Link this customer to their OpenAlex researcher profile
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="flex items-center gap-2 p-3 bg-white/5 rounded-lg">
-                  <span className="text-slate-400 text-sm">Current:</span>
-                  <span className="text-white font-mono">
+                <div className="flex items-center gap-2 p-3 bg-card rounded-lg">
+                  <span className="text-muted-foreground text-sm">Current:</span>
+                  <span className="text-foreground font-mono">
                     {tenant.profile?.openalexId || "Not set"}
                   </span>
                 </div>
@@ -567,7 +621,7 @@ export default function TenantFormPage() {
                     value={openalexId}
                     onChange={(e) => setOpenalexId(e.target.value)}
                     placeholder="A1234567890 (OpenAlex Author ID)"
-                    className="bg-white/5 border-white/10 text-white font-mono"
+                    className="bg-card border-border text-foreground font-mono"
                     data-testid="input-openalexid"
                   />
                   <Button
@@ -580,14 +634,14 @@ export default function TenantFormPage() {
                     Save
                   </Button>
                 </div>
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-muted-foreground">
                   Find the OpenAlex ID by searching on openalex.org. The ID starts with "A" followed by numbers.
                 </p>
-                <Separator className="bg-white/10" />
-                <div className="flex items-center justify-between gap-3 rounded-lg bg-white/5 border border-white/10 p-3">
+                <Separator className="bg-border" />
+                <div className="flex items-center justify-between gap-3 rounded-lg bg-card border border-border p-3">
                   <div>
-                    <p className="text-sm font-medium text-white">Sync publications and metrics</p>
-                    <p className="text-xs text-slate-400">Fetch the latest data for this tenant from OpenAlex.</p>
+                    <p className="text-sm font-medium text-foreground">Sync publications and metrics</p>
+                    <p className="text-xs text-muted-foreground">Fetch the latest data for this tenant from OpenAlex.</p>
                   </div>
                   <Button
                     onClick={() => syncTenantMutation.mutate()}
@@ -607,8 +661,8 @@ export default function TenantFormPage() {
                 <CardContent className="py-6">
                   <div className="flex items-center justify-between">
                     <div>
-                      <h3 className="text-lg font-medium text-white">Ready to activate?</h3>
-                      <p className="text-slate-400">
+                      <h3 className="text-lg font-medium text-foreground">Ready to activate?</h3>
+                      <p className="text-muted-foreground">
                         Make sure you've added at least one domain and one user.
                       </p>
                     </div>

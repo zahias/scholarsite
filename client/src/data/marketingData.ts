@@ -8,6 +8,7 @@ import {
   Sparkles,
   Users,
 } from "lucide-react";
+import { PRICING } from "@shared/pricing";
 
 export const marketingFeatures = [
   {
@@ -57,8 +58,8 @@ export const homepageFeatures = marketingFeatures.slice(0, 3);
 export const pricingPlans = [
   {
     name: "Starter",
-    monthlyPrice: 9.99,
-    yearlyPrice: 95.88,
+    monthlyPrice: PRICING.starter.monthly,
+    yearlyPrice: PRICING.starter.yearly,
     yearlySavings: 24,
     description: "Perfect for individual researchers",
     features: [
@@ -72,8 +73,8 @@ export const pricingPlans = [
   },
   {
     name: "Pro",
-    monthlyPrice: 19.99,
-    yearlyPrice: 191.88,
+    monthlyPrice: PRICING.pro.monthly,
+    yearlyPrice: PRICING.pro.yearly,
     yearlySavings: 48,
     description: "For established academics",
     features: [

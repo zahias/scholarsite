@@ -8,6 +8,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Loader2, Shield, Check } from "lucide-react";
 import GlobalNav from "@/components/GlobalNav";
 import SEO from "@/components/SEO";
+import { PRICING } from "@shared/pricing";
 
 const checkoutFormSchema = z.object({
   customerName: z.string().min(1, "Name is required"),
@@ -16,9 +17,9 @@ const checkoutFormSchema = z.object({
 
 type CheckoutFormData = z.infer<typeof checkoutFormSchema>;
 
-const PRICING = {
-  starter: { monthly: 9.99, yearly: 95.88, name: "Starter" },
-  pro: { monthly: 19.99, yearly: 191.88, name: "Pro" },
+const PLAN_NAMES: Record<keyof typeof PRICING, string> = {
+  starter: "Starter",
+  pro: "Pro",
 };
 
 const inputStyle: React.CSSProperties = {
@@ -114,7 +115,7 @@ export default function CheckoutPage() {
             <div style={{ background: "#fff", borderRadius: 16, border: "1px solid rgba(11,31,58,.08)", padding: "24px 24px 20px", marginBottom: 16 }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
                 <div>
-                  <div style={{ fontFamily: "'Newsreader', serif", fontSize: 20, fontWeight: 500, color: "#0B1F3A" }}>{pricing.name} Plan</div>
+                  <div style={{ fontFamily: "'Newsreader', serif", fontSize: 20, fontWeight: 500, color: "#0B1F3A" }}>{PLAN_NAMES[plan]} Plan</div>
                   <div style={{ fontSize: 13.5, color: "#75777E", textTransform: "capitalize" }}>{billingPeriod} billing</div>
                 </div>
                 <div style={{ textAlign: "right" }}>

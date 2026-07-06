@@ -4,6 +4,7 @@ import { useLocation } from "wouter";
 import SEO from "@/components/SEO";
 import GlobalNav from "@/components/GlobalNav";
 import GlobalFooter from "@/components/GlobalFooter";
+import { PRICING } from "@shared/pricing";
 import {
   Search,
   Check,
@@ -87,8 +88,8 @@ const structuredData = {
   operatingSystem: "Web",
   offers: {
     "@type": "AggregateOffer",
-    lowPrice: "9.99",
-    highPrice: "19.99",
+    lowPrice: String(PRICING.starter.monthly),
+    highPrice: String(PRICING.pro.monthly),
     priceCurrency: "USD",
     offerCount: "2",
   },

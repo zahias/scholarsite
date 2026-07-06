@@ -1,15 +1,16 @@
 import { useState, useEffect, useRef } from "react";
 import { useLocation } from "wouter";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { useForm } from "react-hook-form";
+import { useForm, type ControllerRenderProps } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, useFormField } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
 import SEO from "@/components/SEO";
 import {
   ArrowLeft, ArrowRight, CheckCircle, Eye, EyeOff, Loader2, Search, BookOpen, ExternalLink,
 } from "lucide-react";
+import { PRICING } from "@shared/pricing";
 
 // -- Schemas --
 const step1Schema = z.object({
@@ -21,6 +22,37 @@ const step1Schema = z.object({
 });
 
 type Step1Data = z.infer<typeof step1Schema>;
+
+const inputStyle: React.CSSProperties = {
+  width: "100%", padding: "10px 12px", fontSize: 14.5, fontFamily: "inherit",
+  color: "#171C1F", background: "#fff", border: "1px solid rgba(11,31,58,.14)",
+  borderRadius: 8, outline: "none", boxSizing: "border-box",
+};
+
+// FormControl's Slot only forwards id/aria-describedby to its direct child, but the
+// show/hide toggle needs a wrapping <div>. useFormField() must be called from a
+// component actually rendered inside <FormItem>'s subtree (context is tree-position
+// based, not call-order based) — hence this is its own component, not inline logic.
+function PasswordField({ showPassword, onToggleShow, field }: {
+  showPassword: boolean;
+  onToggleShow: () => void;
+  field: ControllerRenderProps<Step1Data, "password">;
+}) {
+  const { formItemId, formDescriptionId, formMessageId, error } = useFormField();
+  return (
+    <div style={{ position: "relative" }}>
+      <input type={showPassword ? "text" : "password"} placeholder="Min. 8 characters" autoComplete="new-password"
+        id={formItemId}
+        aria-describedby={!error ? formDescriptionId : `${formDescriptionId} ${formMessageId}`}
+        aria-invalid={!!error}
+        style={{ ...inputStyle, paddingRight: 40 }} {...field} />
+      <button type="button" aria-label={showPassword ? "Hide" : "Show"} onClick={onToggleShow}
+        style={{ position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "#75777E", padding: 2 }}>
+        {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
+      </button>
+    </div>
+  );
+}
 
 interface AuthorSearchResult {
   id: string;
@@ -85,7 +117,7 @@ function BenefitsPanel() {
             ["Auto-sync publications", "Linked to OpenAlex — checked monthly for newly indexed works."],
             ["Institutional credibility", "A URL like scholar.name/you signals professionalism."],
             ["Citation analytics", "Track your h-index, i10, and citation trends over time."],
-            ["14-day free trial", "Full access, no credit card required. Starter from $9.99/mo after."],
+            ["14-day free trial", `Full access, no credit card required. Starter from $${PRICING.starter.monthly}/mo after.`],
           ].map(([title, desc]) => (
             <div key={title as string} style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
               <div style={{ width: 22, height: 22, borderRadius: "50%", background: "rgba(255,199,46,.15)", border: "1px solid rgba(255,199,46,.3)", display: "grid", placeItems: "center", flexShrink: 0, marginTop: 1 }}>
@@ -254,12 +286,6 @@ export default function SignupPage() {
     </div>
   );
 
-  const inputStyle: React.CSSProperties = {
-    width: "100%", padding: "10px 12px", fontSize: 14.5, fontFamily: "inherit",
-    color: "#171C1F", background: "#fff", border: "1px solid rgba(11,31,58,.14)",
-    borderRadius: 8, outline: "none", boxSizing: "border-box",
-  };
-
   return (
     <div className="auth-page-shell">
       <SEO
@@ -341,15 +367,7 @@ export default function SignupPage() {
                     <FormField control={form.control} name="password" render={({ field }) => (
                       <FormItem style={{ display: "flex", flexDirection: "column", gap: 4 }}>
                         <FormLabel style={{ fontSize: 13, color: "#0B1F3A", fontWeight: 500 }}>Password</FormLabel>
-                        <FormControl>
-                          <div style={{ position: "relative" }}>
-                            <input type={showPassword ? "text" : "password"} placeholder="Min. 8 characters" autoComplete="new-password" style={{ ...inputStyle, paddingRight: 40 }} {...field} />
-                            <button type="button" aria-label={showPassword ? "Hide" : "Show"} onClick={() => setShowPassword(!showPassword)}
-                              style={{ position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "#75777E", padding: 2 }}>
-                              {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
-                            </button>
-                          </div>
-                        </FormControl>
+                        <PasswordField showPassword={showPassword} onToggleShow={() => setShowPassword(!showPassword)} field={field} />
                         {/* Password strength meter */}
                         {passwordValue && (
                           <div style={{ display: "flex", gap: 4, marginTop: 2 }}>

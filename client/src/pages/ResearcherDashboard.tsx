@@ -4,7 +4,8 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import GlobalFooter from "@/components/GlobalFooter";
-import type { Theme } from "@shared/schema";
+import { ThemePreviewSwatch } from "@/components/ThemePreviewSwatch";
+import type { Theme, ThemeConfig } from "@shared/schema";
 import {
   User,
   Globe,
@@ -2123,7 +2124,6 @@ export default function ResearcherDashboard() {
                   <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 10 }} className="theme-grid">
                     <style>{`@media (max-width: 480px) { .theme-grid { grid-template-columns: 1fr 1fr !important; } }`}</style>
                     {themesData?.filter((t) => t.isActive).map((theme) => {
-                      const colors = theme.config as { colors: { primary: string; accent: string } };
                       const isSelected = selectedThemeId === theme.id;
                       return (
                         <button
@@ -2133,9 +2133,8 @@ export default function ResearcherDashboard() {
                           aria-label={`Select ${theme.name} theme`}
                           style={{ position: "relative", padding: "14px 12px", borderRadius: 11, border: isSelected ? "2px solid #FFC72E" : "1px solid rgba(11,31,58,.1)", background: isSelected ? "rgba(255,199,46,.06)" : "#F8F9FA", cursor: "pointer", textAlign: "left", transition: "border .15s, background .15s", fontFamily: "inherit" }}
                         >
-                          <div style={{ display: "flex", gap: 5, marginBottom: 8 }}>
-                            <div style={{ width: 20, height: 20, borderRadius: "50%", background: colors.colors.primary, border: "1px solid rgba(0,0,0,.08)" }} />
-                            <div style={{ width: 14, height: 14, borderRadius: "50%", background: colors.colors.accent, border: "1px solid rgba(0,0,0,.08)", marginTop: 3 }} />
+                          <div style={{ marginBottom: 8 }}>
+                            <ThemePreviewSwatch config={theme.config as ThemeConfig} />
                           </div>
                           <p style={{ fontSize: 13, fontWeight: 600, color: "#0B1F3A", margin: 0 }}>{theme.name}</p>
                           {isSelected && <CheckCircle size={15} style={{ position: "absolute", top: 10, right: 10, color: "#B87A0A" }} />}

@@ -6,6 +6,7 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { useProfileTheme, normalizeThemeConfig } from '@/context/ThemeContext';
+import { ThemePreviewSwatch } from '@/components/ThemePreviewSwatch';
 import type { Theme, ThemeConfig } from '@shared/schema';
 
 interface ThemeSwitcherProps {
@@ -74,30 +75,19 @@ interface ThemeOptionProps {
 }
 
 function ThemeOption({ theme, isSelected, onSelect }: ThemeOptionProps) {
-  const config = normalizeThemeConfig(theme.config as ThemeConfig | null);
-  
   return (
     <button
       onClick={onSelect}
       className={`
         w-full flex items-center gap-3 p-3 rounded-lg border transition-all duration-200
-        ${isSelected 
-          ? 'border-primary bg-primary/5 ring-1 ring-primary' 
+        ${isSelected
+          ? 'border-primary bg-primary/5 ring-1 ring-primary'
           : 'border-border hover:border-primary/50 hover:bg-muted/50'
         }
       `}
       data-testid={`button-theme-${theme.name.toLowerCase().replace(/\s+/g, '-')}`}
     >
-      <div className="flex gap-1">
-        <div
-          className="w-5 h-5 rounded-full border border-white/20"
-          style={{ backgroundColor: config.colors.primary }}
-        />
-        <div
-          className="w-5 h-5 rounded-full border border-white/20 -ml-2"
-          style={{ backgroundColor: config.colors.accent }}
-        />
-      </div>
+      <ThemePreviewSwatch config={theme.config as ThemeConfig} size="sm" />
       <div className="flex-1 text-left">
         <p className="text-sm font-medium">{theme.name}</p>
         {theme.description && (

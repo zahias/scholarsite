@@ -306,4 +306,41 @@ router.get("/payments", isAuthenticated, isAdmin, async (req: Request, res: Resp
   }
 });
 
+const paymentStatusSchema = z.object({
+  status: z.enum(["pending", "completed", "failed", "refunded", "cancelled"]),
+});
+
+// Manual override for stuck payments (e.g. a MontyPay webhook that never arrived).
+// Reuses the same provisioning path the webhook uses, so marking "completed" here
+// has the identical effect as a real successful webhook callback.
+router.patch("/payments/:orderNumber/status", isAuthenticated, isAdmin, async (req: Request, res: Response) => {
+  try {
+    const { status } = paymentStatusSchema.parse(req.body);
+    const { orderNumber } = req.params;
+
+    const existing = await storage.getPaymentByOrderNumber(orderNumber);
+    if (!existing) {
+      return res.status(404).json({ message: "Payment not found" });
+    }
+
+    const payment = await storage.updatePaymentStatus(orderNumber, status);
+    if (!payment) {
+      return res.status(404).json({ message: "Payment not found" });
+    }
+
+    if (status === "completed" && !payment.tenantId) {
+      const tenant = await storage.provisionTenantFromPayment(payment.id);
+      return res.json({ message: "Payment marked completed and tenant provisioned", payment, tenant });
+    }
+
+    return res.json({ message: "Payment status updated", payment });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ message: "Invalid status", errors: error.errors });
+    }
+    console.error("Update payment status error:", error);
+    return res.status(500).json({ message: "Failed to update payment status" });
+  }
+});
+
 export const adminRouter = router;

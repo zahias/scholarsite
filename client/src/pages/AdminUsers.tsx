@@ -222,10 +222,10 @@ export default function AdminUsers() {
 
   if (userLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-8">
+      <div className="min-h-screen bg-background p-8">
         <div className="max-w-6xl mx-auto space-y-6">
-          <Skeleton className="h-20 w-full bg-white/5" />
-          <Skeleton className="h-96 w-full bg-white/5" />
+          <Skeleton className="h-20 w-full bg-muted" />
+          <Skeleton className="h-96 w-full bg-muted" />
         </div>
       </div>
     );
@@ -237,21 +237,21 @@ export default function AdminUsers() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-      <header className="border-b border-white/10 bg-white/5 backdrop-blur-lg sticky top-0 z-50">
+    <div className="min-h-screen bg-background">
+      <header className="border-b border-border bg-card/90 backdrop-blur-lg sticky top-0 z-50">
         <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Link href="/admin">
-              <Button variant="ghost" size="icon" className="text-slate-400 hover:text-white hover:bg-white/10">
+              <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground hover:bg-accent">
                 <ArrowLeft className="w-5 h-5" />
               </Button>
             </Link>
             <div className="w-10 h-10 bg-blue-500/20 rounded-xl flex items-center justify-center">
-              <Users className="w-5 h-5 text-blue-400" />
+              <Users className="w-5 h-5 text-blue-600" />
             </div>
             <div>
-              <h1 className="text-xl font-semibold text-white">User Management</h1>
-              <p className="text-sm text-slate-400">Manage platform users and permissions</p>
+              <h1 className="text-xl font-semibold text-foreground">User Management</h1>
+              <p className="text-sm text-muted-foreground">Manage platform users and permissions</p>
             </div>
           </div>
           <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
@@ -261,10 +261,10 @@ export default function AdminUsers() {
                 Add User
               </Button>
             </DialogTrigger>
-            <DialogContent className="bg-slate-800 border-slate-700 text-white">
+            <DialogContent className="bg-popover border-border text-foreground">
               <DialogHeader>
                 <DialogTitle>Create New User</DialogTitle>
-                <DialogDescription className="text-slate-400">
+                <DialogDescription className="text-muted-foreground">
                   Add a new user to the platform
                 </DialogDescription>
               </DialogHeader>
@@ -276,7 +276,7 @@ export default function AdminUsers() {
                       id="firstName"
                       value={newFirstName}
                       onChange={(e) => setNewFirstName(e.target.value)}
-                      className="bg-slate-700 border-slate-600"
+                      className="border-border"
                     />
                   </div>
                   <div className="space-y-2">
@@ -285,7 +285,7 @@ export default function AdminUsers() {
                       id="lastName"
                       value={newLastName}
                       onChange={(e) => setNewLastName(e.target.value)}
-                      className="bg-slate-700 border-slate-600"
+                      className="border-border"
                     />
                   </div>
                 </div>
@@ -296,7 +296,7 @@ export default function AdminUsers() {
                     type="email"
                     value={newEmail}
                     onChange={(e) => setNewEmail(e.target.value)}
-                    className="bg-slate-700 border-slate-600"
+                    className="border-border"
                   />
                 </div>
                 <div className="space-y-2">
@@ -307,16 +307,16 @@ export default function AdminUsers() {
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
                     placeholder="Min 8 characters"
-                    className="bg-slate-700 border-slate-600"
+                    className="border-border"
                   />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="role">Role</Label>
                   <Select value={newRole} onValueChange={(v: "admin" | "researcher") => setNewRole(v)}>
-                    <SelectTrigger className="bg-slate-700 border-slate-600">
+                    <SelectTrigger className="border-border">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent className="bg-slate-700 border-slate-600">
+                    <SelectContent className="border-border">
                       <SelectItem value="researcher">Researcher</SelectItem>
                       <SelectItem value="admin">Admin</SelectItem>
                     </SelectContent>
@@ -324,7 +324,7 @@ export default function AdminUsers() {
                 </div>
               </div>
               <DialogFooter>
-                <Button variant="outline" onClick={() => setCreateDialogOpen(false)} className="border-slate-600 text-slate-300">
+                <Button variant="outline" onClick={() => setCreateDialogOpen(false)} className="border-border text-muted-foreground">
                   Cancel
                 </Button>
                 <Button
@@ -343,54 +343,54 @@ export default function AdminUsers() {
       <main className="max-w-6xl mx-auto px-4 py-8 space-y-6">
         {/* Stats Cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <Card className="bg-white/5 border-white/10">
+          <Card className="bg-card border-border">
             <CardContent className="pt-6">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-blue-500/20 rounded-lg flex items-center justify-center">
-                  <Users className="w-5 h-5 text-blue-400" />
+                  <Users className="w-5 h-5 text-blue-600" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-white">{stats.total}</p>
-                  <p className="text-xs text-slate-400">Total Users</p>
+                  <p className="text-2xl font-bold text-foreground">{stats.total}</p>
+                  <p className="text-xs text-muted-foreground">Total Users</p>
                 </div>
               </div>
             </CardContent>
           </Card>
-          <Card className="bg-white/5 border-white/10">
+          <Card className="bg-card border-border">
             <CardContent className="pt-6">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-purple-500/20 rounded-lg flex items-center justify-center">
-                  <Shield className="w-5 h-5 text-purple-400" />
+                  <Shield className="w-5 h-5 text-purple-600" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-white">{stats.admins}</p>
-                  <p className="text-xs text-slate-400">Admins</p>
+                  <p className="text-2xl font-bold text-foreground">{stats.admins}</p>
+                  <p className="text-xs text-muted-foreground">Admins</p>
                 </div>
               </div>
             </CardContent>
           </Card>
-          <Card className="bg-white/5 border-white/10">
+          <Card className="bg-card border-border">
             <CardContent className="pt-6">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-amber-500/20 rounded-lg flex items-center justify-center">
-                  <User className="w-5 h-5 text-amber-400" />
+                  <User className="w-5 h-5 text-amber-600" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-white">{stats.researchers}</p>
-                  <p className="text-xs text-slate-400">Researchers</p>
+                  <p className="text-2xl font-bold text-foreground">{stats.researchers}</p>
+                  <p className="text-xs text-muted-foreground">Researchers</p>
                 </div>
               </div>
             </CardContent>
           </Card>
-          <Card className="bg-white/5 border-white/10">
+          <Card className="bg-card border-border">
             <CardContent className="pt-6">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-green-500/20 rounded-lg flex items-center justify-center">
-                  <CheckCircle className="w-5 h-5 text-green-400" />
+                  <CheckCircle className="w-5 h-5 text-green-600" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-white">{stats.active}</p>
-                  <p className="text-xs text-slate-400">Active</p>
+                  <p className="text-2xl font-bold text-foreground">{stats.active}</p>
+                  <p className="text-xs text-muted-foreground">Active</p>
                 </div>
               </div>
             </CardContent>
@@ -398,33 +398,33 @@ export default function AdminUsers() {
         </div>
 
         {/* Filters */}
-        <Card className="bg-white/5 border-white/10">
+        <Card className="bg-card border-border">
           <CardContent className="py-4">
             <div className="flex flex-col md:flex-row gap-4">
               <div className="flex-1 relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
                   placeholder="Search by name or email..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 bg-slate-700/50 border-slate-600 text-white placeholder:text-slate-400"
+                  className="pl-10 border-border text-foreground placeholder:text-muted-foreground"
                 />
               </div>
               <Select value={roleFilter} onValueChange={setRoleFilter}>
-                <SelectTrigger className="w-[150px] bg-slate-700/50 border-slate-600 text-white">
+                <SelectTrigger className="w-[150px] border-border text-foreground">
                   <SelectValue placeholder="Role" />
                 </SelectTrigger>
-                <SelectContent className="bg-slate-700 border-slate-600">
+                <SelectContent className="border-border">
                   <SelectItem value="all">All Roles</SelectItem>
                   <SelectItem value="admin">Admin</SelectItem>
                   <SelectItem value="researcher">Researcher</SelectItem>
                 </SelectContent>
               </Select>
               <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-[150px] bg-slate-700/50 border-slate-600 text-white">
+                <SelectTrigger className="w-[150px] border-border text-foreground">
                   <SelectValue placeholder="Status" />
                 </SelectTrigger>
-                <SelectContent className="bg-slate-700 border-slate-600">
+                <SelectContent className="border-border">
                   <SelectItem value="all">All Status</SelectItem>
                   <SelectItem value="active">Active</SelectItem>
                   <SelectItem value="inactive">Inactive</SelectItem>
@@ -435,74 +435,74 @@ export default function AdminUsers() {
         </Card>
 
         {/* Users Table */}
-        <Card className="bg-white/5 border-white/10">
+        <Card className="bg-card border-border">
           <CardContent className="p-0">
             {isLoading ? (
               <div className="p-6 space-y-4">
                 {[1, 2, 3, 4, 5].map((i) => (
-                  <Skeleton key={i} className="h-12 bg-white/5" />
+                  <Skeleton key={i} className="h-12 bg-muted" />
                 ))}
               </div>
             ) : filteredUsers.length === 0 ? (
               <div className="p-12 text-center">
-                <Users className="w-12 h-12 text-slate-500 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-white mb-2">No users found</h3>
-                <p className="text-slate-400">Try adjusting your search or filters</p>
+                <Users className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-foreground mb-2">No users found</h3>
+                <p className="text-muted-foreground">Try adjusting your search or filters</p>
               </div>
             ) : (
               <Table>
                 <TableHeader>
-                  <TableRow className="border-white/10 hover:bg-transparent">
-                    <TableHead className="text-slate-400">User</TableHead>
-                    <TableHead className="text-slate-400">Email</TableHead>
-                    <TableHead className="text-slate-400">Role</TableHead>
-                    <TableHead className="text-slate-400">Status</TableHead>
-                    <TableHead className="text-slate-400">Created</TableHead>
-                    <TableHead className="text-slate-400 text-right">Actions</TableHead>
+                  <TableRow className="border-border hover:bg-transparent">
+                    <TableHead className="text-muted-foreground">User</TableHead>
+                    <TableHead className="text-muted-foreground">Email</TableHead>
+                    <TableHead className="text-muted-foreground">Role</TableHead>
+                    <TableHead className="text-muted-foreground">Status</TableHead>
+                    <TableHead className="text-muted-foreground">Created</TableHead>
+                    <TableHead className="text-muted-foreground text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filteredUsers.map((user) => (
-                    <TableRow key={user.id} className="border-white/10 hover:bg-white/5">
+                    <TableRow key={user.id} className="border-border hover:bg-card">
                       <TableCell>
                         <div className="flex items-center gap-3">
                           <div className={`w-8 h-8 rounded-full flex items-center justify-center ${user.role === "admin" ? "bg-purple-500/20" : "bg-blue-500/20"}`}>
                             {user.role === "admin" ? (
-                              <Shield className="w-4 h-4 text-purple-400" />
+                              <Shield className="w-4 h-4 text-purple-600" />
                             ) : (
-                              <User className="w-4 h-4 text-blue-400" />
+                              <User className="w-4 h-4 text-blue-600" />
                             )}
                           </div>
                           <div>
-                            <p className="font-medium text-white">
+                            <p className="font-medium text-foreground">
                               {user.firstName} {user.lastName}
                             </p>
                           </div>
                         </div>
                       </TableCell>
-                      <TableCell className="text-slate-300">{user.email}</TableCell>
+                      <TableCell className="text-muted-foreground">{user.email}</TableCell>
                       <TableCell>
-                        <Badge className={user.role === "admin" ? "bg-purple-500/20 text-purple-300" : "bg-blue-500/20 text-blue-300"}>
+                        <Badge className={user.role === "admin" ? "bg-purple-500/20 text-purple-600" : "bg-blue-500/20 text-blue-600"}>
                           {user.role}
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        <Badge className={user.isActive ? "bg-green-500/20 text-green-300" : "bg-red-500/20 text-red-300"}>
+                        <Badge className={user.isActive ? "bg-green-500/20 text-green-600" : "bg-red-500/20 text-red-600"}>
                           {user.isActive ? "Active" : "Inactive"}
                         </Badge>
                       </TableCell>
-                      <TableCell className="text-slate-400">
+                      <TableCell className="text-muted-foreground">
                         {new Date(user.createdAt).toLocaleDateString()}
                       </TableCell>
                       <TableCell className="text-right">
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" className="text-slate-400 hover:text-white hover:bg-white/10">
+                            <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground hover:bg-accent">
                               <MoreHorizontal className="w-4 h-4" />
                             </Button>
                           </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" className="bg-slate-800 border-slate-700">
-                            <DropdownMenuItem onClick={() => handleEditUser(user)} className="text-slate-300 focus:bg-white/10 focus:text-white">
+                          <DropdownMenuContent align="end" className="bg-popover border-border">
+                            <DropdownMenuItem onClick={() => handleEditUser(user)} className="text-muted-foreground focus:bg-accent focus:text-foreground">
                               <Edit className="w-4 h-4 mr-2" />
                               Edit User
                             </DropdownMenuItem>
@@ -511,18 +511,18 @@ export default function AdminUsers() {
                                 setResetPasswordUser(user);
                                 setResetPasswordDialogOpen(true);
                               }}
-                              className="text-slate-300 focus:bg-white/10 focus:text-white"
+                              className="text-muted-foreground focus:bg-accent focus:text-foreground"
                             >
                               <Key className="w-4 h-4 mr-2" />
                               Reset Password
                             </DropdownMenuItem>
-                            <DropdownMenuSeparator className="bg-slate-700" />
+                            <DropdownMenuSeparator className="bg-border" />
                             <DropdownMenuItem
                               onClick={() => {
                                 setDeletingUser(user);
                                 setDeleteDialogOpen(true);
                               }}
-                              className="text-red-400 focus:bg-red-500/10 focus:text-red-400"
+                              className="text-red-600 focus:bg-red-500/10 focus:text-red-600"
                               disabled={user.id === userData?.user?.id}
                             >
                               <Trash2 className="w-4 h-4 mr-2" />
@@ -542,10 +542,10 @@ export default function AdminUsers() {
 
       {/* Edit User Dialog */}
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-        <DialogContent className="bg-slate-800 border-slate-700 text-white">
+        <DialogContent className="bg-popover border-border text-foreground">
           <DialogHeader>
             <DialogTitle>Edit User</DialogTitle>
-            <DialogDescription className="text-slate-400">
+            <DialogDescription className="text-muted-foreground">
               Update user information for {editingUser?.email}
             </DialogDescription>
           </DialogHeader>
@@ -556,7 +556,7 @@ export default function AdminUsers() {
                 <Input
                   value={editFirstName}
                   onChange={(e) => setEditFirstName(e.target.value)}
-                  className="bg-slate-700 border-slate-600"
+                  className="border-border"
                 />
               </div>
               <div className="space-y-2">
@@ -564,7 +564,7 @@ export default function AdminUsers() {
                 <Input
                   value={editLastName}
                   onChange={(e) => setEditLastName(e.target.value)}
-                  className="bg-slate-700 border-slate-600"
+                  className="border-border"
                 />
               </div>
             </div>
@@ -575,22 +575,22 @@ export default function AdminUsers() {
                 onValueChange={(v: "admin" | "researcher") => setEditRole(v)}
                 disabled={editingUser?.id === userData?.user?.id}
               >
-                <SelectTrigger className="bg-slate-700 border-slate-600">
+                <SelectTrigger className="border-border">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="bg-slate-700 border-slate-600">
+                <SelectContent className="border-border">
                   <SelectItem value="researcher">Researcher</SelectItem>
                   <SelectItem value="admin">Admin</SelectItem>
                 </SelectContent>
               </Select>
               {editingUser?.id === userData?.user?.id && (
-                <p className="text-xs text-slate-500">You cannot change your own role</p>
+                <p className="text-xs text-muted-foreground">You cannot change your own role</p>
               )}
             </div>
-            <div className="flex items-center justify-between p-3 bg-slate-700/50 rounded-lg">
+            <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
               <div>
                 <Label>Account Active</Label>
-                <p className="text-xs text-slate-400">Inactive users cannot log in</p>
+                <p className="text-xs text-muted-foreground">Inactive users cannot log in</p>
               </div>
               <Switch
                 checked={editIsActive}
@@ -600,7 +600,7 @@ export default function AdminUsers() {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setEditDialogOpen(false)} className="border-slate-600 text-slate-300">
+            <Button variant="outline" onClick={() => setEditDialogOpen(false)} className="border-border text-muted-foreground">
               Cancel
             </Button>
             <Button
@@ -625,10 +625,10 @@ export default function AdminUsers() {
 
       {/* Reset Password Dialog */}
       <Dialog open={resetPasswordDialogOpen} onOpenChange={setResetPasswordDialogOpen}>
-        <DialogContent className="bg-slate-800 border-slate-700 text-white">
+        <DialogContent className="bg-popover border-border text-foreground">
           <DialogHeader>
             <DialogTitle>Reset Password</DialogTitle>
-            <DialogDescription className="text-slate-400">
+            <DialogDescription className="text-muted-foreground">
               Set a new password for {resetPasswordUser?.email}
             </DialogDescription>
           </DialogHeader>
@@ -640,12 +640,12 @@ export default function AdminUsers() {
                 value={resetNewPassword}
                 onChange={(e) => setResetNewPassword(e.target.value)}
                 placeholder="Min 8 characters"
-                className="bg-slate-700 border-slate-600"
+                className="border-border"
               />
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setResetPasswordDialogOpen(false)} className="border-slate-600 text-slate-300">
+            <Button variant="outline" onClick={() => setResetPasswordDialogOpen(false)} className="border-border text-muted-foreground">
               Cancel
             </Button>
             <Button
@@ -664,15 +664,15 @@ export default function AdminUsers() {
 
       {/* Delete Confirmation Dialog */}
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <DialogContent className="bg-slate-800 border-slate-700 text-white">
+        <DialogContent className="bg-popover border-border text-foreground">
           <DialogHeader>
             <DialogTitle>Delete User</DialogTitle>
-            <DialogDescription className="text-slate-400">
+            <DialogDescription className="text-muted-foreground">
               Are you sure you want to delete {deletingUser?.email}? This action cannot be undone.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDeleteDialogOpen(false)} className="border-slate-600 text-slate-300">
+            <Button variant="outline" onClick={() => setDeleteDialogOpen(false)} className="border-border text-muted-foreground">
               Cancel
             </Button>
             <Button

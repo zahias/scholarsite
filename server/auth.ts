@@ -6,9 +6,47 @@ import { storage } from "./storage";
 import { OpenAlexService } from "./services/openalexApi";
 import { registerUserSchema, loginUserSchema, forgotPasswordSchema, resetPasswordSchema, type SafeUser, type UserRole } from "@shared/schema";
 import { z } from "zod";
+import { renderEmailHtml } from "./emailTemplates";
 
 const router = Router();
 const openalexService = new OpenAlexService();
+
+// ─── Rate limiting ──────────────────────────────────────────────────────────
+// Same in-memory per-IP sliding-window pattern already used in server/routes.ts
+// for admin/public-write endpoints; kept local here to avoid a circular import
+// (routes.ts imports authRouter from this file).
+function createIpRateLimit(windowMs: number, maxRequests: number, label: string) {
+  const requests = new Map<string, { count: number; resetTime: number }>();
+
+  setInterval(() => {
+    const now = Date.now();
+    for (const [ip, data] of Array.from(requests.entries())) {
+      if (now > data.resetTime) requests.delete(ip);
+    }
+  }, 60 * 60 * 1000);
+
+  return (req: Request, res: Response, next: NextFunction) => {
+    const clientIP = req.ip || "unknown";
+    const now = Date.now();
+
+    const clientData = requests.get(clientIP);
+    if (!clientData || now > clientData.resetTime) {
+      requests.set(clientIP, { count: 1, resetTime: now + windowMs });
+      return next();
+    }
+
+    if (clientData.count >= maxRequests) {
+      console.warn(`${label} rate limit exceeded for IP ${clientIP}`);
+      return res.status(429).json({ message: "Too many attempts. Please try again later." });
+    }
+
+    clientData.count++;
+    next();
+  };
+}
+
+const loginRateLimit = createIpRateLimit(15 * 60 * 1000, 15, "Login");
+const registerRateLimit = createIpRateLimit(15 * 60 * 1000, 8, "Registration");
 
 // ─── Email helper ───────────────────────────────────────────────────────────
 
@@ -26,11 +64,16 @@ function createTransporter() {
   });
 }
 
-async function sendEmail(to: string, subject: string, text: string): Promise<void> {
+async function sendEmail(to: string, subject: string, text: string, html: string): Promise<void> {
   const transporter = createTransporter();
-  if (!transporter) return;
+  if (!transporter) {
+    // Surface this instead of silently no-op'ing: a missing SMTP_PASSWORD used to
+    // look identical to a successfully-sent email in the logs — neither logged anything.
+    console.error(`[auth] SMTP not configured (SMTP_PASSWORD unset) — email to ${to} ("${subject}") was not sent`);
+    return;
+  }
   const from = `"Scholar.name" <${process.env.SMTP_USER || "noreply@scholar.name"}>`;
-  await transporter.sendMail({ from, to, subject, text });
+  await transporter.sendMail({ from, to, subject, text, html });
 }
 
 async function sendSignupEmail(email: string, firstName: string, verificationToken: string): Promise<void> {
@@ -53,6 +96,16 @@ async function sendSignupEmail(email: string, firstName: string, verificationTok
       "",
       "The Scholar.name team",
     ].join("\n"),
+    renderEmailHtml({
+      preheader: "Please verify your email to activate your Scholar.name portfolio.",
+      heading: `Welcome, ${firstName}!`,
+      bodyHtml: `
+        <p style="margin:0 0 14px;">Welcome to Scholar.name! Please verify your email address to activate your account.</p>
+        <p style="margin:0;">This link expires in 24 hours. If you didn't sign up, you can ignore this email. Once verified, log in to connect your OpenAlex profile and publish your portfolio.</p>
+      `,
+      ctaLabel: "Verify my email",
+      ctaUrl: verifyUrl,
+    }),
   );
 }
 
@@ -72,6 +125,16 @@ async function sendPasswordResetEmail(email: string, firstName: string, resetTok
       "",
       "The Scholar.name team",
     ].join("\n"),
+    renderEmailHtml({
+      preheader: "Reset your Scholar.name password.",
+      heading: `Reset your password, ${firstName}`,
+      bodyHtml: `
+        <p style="margin:0 0 14px;">You requested a password reset. Click the button below to set a new password.</p>
+        <p style="margin:0;">This link expires in 1 hour. If you did not request a reset, you can safely ignore this email.</p>
+      `,
+      ctaLabel: "Reset my password",
+      ctaUrl: resetUrl,
+    }),
   );
 }
 
@@ -113,7 +176,7 @@ export async function getCurrentUser(req: Request): Promise<SafeUser | null> {
   return toSafeUser(user);
 }
 
-router.post("/register", async (req: Request, res: Response) => {
+router.post("/register", registerRateLimit, async (req: Request, res: Response) => {
   try {
     const validatedData = registerUserSchema.parse(req.body);
 
@@ -187,7 +250,7 @@ router.post("/register", async (req: Request, res: Response) => {
   }
 });
 
-router.post("/login", async (req: Request, res: Response) => {
+router.post("/login", loginRateLimit, async (req: Request, res: Response) => {
   try {
     const validatedData = loginUserSchema.parse(req.body);
 
@@ -346,7 +409,7 @@ router.patch("/password", isAuthenticated, async (req: Request, res: Response) =
 
 // ─── Forgot password ────────────────────────────────────────────────────────
 
-router.post("/forgot-password", async (req: Request, res: Response) => {
+router.post("/forgot-password", registerRateLimit, async (req: Request, res: Response) => {
   try {
     const { email } = forgotPasswordSchema.parse(req.body);
     const user = await storage.getUserByEmail(email);

@@ -31,11 +31,24 @@ const REQUIRED_COLUMNS: Record<string, string[]> = {
   profile_sections: ["id", "profile_id", "title", "content", "section_type", "sort_order", "is_visible", "created_at", "updated_at"],
 };
 
+// Tables whose upsert logic relies on Drizzle's onConflictDoUpdate — Postgres
+// requires an actual unique constraint/index on these columns for that to work.
+// A table created before the constraint existed (or under a different owner
+// that blocked later ALTERs) can pass the column check above yet still fail
+// every upsert with "no unique or exclusion constraint matching the ON
+// CONFLICT specification" — this caught OpenAlex sync silently failing on
+// every publication for exactly that reason.
+const REQUIRED_UNIQUE_CONSTRAINTS: Record<string, string[]> = {
+  publications: ["openalex_id", "work_id"],
+  openalex_data: ["openalex_id", "data_type"],
+};
+
 export type DatabaseHealth = {
   connected: boolean;
   schemaReady: boolean;
   category: "ok" | "database_unreachable" | "schema_incomplete";
   missingColumns: string[];
+  missingConstraints: string[];
 };
 
 export async function checkDatabaseHealth(): Promise<DatabaseHealth> {
@@ -45,6 +58,7 @@ export async function checkDatabaseHealth(): Promise<DatabaseHealth> {
       schemaReady: false,
       category: "database_unreachable",
       missingColumns: [],
+      missingConstraints: [],
     };
   }
 
@@ -67,11 +81,34 @@ export async function checkDatabaseHealth(): Promise<DatabaseHealth> {
         .map((column) => `${table}.${column}`),
     );
 
+    const constraintTables = Object.keys(REQUIRED_UNIQUE_CONSTRAINTS);
+    const constraintResult = await client.query(
+      `SELECT t.relname AS table_name, array_agg(a.attname ORDER BY a.attname) AS columns
+       FROM pg_constraint c
+       JOIN pg_class t ON t.oid = c.conrelid
+       JOIN pg_namespace n ON n.oid = t.relnamespace
+       JOIN unnest(c.conkey) AS colnum ON true
+       JOIN pg_attribute a ON a.attrelid = t.oid AND a.attnum = colnum
+       WHERE n.nspname = 'public' AND t.relname = ANY($1::text[]) AND c.contype IN ('u', 'p')
+       GROUP BY t.relname, c.oid`,
+      [constraintTables],
+    );
+    const constraintRows = constraintResult.rows as Array<{ table_name: string; columns: string[] }>;
+    const constraintSets = new Set(
+      constraintRows.map((row) => `${row.table_name}:${[...row.columns].sort().join(",")}`),
+    );
+    const missingConstraints = Object.entries(REQUIRED_UNIQUE_CONSTRAINTS)
+      .filter(([table, columns]) => !constraintSets.has(`${table}:${[...columns].sort().join(",")}`))
+      .map(([table, columns]) => `${table}(${columns.join(", ")})`);
+
+    const schemaReady = missingColumns.length === 0 && missingConstraints.length === 0;
+
     return {
       connected: true,
-      schemaReady: missingColumns.length === 0,
-      category: missingColumns.length === 0 ? "ok" : "schema_incomplete",
+      schemaReady,
+      category: schemaReady ? "ok" : "schema_incomplete",
       missingColumns,
+      missingConstraints,
     };
   } catch (error) {
     console.error("[DatabaseHealth] Connectivity check failed:", error instanceof Error ? error.message : error);
@@ -80,6 +117,7 @@ export async function checkDatabaseHealth(): Promise<DatabaseHealth> {
       schemaReady: false,
       category: "database_unreachable",
       missingColumns: [],
+      missingConstraints: [],
     };
   } finally {
     client?.release();

@@ -45,6 +45,7 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import type { Theme, ThemeConfig } from "@shared/schema";
 import { normalizeThemeConfig } from "@/context/ThemeContext";
+import { ThemePreviewSwatch } from "@/components/ThemePreviewSwatch";
 
 interface CurrentUser {
   id: string;
@@ -236,12 +237,12 @@ export default function AdminThemes() {
 
   if (userLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-8">
+      <div className="min-h-screen bg-background p-8">
         <div className="max-w-4xl mx-auto space-y-6">
-          <Skeleton className="h-20 w-full bg-white/5" />
+          <Skeleton className="h-20 w-full bg-muted" />
           <div className="grid gap-4">
-            <Skeleton className="h-32 bg-white/5" />
-            <Skeleton className="h-32 bg-white/5" />
+            <Skeleton className="h-32 bg-muted" />
+            <Skeleton className="h-32 bg-muted" />
           </div>
         </div>
       </div>
@@ -256,20 +257,20 @@ export default function AdminThemes() {
   const themes = themesData || [];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-      <header className="border-b border-white/10 bg-white/5 backdrop-blur-lg sticky top-0 z-50">
+    <div className="min-h-screen bg-background">
+      <header className="border-b border-border bg-card/90 backdrop-blur-lg sticky top-0 z-50">
         <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-purple-500/20 rounded-xl flex items-center justify-center">
-              <Palette className="w-5 h-5 text-purple-400" />
+              <Palette className="w-5 h-5 text-purple-600" />
             </div>
             <div>
-              <h1 className="text-xl font-semibold text-white">Theme Management</h1>
-              <p className="text-sm text-slate-400">Customize portfolio themes</p>
+              <h1 className="text-xl font-semibold text-foreground">Theme Management</h1>
+              <p className="text-sm text-muted-foreground">Customize portfolio themes</p>
             </div>
           </div>
           <Link href="/admin">
-            <Button variant="ghost" className="text-slate-400 hover:text-white hover:bg-white/10" data-testid="button-back-admin">
+            <Button variant="ghost" className="text-muted-foreground hover:text-foreground hover:bg-accent" data-testid="button-back-admin">
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back to Dashboard
             </Button>
@@ -279,7 +280,7 @@ export default function AdminThemes() {
 
       <main className="max-w-4xl mx-auto px-4 py-8 space-y-6">
         <div className="flex items-center justify-between flex-wrap gap-3">
-          <h2 className="text-lg font-medium text-white">Available Themes</h2>
+          <h2 className="text-lg font-medium text-foreground">Available Themes</h2>
           <div className="flex items-center gap-2">
             <Dialog open={isBulkApplyOpen} onOpenChange={(open) => {
               setIsBulkApplyOpen(open);
@@ -289,7 +290,7 @@ export default function AdminThemes() {
               }
             }}>
               <DialogTrigger asChild>
-                <Button variant="outline" className="border-white/20 text-white hover:bg-white/10" data-testid="button-bulk-apply">
+                <Button variant="outline" className="border-black/10 text-foreground hover:bg-accent" data-testid="button-bulk-apply">
                   <Users className="w-4 h-4 mr-2" />
                   Apply Theme to Sites
                 </Button>
@@ -307,7 +308,6 @@ export default function AdminThemes() {
                     <Label className="text-sm font-medium mb-2 block">Select Theme to Apply</Label>
                     <div className="grid gap-2 max-h-48 overflow-y-auto">
                       {themes.map((theme) => {
-                        const config = normalizeThemeConfig(theme.config as ThemeConfig | null);
                         return (
                           <button
                             key={theme.id}
@@ -319,15 +319,12 @@ export default function AdminThemes() {
                             }`}
                             data-testid={`button-select-theme-${theme.id}`}
                           >
-                            <div className="flex gap-1">
-                              <div className="w-6 h-6 rounded border border-white/20" style={{ backgroundColor: config.colors.primary }} />
-                              <div className="w-6 h-6 rounded border border-white/20 -ml-2" style={{ backgroundColor: config.colors.accent }} />
-                            </div>
+                            <ThemePreviewSwatch config={theme.config as ThemeConfig} size="sm" />
                             <div className="flex-1 text-left">
                               <p className="text-sm font-medium">{theme.name}</p>
                             </div>
                             {selectedThemeForBulk?.id === theme.id && (
-                              <Check className="w-4 h-4 text-purple-500" />
+                              <Check className="w-4 h-4 text-purple-600" />
                             )}
                           </button>
                         );
@@ -374,7 +371,7 @@ export default function AdminThemes() {
                                 <p className="text-xs text-muted-foreground">
                                   Current: {tenant.currentThemeName || 'Default theme'}
                                   {tenant.currentThemeId === selectedThemeForBulk.id && (
-                                    <span className="ml-2 text-green-500">(Already using this theme)</span>
+                                    <span className="ml-2 text-green-600">(Already using this theme)</span>
                                   )}
                                 </p>
                               </label>
@@ -451,51 +448,41 @@ export default function AdminThemes() {
         {themesLoading ? (
           <div className="space-y-4">
             {[1, 2, 3].map((i) => (
-              <Skeleton key={i} className="h-24 bg-white/5" />
+              <Skeleton key={i} className="h-24 bg-muted" />
             ))}
           </div>
         ) : themes.length === 0 ? (
-          <Card className="bg-white/5 border-white/10">
+          <Card className="bg-card border-border">
             <CardContent className="py-12 text-center">
-              <Palette className="w-12 h-12 text-slate-500 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-white mb-2">No themes yet</h3>
-              <p className="text-slate-400 mb-4">Create your first theme to get started</p>
+              <Palette className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-foreground mb-2">No themes yet</h3>
+              <p className="text-muted-foreground mb-4">Create your first theme to get started</p>
             </CardContent>
           </Card>
         ) : (
           <div className="grid gap-4">
             {themes.map((theme) => {
-              const config = normalizeThemeConfig(theme.config as ThemeConfig | null);
               return (
-                <Card key={theme.id} className="bg-white/5 border-white/10" data-testid={`card-theme-${theme.id}`}>
+                <Card key={theme.id} className="bg-card border-border" data-testid={`card-theme-${theme.id}`}>
                   <CardContent className="py-4">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-4">
-                        <div className="flex gap-1">
-                          <div
-                            className="w-10 h-10 rounded-lg border-2 border-white/20"
-                            style={{ backgroundColor: config.colors.primary }}
-                          />
-                          <div
-                            className="w-10 h-10 rounded-lg border-2 border-white/20 -ml-3"
-                            style={{ backgroundColor: config.colors.accent }}
-                          />
-                        </div>
+                        <ThemePreviewSwatch config={theme.config as ThemeConfig} />
                         <div>
                           <div className="flex items-center gap-2">
-                            <h3 className="font-medium text-white">{theme.name}</h3>
+                            <h3 className="font-medium text-foreground">{theme.name}</h3>
                             {theme.isDefault && (
-                              <Badge className="bg-yellow-500/20 text-yellow-300">
+                              <Badge className="bg-yellow-500/20 text-yellow-600">
                                 <Star className="w-3 h-3 mr-1" />
                                 Default
                               </Badge>
                             )}
                             {!theme.isActive && (
-                              <Badge className="bg-slate-500/20 text-slate-400">Inactive</Badge>
+                              <Badge className="bg-slate-500/20 text-muted-foreground">Inactive</Badge>
                             )}
                           </div>
                           {theme.description && (
-                            <p className="text-sm text-slate-400">{theme.description}</p>
+                            <p className="text-sm text-muted-foreground">{theme.description}</p>
                           )}
                         </div>
                       </div>
@@ -505,7 +492,7 @@ export default function AdminThemes() {
                             variant="ghost"
                             size="sm"
                             onClick={() => setDefaultMutation.mutate(theme.id)}
-                            className="text-yellow-400 hover:text-yellow-300 hover:bg-yellow-500/10"
+                            className="text-yellow-600 hover:text-yellow-600 hover:bg-yellow-500/10"
                             data-testid={`button-set-default-${theme.id}`}
                           >
                             <Star className="w-4 h-4" />
@@ -520,7 +507,7 @@ export default function AdminThemes() {
                               variant="ghost"
                               size="sm"
                               onClick={() => setEditingTheme({ ...theme, config: normalizeThemeConfig(theme.config as ThemeConfig | null) } as Theme)}
-                              className="text-slate-400 hover:text-white hover:bg-white/10"
+                              className="text-muted-foreground hover:text-foreground hover:bg-accent"
                               data-testid={`button-edit-${theme.id}`}
                             >
                               <Pencil className="w-4 h-4" />
@@ -559,7 +546,7 @@ export default function AdminThemes() {
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                                className="text-red-600 hover:text-red-600 hover:bg-red-500/10"
                                 data-testid={`button-delete-${theme.id}`}
                               >
                                 <Trash2 className="w-4 h-4" />
@@ -701,13 +688,13 @@ function ThemeForm({ theme, onChange }: ThemeFormProps) {
           className="mt-2 p-3 rounded-md"
           style={{ backgroundColor: theme.config.colors.primary }}
         >
-          <p className="text-white text-sm">Primary Background</p>
+          <p className="text-foreground text-sm">Primary Background</p>
         </div>
         <p className="mt-2 text-xs" style={{ color: theme.config.colors.textMuted }}>
           Muted text example
         </p>
         <div
-          className="mt-2 inline-block px-3 py-1 rounded-full text-white text-xs"
+          className="mt-2 inline-block px-3 py-1 rounded-full text-foreground text-xs"
           style={{ backgroundColor: theme.config.colors.accent }}
         >
           Accent Badge
