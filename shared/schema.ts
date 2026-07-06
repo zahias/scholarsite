@@ -33,7 +33,7 @@ export const tenants = pgTable("tenants", {
   subscriptionEndDate: timestamp("subscription_end_date"),
   // Sync settings based on plan
   lastSyncAt: timestamp("last_sync_at"),
-  syncFrequency: varchar("sync_frequency").default('monthly'), // monthly, weekly, daily
+  syncFrequency: varchar("sync_frequency").default('monthly'),
   // Branding
   primaryColor: varchar("primary_color").default('#0B1F3A'),
   accentColor: varchar("accent_color").default('#F2994A'),

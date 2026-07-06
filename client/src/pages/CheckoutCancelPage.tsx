@@ -39,7 +39,7 @@ export default function CheckoutCancelPage() {
 
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
             <button
-              onClick={() => navigate("/#pricing")}
+              onClick={() => navigate("/pricing")}
               style={{ width: "100%", padding: "12px 20px", background: "#FFC72E", color: "#6F5400", border: "none", borderRadius: 10, fontSize: 14.5, fontWeight: 700, fontFamily: "inherit", cursor: "pointer" }}
               data-testid="button-try-again"
             >

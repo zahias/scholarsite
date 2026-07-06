@@ -62,6 +62,7 @@ interface OpenAlexAuthor {
 interface OpenAlexWork {
   id: string;
   title: string;
+  display_name?: string;
   publication_year?: number;
   cited_by_count: number;
   doi?: string;
@@ -112,10 +113,32 @@ interface OpenAlexResearcher {
 
 export class OpenAlexService {
   private baseUrl = 'https://api.openalex.org';
+  private readonly worksPageSize = 100;
+  private readonly maxPublications = 500;
+  private readonly workFields = [
+    'id',
+    'title',
+    'display_name',
+    'publication_year',
+    'cited_by_count',
+    'doi',
+    'type',
+    'open_access',
+    'primary_location',
+    'authorships',
+    'topics',
+  ].join(',');
+
+  private withApiKey(url: string): string {
+    const apiKey = process.env.OPENALEX_API_KEY;
+    if (!apiKey) return url;
+    const separator = url.includes('?') ? '&' : '?';
+    return `${url}${separator}api_key=${encodeURIComponent(apiKey)}`;
+  }
   
   async getResearcher(openalexId: string): Promise<OpenAlexResearcher> {
     const cleanId = openalexId.startsWith('A') ? openalexId : `A${openalexId}`;
-    const url = `${this.baseUrl}/people/${cleanId}`;
+    const url = this.withApiKey(`${this.baseUrl}/authors/${cleanId}`);
     
     const response = await fetch(url, { signal: AbortSignal.timeout(30_000) });
     if (!response.ok) {
@@ -127,38 +150,40 @@ export class OpenAlexService {
 
   async getResearcherWorks(openalexId: string): Promise<OpenAlexWorksResponse> {
     const cleanId = openalexId.startsWith('A') ? openalexId : `A${openalexId}`;
-    let allResults: OpenAlexWork[] = [];
-    let page = 1;
-    let totalCount = 0;
-    const perPage = 200; // OpenAlex max per page
-    const MAX_PUBS = 500; // Cap to avoid blocking the server for prolific researchers
-    let hasMoreResults = true;
-    
-    // Fetch pages up to MAX_PUBS (sorted by citation count desc so most impactful work is kept)
-    while (hasMoreResults) {
-      const url = `${this.baseUrl}/works?filter=author.id:${cleanId}&per-page=${perPage}&page=${page}&sort=cited_by_count:desc`;
-      
+    const fetchPage = async (page: number): Promise<OpenAlexWorksResponse> => {
+      const query = new URLSearchParams({
+        filter: `authorships.author.id:${cleanId}`,
+        per_page: String(this.worksPageSize),
+        page: String(page),
+        sort: 'cited_by_count:desc',
+        select: this.workFields,
+      });
+      const url = this.withApiKey(`${this.baseUrl}/works?${query.toString()}`);
       const response = await fetch(url, { signal: AbortSignal.timeout(30_000) });
       if (!response.ok) {
         throw new Error(`OpenAlex API error: ${response.status} ${response.statusText}`);
       }
-      
+
       const data = await response.json() as OpenAlexWorksResponse;
-      allResults = allResults.concat(data.results);
-      totalCount = data.meta.count;
-      
-      console.log(`Fetched ${allResults.length} of ${Math.min(totalCount, MAX_PUBS)} publications for ${cleanId} (page ${page})`);
-      
-      page++;
-      
-      // Stop when we reach the cap, exhaust results, or get no more data
-      hasMoreResults = allResults.length < Math.min(totalCount, MAX_PUBS) && data.results.length > 0;
-      
-      // Brief pause between pages to reduce server load
-      if (hasMoreResults) {
-        await new Promise(resolve => setTimeout(resolve, 500));
+      if (!data?.meta || !Array.isArray(data.results) || !Number.isFinite(data.meta.count)) {
+        throw new Error('OpenAlex API returned malformed works data');
       }
-    }
+      return data;
+    };
+
+    // First page establishes the total; all remaining capped pages form one parallel wave.
+    const firstPage = await fetchPage(1);
+    const totalCount = firstPage.meta.count;
+    const cappedCount = Math.min(totalCount, this.maxPublications);
+    const pageCount = Math.ceil(cappedCount / this.worksPageSize);
+    const remainingPages = pageCount > 1
+      ? await Promise.all(Array.from({ length: pageCount - 1 }, (_, index) => fetchPage(index + 2)))
+      : [];
+    const allResults = [firstPage, ...remainingPages]
+      .flatMap((page) => page.results)
+      .slice(0, cappedCount);
+
+    console.log(`Fetched ${allResults.length} of ${cappedCount} publications for ${cleanId} in ${pageCount} page request(s)`);
     
     return {
       results: allResults,

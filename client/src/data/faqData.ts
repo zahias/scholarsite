@@ -7,7 +7,7 @@ export const faqs: FaqItem[] = [
   {
     question: "Where does the publication data come from?",
     answer:
-      "All publication data comes from OpenAlex, a free and open index of 250\u202fM+ scholarly works. Your profile syncs automatically. Use the \"Report an issue\" button on any profile page to flag data problems.",
+      "All publication data comes from OpenAlex, a free and open index of 250\u202fM+ scholarly works. Claimed profiles check OpenAlex every 30 days. A successful check cannot display records that OpenAlex has not indexed yet. Use the \"Report an issue\" button on any profile page to flag data problems.",
   },
   {
     question: "How accurate is the publication matching?",
@@ -32,7 +32,7 @@ export const faqs: FaqItem[] = [
   {
     question: "How does the auto-sync work?",
     answer:
-      "We periodically query OpenAlex for your author record. When new publications appear, they\u2019re automatically added to your portfolio \u2014 no action needed on your part.",
+      "Claimed profiles check OpenAlex every 30 days. Publications newly indexed by OpenAlex are then added automatically. Preview profiles fetch OpenAlex live when viewed, and you can also trigger a manual sync from your dashboard.",
   },
   {
     question: "Can I share my profile during the free trial?",

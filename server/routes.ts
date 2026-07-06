@@ -557,6 +557,116 @@ function escapeCSV(value: string): string {
 
 export async function registerRoutes(app: Express): Promise<Server> {
   const openalexService = new OpenAlexService();
+  const PREVIEW_CACHE_TTL_MS = 15 * 60 * 1000;
+  const PREVIEW_CACHE_MAX_ENTRIES = 100;
+  const previewResponseCache = new Map<string, { expiresAt: number; data: any }>();
+  const previewRequestsInFlight = new Map<string, Promise<any>>();
+
+  const normalizeOpenAlexAuthorId = (value: string) => {
+    const trimmed = value.trim().toUpperCase();
+    return trimmed.startsWith('A') ? trimmed : `A${trimmed}`;
+  };
+
+  const getCachedPreview = (key: string) => {
+    const entry = previewResponseCache.get(key);
+    if (!entry) return null;
+    if (entry.expiresAt <= Date.now()) {
+      previewResponseCache.delete(key);
+      return null;
+    }
+    // Refresh insertion order so the Map acts as a small LRU cache.
+    previewResponseCache.delete(key);
+    previewResponseCache.set(key, entry);
+    return entry.data;
+  };
+
+  const cachePreview = (key: string, data: any) => {
+    previewResponseCache.delete(key);
+    previewResponseCache.set(key, { expiresAt: Date.now() + PREVIEW_CACHE_TTL_MS, data });
+    while (previewResponseCache.size > PREVIEW_CACHE_MAX_ENTRIES) {
+      const oldestKey = previewResponseCache.keys().next().value;
+      if (!oldestKey) break;
+      previewResponseCache.delete(oldestKey);
+    }
+  };
+
+  const buildPreviewResponse = async (openalexId: string) => {
+    const [researcher, works] = await Promise.all([
+      openalexService.getResearcher(openalexId),
+      openalexService.getResearcherWorks(openalexId),
+    ]);
+
+    const topics = (researcher.topics || []).slice(0, 10).map((topic: any) => ({
+      displayName: topic.display_name,
+      subfield: topic.subfield?.display_name || null,
+      field: topic.field?.display_name || null,
+      domain: topic.domain?.display_name || null,
+    }));
+    const affiliations = (researcher.affiliations || []).slice(0, 5).map((aff: any) => ({
+      institutionName: aff.institution?.display_name || 'Unknown Institution',
+      years: aff.years || [],
+    }));
+    const normalizeTitle = (title: string | null | undefined): string => {
+      if (!title) return 'Untitled';
+      const cleaned = title
+        .replace(/<[^>]*>/g, '')
+        .replace(/&lt;/g, '<')
+        .replace(/&gt;/g, '>')
+        .replace(/&amp;/g, '&')
+        .replace(/&quot;/g, '"')
+        .replace(/&#?\w+;/g, '')
+        .replace(/\s+/g, ' ')
+        .trim();
+      return cleaned || 'Untitled';
+    };
+    const publications = works.results.map((work: any) => ({
+      id: work.id || '',
+      title: normalizeTitle(work.display_name || work.title),
+      authorNames: work.authorships?.map((a: any) => a.author?.display_name).filter(Boolean).join(', ') || null,
+      journal: work.primary_location?.source?.display_name || null,
+      publicationYear: work.publication_year,
+      citationCount: work.cited_by_count || 0,
+      topics: work.topics?.slice(0, 5).map((topic: any) => topic.display_name) || [],
+      doi: work.doi || null,
+      isOpenAccess: work.open_access?.is_oa || false,
+      publicationType: work.type || 'article',
+      openAccessUrl: work.open_access?.oa_url || null,
+    }));
+    const institution = researcher.last_known_institutions?.[0];
+    const orcid = researcher.orcid || null;
+
+    return {
+      profile: {
+        displayName: researcher.display_name,
+        title: null,
+        currentAffiliation: null,
+        department: null,
+        bio: null,
+        profileImageUrl: null,
+        cvUrl: null,
+        contactEmail: null,
+        phone: null,
+        officeLocation: null,
+        location: null,
+        countryCode: institution?.country_code || null,
+        orcidId: orcid,
+        orcidUrl: orcid ? `https://orcid.org/${orcid.replace('https://orcid.org/', '')}` : null,
+        googleScholarUrl: null,
+        linkedinUrl: null,
+        twitterUrl: null,
+        websiteUrl: null,
+        researchInterests: topics.slice(0, 5).map((topic: any) => topic.displayName),
+        isPublic: true,
+        isPreview: true,
+      },
+      researcher,
+      topics,
+      publications,
+      affiliations,
+      lastSynced: new Date().toISOString(),
+      isPreview: true,
+    };
+  };
 
   // Tenant resolution middleware
   app.use(tenantResolver);
@@ -814,7 +924,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/researcher/:openalexId/data', async (req, res) => {
     try {
       const { openalexId } = req.params;
-      const preview = req.query.preview === 'true';
 
       // Get researcher profile (if public)
       const profile = await storage.getResearcherProfileByOpenalexId(openalexId);
@@ -865,102 +974,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // If no profile exists, fetch directly from OpenAlex for preview
       try {
-        const researcher = await openalexService.getResearcher(openalexId);
-        const works = await openalexService.getResearcherWorks(openalexId);
+        const cacheKey = normalizeOpenAlexAuthorId(openalexId);
+        const cached = getCachedPreview(cacheKey);
+        res.set('Cache-Control', 'public, max-age=300, stale-while-revalidate=600');
+        res.set('Vary', 'Accept-Encoding');
+        if (cached) {
+          res.set('X-Preview-Cache', 'HIT');
+          return res.json(cached);
+        }
 
-        // Extract topics from researcher data
-        const topics = (researcher.topics || []).slice(0, 10).map((topic: any) => ({
-          displayName: topic.display_name,
-          subfield: topic.subfield?.display_name || null,
-          field: topic.field?.display_name || null,
-          domain: topic.domain?.display_name || null
-        }));
+        let request = previewRequestsInFlight.get(cacheKey);
+        const coalesced = Boolean(request);
+        if (!request) {
+          request = buildPreviewResponse(cacheKey)
+            .then((data) => {
+              cachePreview(cacheKey, data);
+              return data;
+            })
+            .finally(() => {
+              previewRequestsInFlight.delete(cacheKey);
+            });
+          previewRequestsInFlight.set(cacheKey, request);
+        }
 
-        // Extract affiliations from researcher data
-        const affiliations = (researcher.affiliations || []).slice(0, 5).map((aff: any) => ({
-          institutionName: aff.institution?.display_name || 'Unknown Institution',
-          years: aff.years || []
-        }));
-
-        // Helper function to strip MathML and other XML/HTML markup from titles
-        const normalizeTitle = (title: string | null | undefined): string => {
-          if (!title) return 'Untitled';
-          // First, remove all XML/HTML tags including self-closing ones
-          let cleaned = title
-            .replace(/<[^>]*>/g, '') // Remove ALL tags (opening, closing, self-closing)
-            .replace(/&lt;/g, '<')   // Decode common HTML entities
-            .replace(/&gt;/g, '>')
-            .replace(/&amp;/g, '&')
-            .replace(/&quot;/g, '"')
-            .replace(/&#?\w+;/g, '') // Remove any remaining HTML entities
-            .replace(/\s+/g, ' ')    // Normalize whitespace
-            .trim();
-          return cleaned || 'Untitled';
-        };
-
-        // Transform a small publication sample for preview. Full data is available after profile creation.
-        const publications = works.results.slice(0, 3).map((work: any) => ({
-          id: work.id || '',
-          title: normalizeTitle(work.display_name || work.title),
-          authorNames: work.authorships?.map((a: any) => a.author?.display_name).filter(Boolean).join(', ') || null,
-          journal: work.primary_location?.source?.display_name || null,
-          publicationYear: work.publication_year,
-          citationCount: work.cited_by_count || 0,
-          topics: work.topics?.slice(0, 5).map((t: any) => t.display_name) || [],
-          doi: work.doi || null,
-          isOpenAccess: work.open_access?.is_oa || false,
-          publicationType: work.type || 'article',
-          openAccessUrl: work.open_access?.oa_url || null
-        }));
-
-        // Get institution info for the profile
-        const institution = researcher.last_known_institutions?.[0];
-        const orcid = researcher.orcid || null;
-
-        // Generate a realistic title based on publication count
-        const getAcademicTitle = (worksCount: number): string => {
-          if (worksCount > 500) return 'Distinguished Professor';
-          if (worksCount > 200) return 'Full Professor';
-          if (worksCount > 100) return 'Associate Professor';
-          if (worksCount > 50) return 'Assistant Professor';
-          if (worksCount > 20) return 'Research Scientist';
-          return 'Researcher';
-        };
-
-        // Create a virtual profile for preview - leave customizable fields empty for placeholders
-        const previewProfile = {
-          displayName: researcher.display_name,
-          title: null, // Leave empty so frontend shows "Position" placeholder
-          currentAffiliation: null, // Leave empty so frontend shows "Institution" placeholder
-          department: null,
-          bio: null, // Leave empty so frontend shows bio placeholder
-          profileImageUrl: null, // Will be handled on frontend with initials avatar
-          cvUrl: null,
-          contactEmail: null, // Leave empty - no fake contact info in preview
-          phone: null,
-          officeLocation: null,
-          location: null,
-          countryCode: institution?.country_code || null, // Keep country code if available
-          orcidId: orcid, // Keep ORCID if available from OpenAlex
-          orcidUrl: orcid ? `https://orcid.org/${orcid.replace('https://orcid.org/', '')}` : '#', // Show ORCID button
-          googleScholarUrl: '#', // Show button but doesn't navigate
-          linkedinUrl: '#', // Show button but doesn't navigate
-          twitterUrl: null,
-          websiteUrl: '#', // Show button but doesn't navigate
-          researchInterests: topics.slice(0, 5).map((t: any) => t.displayName),
-          isPublic: true,
-          isPreview: true
-        };
-
-        return res.json({
-          profile: previewProfile,
-          researcher,
-          topics,
-          publications,
-          affiliations,
-          lastSynced: new Date().toISOString(),
-          isPreview: true
-        });
+        const data = await request;
+        res.set('X-Preview-Cache', coalesced ? 'COALESCED' : 'MISS');
+        return res.json(data);
       } catch (openAlexError) {
         console.error("Error fetching from OpenAlex for preview:", openAlexError);
         return res.status(404).json({ message: "Researcher not found" });
@@ -1184,7 +1223,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Search authors by name using OpenAlex full search API (public - for landing page search)
-  // Uses full search with works_count sorting to show prolific researchers first
   app.get('/api/openalex/autocomplete', async (req, res) => {
     try {
       const query = req.query.q as string;
@@ -1192,9 +1230,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.json({ results: [] });
       }
 
-      // Use full search API with sorting by works_count to show prolific researchers first
+      // Preserve OpenAlex relevance ordering, then promote exact normalized name matches.
       const response = await fetch(
-        `https://api.openalex.org/authors?search=${encodeURIComponent(query)}&sort=works_count:desc&per_page=10`
+        `https://api.openalex.org/authors?search=${encodeURIComponent(query)}&per_page=10`
       );
 
       if (!response.ok) {
@@ -1203,14 +1241,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const data = await response.json() as { results: any[] };
 
-      // Transform results to a simpler format
-      const results = data.results.map((author: any) => ({
-        id: author.id.replace('https://openalex.org/', ''),
-        display_name: author.display_name,
-        hint: author.last_known_institutions?.[0]?.display_name || '',
-        works_count: author.works_count || 0,
-        cited_by_count: author.cited_by_count || 0,
-      }));
+      const normalizeName = (value: string) => value
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, ' ')
+        .trim()
+        .replace(/\s+/g, ' ');
+
+      const normalizedQuery = normalizeName(query);
+      const queryTokens = normalizedQuery.split(' ').filter(Boolean);
+
+      const results = data.results
+        .map((author: any, relevanceIndex: number) => {
+          const normalizedName = normalizeName(author.display_name || '');
+          const nameTokens = new Set(normalizedName.split(' ').filter(Boolean));
+          const isExact = normalizedName === normalizedQuery;
+          const containsAllTokens = queryTokens.length > 0 && queryTokens.every((token) => nameTokens.has(token));
+
+          return {
+            id: author.id.replace('https://openalex.org/', ''),
+            display_name: author.display_name,
+            hint: author.last_known_institutions?.[0]?.display_name || '',
+            works_count: author.works_count || 0,
+            cited_by_count: author.cited_by_count || 0,
+            rank: isExact ? 0 : containsAllTokens ? 1 : 2,
+            relevanceIndex,
+          };
+        })
+        .sort((a, b) => {
+          if (a.rank !== b.rank) return a.rank - b.rank;
+          if (a.rank === 0 && a.works_count !== b.works_count) return b.works_count - a.works_count;
+          return a.relevanceIndex - b.relevanceIndex;
+        })
+        .map(({ rank: _rank, relevanceIndex: _relevanceIndex, ...author }) => author);
 
       res.json({ results });
     } catch (error) {
@@ -1474,6 +1538,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { openalexId } = req.params;
       const format = (req.query.format as string) || 'bibtex';
 
+      if (!/^A\d+$/.test(openalexId)) {
+        return res.status(400).json({ message: "Invalid OpenAlex author ID" });
+      }
+
       // Get researcher profile - allow if public OR if accessed from tenant domain
       const profile = await storage.getResearcherProfileByOpenalexId(openalexId);
       const tenant = (req as any).tenant;
@@ -1481,12 +1549,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Allow access if: profile is public OR request comes from a tenant site with matching profile
       const isAuthorized = profile && (profile.isPublic || (tenant && profile.tenantId === tenant.id));
 
-      if (!isAuthorized) {
+      if (profile && !isAuthorized) {
         return res.status(404).json({ message: "Researcher not found or not public" });
       }
 
-      // Get all publications
-      const publications = await storage.getPublications(openalexId);
+      let publications: Publication[];
+      let displayName = profile?.displayName || 'researcher';
+
+      if (isAuthorized) {
+        publications = await storage.getPublications(openalexId);
+      } else {
+        const [researcher, works] = await Promise.all([
+          openalexService.getResearcher(openalexId),
+          openalexService.getResearcherWorks(openalexId),
+        ]);
+        displayName = researcher.display_name || displayName;
+        publications = works.results
+          .filter((work: any) => work.title && work.title.trim() !== '')
+          .map((work: any) => ({
+            id: work.id,
+            openalexId,
+            workId: work.id,
+            title: work.title,
+            authorNames: work.authorships?.map((a: any) => a.author?.display_name).filter(Boolean).join(', ') || null,
+            journal: work.primary_location?.source?.display_name || null,
+            publicationYear: work.publication_year || null,
+            citationCount: work.cited_by_count || 0,
+            topics: work.topics?.map((topic: any) => topic.display_name) || null,
+            doi: work.doi || null,
+            isOpenAccess: work.open_access?.is_oa || false,
+            publicationType: work.type?.split('/').pop() || 'article',
+            isReviewArticle: work.type?.split('/').pop() === 'review',
+            isFeatured: false,
+            pdfUrl: null,
+          }));
+      }
 
       if (publications.length === 0) {
         return res.status(404).json({ message: "No publications found" });
@@ -1495,7 +1592,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let content: string;
       let filename: string;
       let contentType: string;
-      const sanitizedName = (profile.displayName || 'researcher').replace(/[^a-zA-Z0-9-_]/g, '_');
+      const sanitizedName = displayName.replace(/[^a-zA-Z0-9-_]/g, '_');
 
       switch (format.toLowerCase()) {
         case 'bibtex':

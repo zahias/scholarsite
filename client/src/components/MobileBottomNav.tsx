@@ -1,12 +1,25 @@
 import { Home, BarChart3, BookOpen, User } from "lucide-react";
 import { useEffect, useState } from "react";
 
-export default function MobileBottomNav() {
+interface MobileNavItem {
+  id: string;
+  label: string;
+  icon: typeof Home;
+}
+
+const defaultNavItems: MobileNavItem[] = [
+  { id: 'overview', icon: Home, label: 'Overview' },
+  { id: 'analytics', icon: BarChart3, label: 'Analytics' },
+  { id: 'research', icon: User, label: 'Research' },
+  { id: 'publications', icon: BookOpen, label: 'Publications' },
+];
+
+export default function MobileBottomNav({ items = defaultNavItems }: { items?: MobileNavItem[] }) {
   const [activeSection, setActiveSection] = useState('overview');
 
   useEffect(() => {
     const handleScroll = () => {
-      const sections = ['overview', 'analytics', 'research', 'publications'];
+      const sections = items.map((item) => item.id);
       const scrollPosition = window.scrollY + window.innerHeight / 2;
 
       for (const sectionId of sections) {
@@ -23,7 +36,7 @@ export default function MobileBottomNav() {
 
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+  }, [items]);
 
   const scrollToSection = (sectionId: string) => {
     const element = document.getElementById(sectionId);
@@ -32,17 +45,10 @@ export default function MobileBottomNav() {
     }
   };
 
-  const navItems = [
-    { id: 'overview', icon: Home, label: 'Overview' },
-    { id: 'analytics', icon: BarChart3, label: 'Impact' },
-    { id: 'research', icon: User, label: 'Research' },
-    { id: 'publications', icon: BookOpen, label: 'Publications' },
-  ];
-
   return (
     <nav aria-label="Profile sections" className="md:hidden fixed bottom-0 left-0 right-0 bg-surface-container-lowest/95 backdrop-blur-lg z-50" style={{ paddingBottom: 'max(env(safe-area-inset-bottom), 12px)', borderTop: '1px solid rgba(196, 198, 206, 0.15)' }}>
       <div className="grid grid-cols-4 gap-1 px-3 py-2">
-        {navItems.map((item) => {
+        {items.map((item) => {
           const Icon = item.icon;
           const isActive = activeSection === item.id;
           

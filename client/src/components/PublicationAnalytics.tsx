@@ -95,7 +95,7 @@ export default function PublicationAnalytics({ openalexId, researcherData: propR
     });
 
     const startYear = Math.min(...Object.keys(yearCounts).map(Number));
-    const endYear = Math.max(...Object.keys(yearCounts).map(Number));
+    const endYear = Math.max(...Object.keys(yearCounts).map(Number), currentYear);
 
     // Create cumulative impact data
     const impactData = [];
@@ -207,7 +207,7 @@ export default function PublicationAnalytics({ openalexId, researcherData: propR
         </div>
         <div className="text-center p-3 bg-muted/50 rounded-lg">
           <div className="text-lg font-bold text-foreground">{chartData.yearRange.end - chartData.yearRange.start + 1}</div>
-          <div className="text-xs text-muted-foreground">Active Years</div>
+          <div className="text-xs text-muted-foreground">Career Span</div>
         </div>
       </div>
 

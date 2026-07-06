@@ -124,7 +124,9 @@ export default function TenantProfilePage() {
         <ProfilePageShell
           displayName={displayName}
           title={profile?.title}
+          currentPosition={profile?.currentPosition}
           affiliation={profile?.currentAffiliation || researcher?.last_known_institutions?.[0]?.display_name}
+          affiliationUrl={profile?.currentAffiliationUrl}
           bio={profile?.bio}
           profileImageUrl={profile?.profileImageUrl}
           orcidUrl={profile?.orcidUrl}

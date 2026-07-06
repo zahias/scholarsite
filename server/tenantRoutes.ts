@@ -197,7 +197,7 @@ router.post("/tenants", isAuthenticated, isAdmin, async (req: Request, res: Resp
       ...validatedData,
       status: "pending" as TenantStatus,
       plan: validatedData.plan as PlanType,
-      syncFrequency: validatedData.plan === "institution" ? "daily" : validatedData.plan === "professional" ? "weekly" : "monthly",
+      syncFrequency: "monthly",
     });
 
     await storage.upsertResearcherProfile({
@@ -242,7 +242,7 @@ router.patch("/tenants/:id", isAuthenticated, isAdmin, async (req: Request, res:
 
     const updateData: any = { ...validatedData };
     if (validatedData.plan) {
-      updateData.syncFrequency = validatedData.plan === "institution" ? "daily" : validatedData.plan === "professional" ? "weekly" : "monthly";
+      updateData.syncFrequency = "monthly";
     }
     if (validatedData.subscriptionStartDate) {
       updateData.subscriptionStartDate = new Date(validatedData.subscriptionStartDate);

@@ -82,7 +82,7 @@ function BenefitsPanel() {
         {/* Benefits list */}
         <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
           {[
-            ["Auto-sync publications", "Linked to OpenAlex — 250M+ works, updated automatically."],
+            ["Auto-sync publications", "Linked to OpenAlex — checked monthly for newly indexed works."],
             ["Institutional credibility", "A URL like scholar.name/you signals professionalism."],
             ["Citation analytics", "Track your h-index, i10, and citation trends over time."],
             ["14-day free trial", "Full access, no credit card required. Starter from $9.99/mo after."],

@@ -136,7 +136,7 @@ router.get("/my-tenant", isAuthenticated, async (req: Request, res: Response) =>
 });
 
 router.use((req: Request, _res: Response, next: NextFunction) => {
-  if (/^\/[^/]+\/data$/.test(req.path)) {
+  if (/^\/[^/]+\/(data|export-bibliography)$/.test(req.path)) {
     return next("router");
   }
   next();
@@ -148,6 +148,10 @@ const updateProfileSchema = z.object({
   openalexId: z.string().optional(),
   displayName: z.string().nullable().optional(),
   title: z.string().nullable().optional(),
+  currentPosition: z.string().nullable().optional(),
+  currentAffiliation: z.string().nullable().optional(),
+  currentAffiliationUrl: z.string().url().nullable().optional(),
+  email: z.string().email().nullable().optional(),
   bio: z.string().nullable().optional(),
   customCss: z.string().nullable().optional(),
   socialLinks: z.record(z.string()).nullable().optional(),

@@ -109,8 +109,8 @@ app.use((req, res, next) => {
       log(`serving on port ${port}`);
       
       // Start the automated sync scheduler (checks every hour)
-      startSyncScheduler(1);
-      log('Sync scheduler started - checking tenants hourly');
+      startSyncScheduler(24);
+      log('Sync scheduler started - checking monthly eligibility every 24 hours');
     });
   } else {
     // Attach a one-time error handler to fall back to localhost binding
@@ -121,8 +121,8 @@ app.use((req, res, next) => {
         // Try fallback to simple listen on port (localhost)
         server.listen(port, () => {
           log(`serving on port ${port} (localhost)`);
-          startSyncScheduler(1);
-          log('Sync scheduler started - checking tenants hourly');
+          startSyncScheduler(24);
+          log('Sync scheduler started - checking monthly eligibility every 24 hours');
         });
       } else {
         // Unknown error - rethrow after logging
@@ -141,8 +141,8 @@ app.use((req, res, next) => {
       // Remove the error handler if listen succeeded
       server.removeListener('error', onError);
       log(`serving on port ${port}`);
-      startSyncScheduler(1);
-      log('Sync scheduler started - checking tenants hourly');
+      startSyncScheduler(24);
+      log('Sync scheduler started - checking monthly eligibility every 24 hours');
     });
   }
 

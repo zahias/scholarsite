@@ -59,6 +59,10 @@ interface TenantProfile {
   openalexId: string | null;
   displayName: string | null;
   title: string | null;
+  currentPosition: string | null;
+  currentAffiliation: string | null;
+  currentAffiliationUrl: string | null;
+  email: string | null;
   bio: string | null;
   lastName: string | null;
   customCss: string | null;
@@ -163,6 +167,10 @@ interface SearchResponse {
 interface ProfileFormState {
   displayName: string;
   title: string;
+  currentPosition: string;
+  currentAffiliation: string;
+  currentAffiliationUrl: string;
+  email: string;
   bio: string;
   websiteUrl: string;
   twitterUrl: string;
@@ -175,6 +183,10 @@ interface ProfileFormState {
 const emptyProfileForm: ProfileFormState = {
   displayName: "",
   title: "",
+  currentPosition: "",
+  currentAffiliation: "",
+  currentAffiliationUrl: "",
+  email: "",
   bio: "",
   websiteUrl: "",
   twitterUrl: "",
@@ -293,6 +305,10 @@ export default function ResearcherDashboard() {
       setProfileForm({
         displayName: p.displayName || "",
         title: p.title || "",
+        currentPosition: p.currentPosition || "",
+        currentAffiliation: p.currentAffiliation || "",
+        currentAffiliationUrl: p.currentAffiliationUrl || "",
+        email: p.email || "",
         bio: p.bio || "",
         websiteUrl: p.websiteUrl || "",
         twitterUrl: p.twitterUrl || "",
@@ -816,6 +832,10 @@ export default function ResearcherDashboard() {
       await updateProfileMutation.mutateAsync({
         displayName: profileForm.displayName || null,
         title: profileForm.title || null,
+        currentPosition: profileForm.currentPosition || null,
+        currentAffiliation: profileForm.currentAffiliation || null,
+        currentAffiliationUrl: profileForm.currentAffiliationUrl || null,
+        email: profileForm.email || null,
         bio: profileForm.bio || null,
         websiteUrl: profileForm.websiteUrl || null,
         twitterUrl: profileForm.twitterUrl || null,
@@ -1527,6 +1547,64 @@ export default function ResearcherDashboard() {
                     />
                   </div>
                   <div>
+                    <label htmlFor="current-position" style={labelStyle}>Current Position</label>
+                    <input
+                      id="current-position"
+                      value={profileForm.currentPosition}
+                      onChange={(e) => updateField("currentPosition", e.target.value)}
+                      placeholder="e.g., Department Chair or Principal Investigator"
+                      style={inputStyle}
+                      data-testid="input-current-position"
+                      onFocus={e => (e.target.style.borderColor = "#FFC72E")}
+                      onBlur={e => (e.target.style.borderColor = "rgba(11,31,58,.14)")}
+                    />
+                  </div>
+                  <div className="profile-affiliation-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+                    <style>{`@media (max-width: 560px) { .profile-affiliation-grid { grid-template-columns: 1fr !important; } }`}</style>
+                    <div>
+                      <label htmlFor="current-affiliation" style={labelStyle}>Current Affiliation</label>
+                      <input
+                        id="current-affiliation"
+                        value={profileForm.currentAffiliation}
+                        onChange={(e) => updateField("currentAffiliation", e.target.value)}
+                        placeholder="e.g., University of Cambridge"
+                        style={inputStyle}
+                        data-testid="input-current-affiliation"
+                        onFocus={e => (e.target.style.borderColor = "#FFC72E")}
+                        onBlur={e => (e.target.style.borderColor = "rgba(11,31,58,.14)")}
+                      />
+                    </div>
+                    <div>
+                      <label htmlFor="current-affiliation-url" style={labelStyle}>Affiliation Website</label>
+                      <input
+                        id="current-affiliation-url"
+                        type="url"
+                        value={profileForm.currentAffiliationUrl}
+                        onChange={(e) => updateField("currentAffiliationUrl", e.target.value)}
+                        placeholder="https://www.university.edu"
+                        style={inputStyle}
+                        data-testid="input-current-affiliation-url"
+                        onFocus={e => (e.target.style.borderColor = "#FFC72E")}
+                        onBlur={e => (e.target.style.borderColor = "rgba(11,31,58,.14)")}
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label htmlFor="public-contact-email" style={labelStyle}>Public Contact Email</label>
+                    <input
+                      id="public-contact-email"
+                      type="email"
+                      value={profileForm.email}
+                      onChange={(e) => updateField("email", e.target.value)}
+                      placeholder="name@university.edu"
+                      style={inputStyle}
+                      data-testid="input-public-email"
+                      onFocus={e => (e.target.style.borderColor = "#FFC72E")}
+                      onBlur={e => (e.target.style.borderColor = "rgba(11,31,58,.14)")}
+                    />
+                    <p style={{ fontSize: 12.5, color: "#75777E", marginTop: 5 }}>Shown publicly as the contact link on your portfolio.</p>
+                  </div>
+                  <div>
                     <label htmlFor="biography" style={labelStyle}>Biography</label>
                     <textarea
                       id="biography"
@@ -1889,14 +1967,14 @@ export default function ResearcherDashboard() {
               <div style={cardStyle}>
                 <div style={cardHeaderStyle}>
                   <div style={cardTitleStyle}><History size={17} style={{ color: "#B87A0A" }} /> OpenAlex Sync Management</div>
-                  <div style={cardDescStyle}>View sync history and manually trigger data synchronization from OpenAlex</div>
+                  <div style={cardDescStyle}>Profiles check OpenAlex automatically every 30 days. You can also review history or sync manually.</div>
                 </div>
                 <div style={{ ...cardBodyStyle, display: "flex", flexDirection: "column", gap: 20 }}>
                   {/* FUNC-3: Fixed — uses syncMutation instead of duplicate raw fetch */}
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 18px", background: "#F8F9FA", borderRadius: 10, border: "1px solid rgba(11,31,58,.08)" }}>
                     <div>
                       <p style={{ fontSize: 14, fontWeight: 600, color: "#0B1F3A", margin: "0 0 3px" }}>Sync Publications</p>
-                      <p style={{ fontSize: 13, color: "#75777E", margin: 0 }}>Fetch latest publications and citations from OpenAlex</p>
+                      <p style={{ fontSize: 13, color: "#75777E", margin: 0 }}>Check OpenAlex now for newly indexed publications and citation updates</p>
                     </div>
                     <button onClick={() => syncMutation.mutate()} disabled={syncMutation.isPending} style={btnPrimary(syncMutation.isPending)}>
                       <RefreshCw size={13} style={{ animation: syncMutation.isPending ? "spin 1s linear infinite" : "none" }} />

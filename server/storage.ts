@@ -959,6 +959,7 @@ export class DatabaseStorage implements IStorage {
       name: `${firstName} ${lastName}`.trim(),
       plan: "free",
       status: "active",
+      syncFrequency: "monthly",
       contactEmail: email,
       trialEndsAt,
     } as InsertTenant);
@@ -1057,6 +1058,7 @@ export class DatabaseStorage implements IStorage {
       name: payment.customerName,
       plan: payment.plan as 'starter' | 'professional' | 'institution',
       status: 'active',
+      syncFrequency: 'monthly',
       contactEmail: payment.customerEmail,
       subscriptionStartDate: new Date(),
       subscriptionEndDate: subscriptionEnd,

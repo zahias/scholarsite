@@ -127,7 +127,7 @@ export default function BestWebsiteBuildersResearchers() {
         URL, publication analytics, and color themes. The Pro plan ($19.99/month) adds a custom
         domain so you can use{" "}
         <code className="bg-muted px-1.5 py-0.5 rounded text-sm font-mono">yourname.com</code>{" "}
-        and weekly data syncs.
+        and monthly OpenAlex data syncs.
       </p>
       <p>
         <strong>Bottom line:</strong> The only platform built specifically for researchers, with

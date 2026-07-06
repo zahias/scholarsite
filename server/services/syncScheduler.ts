@@ -29,28 +29,17 @@ export function getSyncLogs(): SyncLog[] {
   return [...syncLogs];
 }
 
-function getSyncIntervalMs(frequency: string): number {
-  switch (frequency) {
-    case 'daily':
-      return 24 * 60 * 60 * 1000;
-    case 'weekly':
-      return 7 * 24 * 60 * 60 * 1000;
-    case 'monthly':
-    default:
-      return 30 * 24 * 60 * 60 * 1000;
-  }
-}
+const MONTHLY_SYNC_INTERVAL_MS = 30 * 24 * 60 * 60 * 1000;
 
-function isDueForSync(lastSyncedAt: Date | null, frequency: string): boolean {
+function isDueForSync(lastSyncedAt: Date | null): boolean {
   if (!lastSyncedAt) {
     return true;
   }
 
-  const intervalMs = getSyncIntervalMs(frequency);
   const now = new Date().getTime();
   const lastSync = new Date(lastSyncedAt).getTime();
 
-  return (now - lastSync) >= intervalMs;
+  return (now - lastSync) >= MONTHLY_SYNC_INTERVAL_MS;
 }
 
 async function syncTenant(tenantId: string, tenantName: string, openalexId: string, syncFrequency: string): Promise<SyncLog> {
@@ -119,7 +108,7 @@ export async function runScheduledSync(): Promise<{ synced: number; skipped: num
           tenantId: tenant.id,
           tenantName: tenant.name,
           openalexId: '',
-          syncFrequency: tenant.syncFrequency || 'monthly',
+          syncFrequency: 'monthly',
           lastSyncedAt: null,
           status: 'skipped',
           message: 'No OpenAlex ID configured',
@@ -130,10 +119,10 @@ export async function runScheduledSync(): Promise<{ synced: number; skipped: num
         continue;
       }
 
-      const syncFrequency = tenant.syncFrequency || 'monthly';
+      const syncFrequency = 'monthly';
       const lastSyncedAt = profile.lastSyncedAt;
 
-      if (!isDueForSync(lastSyncedAt, syncFrequency)) {
+      if (!isDueForSync(lastSyncedAt)) {
         const skipLog: SyncLog = {
           tenantId: tenant.id,
           tenantName: tenant.name,
@@ -173,7 +162,7 @@ export async function runScheduledSync(): Promise<{ synced: number; skipped: num
 
 let schedulerInterval: NodeJS.Timeout | null = null;
 
-export function startSyncScheduler(intervalHours: number = 1): void {
+export function startSyncScheduler(intervalHours: number = 24): void {
   if (schedulerInterval) {
     console.log('[SyncScheduler] Scheduler already running');
     return;
@@ -218,7 +207,7 @@ export async function forceSyncTenant(tenantId: string): Promise<SyncLog | null>
       tenantId,
       tenantName: tenant.name,
       openalexId: '',
-      syncFrequency: tenant.syncFrequency || 'monthly',
+      syncFrequency: 'monthly',
       lastSyncedAt: null,
       status: 'error',
       message: 'No OpenAlex ID configured',
@@ -226,7 +215,7 @@ export async function forceSyncTenant(tenantId: string): Promise<SyncLog | null>
     };
   }
 
-  const log = await syncTenant(tenantId, tenant.name, profile.openalexId, tenant.syncFrequency || 'monthly');
+  const log = await syncTenant(tenantId, tenant.name, profile.openalexId, 'monthly');
   addSyncLog(log);
   return log;
 }

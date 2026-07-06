@@ -3,50 +3,7 @@ import { useLocation } from "wouter";
 import SEO from "@/components/SEO";
 import GlobalNav from "@/components/GlobalNav";
 import GlobalFooter from "@/components/GlobalFooter";
-import { RefreshCw, BarChart3, Globe, Sparkles, Palette, Download, Users, ShieldCheck } from "lucide-react";
-
-const features = [
-  {
-    icon: RefreshCw,
-    title: "Auto-Sync Publications",
-    description: "Your publications update automatically from OpenAlex — the open index of 250M+ scholarly works. No manual entry, no copy-paste.",
-  },
-  {
-    icon: BarChart3,
-    title: "Citation Analytics",
-    description: "Interactive charts showing citation trends, h-index growth, and publication timeline. See your research impact at a glance.",
-  },
-  {
-    icon: Globe,
-    title: "Shareable URL",
-    description: "Get yourname.scholar.name or connect your own domain. A clean, memorable link for email signatures, grants, and conferences.",
-  },
-  {
-    icon: Palette,
-    title: "Customizable Themes",
-    description: "Choose from professionally designed color themes to match your personal brand. Your portfolio, your style.",
-  },
-  {
-    icon: Users,
-    title: "Co-Author Network",
-    description: "See your co-author connections and institutional relationships at a glance. Great for discovering shared research interests.",
-  },
-  {
-    icon: Download,
-    title: "Research Passport",
-    description: "Download a polished PDF summary of your profile — perfect for tenure packets, grant appendices, and job applications.",
-  },
-  {
-    icon: ShieldCheck,
-    title: "Privacy Controls",
-    description: "You decide what's visible. Hide sections, report misattributed papers, and control who sees your analytics.",
-  },
-  {
-    icon: Sparkles,
-    title: "AI-Ready Metadata",
-    description: "Structured data and OpenGraph tags ensure your profile looks great when shared on social media, Slack, or in search results.",
-  },
-];
+import { marketingFeatures } from "@/data/marketingData";
 
 const ICON_COLORS = ["#2563EB", "#7C3AED", "#059669", "#D97706", "#0891B2", "#4338CA", "#DC2626", "#0F766E"];
 
@@ -83,7 +40,7 @@ export default function FeaturesPage() {
           <div className="public-container-lg">
             <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 20 }} className="features-grid">
               <style>{`@media (max-width: 1120px) { .features-grid { grid-template-columns: repeat(3, 1fr) !important; } } @media (max-width: 900px) { .features-grid { grid-template-columns: repeat(2, 1fr) !important; } } @media (max-width: 560px) { .features-grid { grid-template-columns: 1fr !important; } }`}</style>
-              {features.map((f, i) => {
+              {marketingFeatures.map((f, i) => {
                 const color = ICON_COLORS[i % ICON_COLORS.length];
                 return (
                   <FeatureCard key={i} f={f} color={color} />
@@ -121,7 +78,7 @@ export default function FeaturesPage() {
   );
 }
 
-function FeatureCard({ f, color }: { f: (typeof features)[number]; color: string }) {
+function FeatureCard({ f, color }: { f: (typeof marketingFeatures)[number]; color: string }) {
   const [hovered, setHovered] = useState(false);
   return (
     <div

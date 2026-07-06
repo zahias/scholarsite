@@ -98,7 +98,7 @@ export default function CareerTimeline({ openalexId, researcherData: propResearc
 
       const years = Object.keys(yearCounts).map(Number).sort((a, b) => a - b);
       const startYear = Math.min(...years);
-      const endYear = Math.max(...years);
+      const endYear = Math.max(...years, new Date().getFullYear());
 
       // Build timeline data
       const data = [];
@@ -125,7 +125,7 @@ export default function CareerTimeline({ openalexId, researcherData: propResearc
     // Use OpenAlex counts_by_year - sort by year ascending
     const sortedCounts = [...countsByYear].sort((a, b) => a.year - b.year);
     const startYear = sortedCounts[0]?.year;
-    const endYear = sortedCounts[sortedCounts.length - 1]?.year;
+    const endYear = Math.max(sortedCounts[sortedCounts.length - 1]?.year, new Date().getFullYear());
 
     // Build timeline with cumulative values
     const data = [];

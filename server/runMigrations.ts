@@ -192,6 +192,8 @@ export async function runMigrations(): Promise<void> {
     await run("tenants.selected_theme_id", `ALTER TABLE "tenants" ADD COLUMN IF NOT EXISTS "selected_theme_id" varchar;`);
     await run("tenants.contact_email", `ALTER TABLE "tenants" ADD COLUMN IF NOT EXISTS "contact_email" varchar;`);
     await run("tenants.notes", `ALTER TABLE "tenants" ADD COLUMN IF NOT EXISTS "notes" text;`);
+    await run("tenants.sync_frequency", `ALTER TABLE "tenants" ADD COLUMN IF NOT EXISTS "sync_frequency" varchar DEFAULT 'monthly';`);
+    await run("tenants.monthly_sync_frequency", `UPDATE "tenants" SET "sync_frequency" = 'monthly' WHERE "sync_frequency" IS DISTINCT FROM 'monthly';`);
 
     // ── 2b. profile/publication additions used by researcher dashboards ──
     await run("researcher_profiles.current_affiliation", `ALTER TABLE "researcher_profiles" ADD COLUMN IF NOT EXISTS "current_affiliation" text;`);

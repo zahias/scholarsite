@@ -36,9 +36,10 @@ export default function Publications({ openalexId, inline = false }: Publication
   const ExportBibliographyDialog = () => (
     <Dialog open={exportDialogOpen} onOpenChange={setExportDialogOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" data-testid="button-export-bibliography">
+        <Button variant="outline" className="w-full" data-testid="button-export-bibliography">
           <Download className="w-4 h-4 mr-2" />
-          Export Bibliography
+          <span className="sm:hidden">Export</span>
+          <span className="hidden sm:inline">Export Bibliography</span>
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
@@ -509,36 +510,41 @@ export default function Publications({ openalexId, inline = false }: Publication
         </div>
       )}
 
-      {filteredAndSortedPublications.length > INITIAL_COUNT && !showAll && (
-        <div className="text-center mt-12">
-          <Button
-            onClick={() => setShowAll(true)}
-            className="bg-primary text-primary-foreground hover:bg-primary/90 mr-4"
-            data-testid="button-view-all-publications"
-          >
-            View All {filteredAndSortedPublications.length} Publications
-          </Button>
-          <ExportBibliographyDialog />
-        </div>
+      {showAll && filteredAndSortedPublications.length > INITIAL_COUNT && (
+        <p className="mt-10 text-center text-sm text-muted-foreground">
+          Showing all {filteredAndSortedPublications.length} publications
+        </p>
       )}
 
-      {showAll && filteredAndSortedPublications.length > INITIAL_COUNT && (
-        <div className="text-center mt-12">
-          <p className="text-sm text-muted-foreground mb-3">
-            Showing all {filteredAndSortedPublications.length} publications
-          </p>
-          <Button
-            variant="outline"
-            onClick={() => {
-              setShowAll(false);
-              // Scroll back to publications section
-              document.getElementById('publications')?.scrollIntoView({ behavior: 'smooth' });
-            }}
-            className="mr-4"
-            data-testid="button-show-less"
-          >
-            Show Less
-          </Button>
+      {publications.length > 0 && (
+        <div
+          className={`mx-auto mt-8 grid w-full gap-3 ${filteredAndSortedPublications.length > INITIAL_COUNT ? "grid-cols-2 max-w-2xl" : "max-w-xs grid-cols-1"}`}
+          data-testid="publication-actions"
+        >
+          {filteredAndSortedPublications.length > INITIAL_COUNT && (
+            showAll ? (
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setShowAll(false);
+                  document.getElementById('publications')?.scrollIntoView({ behavior: 'smooth' });
+                }}
+                className="w-full"
+                data-testid="button-show-less"
+              >
+                Show Less
+              </Button>
+            ) : (
+              <Button
+                onClick={() => setShowAll(true)}
+                className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
+                data-testid="button-view-all-publications"
+              >
+                <span className="sm:hidden">View all ({filteredAndSortedPublications.length})</span>
+                <span className="hidden sm:inline">View All {filteredAndSortedPublications.length} Publications</span>
+              </Button>
+            )
+          )}
           <ExportBibliographyDialog />
         </div>
       )}

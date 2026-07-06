@@ -2,9 +2,8 @@ import { useMemo } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, Cell, PieChart, Pie } from "recharts";
-import { Network, BookOpen, Lightbulb, TrendingUp, Users } from "lucide-react";
+import { Network, BookOpen, TrendingUp, Users } from "lucide-react";
 import CareerTimeline from "./CareerTimeline";
-import ResearchTopics from "./ResearchTopics";
 
 interface ResearchInsightsProps {
     openalexId: string;
@@ -246,55 +245,50 @@ function PublicationVenues({ publications }: { publications: any[] }) {
 // ----------------------------------------------------------------------
 export default function ResearchInsights({ openalexId, researcherData, researcherName }: ResearchInsightsProps) {
     return (
-        <section id="insights" className="py-8 md:py-16 bg-academic-motif relative scroll-mt-20">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-
-                <div className="mb-8 text-center">
-                    <h2 className="text-3xl font-serif font-bold text-midnight dark:text-white mb-3">Research Insights</h2>
-                    <p className="text-base text-muted-foreground max-w-2xl mx-auto">
-                        Explore the trajectory, collaborations, and publishing patterns that define this research portfolio.
-                    </p>
+        <section
+            id="insights"
+            className="scroll-mt-20 mt-4 overflow-hidden border border-[rgba(11,31,58,.08)] bg-white"
+            style={{ borderRadius: 14 }}
+        >
+            <header className="border-b border-[rgba(11,31,58,.06)] px-6 py-[18px]">
+                <div className="flex items-center gap-2.5">
+                    <TrendingUp size={18} className="text-[#FFC72E]" />
+                    <h2 className="font-serif text-[clamp(17px,2vw,21px)] font-medium leading-tight text-[#0B1F3A]">
+                        Research Insights
+                    </h2>
                 </div>
+                <p className="mt-1.5 max-w-2xl text-sm leading-relaxed text-muted-foreground">
+                        Explore the trajectory, collaborations, and publishing patterns that define this research portfolio.
+                </p>
+            </header>
 
-                <div className="bg-white/70 dark:bg-midnight/30 backdrop-blur-xl border border-platinum dark:border-white/10 rounded-2xl shadow-xl overflow-hidden">
-                    <Tabs defaultValue="trajectory" className="w-full">
-
-                        <div className="bg-muted/30 border-b border-platinum dark:border-white/10 p-2 sm:p-4 pb-0 overflow-x-auto">
-                            <TabsList className="bg-transparent space-x-2 h-auto p-0 min-w-max">
+            <Tabs defaultValue="trajectory" className="w-full">
+                        <div className="overflow-x-auto border-b border-[rgba(11,31,58,.06)] bg-[#F8F9FA] px-4 pt-2">
+                            <TabsList className="h-auto min-w-max gap-1 bg-transparent p-0">
                                 <TabsTrigger
                                     value="trajectory"
-                                    className="data-[state=active]:bg-white data-[state=active]:dark:bg-midnight/80 data-[state=active]:shadow-sm rounded-t-lg rounded-b-none border-b-2 border-transparent data-[state=active]:border-warm px-6 py-3 text-sm font-medium transition-all"
+                                    className="rounded-none border-b-2 border-transparent px-4 py-3 text-sm font-medium text-[#667085] shadow-none data-[state=active]:border-[#FFC72E] data-[state=active]:bg-transparent data-[state=active]:text-[#0B1F3A] data-[state=active]:shadow-none"
                                 >
                                     <TrendingUp className="w-4 h-4 mr-2" /> Journey
                                 </TabsTrigger>
                                 <TabsTrigger
-                                    value="topics"
-                                    className="data-[state=active]:bg-white data-[state=active]:dark:bg-midnight/80 data-[state=active]:shadow-sm rounded-t-lg rounded-b-none border-b-2 border-transparent data-[state=active]:border-primary px-6 py-3 text-sm font-medium transition-all"
-                                >
-                                    <Lightbulb className="w-4 h-4 mr-2" /> Topics
-                                </TabsTrigger>
-                                <TabsTrigger
                                     value="network"
-                                    className="data-[state=active]:bg-white data-[state=active]:dark:bg-midnight/80 data-[state=active]:shadow-sm rounded-t-lg rounded-b-none border-b-2 border-transparent data-[state=active]:border-accent px-6 py-3 text-sm font-medium transition-all"
+                                    className="rounded-none border-b-2 border-transparent px-4 py-3 text-sm font-medium text-[#667085] shadow-none data-[state=active]:border-[#FFC72E] data-[state=active]:bg-transparent data-[state=active]:text-[#0B1F3A] data-[state=active]:shadow-none"
                                 >
                                     <Network className="w-4 h-4 mr-2" /> Network
                                 </TabsTrigger>
                                 <TabsTrigger
                                     value="venues"
-                                    className="data-[state=active]:bg-white data-[state=active]:dark:bg-midnight/80 data-[state=active]:shadow-sm rounded-t-lg rounded-b-none border-b-2 border-transparent data-[state=active]:border-sage px-6 py-3 text-sm font-medium transition-all"
+                                    className="rounded-none border-b-2 border-transparent px-4 py-3 text-sm font-medium text-[#667085] shadow-none data-[state=active]:border-[#FFC72E] data-[state=active]:bg-transparent data-[state=active]:text-[#0B1F3A] data-[state=active]:shadow-none"
                                 >
                                     <BookOpen className="w-4 h-4 mr-2" /> Venues
                                 </TabsTrigger>
                             </TabsList>
                         </div>
 
-                        <div className="p-4 sm:p-6 md:p-8 min-h-[400px]">
+                        <div className="min-h-[400px] p-5 sm:p-6">
                             <TabsContent value="trajectory" className="mt-0 focus-visible:outline-none">
                                 <CareerTimeline openalexId={openalexId} researcherData={researcherData} inline />
-                            </TabsContent>
-
-                            <TabsContent value="topics" className="mt-0 focus-visible:outline-none">
-                                <ResearchTopics openalexId={openalexId} inline />
                             </TabsContent>
 
                             <TabsContent value="network" className="mt-0 focus-visible:outline-none">
@@ -305,10 +299,7 @@ export default function ResearchInsights({ openalexId, researcherData, researche
                                 <PublicationVenues publications={researcherData?.publications || []} />
                             </TabsContent>
                         </div>
-
-                    </Tabs>
-                </div>
-            </div>
+            </Tabs>
         </section>
     );
 }

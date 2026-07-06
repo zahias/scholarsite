@@ -1,17 +1,12 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
-import { Switch } from "@/components/ui/switch";
-import { Badge } from "@/components/ui/badge";
 import SEO from "@/components/SEO";
 import GlobalNav from "@/components/GlobalNav";
 import GlobalFooter from "@/components/GlobalFooter";
-import ExitIntentPopup from "@/components/ExitIntentPopup";
 import {
   Search,
   Check,
-  RefreshCw,
-  BarChart3,
   Globe,
   GraduationCap,
   FlaskConical,
@@ -27,6 +22,7 @@ import {
   ArrowRight,
 } from "lucide-react";
 import { faqs } from "@/data/faqData";
+import { homepageFeatures, pricingPlans } from "@/data/marketingData";
 
 // ───── Types ─────
 interface AuthorSearchResult {
@@ -41,27 +37,6 @@ interface SearchResponse {
 }
 
 // ───── Static data ─────
-const features = [
-  {
-    icon: RefreshCw,
-    title: "Auto-updated publications",
-    description:
-      "Your publication list stays current automatically. New papers appear on your profile without lifting a finger.",
-  },
-  {
-    icon: BarChart3,
-    title: "Impact visualizations",
-    description:
-      "Beautiful charts showing citation trends, h-index growth, and research topic maps that bring your work to life.",
-  },
-  {
-    icon: Globe,
-    title: "Your own academic URL",
-    description:
-      "Get yourname.scholar.name \u2014 a clean, professional link for email signatures, CVs, and conference bios.",
-  },
-];
-
 const personas = [
   {
     icon: GraduationCap,
@@ -103,39 +78,6 @@ const useCases = [
   },
 ];
 
-const pricingPlans = [
-  {
-    name: "Starter",
-    monthlyPrice: 9.99,
-    yearlyPrice: 95.88,
-    yearlySavings: 24,
-    description: "Perfect for individual researchers",
-    features: [
-      "scholar.name subdomain",
-      "Publication analytics",
-      "Color themes",
-      "Monthly data sync",
-      "Email support",
-    ],
-    highlighted: false,
-  },
-  {
-    name: "Pro",
-    monthlyPrice: 19.99,
-    yearlyPrice: 191.88,
-    yearlySavings: 48,
-    description: "For established academics",
-    features: [
-      "Everything in Starter",
-      "Custom domain (yourname.com)",
-      "Research Passport download",
-      "Weekly data sync",
-      "Priority support",
-    ],
-    highlighted: true,
-  },
-];
-
 const structuredData = {
   "@context": "https://schema.org",
   "@type": "SoftwareApplication",
@@ -171,10 +113,6 @@ export default function LandingPage() {
   const [debouncedQuery, setDebouncedQuery] = useState("");
   const [showResults, setShowResults] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(-1);
-  const [isYearly, setIsYearly] = useState(false);
-  const billingPeriod = isYearly ? "yearly" : "monthly";
-  const checkoutPathForPlan = (planName: string) =>
-    `/checkout?plan=${planName.toLowerCase()}&billing=${billingPeriod}`;
   const [openFaq, setOpenFaq] = useState<number | null>(0);
   const searchRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -252,7 +190,7 @@ export default function LandingPage() {
 
         {/* ═══════ HERO ═══════ */}
         <section
-          className="relative overflow-hidden flex items-center hero-section"
+          className="relative flex items-center hero-section"
           style={{
             background: "linear-gradient(135deg,#081529 0%,#0B1F3A 45%,#17345b 100%)",
             color: "#fff",
@@ -261,27 +199,25 @@ export default function LandingPage() {
           }}
           aria-labelledby="hero-heading"
         >
-          {/* Grid + glow overlay */}
-          <div className="landing-hero-grid absolute inset-0 pointer-events-none" aria-hidden="true" />
-          {/* Orbs */}
-          <div
-            className="absolute pointer-events-none rounded-full"
-            aria-hidden="true"
-            style={{
-              width: 460, height: 460, top: -120, right: -100,
-              background: "radial-gradient(circle,rgba(255,199,46,.22),transparent 68%)",
-              filter: "blur(90px)",
-            }}
-          />
-          <div
-            className="absolute pointer-events-none rounded-full"
-            aria-hidden="true"
-            style={{
-              width: 340, height: 340, bottom: -80, left: -60,
-              background: "radial-gradient(circle,rgba(100,140,210,.18),transparent 70%)",
-              filter: "blur(90px)",
-            }}
-          />
+          <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
+            <div className="landing-hero-grid absolute inset-0" />
+            <div
+              className="absolute rounded-full"
+              style={{
+                width: 460, height: 460, top: -120, right: -100,
+                background: "radial-gradient(circle,rgba(255,199,46,.22),transparent 68%)",
+                filter: "blur(90px)",
+              }}
+            />
+            <div
+              className="absolute rounded-full"
+              style={{
+                width: 340, height: 340, bottom: -80, left: -60,
+                background: "radial-gradient(circle,rgba(100,140,210,.18),transparent 70%)",
+                filter: "blur(90px)",
+              }}
+            />
+          </div>
 
           <div className="relative z-10 w-full max-w-[1200px] mx-auto px-8">
             <div className="text-center max-w-[920px] mx-auto">
@@ -296,7 +232,7 @@ export default function LandingPage() {
                     display: "inline-block",
                   }}
                 />
-                Auto-synced with OpenAlex · 250M+ works
+                Monthly OpenAlex sync · 250M+ works
               </div>
 
               <h1
@@ -382,7 +318,7 @@ export default function LandingPage() {
 
                 {showResults && searchQuery.length >= 2 && (
                   <div
-                    className="absolute top-full left-0 right-0 mt-2 bg-white rounded-[14px] overflow-hidden text-left z-40"
+                    className="absolute top-full left-0 right-0 mt-2 bg-white rounded-[14px] overflow-y-auto overscroll-contain text-left z-[60] max-h-[min(60vh,520px)]"
                     style={{ boxShadow: "0 20px 60px -20px rgba(0,0,0,.4)" }}
                   >
                     {isSearching ? (
@@ -527,7 +463,7 @@ export default function LandingPage() {
                           className="rounded-full"
                           style={{ width: 5, height: 5, background: "#FFC72E", boxShadow: "0 0 8px rgba(255,199,46,.8)", display: "inline-block" }}
                         />
-                        Live · synced 2 min ago
+                        Data checked 2 min ago
                       </span>
                     </div>
                     <div className="relative flex gap-5 items-center">
@@ -604,7 +540,7 @@ export default function LandingPage() {
               <p className="text-[17px] text-gray-600">Features designed to showcase your academic achievements — not yet another generic website builder.</p>
             </div>
             <div className="grid sm:grid-cols-3 gap-6 max-w-[1040px] mx-auto">
-              {features.map((f) => (
+              {homepageFeatures.map((f) => (
                 <div
                   key={f.title}
                   className="bg-white rounded-[14px] p-8 transition-all duration-200 hover:-translate-y-1"
@@ -622,6 +558,14 @@ export default function LandingPage() {
                   <p className="text-[15px] text-gray-600 leading-relaxed">{f.description}</p>
                 </div>
               ))}
+            </div>
+            <div className="text-center mt-9">
+              <button
+                className="btn-navy inline-flex items-center gap-2 px-5 py-3 text-[14px] font-semibold"
+                onClick={() => { window.scrollTo(0, 0); navigate("/features"); }}
+              >
+                Explore all features <ArrowRight className="w-4 h-4" />
+              </button>
             </div>
           </div>
         </section>
@@ -653,7 +597,7 @@ export default function LandingPage() {
               <div className="flex justify-between items-end mb-7 gap-8 flex-wrap">
                 <div>
                   <h3 className="font-serif text-white mb-1" style={{ fontSize: 24 }}>Citations per year</h3>
-                  <p className="text-[13px] text-white/60">Live trend · synced from OpenAlex</p>
+                  <p className="text-[13px] text-white/60">Trend based on OpenAlex metadata</p>
                 </div>
                 <div
                   className="flex gap-0.5 rounded-[9px] p-[3px] text-[12px]"
@@ -779,9 +723,9 @@ export default function LandingPage() {
         </section>
 
         {/* ═══════ PRICING ═══════ */}
-        <section id="pricing" className="py-[112px] bg-[#F0F4F8]" aria-labelledby="pricing-heading">
+        <section id="pricing" className="py-[96px] bg-[#F0F4F8]" aria-labelledby="pricing-heading">
           <div className="max-w-[1200px] mx-auto px-8">
-            <div className="text-center mb-8 max-w-[720px] mx-auto">
+            <div className="text-center mb-10 max-w-[720px] mx-auto">
               <div className="eyebrow mb-3.5">Pricing</div>
               <h2
                 id="pricing-heading"
@@ -790,111 +734,33 @@ export default function LandingPage() {
               >
                 Simple, transparent pricing.
               </h2>
-
-              {/* Savings badge */}
-              <div
-                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[13px] font-medium mb-6"
-                style={{ background: "rgba(122,168,116,.15)", color: "#2F6D3A", border: "1px solid rgba(122,168,116,.3)" }}
-              >
-                <Check className="w-3.5 h-3.5 flex-shrink-0" />
-                70% cheaper than Academia.edu Premium ($400/yr)
-              </div>
-
-              {/* Billing toggle */}
-              <div className="flex items-center justify-center gap-3 mb-8">
-                <label
-                  htmlFor="billing-toggle"
-                  className={"text-[14px] font-medium cursor-pointer " + (!isYearly ? "text-[#0B1F3A]" : "text-gray-400")}
-                >
-                  Monthly
-                </label>
-                <Switch
-                  id="billing-toggle"
-                  checked={isYearly}
-                  onCheckedChange={setIsYearly}
-                  aria-label="Toggle yearly billing"
-                  data-testid="switch-billing-toggle"
-                />
-                <label
-                  htmlFor="billing-toggle"
-                  className={"text-[14px] font-medium cursor-pointer " + (isYearly ? "text-[#0B1F3A]" : "text-gray-400")}
-                >
-                  Yearly{" "}
-                  <Badge variant="secondary" className="ml-1.5 text-xs bg-green-100 text-green-700">Save 2 months</Badge>
-                </label>
-              </div>
+              <p className="text-[17px] text-gray-600">Start with full access for 14 days. Choose the plan that fits when you are ready.</p>
             </div>
-
-            {/* Free trial card */}
-            <div className="max-w-[780px] mx-auto mb-6">
-              <div
-                className="rounded-[14px] p-7 flex flex-col sm:flex-row items-center justify-between gap-5"
-                style={{ border: "1.5px dashed rgba(11,31,58,.18)", background: "rgba(240,244,248,.7)" }}
-              >
-                <div className="text-center sm:text-left">
-                  <div
-                    className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[12px] font-medium mb-2"
-                    style={{ background: "rgba(47,109,58,.1)", color: "#2F6D3A", border: "1px solid rgba(47,109,58,.18)" }}
-                  >
-                    <Check className="w-3 h-3 flex-shrink-0" />
-                    Free &mdash; no credit card
-                  </div>
-                  <h3 className="font-serif font-medium text-[#0B1F3A] mb-1" style={{ fontSize: 20 }}>14-day free trial</h3>
-                  <p className="text-[13.5px] text-gray-600">Full access to all features. Your portfolio goes live immediately.<br className="hidden sm:block" /> Choose a paid plan when you&rsquo;re ready.</p>
-                </div>
-                <button
-                  className="btn-navy px-5 py-2.5 rounded-lg text-[14px] font-semibold flex-shrink-0"
-                  onClick={() => { window.scrollTo(0, 0); navigate("/signup"); }}
-                >
-                  Start free trial
-                </button>
-              </div>
-            </div>
-
-            <div className="grid sm:grid-cols-2 gap-6 max-w-[780px] mx-auto">
+            <div className="grid sm:grid-cols-2 gap-5 max-w-[820px] mx-auto">
               {pricingPlans.map((plan) => (
                 <div
                   key={plan.name}
-                  className="bg-white rounded-[14px] p-8 relative transition-shadow duration-200"
-                  style={plan.highlighted
-                    ? { border: "2px solid #FFC72E", boxShadow: "0 20px 40px -20px rgba(255,199,46,.35)" }
-                    : { border: "1px solid rgba(11,31,58,.08)" }
-                  }
+                  className="bg-white rounded-[14px] p-7 flex items-center justify-between gap-5"
+                  style={{ border: plan.highlighted ? "2px solid #FFC72E" : "1px solid rgba(11,31,58,.08)" }}
                   data-testid={"card-pricing-" + plan.name.toLowerCase()}
                 >
-                  {plan.highlighted && (
-                    <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                      <Badge variant="gold">Most popular</Badge>
-                    </div>
-                  )}
-                  <h3 className="font-serif font-medium text-[#0B1F3A] text-center mb-1" style={{ fontSize: 22 }}>{plan.name}</h3>
-                  <p className="text-[13px] text-gray-500 text-center mb-5">{plan.description}</p>
-                  <div className="text-center mb-6">
-                    <span className="font-serif text-[#0B1F3A]" style={{ fontSize: 40, fontWeight: 500 }}>
-                      ${isYearly ? plan.yearlyPrice.toFixed(2) : plan.monthlyPrice.toFixed(2)}
-                    </span>
-                    <span className="text-[14px] text-gray-500 ml-1">/{isYearly ? "year" : "month"}</span>
-                    {isYearly && (
-                      <p className="text-[12px] text-green-600 font-medium mt-1">Save ${plan.yearlySavings}</p>
-                    )}
+                  <div>
+                    <h3 className="font-serif font-medium text-[#0B1F3A] mb-1" style={{ fontSize: 21 }}>{plan.name}</h3>
+                    <p className="text-[13px] text-gray-500 mb-3">{plan.description}</p>
+                    <span className="font-serif text-[#0B1F3A]" style={{ fontSize: 30, fontWeight: 500 }}>${plan.monthlyPrice.toFixed(2)}</span>
+                    <span className="text-[13px] text-gray-500 ml-1">/month</span>
                   </div>
-                  <ul className="mb-6 space-y-[7px]">
-                    {plan.features.map((feat) => (
-                      <li key={feat} className="flex items-center gap-2.5 text-[14px] text-gray-700">
-                        <Check className="w-4 h-4 text-[#0B1F3A] flex-shrink-0" />
-                        {feat}
-                      </li>
-                    ))}
-                  </ul>
-                  <button
-                    className={"w-full py-3 rounded-lg font-semibold text-[14px] transition-all hover:-translate-y-px " + (plan.highlighted ? "btn-gold" : "btn-navy")}
-                    data-testid={"button-select-" + plan.name.toLowerCase()}
-                    onClick={() => { window.scrollTo(0, 0); navigate(checkoutPathForPlan(plan.name)); }}
-                  >
-                    Get started
-                  </button>
+                  <Check className="w-6 h-6 text-[#2F6D3A] flex-shrink-0" aria-hidden="true" />
                 </div>
               ))}
+            </div>
+            <div className="flex justify-center gap-3 flex-wrap mt-8">
+              <button className="btn-gold px-6 py-3 text-[14px] font-semibold" onClick={() => { window.scrollTo(0, 0); navigate("/signup"); }}>
+                Start free trial
+              </button>
+              <button className="btn-navy px-6 py-3 text-[14px] font-semibold" onClick={() => { window.scrollTo(0, 0); navigate("/pricing"); }}>
+                Compare plans <ArrowRight className="inline w-4 h-4 ml-1" />
+              </button>
             </div>
           </div>
         </section>
@@ -913,7 +779,7 @@ export default function LandingPage() {
               </h2>
             </div>
             <div className="max-w-[720px] mx-auto flex flex-col gap-2.5">
-              {faqs.map((faq, i) => {
+              {faqs.slice(0, 4).map((faq, i) => {
                 const isOpen = openFaq === i;
                 return (
                   <div
@@ -943,6 +809,11 @@ export default function LandingPage() {
                   </div>
                 );
               })}
+            </div>
+            <div className="text-center mt-8">
+              <button className="btn-navy px-5 py-3 text-[14px] font-semibold" onClick={() => { window.scrollTo(0, 0); navigate("/faq"); }}>
+                View all questions <ArrowRight className="inline w-4 h-4 ml-1" />
+              </button>
             </div>
           </div>
         </section>
@@ -981,7 +852,6 @@ export default function LandingPage() {
       </main>
 
       <GlobalFooter />
-      <ExitIntentPopup />
     </div>
   );
 }

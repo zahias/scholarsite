@@ -89,8 +89,8 @@ app.use((req, res, next) => {
     log(`serving on port ${port}`);
     
     // Start the automated sync scheduler (checks every hour)
-    startSyncScheduler(1);
-    log('Sync scheduler started - checking tenants hourly');
+    startSyncScheduler(24);
+    log('Sync scheduler started - checking monthly eligibility every 24 hours');
   });
 
   // Graceful shutdown

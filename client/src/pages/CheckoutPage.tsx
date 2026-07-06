@@ -30,7 +30,7 @@ const inputStyle: React.CSSProperties = {
 
 const planFeatures: Record<string, string[]> = {
   starter: ["scholar.name subdomain", "Publication analytics", "Monthly data sync"],
-  pro: ["Custom domain (yourname.com)", "Research Passport download", "Weekly data sync"],
+  pro: ["Custom domain (yourname.com)", "Research Passport download", "Monthly data sync"],
 };
 
 export default function CheckoutPage() {
@@ -195,7 +195,7 @@ export default function CheckoutPage() {
             </Form>
 
             <div style={{ marginTop: 16, textAlign: "center" }}>
-              <button onClick={() => navigate("/#pricing")} data-testid="button-back-to-pricing"
+              <button onClick={() => navigate("/pricing")} data-testid="button-back-to-pricing"
                 style={{ background: "none", border: "none", fontSize: 13.5, color: "#75777E", cursor: "pointer", fontFamily: "inherit" }}>
                 ← Back to pricing
               </button>

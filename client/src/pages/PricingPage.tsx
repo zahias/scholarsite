@@ -4,39 +4,7 @@ import SEO from "@/components/SEO";
 import GlobalNav from "@/components/GlobalNav";
 import GlobalFooter from "@/components/GlobalFooter";
 import { Check } from "lucide-react";
-
-const plans = [
-  {
-    name: "Starter",
-    monthlyPrice: 9.99,
-    yearlyPrice: 95.88,
-    yearlySavings: 24,
-    description: "Perfect for individual researchers",
-    features: [
-      "scholar.name subdomain",
-      "Publication analytics",
-      "Color themes",
-      "Monthly data sync",
-      "Email support",
-    ],
-    highlighted: false,
-  },
-  {
-    name: "Pro",
-    monthlyPrice: 19.99,
-    yearlyPrice: 191.88,
-    yearlySavings: 48,
-    description: "For established academics",
-    features: [
-      "Everything in Starter",
-      "Custom domain (yourname.com)",
-      "Research Passport download",
-      "Weekly data sync",
-      "Priority support",
-    ],
-    highlighted: true,
-  },
-];
+import { pricingPlans } from "@/data/marketingData";
 
 export default function PricingPage() {
   const [, navigate] = useLocation();
@@ -122,7 +90,7 @@ export default function PricingPage() {
             {/* Plan cards */}
             <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 24 }} className="pricing-grid">
               <style>{`@media (max-width: 760px) { .pricing-grid { grid-template-columns: 1fr !important; } }`}</style>
-              {plans.map((plan, i) => (
+              {pricingPlans.map((plan, i) => (
                 <div
                   key={i}
                   className={plan.highlighted ? "plan-card plan-card-featured" : "plan-card"}
