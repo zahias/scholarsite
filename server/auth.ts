@@ -122,6 +122,13 @@ router.post("/register", async (req: Request, res: Response) => {
       return res.status(400).json({ message: "Email already registered" });
     }
 
+    if (validatedData.openalexId) {
+      const claimedProfile = await storage.getResearcherProfileByOpenalexId(validatedData.openalexId);
+      if (claimedProfile && claimedProfile.tenantId) {
+        return res.status(400).json({ message: "This researcher profile is already registered. Try logging in instead." });
+      }
+    }
+
     const passwordHash = await bcrypt.hash(validatedData.password, 12);
 
     const verificationToken = crypto.randomBytes(32).toString("hex");
