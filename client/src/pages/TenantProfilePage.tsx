@@ -26,6 +26,7 @@ export default function TenantProfilePage() {
     lastSynced: string;
     tenant: any;
     isPreview?: boolean;
+    claimState?: "unclaimed" | "active" | "inactive" | "orphaned" | "database_unavailable";
     profileSections?: Array<{ id: string; title: string; content: string; sectionType: string; isVisible: boolean; sortOrder: number }>;
   } | null>({
     queryKey: ["/api/profile"],
@@ -201,6 +202,14 @@ export default function TenantProfilePage() {
         </footer>
 
         <MobileBottomNav />
+        {profileData?.claimState === "inactive" && (
+          <div className="fixed bottom-0 left-0 right-0 z-50 bg-primary text-primary-foreground border-t border-primary/20 shadow-lg">
+            <div className="profile-wide-container py-3 flex flex-col sm:flex-row items-center justify-between gap-3">
+              <p className="text-sm font-medium text-center sm:text-left">This Scholar.name profile is inactive. Showing public OpenAlex data.</p>
+              <a href="/dashboard/login" className="inline-flex items-center justify-center bg-white text-primary px-5 py-2 rounded-md font-semibold">Owner Sign In</a>
+            </div>
+          </div>
+        )}
       </div>
     </ProfileThemeProvider>
   );

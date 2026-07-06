@@ -93,6 +93,18 @@ interface SyncLog {
   itemsProcessed?: number;
 }
 
+interface LegacyProfileAudit {
+  summary: Record<string, number>;
+  records: Array<{
+    id: string;
+    openalexId: string | null;
+    displayName: string | null;
+    email: string | null;
+    tenantId: string | null;
+    issue: string;
+  }>;
+}
+
 const statusConfig: Record<string, { icon: any; color: string; bg: string }> = {
   active: { icon: CheckCircle, color: "text-green-400", bg: "bg-green-500/10" },
   pending: { icon: Clock, color: "text-yellow-400", bg: "bg-yellow-500/10" },
@@ -131,6 +143,11 @@ export default function AdminDashboard() {
 
   const { data: syncLogsData, isLoading: syncLogsLoading } = useQuery<{ logs: SyncLog[] }>({
     queryKey: ["/api/admin/sync/logs"],
+    enabled: !!userData?.user,
+  });
+
+  const { data: legacyAuditData } = useQuery<LegacyProfileAudit>({
+    queryKey: ["/api/admin/legacy-profile-audit"],
     enabled: !!userData?.user,
   });
 
@@ -194,6 +211,7 @@ export default function AdminDashboard() {
   const pendingTenants = analytics?.tenants.byStatus.pending || tenants.filter((t) => t.status === "pending").length;
   const completedPayments = payments.filter((payment) => payment.status === "completed");
   const pendingPayments = payments.filter((payment) => payment.status === "pending");
+  const unresolvedLegacyProfiles = legacyAuditData?.records || [];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
@@ -222,6 +240,26 @@ export default function AdminDashboard() {
       </header>
 
       <main className="max-w-6xl mx-auto px-4 py-8 space-y-8">
+        {unresolvedLegacyProfiles.length > 0 && (
+          <section className="border border-amber-500/30 bg-amber-500/10 rounded-md p-4" aria-labelledby="legacy-profile-heading">
+            <div className="flex items-start gap-3">
+              <AlertCircle className="w-5 h-5 text-amber-300 mt-0.5 shrink-0" />
+              <div className="min-w-0 flex-1">
+                <h2 id="legacy-profile-heading" className="font-semibold text-white">Legacy profiles need review</h2>
+                <p className="text-sm text-amber-100/80 mt-1">
+                  {unresolvedLegacyProfiles.length} profile{unresolvedLegacyProfiles.length === 1 ? "" : "s"} could not be linked automatically. Public OpenAlex previews remain available.
+                </p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {unresolvedLegacyProfiles.slice(0, 5).map((profile) => (
+                    <Badge key={profile.id} className="bg-amber-500/20 text-amber-100">
+                      {profile.displayName || profile.openalexId || profile.email || profile.id}: {profile.issue.replace(/_/g, " ")}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </section>
+        )}
         {/* Summary Stats */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <Card className="bg-white/5 border-white/10">

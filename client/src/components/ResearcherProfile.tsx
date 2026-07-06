@@ -65,6 +65,8 @@ function ResearcherProfileContent() {
     profileSections?: any[];
     lastSynced: string;
     isPreview?: boolean;
+    claimState?: "unclaimed" | "active" | "inactive" | "orphaned" | "database_unavailable";
+    accessState?: string | null;
   } | null>({
     queryKey: [`/api/researcher/${id}/data`],
     retry: false,
@@ -138,22 +140,25 @@ function ResearcherProfileContent() {
   // ── Error / no profile ─────────────────────────────────────────────────────
   if (error || !researcherData || !researcherData.profile) {
     const errorMessage = error instanceof Error ? error.message : "";
-    const isInactiveProfile = errorMessage.includes("trial_expired") || errorMessage.includes("subscription_expired") || errorMessage.startsWith("402:");
+    const isNotFound = errorMessage.startsWith("404:");
+    const isUnavailable = errorMessage.startsWith("500:") || errorMessage.startsWith("503:");
     return (
       <div className="min-h-screen" style={{ background: "var(--surface-container-low)" }}>
         <Navigation researcherName="Researcher Profile" />
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
           <EmptyState
-            icon={isInactiveProfile ? Lock : UserX}
-            title={isInactiveProfile ? "Profile inactive" : "No profile available"}
-            description={isInactiveProfile
-              ? "This public portfolio is inactive because its trial or paid period has ended."
-              : "This researcher profile does not exist or has not been made public yet."
+            icon={isUnavailable ? Lock : UserX}
+            title={isUnavailable ? "Profile temporarily unavailable" : isNotFound ? "Researcher not found" : "Unable to load profile"}
+            description={isUnavailable
+              ? "Scholar.name and the source record could not be reached. Please try again shortly."
+              : isNotFound
+                ? "No matching researcher record was found in OpenAlex."
+                : "The profile could not be loaded. Please try again."
             }
             headingLevel="h1"
             action={{
-              label: isInactiveProfile ? "View plans" : "Back to Scholar.name",
-              onClick: () => navigate(isInactiveProfile ? "/pricing" : "/"),
+              label: isUnavailable ? "Try again" : "Back to Scholar.name",
+              onClick: () => isUnavailable ? window.location.reload() : navigate("/"),
             }}
           />
         </div>
@@ -163,6 +168,34 @@ function ResearcherProfileContent() {
 
   const displayName = profile?.displayName || researcher?.display_name || "Researcher";
   const isPreview = !!researcherData?.isPreview;
+  const claimState = researcherData?.claimState || (isPreview ? "unclaimed" : "active");
+  const previewBanner = claimState === "inactive"
+    ? {
+        desktop: "This Scholar.name profile is inactive. OpenAlex data remains available.",
+        mobile: "Inactive profile — showing OpenAlex data.",
+        action: "Owner Sign In",
+        onClick: () => navigate("/dashboard/login"),
+      }
+    : claimState === "orphaned"
+      ? {
+          desktop: "This legacy profile needs owner verification. OpenAlex data remains available.",
+          mobile: "Legacy profile needs verification.",
+          action: "Contact Support",
+          onClick: () => navigate("/contact"),
+        }
+      : claimState === "database_unavailable"
+        ? {
+            desktop: "Scholar.name customizations are temporarily unavailable. Showing OpenAlex data.",
+            mobile: "Showing OpenAlex data while customizations recover.",
+            action: "Try Again",
+            onClick: () => window.location.reload(),
+          }
+        : {
+            desktop: `This is a preview of what your profile could look like. Create yours at ${displayName.toLowerCase().replace(/\s+/g, "")}.scholar.name`,
+            mobile: "Like what you see? Create your own portfolio!",
+            action: "Claim This Profile",
+            onClick: () => navigate("/signup"),
+          };
 
   // ── Main render ────────────────────────────────────────────────────────────
   return (
@@ -278,15 +311,14 @@ function ResearcherProfileContent() {
               <div className="flex items-center gap-3">
                 <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
                 <p className="text-white text-sm md:text-base font-medium">
-                  <span className="hidden lg:inline">This is a preview of what your profile could look like.</span>
-                  <span className="lg:hidden">Preview mode</span>
-                  {" "}Create yours at <span className="font-semibold">{displayName.toLowerCase().replace(/\s+/g, "")}.scholar.name</span>
+                  <span className="hidden lg:inline">{previewBanner.desktop}</span>
+                  <span className="lg:hidden">{previewBanner.mobile}</span>
                 </p>
               </div>
-              <Button onClick={() => navigate("/signup")}
+              <Button onClick={previewBanner.onClick}
                 className="bg-white text-primary hover:bg-white/90 font-semibold px-6 py-2 rounded-lg shadow-md hover:shadow-lg transition-all"
                 data-testid="button-claim-profile">
-                Claim This Profile
+                {previewBanner.action}
               </Button>
             </div>
           </div>
@@ -298,11 +330,11 @@ function ResearcherProfileContent() {
         <div className="fixed bottom-[84px] left-0 right-0 z-40 bg-primary shadow-lg border-t border-primary/20 md:hidden" data-testid="banner-claim-profile-mobile">
           <div className="px-4 py-3">
             <div className="flex flex-col gap-2 text-center">
-              <p className="text-white text-sm font-medium">Like what you see? Create your own portfolio!</p>
-              <Button onClick={() => navigate("/signup")}
+              <p className="text-white text-sm font-medium">{previewBanner.mobile}</p>
+              <Button onClick={previewBanner.onClick}
                 className="bg-white text-primary hover:bg-white/90 font-semibold px-6 py-2 rounded-lg shadow-md w-full"
                 data-testid="button-claim-profile-mobile">
-                Claim &amp; Customize
+                {previewBanner.action}
               </Button>
             </div>
           </div>

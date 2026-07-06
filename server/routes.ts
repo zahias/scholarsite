@@ -1,6 +1,6 @@
 import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
-import { timingSafeEqual } from "crypto";
+import { randomUUID, timingSafeEqual } from "crypto";
 import { storage } from "./storage";
 import { OpenAlexService } from "./services/openalexApi";
 import { insertResearcherProfileSchema, updateResearcherProfileSchema, insertThemeSchema, updateThemeSchema, type ResearchTopic, type Publication, type Affiliation } from "@shared/schema";
@@ -19,6 +19,10 @@ import { getTenantAccessMessage, getTenantAccessState, tenantHasServiceAccess } 
 import fetch from "node-fetch";
 import nodemailer from "nodemailer";
 import { runScheduledSync } from "./services/syncScheduler";
+import { checkDatabaseHealth } from "./dbHealth";
+import { pool } from "./db";
+
+type PublicProfileClaimState = "unclaimed" | "active" | "inactive" | "orphaned" | "database_unavailable";
 
 function hasValidJobToken(req: Request): boolean {
   const configuredToken = process.env.SYNC_JOB_TOKEN;
@@ -611,6 +615,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
     return {
       profile: {
+        openalexId,
         displayName: researcher.display_name,
         title: null,
         currentAffiliation: null,
@@ -639,7 +644,63 @@ export async function registerRoutes(app: Express): Promise<Server> {
       affiliations,
       lastSynced: new Date().toISOString(),
       isPreview: true,
+      claimState: "unclaimed" as PublicProfileClaimState,
     };
+  };
+
+  const getPreviewResponse = async (openalexId: string) => {
+    const cacheKey = normalizeOpenAlexAuthorId(openalexId);
+    const cached = getCachedPreview(cacheKey);
+    if (cached) return { data: cached, cacheStatus: "HIT" };
+
+    let request = previewRequestsInFlight.get(cacheKey);
+    const coalesced = Boolean(request);
+    if (!request) {
+      request = buildPreviewResponse(cacheKey)
+        .then((data) => {
+          cachePreview(cacheKey, data);
+          return data;
+        })
+        .finally(() => {
+          previewRequestsInFlight.delete(cacheKey);
+        });
+      previewRequestsInFlight.set(cacheKey, request);
+    }
+
+    return { data: await request, cacheStatus: coalesced ? "COALESCED" : "MISS" };
+  };
+
+  const sendPreviewResponse = async (
+    req: Request,
+    res: Response,
+    openalexId: string,
+    claimState: PublicProfileClaimState,
+    accessState?: string,
+  ) => {
+    const requestId = req.get("x-request-id") || randomUUID();
+    try {
+      const { data, cacheStatus } = await getPreviewResponse(openalexId);
+      res.set(
+        "Cache-Control",
+        claimState === "unclaimed" ? "public, max-age=300, stale-while-revalidate=600" : "private, no-cache",
+      );
+      res.set("Vary", "Accept-Encoding");
+      res.set("X-Preview-Cache", cacheStatus);
+      res.set("X-Profile-Source", "openalex");
+      res.set("X-Request-Id", requestId);
+      console.log(`[ProfileResolution] request=${requestId} openalex=${openalexId} source=openalex claim=${claimState}`);
+      return res.json({ ...data, claimState, accessState: accessState || null });
+    } catch (error) {
+      const notFound = error instanceof Error && error.message.includes("OpenAlex API error: 404");
+      console.error(
+        `[ProfileResolution] request=${requestId} openalex=${openalexId} source=openalex claim=${claimState} error=${notFound ? "not_found" : "source_unavailable"}`,
+      );
+      return res.status(notFound ? 404 : 503).json({
+        message: notFound ? "Researcher not found" : "Research profile temporarily unavailable",
+        category: notFound ? "not_found" : "source_unavailable",
+        requestId,
+      });
+    }
   };
 
   // Tenant resolution middleware
@@ -715,6 +776,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Site context - tells frontend if this is a tenant site or marketing site
   app.get('/api/site-context', async (req, res) => {
     try {
+      if (req.tenantResolutionFailed) {
+        return res.status(503).json({
+          message: "Tenant profile temporarily unavailable",
+          category: "database_unreachable",
+        });
+      }
       const tenant = (req as any).tenant;
       const isMarketingSite = (req as any).isMarketingSite;
 
@@ -748,10 +815,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error) {
       console.error("Error getting site context:", error);
-      res.json({
-        isTenantSite: false,
-        isMarketingSite: true,
-        tenant: null
+      return res.status(503).json({
+        message: "Tenant profile temporarily unavailable",
+        category: "database_unreachable",
       });
     }
   });
@@ -759,6 +825,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Tenant-based profile route (when accessed via custom domain)
   app.get('/api/profile', async (req, res) => {
     try {
+      if (req.tenantResolutionFailed) {
+        return res.status(503).json({
+          message: "Tenant profile temporarily unavailable",
+          category: "database_unreachable",
+        });
+      }
       const tenant = (req as any).tenant;
 
       if (!tenant) {
@@ -766,15 +838,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const accessState = getTenantAccessState(tenant);
-      if (!tenantHasServiceAccess(tenant)) {
-        return res.status(402).json({
-          message: getTenantAccessMessage(accessState),
-          accessState,
-          tenantName: tenant.name,
-          tenantStatus: tenant.status,
-        });
-      }
-
       const profile = await storage.getResearcherProfileByTenant(tenant.id);
 
       if (!profile || !profile.openalexId) {
@@ -783,6 +846,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           tenantName: tenant.name,
           tenantStatus: tenant.status
         });
+      }
+
+      if (!tenantHasServiceAccess(tenant) || !profile.isPublic) {
+        return sendPreviewResponse(req, res, profile.openalexId, "inactive", accessState);
       }
 
       // Get cached data
@@ -819,7 +886,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           primaryColor: tenant.primaryColor,
           accentColor: tenant.accentColor,
         },
-        isPreview: false
+        isPreview: false,
+        claimState: "active" as PublicProfileClaimState,
+        accessState,
       });
     } catch (error) {
       console.error("Error fetching tenant profile:", error);
@@ -829,91 +898,77 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Public researcher data routes
   app.get('/api/researcher/:openalexId/data', async (req, res) => {
+    const { openalexId } = req.params;
+    const requestId = req.get("x-request-id") || randomUUID();
+    let profile;
+
+    if (!pool) {
+      console.error(`[ProfileResolution] request=${requestId} openalex=${openalexId} database=unavailable stage=configuration`);
+      return sendPreviewResponse(req, res, openalexId, "database_unavailable");
+    }
+
     try {
-      const { openalexId } = req.params;
-
-      // Get researcher profile (if public)
-      const profile = await storage.getResearcherProfileByOpenalexId(openalexId);
-
-      // If profile exists and is public, use cached data
-      if (profile && profile.isPublic) {
-        const tenant = await storage.getTenant(profile.tenantId);
-        const accessState = tenant ? getTenantAccessState(tenant) : "cancelled";
-        if (!tenant || !tenantHasServiceAccess(tenant)) {
-          return res.status(402).json({
-            message: getTenantAccessMessage(accessState),
-            accessState,
-            isPreview: false,
-          });
-        }
-
-        const researcherData = await storage.getOpenalexData(openalexId, 'researcher');
-        const researchTopics = await storage.getResearchTopics(openalexId);
-        const publications = await storage.getPublications(openalexId);
-        const affiliations = await storage.getAffiliations(openalexId);
-        // Phase 3: Get custom profile sections
-        const profileSections = await storage.getProfileSections(profile.id);
-
-        // Sort publications: featured first, then by year/citations
-        const sortedPublications = [...publications].sort((a, b) => {
-          // Featured publications first
-          if (a.isFeatured && !b.isFeatured) return -1;
-          if (!a.isFeatured && b.isFeatured) return 1;
-          // Then by year (descending)
-          if ((b.publicationYear || 0) !== (a.publicationYear || 0)) {
-            return (b.publicationYear || 0) - (a.publicationYear || 0);
-          }
-          // Then by citation count (descending)
-          return (b.citationCount || 0) - (a.citationCount || 0);
-        });
-
-        return res.json({
-          profile,
-          researcher: researcherData?.data || null,
-          topics: researchTopics,
-          publications: sortedPublications,
-          affiliations,
-          profileSections: profileSections.filter((s: any) => s.isVisible),
-          lastSynced: profile.lastSyncedAt,
-          isPreview: false
-        });
-      }
-
-      // If no profile exists, fetch directly from OpenAlex for preview
-      try {
-        const cacheKey = normalizeOpenAlexAuthorId(openalexId);
-        const cached = getCachedPreview(cacheKey);
-        res.set('Cache-Control', 'public, max-age=300, stale-while-revalidate=600');
-        res.set('Vary', 'Accept-Encoding');
-        if (cached) {
-          res.set('X-Preview-Cache', 'HIT');
-          return res.json(cached);
-        }
-
-        let request = previewRequestsInFlight.get(cacheKey);
-        const coalesced = Boolean(request);
-        if (!request) {
-          request = buildPreviewResponse(cacheKey)
-            .then((data) => {
-              cachePreview(cacheKey, data);
-              return data;
-            })
-            .finally(() => {
-              previewRequestsInFlight.delete(cacheKey);
-            });
-          previewRequestsInFlight.set(cacheKey, request);
-        }
-
-        const data = await request;
-        res.set('X-Preview-Cache', coalesced ? 'COALESCED' : 'MISS');
-        return res.json(data);
-      } catch (openAlexError) {
-        console.error("Error fetching from OpenAlex for preview:", openAlexError);
-        return res.status(404).json({ message: "Researcher not found" });
-      }
+      profile = await storage.getResearcherProfileByOpenalexId(openalexId);
     } catch (error) {
-      console.error("Error fetching researcher data:", error);
-      res.status(500).json({ message: "Failed to fetch researcher data" });
+      console.error(`[ProfileResolution] request=${requestId} openalex=${openalexId} database=unavailable stage=profile_lookup`);
+      return sendPreviewResponse(req, res, openalexId, "database_unavailable");
+    }
+
+    if (!profile) {
+      return sendPreviewResponse(req, res, openalexId, "unclaimed");
+    }
+
+    if (!profile.tenantId) {
+      return sendPreviewResponse(req, res, openalexId, "orphaned");
+    }
+
+    try {
+      const tenant = await storage.getTenant(profile.tenantId);
+      if (!tenant) {
+        return sendPreviewResponse(req, res, openalexId, "orphaned");
+      }
+
+      const accessState = getTenantAccessState(tenant);
+      if (!profile.isPublic || !tenantHasServiceAccess(tenant)) {
+        return sendPreviewResponse(req, res, openalexId, "inactive", accessState);
+      }
+
+      const [researcherData, researchTopics, publications, affiliations, profileSections] = await Promise.all([
+        storage.getOpenalexData(openalexId, 'researcher'),
+        storage.getResearchTopics(openalexId),
+        storage.getPublications(openalexId),
+        storage.getAffiliations(openalexId),
+        storage.getProfileSections(profile.id),
+      ]);
+      const liveFallback = researcherData?.data ? null : (await getPreviewResponse(openalexId)).data;
+      const sortedPublications = [...(liveFallback?.publications || publications)].sort((a, b) => {
+        if (a.isFeatured && !b.isFeatured) return -1;
+        if (!a.isFeatured && b.isFeatured) return 1;
+        if ((b.publicationYear || 0) !== (a.publicationYear || 0)) {
+          return (b.publicationYear || 0) - (a.publicationYear || 0);
+        }
+        return (b.citationCount || 0) - (a.citationCount || 0);
+      });
+
+      res.set("Cache-Control", "private, no-cache");
+      res.set("X-Profile-Source", liveFallback ? "database+openalex" : "database");
+      res.set("X-Request-Id", requestId);
+      console.log(`[ProfileResolution] request=${requestId} openalex=${openalexId} source=${liveFallback ? "database+openalex" : "database"} claim=active`);
+      return res.json({
+        profile,
+        researcher: researcherData?.data || liveFallback?.researcher || null,
+        topics: liveFallback?.topics || researchTopics,
+        publications: sortedPublications,
+        affiliations: liveFallback?.affiliations || affiliations,
+        profileSections: profileSections.filter((s: any) => s.isVisible),
+        lastSynced: profile.lastSyncedAt,
+        isPreview: false,
+        claimState: "active" as PublicProfileClaimState,
+        accessState,
+      });
+    } catch (error) {
+      console.error(`[ProfileResolution] request=${requestId} openalex=${openalexId} database=unavailable stage=claimed_profile`);
+      return sendPreviewResponse(req, res, openalexId, "database_unavailable");
     }
   });
 
@@ -1166,13 +1221,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Health check endpoint (public, for monitoring)
   app.get('/api/health', async (_req, res) => {
-    try {
-      // Quick DB check via storage layer
-      const tenants = await storage.getAllTenants();
-      res.json({ status: 'ok', timestamp: new Date().toISOString(), tenants: tenants.length });
-    } catch (error) {
-      res.status(503).json({ status: 'error', message: 'Database unreachable' });
+    const database = await checkDatabaseHealth();
+    if (!database.connected || !database.schemaReady) {
+      if (database.missingColumns.length > 0) {
+        console.error(`[DatabaseHealth] Missing required columns: ${database.missingColumns.join(", ")}`);
+      }
+      return res.status(503).json({
+        status: 'error',
+        category: database.category,
+        timestamp: new Date().toISOString(),
+        database: {
+          connected: database.connected,
+          schemaReady: database.schemaReady,
+        },
+      });
     }
+    return res.json({
+      status: 'ok',
+      category: database.category,
+      timestamp: new Date().toISOString(),
+      database: { connected: true, schemaReady: true },
+    });
   });
 
   app.post('/api/internal/jobs/openalex-sync', async (req, res) => {

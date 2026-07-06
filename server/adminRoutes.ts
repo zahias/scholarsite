@@ -190,6 +190,43 @@ router.get("/stats", isAuthenticated, isAdmin, async (req: Request, res: Respons
   }
 });
 
+router.get("/legacy-profile-audit", isAuthenticated, isAdmin, async (_req: Request, res: Response) => {
+  try {
+    const result = await db.execute(sql`
+      SELECT
+        rp.id,
+        rp.openalex_id AS "openalexId",
+        rp.display_name AS "displayName",
+        rp.email,
+        rp.tenant_id AS "tenantId",
+        CASE
+          WHEN rp.tenant_id IS NULL THEN 'missing_tenant_link'
+          WHEN t.id IS NULL THEN 'missing_tenant'
+          WHEN d.domain_count = 0 THEN 'missing_domain'
+          ELSE 'linked'
+        END AS issue
+      FROM researcher_profiles rp
+      LEFT JOIN tenants t ON t.id = rp.tenant_id
+      LEFT JOIN LATERAL (
+        SELECT count(*)::integer AS domain_count
+        FROM domains
+        WHERE domains.tenant_id = rp.tenant_id
+      ) d ON true
+      WHERE rp.tenant_id IS NULL OR t.id IS NULL OR d.domain_count = 0
+      ORDER BY rp.created_at ASC NULLS FIRST, rp.id ASC
+    `);
+    const records = (result as any).rows || result;
+    const summary = records.reduce((counts: Record<string, number>, record: any) => {
+      counts[record.issue] = (counts[record.issue] || 0) + 1;
+      return counts;
+    }, {});
+    return res.json({ summary, records });
+  } catch (error) {
+    console.error("Legacy profile audit error:", error);
+    return res.status(500).json({ message: "Failed to audit legacy profiles" });
+  }
+});
+
 // Comprehensive analytics endpoint
 router.get("/analytics", isAuthenticated, isAdmin, async (req: Request, res: Response) => {
   try {

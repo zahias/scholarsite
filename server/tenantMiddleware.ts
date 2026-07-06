@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import { storage } from "./storage";
 import type { Tenant, Domain } from "@shared/schema";
-import { tenantHasServiceAccess } from "./billing";
+import { pool } from "./db";
 
 declare global {
   namespace Express {
@@ -9,6 +9,7 @@ declare global {
       tenant?: Tenant;
       domain?: Domain;
       isMarketingSite?: boolean;
+      tenantResolutionFailed?: boolean;
     }
   }
 }
@@ -41,6 +42,12 @@ export async function tenantResolver(
       return next();
     }
 
+    if (!pool) {
+      req.isMarketingSite = false;
+      req.tenantResolutionFailed = true;
+      return next();
+    }
+
     const domain = await storage.getDomainByHostname(hostname);
 
     if (!domain) {
@@ -50,7 +57,7 @@ export async function tenantResolver(
 
     const tenant = await storage.getTenant(domain.tenantId);
 
-    if (!tenant || !tenantHasServiceAccess(tenant)) {
+    if (!tenant) {
       req.isMarketingSite = true;
       return next();
     }
@@ -62,7 +69,8 @@ export async function tenantResolver(
     next();
   } catch (error) {
     console.error("Tenant resolution error:", error);
-    req.isMarketingSite = true;
+    req.isMarketingSite = false;
+    req.tenantResolutionFailed = true;
     next();
   }
 }

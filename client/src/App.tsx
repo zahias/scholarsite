@@ -61,7 +61,7 @@ interface SiteContext {
 }
 
 function Router() {
-  const { data: siteContext, isLoading } = useQuery<SiteContext>({
+  const { data: siteContext, isLoading, error } = useQuery<SiteContext>({
     queryKey: ['/api/site-context'],
     staleTime: 1000 * 60 * 5,
   });
@@ -71,6 +71,24 @@ function Router() {
       <div className="min-h-screen bg-gradient-to-br from-[#0B1F3A] to-[#1a3a5c] flex items-center justify-center" role="status" aria-label="Loading">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#F2994A]"></div>
         <span className="sr-only">Loading site…</span>
+      </div>
+    );
+  }
+
+  const hostname = typeof window !== "undefined" ? window.location.hostname.toLowerCase() : "";
+  const isMarketingHostname = ["localhost", "127.0.0.1", "scholar.name", "www.scholar.name", "scholarname.com", "www.scholarname.com"].includes(hostname)
+    || hostname.endsWith(".replit.dev")
+    || hostname.endsWith(".replit.app")
+    || hostname.endsWith(".repl.co");
+
+  if (error && !isMarketingHostname) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center px-6">
+        <div className="max-w-lg text-center">
+          <h1 className="text-3xl font-bold mb-4">Profile temporarily unavailable</h1>
+          <p className="text-muted-foreground mb-6">This custom Scholar.name profile cannot reach its account data right now. Please try again shortly.</p>
+          <button className="px-5 py-2.5 bg-primary text-primary-foreground rounded-md" onClick={() => window.location.reload()}>Try again</button>
+        </div>
       </div>
     );
   }

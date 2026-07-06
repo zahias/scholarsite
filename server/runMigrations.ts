@@ -13,6 +13,8 @@ export async function runMigrations(): Promise<void> {
   }
 
   const client = await pool.connect();
+  const migrationLockKey = 193648267;
+  let migrationLockAcquired = false;
 
   const run = async (label: string, sql: string) => {
     try {
@@ -29,6 +31,8 @@ export async function runMigrations(): Promise<void> {
   };
 
   try {
+    await client.query("SELECT pg_advisory_lock($1, $2)", [migrationLockKey, 2]);
+    migrationLockAcquired = true;
     console.log("[migrations] Running schema migrations…");
 
     await run("pgcrypto extension", `CREATE EXTENSION IF NOT EXISTS pgcrypto;`);
@@ -173,9 +177,16 @@ export async function runMigrations(): Promise<void> {
     await run("users.email_verification_token", `ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "email_verification_token" varchar(64);`);
     await run("users.email_verification_expires_at", `ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "email_verification_expires_at" timestamp;`);
     await run("users.tenant_id", `ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "tenant_id" varchar REFERENCES "tenants"("id");`);
+    await run("users.email", `ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "email" varchar;`);
     await run("users.password_hash", `ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "password_hash" varchar;`);
     await run("users.role", `ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "role" varchar DEFAULT 'researcher' NOT NULL;`);
     await run("users.is_active", `ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "is_active" boolean DEFAULT true NOT NULL;`);
+    await run("users.first_name", `ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "first_name" varchar;`);
+    await run("users.last_name", `ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "last_name" varchar;`);
+    await run("users.profile_image_url", `ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "profile_image_url" varchar;`);
+    await run("users.created_at", `ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "created_at" timestamp DEFAULT now();`);
+    await run("users.updated_at", `ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "updated_at" timestamp DEFAULT now();`);
+    await run("users.id_default", `ALTER TABLE "users" ALTER COLUMN "id" SET DEFAULT gen_random_uuid();`);
 
     // ── 1b. sessions table — required by connect-pg-simple for auth login/signup ──
     await run("create sessions", `
@@ -188,15 +199,36 @@ export async function runMigrations(): Promise<void> {
     await run("sessions_expire_idx", `CREATE INDEX IF NOT EXISTS "IDX_session_expire" ON "sessions"("expire");`);
 
     // ── 2. tenants table — trial support ──
+    await run("tenants.name", `ALTER TABLE "tenants" ADD COLUMN IF NOT EXISTS "name" varchar;`);
+    await run("tenants.plan", `ALTER TABLE "tenants" ADD COLUMN IF NOT EXISTS "plan" varchar DEFAULT 'starter';`);
+    await run("tenants.status", `ALTER TABLE "tenants" ADD COLUMN IF NOT EXISTS "status" varchar DEFAULT 'pending';`);
     await run("tenants.trial_ends_at", `ALTER TABLE "tenants" ADD COLUMN IF NOT EXISTS "trial_ends_at" timestamp;`);
+    await run("tenants.subscription_start_date", `ALTER TABLE "tenants" ADD COLUMN IF NOT EXISTS "subscription_start_date" timestamp;`);
+    await run("tenants.subscription_end_date", `ALTER TABLE "tenants" ADD COLUMN IF NOT EXISTS "subscription_end_date" timestamp;`);
+    await run("tenants.last_sync_at", `ALTER TABLE "tenants" ADD COLUMN IF NOT EXISTS "last_sync_at" timestamp;`);
     await run("tenants.selected_theme_id", `ALTER TABLE "tenants" ADD COLUMN IF NOT EXISTS "selected_theme_id" varchar;`);
     await run("tenants.contact_email", `ALTER TABLE "tenants" ADD COLUMN IF NOT EXISTS "contact_email" varchar;`);
     await run("tenants.notes", `ALTER TABLE "tenants" ADD COLUMN IF NOT EXISTS "notes" text;`);
     await run("tenants.sync_frequency", `ALTER TABLE "tenants" ADD COLUMN IF NOT EXISTS "sync_frequency" varchar DEFAULT 'monthly';`);
+    await run("tenants.primary_color", `ALTER TABLE "tenants" ADD COLUMN IF NOT EXISTS "primary_color" varchar DEFAULT '#0B1F3A';`);
+    await run("tenants.accent_color", `ALTER TABLE "tenants" ADD COLUMN IF NOT EXISTS "accent_color" varchar DEFAULT '#F2994A';`);
+    await run("tenants.logo_url", `ALTER TABLE "tenants" ADD COLUMN IF NOT EXISTS "logo_url" varchar;`);
+    await run("tenants.created_at", `ALTER TABLE "tenants" ADD COLUMN IF NOT EXISTS "created_at" timestamp DEFAULT now();`);
+    await run("tenants.updated_at", `ALTER TABLE "tenants" ADD COLUMN IF NOT EXISTS "updated_at" timestamp DEFAULT now();`);
+    await run("tenants.id_default", `ALTER TABLE "tenants" ALTER COLUMN "id" SET DEFAULT gen_random_uuid();`);
     await run("tenants.monthly_sync_frequency", `UPDATE "tenants" SET "sync_frequency" = 'monthly' WHERE "sync_frequency" IS DISTINCT FROM 'monthly';`);
 
     // ── 2b. profile/publication additions used by researcher dashboards ──
+    await run("researcher_profiles.openalex_id", `ALTER TABLE "researcher_profiles" ADD COLUMN IF NOT EXISTS "openalex_id" varchar;`);
+    await run("researcher_profiles.display_name", `ALTER TABLE "researcher_profiles" ADD COLUMN IF NOT EXISTS "display_name" text;`);
+    await run("researcher_profiles.title", `ALTER TABLE "researcher_profiles" ADD COLUMN IF NOT EXISTS "title" text;`);
+    await run("researcher_profiles.bio", `ALTER TABLE "researcher_profiles" ADD COLUMN IF NOT EXISTS "bio" text;`);
+    await run("researcher_profiles.cv_url", `ALTER TABLE "researcher_profiles" ADD COLUMN IF NOT EXISTS "cv_url" varchar;`);
+    await run("researcher_profiles.is_public", `ALTER TABLE "researcher_profiles" ADD COLUMN IF NOT EXISTS "is_public" boolean DEFAULT true;`);
+    await run("researcher_profiles.last_synced_at", `ALTER TABLE "researcher_profiles" ADD COLUMN IF NOT EXISTS "last_synced_at" timestamp;`);
     await run("researcher_profiles.current_affiliation", `ALTER TABLE "researcher_profiles" ADD COLUMN IF NOT EXISTS "current_affiliation" text;`);
+    await run("researcher_profiles.tenant_id", `ALTER TABLE "researcher_profiles" ADD COLUMN IF NOT EXISTS "tenant_id" varchar REFERENCES "tenants"("id");`);
+    await run("researcher_profiles.profile_image_url", `ALTER TABLE "researcher_profiles" ADD COLUMN IF NOT EXISTS "profile_image_url" varchar;`);
     await run("researcher_profiles.current_position", `ALTER TABLE "researcher_profiles" ADD COLUMN IF NOT EXISTS "current_position" text;`);
     await run("researcher_profiles.current_affiliation_url", `ALTER TABLE "researcher_profiles" ADD COLUMN IF NOT EXISTS "current_affiliation_url" varchar;`);
     await run("researcher_profiles.current_affiliation_start_date", `ALTER TABLE "researcher_profiles" ADD COLUMN IF NOT EXISTS "current_affiliation_start_date" date;`);
@@ -211,10 +243,70 @@ export async function runMigrations(): Promise<void> {
       ADD COLUMN IF NOT EXISTS "twitter_url" varchar;
     `);
     await run("researcher_profiles.selected_theme_id", `ALTER TABLE "researcher_profiles" ADD COLUMN IF NOT EXISTS "selected_theme_id" varchar;`);
+    await run("researcher_profiles.created_at", `ALTER TABLE "researcher_profiles" ADD COLUMN IF NOT EXISTS "created_at" timestamp DEFAULT now();`);
+    await run("researcher_profiles.updated_at", `ALTER TABLE "researcher_profiles" ADD COLUMN IF NOT EXISTS "updated_at" timestamp DEFAULT now();`);
+    await run("researcher_profiles.id_default", `ALTER TABLE "researcher_profiles" ALTER COLUMN "id" SET DEFAULT gen_random_uuid();`);
+    await run("domains.is_primary", `ALTER TABLE "domains" ADD COLUMN IF NOT EXISTS "is_primary" boolean DEFAULT false NOT NULL;`);
+    await run("domains.tenant_id", `ALTER TABLE "domains" ADD COLUMN IF NOT EXISTS "tenant_id" varchar REFERENCES "tenants"("id");`);
+    await run("domains.hostname", `ALTER TABLE "domains" ADD COLUMN IF NOT EXISTS "hostname" varchar;`);
+    await run("domains.is_subdomain", `ALTER TABLE "domains" ADD COLUMN IF NOT EXISTS "is_subdomain" boolean DEFAULT false NOT NULL;`);
+    await run("domains.ssl_status", `ALTER TABLE "domains" ADD COLUMN IF NOT EXISTS "ssl_status" varchar DEFAULT 'pending';`);
+    await run("domains.verified_at", `ALTER TABLE "domains" ADD COLUMN IF NOT EXISTS "verified_at" timestamp;`);
+    await run("domains.created_at", `ALTER TABLE "domains" ADD COLUMN IF NOT EXISTS "created_at" timestamp DEFAULT now();`);
+    await run("domains.id_default", `ALTER TABLE "domains" ALTER COLUMN "id" SET DEFAULT gen_random_uuid();`);
+    await run("legacy profile user links", `
+      DO $$
+      BEGIN
+        IF EXISTS (
+          SELECT 1 FROM information_schema.columns
+          WHERE table_schema = 'public' AND table_name = 'researcher_profiles' AND column_name = 'user_id'
+        ) THEN
+          EXECUTE '
+            UPDATE researcher_profiles rp
+            SET tenant_id = u.tenant_id
+            FROM users u
+            WHERE rp.tenant_id IS NULL
+              AND rp.user_id = u.id
+              AND u.tenant_id IS NOT NULL
+          ';
+        END IF;
+      END $$;
+    `);
+    await run("legacy profile unique email links", `
+      WITH unique_matches AS (
+        SELECT rp.id AS profile_id, min(t.id::text) AS tenant_id
+        FROM researcher_profiles rp
+        JOIN tenants t ON lower(t.contact_email) = lower(rp.email)
+        WHERE rp.tenant_id IS NULL AND rp.email IS NOT NULL
+        GROUP BY rp.id
+        HAVING count(DISTINCT t.id) = 1
+      )
+      UPDATE researcher_profiles rp
+      SET tenant_id = unique_matches.tenant_id
+      FROM unique_matches
+      WHERE rp.id = unique_matches.profile_id;
+    `);
+    try {
+      const repairSummary = await client.query(`
+        SELECT
+          count(*) FILTER (WHERE tenant_id IS NOT NULL)::integer AS linked,
+          count(*) FILTER (WHERE tenant_id IS NULL)::integer AS unresolved
+        FROM researcher_profiles
+      `);
+      const summary = repairSummary.rows[0] || { linked: 0, unresolved: 0 };
+      console.log(`[migrations] Legacy profile links: ${summary.linked} linked, ${summary.unresolved} unresolved`);
+    } catch (error) {
+      console.error("[migrations] Could not summarize legacy profile links:", error instanceof Error ? error.message : error);
+    }
     await run("publications.featured_pdf", `
       ALTER TABLE "publications"
       ADD COLUMN IF NOT EXISTS "is_featured" boolean DEFAULT false,
       ADD COLUMN IF NOT EXISTS "pdf_url" varchar;
+    `);
+    await run("publications.type_fields", `
+      ALTER TABLE "publications"
+      ADD COLUMN IF NOT EXISTS "publication_type" varchar,
+      ADD COLUMN IF NOT EXISTS "is_review_article" boolean DEFAULT false;
     `);
 
     // ── 2c. custom sections, sync logs, themes, analytics, and payments ──
@@ -338,6 +430,13 @@ export async function runMigrations(): Promise<void> {
 
     console.log("[migrations] Schema migrations complete.");
   } finally {
+    if (migrationLockAcquired) {
+      try {
+        await client.query("SELECT pg_advisory_unlock($1, $2)", [migrationLockKey, 2]);
+      } catch (error) {
+        console.error("[migrations] Failed to release migration lock:", error);
+      }
+    }
     client.release();
   }
 }
