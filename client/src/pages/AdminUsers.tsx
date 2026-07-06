@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { useLocation, Link } from "wouter";
+import { useLocation } from "wouter";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,6 +10,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
+import AdminShell from "@/components/admin/AdminShell";
 import {
   Dialog,
   DialogContent,
@@ -37,7 +38,6 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import {
   Users,
-  ArrowLeft,
   Plus,
   Search,
   Edit,
@@ -118,6 +118,15 @@ export default function AdminUsers() {
     queryKey: ["/api/admin/users"],
     enabled: !!userData?.user,
   });
+
+  // Redirect in an effect, not directly in the render body — calling navigate()
+  // (a state update) synchronously during render throws "Cannot update a
+  // component while rendering a different component."
+  useEffect(() => {
+    if (!userLoading && (!userData?.user || userData.user.role !== "admin")) {
+      navigate("/admin/login");
+    }
+  }, [userLoading, userData, navigate]);
 
   const createUserMutation = useMutation({
     mutationFn: async (data: { email: string; password: string; firstName: string; lastName: string; role: string }) => {
@@ -232,27 +241,16 @@ export default function AdminUsers() {
   }
 
   if (!userData?.user || userData.user.role !== "admin") {
-    navigate("/admin/login");
     return null;
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="border-b border-border bg-card/90 backdrop-blur-lg sticky top-0 z-50">
-        <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Link href="/admin">
-              <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground hover:bg-accent">
-                <ArrowLeft className="w-5 h-5" />
-              </Button>
-            </Link>
-            <div className="w-10 h-10 bg-blue-500/20 rounded-xl flex items-center justify-center">
-              <Users className="w-5 h-5 text-blue-600" />
-            </div>
-            <div>
-              <h1 className="text-xl font-semibold text-foreground">User Management</h1>
-              <p className="text-sm text-muted-foreground">Manage platform users and permissions</p>
-            </div>
+    <AdminShell>
+      <div className="p-4 md:p-8 max-w-6xl mx-auto space-y-6">
+        <div className="flex items-center justify-between flex-wrap gap-3">
+          <div>
+            <h1 className="text-2xl font-bold text-foreground">Platform Users</h1>
+            <p className="text-sm text-muted-foreground">Admins and other platform-level accounts. Researcher logins are managed from each customer's page.</p>
           </div>
           <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
             <DialogTrigger asChild>
@@ -338,9 +336,7 @@ export default function AdminUsers() {
             </DialogContent>
           </Dialog>
         </div>
-      </header>
 
-      <main className="max-w-6xl mx-auto px-4 py-8 space-y-6">
         {/* Stats Cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <Card className="bg-card border-border">
@@ -538,7 +534,7 @@ export default function AdminUsers() {
             )}
           </CardContent>
         </Card>
-      </main>
+      </div>
 
       {/* Edit User Dialog */}
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
@@ -685,6 +681,6 @@ export default function AdminUsers() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </AdminShell>
   );
 }

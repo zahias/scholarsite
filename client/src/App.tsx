@@ -1,4 +1,4 @@
-import { Switch, Route, useLocation } from "wouter";
+import { Switch, Route } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider, useQuery } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -7,7 +7,6 @@ import ErrorBoundary from "@/components/ErrorBoundary";
 import { lazy, Suspense } from "react";
 import { Loader2 } from "lucide-react";
 import { AnalyticsProvider } from "@/lib/analytics";
-import ChatWidget from "@/components/ChatWidget";
 
 // Eagerly loaded (landing-critical)
 import LandingPage from "@/pages/LandingPage";
@@ -27,7 +26,10 @@ const AdminLogin = lazy(() => import("@/pages/AdminLogin"));
 const AdminDashboard = lazy(() => import("@/pages/AdminDashboard"));
 const AdminThemes = lazy(() => import("@/pages/AdminThemes"));
 const AdminUsers = lazy(() => import("@/pages/AdminUsers"));
-const TenantForm = lazy(() => import("@/pages/TenantForm"));
+const CustomerDetail = lazy(() => import("@/pages/admin/CustomerDetail"));
+const CustomerList = lazy(() => import("@/pages/admin/CustomerList"));
+const AdminPayments = lazy(() => import("@/pages/admin/Payments"));
+const AdminSyncBoard = lazy(() => import("@/pages/admin/SyncBoard"));
 const ResearcherLogin = lazy(() => import("@/pages/ResearcherLogin"));
 const ResearcherDashboard = lazy(() => import("@/pages/ResearcherDashboard"));
 const TenantProfilePage = lazy(() => import("@/pages/TenantProfilePage"));
@@ -53,8 +55,6 @@ interface SiteContext {
     id: string;
     name: string;
     plan: string;
-    primaryColor: string;
-    accentColor: string;
   } | null;
   hasProfile: boolean;
   openalexId: string | null;
@@ -127,7 +127,10 @@ function Router() {
       <Route path="/admin" component={AdminDashboard} />
       <Route path="/admin/themes" component={AdminThemes} />
       <Route path="/admin/users" component={AdminUsers} />
-      <Route path="/admin/tenants/:id" component={TenantForm} />
+      <Route path="/admin/customers" component={CustomerList} />
+      <Route path="/admin/customers/:id" component={CustomerDetail} />
+      <Route path="/admin/payments" component={AdminPayments} />
+      <Route path="/admin/sync" component={AdminSyncBoard} />
       <Route path="/dashboard/login" component={ResearcherLogin} />
       <Route path="/dashboard" component={ResearcherDashboard} />
       <Route path="/checkout" component={CheckoutPage} />
@@ -153,28 +156,6 @@ function PageFallback() {
   );
 }
 
-function RouteScopedChatWidget() {
-  const [location] = useLocation();
-  const hiddenPrefixes = [
-    "/login",
-    "/signup",
-    "/forgot-password",
-    "/reset-password",
-    "/verify-email",
-    "/dashboard/login",
-    "/admin/login",
-    "/checkout",
-    "/contact",
-    "/researcher",
-  ];
-
-  if (hiddenPrefixes.some((prefix) => location === prefix || location.startsWith(`${prefix}/`))) {
-    return null;
-  }
-
-  return <ChatWidget />;
-}
-
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
@@ -183,7 +164,6 @@ function App() {
           <ErrorBoundary>
             <Suspense fallback={<PageFallback />}>
               <Toaster />
-              <RouteScopedChatWidget />
               <Router />
             </Suspense>
           </ErrorBoundary>

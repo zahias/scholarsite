@@ -812,8 +812,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
           id: tenant.id,
           name: tenant.name,
           plan: tenant.plan,
-          primaryColor: tenant.primaryColor,
-          accentColor: tenant.accentColor,
         },
         hasProfile: !!profile?.openalexId,
         openalexId: profile?.openalexId || null,
@@ -890,8 +888,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         tenant: {
           name: tenant.name,
           plan: tenant.plan,
-          primaryColor: tenant.primaryColor,
-          accentColor: tenant.accentColor,
         },
         isPreview: false,
         claimState: "active" as PublicProfileClaimState,
@@ -1111,30 +1107,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error syncing researcher data:", error);
       res.status(500).json({ message: "Failed to sync researcher data" });
-    }
-  });
-
-  // Delete researcher profile and all related data
-  app.delete('/api/admin/researcher/:openalexId', adminRateLimit, adminSessionAuthMiddleware, async (req, res) => {
-    // Check if user is authenticated
-    if (!isAuthenticated(req)) {
-      return res.status(401).json({ message: 'Authentication required' });
-    }
-    try {
-      const { openalexId } = req.params;
-      const profile = await storage.getResearcherProfileByOpenalexId(openalexId);
-
-      if (!profile) {
-        return res.status(404).json({ message: "Researcher profile not found" });
-      }
-
-      // Delete the profile and all related data
-      await storage.deleteResearcherProfile(openalexId);
-
-      res.json({ message: "Researcher profile deleted successfully" });
-    } catch (error) {
-      console.error("Error deleting researcher profile:", error);
-      res.status(500).json({ message: "Failed to delete researcher profile" });
     }
   });
 
@@ -2065,56 +2037,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error fetching analytics:', error);
       res.status(500).json({ message: 'Failed to fetch analytics' });
-    }
-  });
-
-  // Chat message endpoint (for built-in chat widget)
-  app.post('/api/chat-message', publicWriteRateLimit, async (req, res) => {
-    try {
-      const { name, email, message, page } = req.body;
-
-      if (!email || !message) {
-        return res.status(400).json({ message: 'Email and message are required' });
-      }
-
-      // Send email notification to admin
-      const transporter = nodemailer.createTransport({
-        host: process.env.SMTP_HOST || 'smtp.gmail.com',
-        port: parseInt(process.env.SMTP_PORT || '587'),
-        secure: process.env.SMTP_SECURE === 'true',
-        auth: {
-          user: process.env.SMTP_USER,
-          pass: process.env.SMTP_PASS,
-        },
-      });
-
-      const adminEmail = process.env.ADMIN_EMAIL || process.env.SMTP_USER;
-
-      if (adminEmail && process.env.SMTP_USER && process.env.SMTP_PASS) {
-        await transporter.sendMail({
-          from: process.env.SMTP_FROM || process.env.SMTP_USER,
-          to: adminEmail,
-          subject: `[Scholar.name Chat] New message from ${escapeHtml(name || email)}`,
-          html: `
-            <h2>New Chat Message</h2>
-            <p><strong>From:</strong> ${escapeHtml(name || 'Anonymous')} (${escapeHtml(email)})</p>
-            <p><strong>Page:</strong> ${escapeHtml(page || 'Unknown')}</p>
-            <p><strong>Message:</strong></p>
-            <p>${escapeHtml(message).replace(/\n/g, '<br>')}</p>
-            <hr>
-            <p style="color: #666; font-size: 12px;">This message was sent via the Scholar.name chat widget.</p>
-          `,
-          replyTo: email,
-        });
-      }
-
-      res.json({
-        success: true,
-        message: 'Message received! We\'ll get back to you soon.'
-      });
-    } catch (error) {
-      console.error('Error handling chat message:', error);
-      res.status(500).json({ message: 'Failed to deliver message. Please email us directly at hello@scholar.name.' });
     }
   });
 

@@ -4,6 +4,11 @@ import { OpenAlexService } from "./openalexApi";
 
 const openalexService = new OpenAlexService();
 
+// Sync history used to live only in an in-memory array, which reset to empty
+// on every server restart — meaning the admin dashboard's "sync history" was
+// wiped by every deploy, while the actual sync_logs table sat unused. Every
+// sync attempt below is now persisted there via storage.createSyncLog so the
+// history survives restarts and matches what the DB actually recorded.
 interface SyncLog {
   tenantId: string;
   tenantName: string;
@@ -15,8 +20,6 @@ interface SyncLog {
   timestamp: Date;
 }
 
-const syncLogs: SyncLog[] = [];
-const MAX_LOGS = 100;
 let isSyncRunning = false;
 const SYNC_LOCK_NAMESPACE = 193648267;
 const SYNC_LOCK_ID = 1;
@@ -28,15 +31,20 @@ export interface ScheduledSyncStats {
   alreadyRunning: boolean;
 }
 
-function addSyncLog(log: SyncLog) {
-  syncLogs.unshift(log);
-  if (syncLogs.length > MAX_LOGS) {
-    syncLogs.pop();
+async function persistSyncLog(tenantId: string, profileId: string | undefined, log: SyncLog): Promise<void> {
+  try {
+    await storage.createSyncLog({
+      tenantId,
+      profileId,
+      syncType: 'full',
+      status: log.status === 'success' ? 'completed' : log.status === 'skipped' ? 'skipped' : 'failed',
+      errorMessage: log.status === 'error' ? log.message : null,
+      startedAt: log.timestamp,
+      completedAt: log.status === 'skipped' ? log.timestamp : new Date(),
+    } as any);
+  } catch (error) {
+    console.error('[SyncScheduler] Failed to persist sync log:', error);
   }
-}
-
-export function getSyncLogs(): SyncLog[] {
-  return [...syncLogs];
 }
 
 const MONTHLY_SYNC_INTERVAL_MS = 30 * 24 * 60 * 60 * 1000;
@@ -148,7 +156,7 @@ export async function runScheduledSync(): Promise<ScheduledSyncStats> {
           message: 'No OpenAlex ID configured',
           timestamp: new Date(),
         };
-        addSyncLog(skipLog);
+        await persistSyncLog(tenant.id, profile?.id, skipLog);
         stats.skipped++;
         continue;
       }
@@ -167,13 +175,13 @@ export async function runScheduledSync(): Promise<ScheduledSyncStats> {
           message: `Not due for sync (last synced: ${lastSyncedAt?.toISOString()})`,
           timestamp: new Date(),
         };
-        addSyncLog(skipLog);
+        await persistSyncLog(tenant.id, profile.id, skipLog);
         stats.skipped++;
         continue;
       }
 
       const log = await syncTenant(tenant.id, tenant.name, profile.openalexId, syncFrequency);
-      addSyncLog(log);
+      await persistSyncLog(tenant.id, profile.id, log);
 
       if (log.status === 'success') {
         stats.synced++;
@@ -221,6 +229,6 @@ export async function forceSyncTenant(tenantId: string): Promise<SyncLog | null>
   }
 
   const log = await syncTenant(tenantId, tenant.name, profile.openalexId, 'monthly');
-  addSyncLog(log);
+  await persistSyncLog(tenantId, profile.id, log);
   return log;
 }

@@ -3,8 +3,9 @@ import { z } from "zod";
 import bcrypt from "bcryptjs";
 import { storage } from "./storage";
 import { isAuthenticated, isAdmin } from "./auth";
-import type { PlanType, TenantStatus } from "@shared/schema";
-import { getSyncLogs, forceSyncTenant, runScheduledSync } from "./services/syncScheduler";
+import { TENANT_PLANS, TENANT_STATUSES, type PlanType, type TenantStatus } from "@shared/schema";
+import { forceSyncTenant, runScheduledSync } from "./services/syncScheduler";
+import { canTransition, appendTransitionNote } from "./tenantLifecycle";
 
 const router = Router();
 
@@ -118,10 +119,8 @@ router.get("/me", isAuthenticated, isAdmin, async (req: Request, res: Response) 
 
 const createTenantSchema = z.object({
   name: z.string().min(1, "Name is required"),
-  plan: z.enum(["starter", "professional", "institution"]).default("starter"),
+  plan: z.enum(TENANT_PLANS).default("starter"),
   contactEmail: z.string().email().optional().or(z.literal("")),
-  primaryColor: z.string().optional(),
-  accentColor: z.string().optional(),
   notes: z.string().optional(),
 });
 
@@ -189,6 +188,36 @@ router.get("/tenants/:id", isAuthenticated, isAdmin, async (req: Request, res: R
   }
 });
 
+router.get("/tenants/:id/payments", isAuthenticated, isAdmin, async (req: Request, res: Response) => {
+  try {
+    const payments = await storage.getPaymentsByTenant(req.params.id);
+    return res.json({ payments });
+  } catch (error) {
+    console.error("Get tenant payments error:", error);
+    return res.status(500).json({ message: "Failed to fetch payments" });
+  }
+});
+
+router.get("/tenants/:id/sync-logs", isAuthenticated, isAdmin, async (req: Request, res: Response) => {
+  try {
+    const logs = await storage.getSyncLogsByTenant(req.params.id, 20);
+    return res.json({ logs });
+  } catch (error) {
+    console.error("Get tenant sync logs error:", error);
+    return res.status(500).json({ message: "Failed to fetch sync logs" });
+  }
+});
+
+router.get("/tenants/:id/analytics", isAuthenticated, isAdmin, async (req: Request, res: Response) => {
+  try {
+    const summary = await storage.getAnalyticsSummaryByTenant(req.params.id, 30);
+    return res.json({ summary });
+  } catch (error) {
+    console.error("Get tenant analytics error:", error);
+    return res.status(500).json({ message: "Failed to fetch analytics" });
+  }
+});
+
 router.post("/tenants", isAuthenticated, isAdmin, async (req: Request, res: Response) => {
   try {
     const validatedData = createTenantSchema.parse(req.body);
@@ -225,13 +254,12 @@ router.post("/tenants", isAuthenticated, isAdmin, async (req: Request, res: Resp
 
 router.patch("/tenants/:id", isAuthenticated, isAdmin, async (req: Request, res: Response) => {
   try {
+    // Status is intentionally excluded here — it's changed via the constrained
+    // POST /tenants/:id/status transition endpoint below, not a free-form PATCH.
     const updateSchema = z.object({
       name: z.string().min(1).optional(),
-      plan: z.enum(["starter", "professional", "institution"]).optional(),
-      status: z.enum(["active", "suspended", "cancelled", "pending"]).optional(),
+      plan: z.enum(TENANT_PLANS).optional(),
       contactEmail: z.string().email().optional().nullable(),
-      primaryColor: z.string().optional(),
-      accentColor: z.string().optional(),
       logoUrl: z.string().optional().nullable(),
       notes: z.string().optional().nullable(),
       subscriptionStartDate: z.string().optional().nullable(),
@@ -457,10 +485,75 @@ router.post("/tenants/:id/activate", isAuthenticated, isAdmin, async (req: Reque
   }
 });
 
+const statusTransitionSchema = z.object({
+  status: z.enum(TENANT_STATUSES),
+  reason: z.string().optional(),
+});
+
+// Constrained status changes (Suspend/Reactivate/Cancel/Activate) replacing a
+// raw enum PATCH that allowed jumping between any two statuses with no
+// state-machine check (e.g. pending -> cancelled directly).
+router.post("/tenants/:id/status", isAuthenticated, isAdmin, async (req: Request, res: Response) => {
+  try {
+    const { status: targetStatus, reason } = statusTransitionSchema.parse(req.body);
+
+    const tenant = await storage.getTenant(req.params.id);
+    if (!tenant) {
+      return res.status(404).json({ message: "Tenant not found" });
+    }
+
+    const currentStatus = tenant.status as TenantStatus;
+    if (!canTransition(currentStatus, targetStatus)) {
+      return res.status(400).json({
+        message: `Cannot change status from "${currentStatus}" to "${targetStatus}"`,
+      });
+    }
+
+    // pending -> active reuses the existing activation preconditions
+    // (at least one domain and one user) rather than duplicating them.
+    if (currentStatus === "pending" && targetStatus === "active") {
+      const domainsList = await storage.getDomainsByTenant(req.params.id);
+      if (domainsList.length === 0) {
+        return res.status(400).json({ message: "Add at least one domain before activating" });
+      }
+      const usersList = await storage.getUsersByTenant(req.params.id);
+      if (usersList.length === 0) {
+        return res.status(400).json({ message: "Create at least one user before activating" });
+      }
+    }
+
+    const updatedTenant = await storage.updateTenant(req.params.id, {
+      status: targetStatus,
+      notes: appendTransitionNote(tenant.notes, currentStatus, targetStatus, reason),
+      ...(currentStatus === "pending" && targetStatus === "active" ? { subscriptionStartDate: new Date() } : {}),
+    });
+
+    return res.json({
+      message: `Status changed to ${targetStatus}`,
+      tenant: updatedTenant,
+    });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ message: "Invalid status", errors: error.errors });
+    }
+    console.error("Tenant status transition error:", error);
+    return res.status(500).json({ message: "Failed to change tenant status" });
+  }
+});
+
 // Sync management endpoints
 router.get("/sync/logs", isAuthenticated, isAdmin, async (req: Request, res: Response) => {
   try {
-    const logs = getSyncLogs();
+    const dbLogs = await storage.getAllSyncLogs(50);
+    const logs = dbLogs.map((log) => ({
+      tenantId: log.tenantId,
+      tenantName: log.tenantName,
+      status: log.status,
+      message: log.errorMessage || (log.status === "skipped" ? "Not due for sync" : "Data synced successfully from OpenAlex"),
+      startedAt: log.startedAt,
+      completedAt: log.completedAt,
+      itemsProcessed: log.itemsProcessed,
+    }));
     return res.json({ logs });
   } catch (error) {
     console.error("Get sync logs error:", error);

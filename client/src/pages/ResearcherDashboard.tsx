@@ -97,8 +97,6 @@ interface TenantData {
   accessState?: string;
   accessMessage?: string;
   hasServiceAccess?: boolean;
-  primaryColor: string | null;
-  accentColor: string | null;
   domains: Domain[];
   profile: TenantProfile | null;
 }

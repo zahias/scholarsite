@@ -81,16 +81,20 @@ export async function checkDatabaseHealth(): Promise<DatabaseHealth> {
         .map((column) => `${table}.${column}`),
     );
 
+    // Query pg_index directly rather than pg_constraint: Postgres accepts any
+    // unique index as an ON CONFLICT arbiter, not just ones backed by a formal
+    // ALTER TABLE ADD CONSTRAINT — a plain CREATE UNIQUE INDEX (which is how
+    // some of these were actually created) works too but has no pg_constraint
+    // row, so a constraint-only check reports false positives here.
     const constraintTables = Object.keys(REQUIRED_UNIQUE_CONSTRAINTS);
     const constraintResult = await client.query(
       `SELECT t.relname AS table_name, array_agg(a.attname ORDER BY a.attname) AS columns
-       FROM pg_constraint c
-       JOIN pg_class t ON t.oid = c.conrelid
+       FROM pg_index i
+       JOIN pg_class t ON t.oid = i.indrelid
        JOIN pg_namespace n ON n.oid = t.relnamespace
-       JOIN unnest(c.conkey) AS colnum ON true
-       JOIN pg_attribute a ON a.attrelid = t.oid AND a.attnum = colnum
-       WHERE n.nspname = 'public' AND t.relname = ANY($1::text[]) AND c.contype IN ('u', 'p')
-       GROUP BY t.relname, c.oid`,
+       JOIN pg_attribute a ON a.attrelid = t.oid AND a.attnum = ANY(i.indkey)
+       WHERE n.nspname = 'public' AND t.relname = ANY($1::text[]) AND i.indisunique = true
+       GROUP BY t.relname, i.indexrelid`,
       [constraintTables],
     );
     const constraintRows = constraintResult.rows as Array<{ table_name: string; columns: string[] }>;

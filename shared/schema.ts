@@ -16,11 +16,19 @@ import { z } from "zod";
 // Note: Session table is managed by connect-pg-simple, not Drizzle
 // See server/index.ts for session configuration
 
-// Plan types for pricing tiers
-export type PlanType = 'free' | 'starter' | 'professional' | 'institution';
+// Plan types for pricing tiers — canonical list; every Zod enum for tenant
+// plan (create/update tenant, client form) should derive from this array so
+// the three call sites can't drift apart. "free" is the plan every trial
+// signup gets (see storage.ts createTrialTenant) and must stay valid here —
+// omitting it previously broke editing any field on a trial tenant, since
+// the update schema rejected the tenant's own current plan value.
+export const TENANT_PLANS = ['free', 'starter', 'professional', 'institution'] as const;
+export type PlanType = typeof TENANT_PLANS[number];
 
-// Tenant status
-export type TenantStatus = 'active' | 'suspended' | 'cancelled' | 'pending';
+// Tenant status — canonical list backing both the Zod enum and the
+// transition-validation logic in server/tenantLifecycle.ts.
+export const TENANT_STATUSES = ['active', 'suspended', 'cancelled', 'pending'] as const;
+export type TenantStatus = typeof TENANT_STATUSES[number];
 
 // Tenants table - each paying customer
 export const tenants = pgTable("tenants", {

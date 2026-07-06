@@ -12,7 +12,13 @@ const router = Router();
 
 router.get("/users", isAuthenticated, isAdmin, async (req: Request, res: Response) => {
   try {
-    const users = await storage.getAllUsers();
+    const allUsers = await storage.getAllUsers();
+    // Default to platform admins + tenant-less users — tenant-scoped researcher
+    // accounts are managed from their customer's detail page (Users tab), which
+    // already has reset-password/deactivate actions. Pass ?includeTenantUsers=true
+    // to see everyone, for edge cases (e.g. auditing).
+    const includeTenantUsers = req.query.includeTenantUsers === "true";
+    const users = includeTenantUsers ? allUsers : allUsers.filter((u) => !u.tenantId);
     return res.json({ users });
   } catch (error) {
     console.error("Get users error:", error);

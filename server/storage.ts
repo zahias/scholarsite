@@ -99,7 +99,6 @@ export interface IStorage {
   getAllPublicResearcherProfiles(): Promise<ResearcherProfile[]>;
   upsertResearcherProfile(profile: InsertResearcherProfile): Promise<ResearcherProfile>;
   updateResearcherProfile(id: string, updates: Partial<ResearcherProfile>): Promise<ResearcherProfile>;
-  deleteResearcherProfile(openalexId: string): Promise<void>;
 
   // OpenAlex data cache operations
   getOpenalexData(openalexId: string, dataType: string): Promise<OpenalexData | undefined>;
@@ -131,6 +130,8 @@ export interface IStorage {
 
   // Sync logs operations
   getSyncLogs(profileId: string): Promise<SyncLog[]>;
+  getAllSyncLogs(limit?: number): Promise<Array<SyncLog & { tenantName: string | null }>>;
+  getSyncLogsByTenant(tenantId: string, limit?: number): Promise<SyncLog[]>;
   createSyncLog(log: InsertSyncLog): Promise<SyncLog>;
   updateSyncLog(id: string, updates: Partial<SyncLog>): Promise<SyncLog | undefined>;
 
@@ -166,12 +167,23 @@ export interface IStorage {
     clicksByTarget: Array<{ target: string; count: number }>;
   }>;
   aggregateDailyAnalytics(openalexId: string, date: string): Promise<void>;
+  getAnalyticsSummaryByTenant(tenantId: string, days?: number): Promise<{
+    totalViews: number;
+    uniqueVisitors: number;
+    totalClicks: number;
+    totalShares: number;
+    totalDownloads: number;
+    viewsByDay: Array<{ date: string; views: number; uniqueVisitors: number }>;
+    topReferrers: Array<{ referrer: string; count: number }>;
+    clicksByTarget: Array<{ target: string; count: number }>;
+  } | null>;
 
   // Payment operations
   createPayment(payment: InsertPayment): Promise<Payment>;
   getPaymentByOrderNumber(orderNumber: string): Promise<Payment | undefined>;
   getAllPayments(): Promise<Payment[]>;
   getPaymentsByEmail(email: string): Promise<Payment[]>;
+  getPaymentsByTenant(tenantId: string): Promise<Payment[]>;
   updatePaymentStatus(orderNumber: string, status: PaymentStatus, transactionId?: string): Promise<Payment | undefined>;
   updatePaymentSessionId(orderNumber: string, sessionId: string): Promise<Payment | undefined>;
   provisionTenantFromPayment(paymentId: string): Promise<Tenant | undefined>;
@@ -221,16 +233,31 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteTenant(id: string): Promise<void> {
-    // Delete in order: domains, users, profiles, then tenant
+    // Delete every table that has a foreign key back to this tenant/profile
+    // before the tenant itself — payments, sync_logs, profile_sections, and
+    // profile_analytics(_daily) all reference tenants/researcher_profiles with
+    // no ON DELETE CASCADE, so leaving any of them out makes this fail with a
+    // foreign key violation for any tenant that's ever synced, been viewed, or
+    // paid — i.e. almost any real customer, not just fresh empty signups.
     await db.transaction(async (tx: any) => {
-      // Get the profile to delete related OpenAlex data
       const [profile] = await tx.select().from(researcherProfiles).where(eq(researcherProfiles.tenantId, id));
-      if (profile && profile.openalexId) {
-        await tx.delete(openalexData).where(eq(openalexData.openalexId, profile.openalexId));
-        await tx.delete(researchTopics).where(eq(researchTopics.openalexId, profile.openalexId));
-        await tx.delete(publications).where(eq(publications.openalexId, profile.openalexId));
-        await tx.delete(affiliations).where(eq(affiliations.openalexId, profile.openalexId));
+
+      if (profile) {
+        await tx.delete(profileSections).where(eq(profileSections.profileId, profile.id));
+        await tx.delete(profileAnalytics).where(eq(profileAnalytics.profileId, profile.id));
+        await tx.delete(profileAnalyticsDaily).where(eq(profileAnalyticsDaily.profileId, profile.id));
+        await tx.delete(syncLogs).where(eq(syncLogs.profileId, profile.id));
+
+        if (profile.openalexId) {
+          await tx.delete(openalexData).where(eq(openalexData.openalexId, profile.openalexId));
+          await tx.delete(researchTopics).where(eq(researchTopics.openalexId, profile.openalexId));
+          await tx.delete(publications).where(eq(publications.openalexId, profile.openalexId));
+          await tx.delete(affiliations).where(eq(affiliations.openalexId, profile.openalexId));
+        }
       }
+
+      await tx.delete(syncLogs).where(eq(syncLogs.tenantId, id));
+      await tx.delete(payments).where(eq(payments.tenantId, id));
       await tx.delete(domains).where(eq(domains.tenantId, id));
       await tx.delete(users).where(eq(users.tenantId, id));
       await tx.delete(researcherProfiles).where(eq(researcherProfiles.tenantId, id));
@@ -496,19 +523,6 @@ export class DatabaseStorage implements IStorage {
     return result;
   }
 
-  async deleteResearcherProfile(openalexId: string): Promise<void> {
-    // Use transaction to ensure all deletes complete atomically
-    await db.transaction(async (tx: any) => {
-      // Delete all related data for this researcher
-      await tx.delete(openalexData).where(eq(openalexData.openalexId, openalexId));
-      await tx.delete(researchTopics).where(eq(researchTopics.openalexId, openalexId));
-      await tx.delete(publications).where(eq(publications.openalexId, openalexId));
-      await tx.delete(affiliations).where(eq(affiliations.openalexId, openalexId));
-      // Finally delete the profile
-      await tx.delete(researcherProfiles).where(eq(researcherProfiles.openalexId, openalexId));
-    });
-  }
-
   // OpenAlex data cache operations
   async getOpenalexData(openalexId: string, dataType: string): Promise<OpenalexData | undefined> {
     const [data] = await db
@@ -740,6 +754,37 @@ export class DatabaseStorage implements IStorage {
       .limit(50);
   }
 
+  async getAllSyncLogs(limit: number = 50): Promise<Array<SyncLog & { tenantName: string | null }>> {
+    const rows = await db
+      .select({
+        id: syncLogs.id,
+        tenantId: syncLogs.tenantId,
+        profileId: syncLogs.profileId,
+        syncType: syncLogs.syncType,
+        status: syncLogs.status,
+        itemsProcessed: syncLogs.itemsProcessed,
+        itemsTotal: syncLogs.itemsTotal,
+        errorMessage: syncLogs.errorMessage,
+        startedAt: syncLogs.startedAt,
+        completedAt: syncLogs.completedAt,
+        tenantName: tenants.name,
+      })
+      .from(syncLogs)
+      .leftJoin(tenants, eq(syncLogs.tenantId, tenants.id))
+      .orderBy(desc(syncLogs.startedAt))
+      .limit(limit);
+    return rows as Array<SyncLog & { tenantName: string | null }>;
+  }
+
+  async getSyncLogsByTenant(tenantId: string, limit: number = 20): Promise<SyncLog[]> {
+    return await db
+      .select()
+      .from(syncLogs)
+      .where(eq(syncLogs.tenantId, tenantId))
+      .orderBy(desc(syncLogs.startedAt))
+      .limit(limit);
+  }
+
   async createSyncLog(log: InsertSyncLog): Promise<SyncLog> {
     const [result] = await db
       .insert(syncLogs)
@@ -902,6 +947,10 @@ export class DatabaseStorage implements IStorage {
 
   async getPaymentsByEmail(email: string): Promise<Payment[]> {
     return await db.select().from(payments).where(eq(payments.customerEmail, email)).orderBy(desc(payments.createdAt));
+  }
+
+  async getPaymentsByTenant(tenantId: string): Promise<Payment[]> {
+    return await db.select().from(payments).where(eq(payments.tenantId, tenantId)).orderBy(desc(payments.createdAt));
   }
 
   // ─── Password reset tokens ──────────────────────────────────────────────────
@@ -1216,6 +1265,12 @@ export class DatabaseStorage implements IStorage {
       set: { views, uniqueVisitors, clicks, shares, downloads },
     });
   }
+
+  async getAnalyticsSummaryByTenant(tenantId: string, days: number = 30) {
+    const profile = await this.getResearcherProfileByTenant(tenantId);
+    if (!profile?.openalexId) return null;
+    return this.getAnalyticsSummary(profile.openalexId, days);
+  }
 }
 
 // In-memory fallback storage for development when DATABASE_URL is not configured.
@@ -1240,10 +1295,6 @@ class MemoryStorage {
 
   async updateResearcherProfile(_id: string, _updates: any) {
     return {} as any;
-  }
-
-  async deleteResearcherProfile(_openalexId: string) {
-    return;
   }
 
   async getOpenalexData(_openalexId: string, _dataType: string) {
@@ -1322,6 +1373,14 @@ class MemoryStorage {
     return [];
   }
 
+  async getAllSyncLogs(_limit?: number) {
+    return [];
+  }
+
+  async getSyncLogsByTenant(_tenantId: string, _limit?: number) {
+    return [];
+  }
+
   async createSyncLog(_log: any) {
     return { id: 'dev-sync-log' } as any;
   }
@@ -1385,6 +1444,7 @@ class MemoryStorage {
   async bulkApplyThemeToTenants(_themeId: string, _tenantIds?: string[]) { return { updated: 0 }; }
   async getTenantsWithThemeInfo() { return []; }
   async getPaymentsByEmail(_email: string) { return []; }
+  async getPaymentsByTenant(_tenantId: string) { return []; }
   async getAllPayments() { return []; }
   async createPayment(_payment: any) { return {} as any; }
   async getPaymentByOrderNumber(_orderNumber: string) { return undefined; }
@@ -1406,6 +1466,7 @@ class MemoryStorage {
     };
   }
   async aggregateDailyAnalytics(_openalexId: string, _date: string) { return; }
+  async getAnalyticsSummaryByTenant(_tenantId: string, _days?: number) { return null; }
   async createPasswordResetToken(_userId: string, _token: string, _expiresAt: Date) { return; }
   async getPasswordResetToken(_token: string) { return undefined; }
   async markPasswordResetTokenUsed(_token: string) { return; }
