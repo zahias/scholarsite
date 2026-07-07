@@ -1,37 +1,13 @@
 import { useParams, useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import Navigation from "./Navigation";
-import StatsOverview from "./StatsOverview";
-import PublicationAnalytics from "./PublicationAnalytics";
-import CareerTimeline from "./CareerTimeline";
-import ResearchTopics from "./ResearchTopics";
-import Publications from "./Publications";
-import ProfileSections from "./ProfileSections";
-import ResearchInsights from "./ResearchInsights";
 import SEO from "./SEO";
-import MobileBottomNav from "./MobileBottomNav";
-import { ThemeSwitcher } from "./ThemeSwitcher";
-import ResearchPassport from "./ResearchPassport";
-import CollapsibleSection from "./CollapsibleSection";
-import ShareButtons from "./ShareButtons";
-import ReportIssue from "./ReportIssue";
-import ProfilePageShell from "./ProfilePageShell";
+import ResearcherProfileContent from "./ResearcherProfileContent";
 import { ProfileThemeProvider, useProfileTheme, getThemeStyles } from "@/context/ThemeContext";
-import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Badge } from "@/components/ui/badge";
-import type { ResearcherProfile as ResearcherProfileType } from "@shared/schema";
-import { useMemo, useState, useEffect, useCallback } from "react";
-import { BarChart3, BookOpen, FileText, Home, Lock, User, UserX } from "lucide-react";
+import { useMemo, useEffect } from "react";
+import { Lock, UserX } from "lucide-react";
 import EmptyState from "@/components/EmptyState";
-
-const researcherMobileNavItems = [
-  { id: "overview", label: "Overview", icon: Home },
-  { id: "insights", label: "Insights", icon: BarChart3 },
-  { id: "about", label: "About", icon: User },
-  { id: "publications", label: "Publications", icon: BookOpen },
-];
 
 // Analytics tracking helper
 const trackProfileEvent = async (openalexId: string, eventType: string, eventTarget?: string) => {
@@ -51,7 +27,7 @@ const trackProfileEvent = async (openalexId: string, eventType: string, eventTar
   }
 };
 
-function ResearcherProfileContent() {
+function ResearcherProfileInner() {
   const { id } = useParams();
   const [, navigate] = useLocation();
 
@@ -77,13 +53,6 @@ function ResearcherProfileContent() {
     if (openalexIdForTracking && !researcherData?.isPreview) {
       trackProfileEvent(openalexIdForTracking, "view");
     }
-  }, [openalexIdForTracking, researcherData?.isPreview]);
-
-  const handleTrackedClick = useCallback((target: string, url?: string) => {
-    if (openalexIdForTracking && !researcherData?.isPreview) {
-      trackProfileEvent(openalexIdForTracking, "click", target);
-    }
-    if (url) window.open(url, "_blank", "noopener,noreferrer");
   }, [openalexIdForTracking, researcherData?.isPreview]);
 
   const profile = researcherData?.profile;
@@ -211,97 +180,13 @@ function ResearcherProfileContent() {
       />
       <Navigation researcherName={displayName} />
 
-      {/* ── Shared shell: banner + identity card + stats ── */}
-      <ProfilePageShell
+      <ResearcherProfileContent
+        data={researcherData}
         displayName={displayName}
-        title={profile?.title}
-        currentPosition={profile?.currentPosition}
-        isPreview={isPreview}
-        affiliation={profile?.currentAffiliation || researcher?.last_known_institutions?.[0]?.display_name}
-        affiliationUrl={profile?.currentAffiliationUrl}
-        bio={profile?.bio}
-        profileImageUrl={profile?.profileImageUrl}
-        orcidUrl={profile?.orcidUrl}
-        googleScholarUrl={profile?.googleScholarUrl}
-        researchGateUrl={profile?.researchGateUrl}
-        linkedinUrl={profile?.linkedinUrl}
-        websiteUrl={profile?.websiteUrl}
-        twitterUrl={profile?.twitterUrl}
-        contactEmail={profile?.contactEmail || profile?.email}
-        cvUrl={profile?.cvUrl}
         openalexId={openalexId}
-        worksCount={researcher?.works_count}
-        citedByCount={researcher?.cited_by_count}
-        hIndex={researcher?.summary_stats?.h_index}
-        i10Index={researcher?.summary_stats?.i10_index}
-        topics={researcherData?.topics}
-        actionsSlot={(
-          <ResearchPassport
-            openalexId={openalexId}
-            name={displayName}
-            title={profile?.title}
-            institution={profile?.currentAffiliation || researcher?.last_known_institutions?.[0]?.display_name}
-            publicationCount={researcher?.works_count || 0}
-            citationCount={researcher?.cited_by_count || 0}
-            profileUrl={typeof window !== "undefined" ? window.location.href : ""}
-          />
-        )}
+        isPreview={isPreview}
+        showResearchPassport={true}
       />
-
-      {/* ── Section components (all custom / researcher-specific) ── */}
-
-      {(isPreview || profile?.bio) && (
-        <div className="profile-wide-container">
-          <CollapsibleSection id="about" title="About" icon={<User size={18} />} defaultOpen={true} mobileDefaultOpen={true}>
-            <p className="text-sm md:text-base text-muted-foreground leading-relaxed" data-testid="text-bio">
-              {profile?.bio ? profile.bio : (
-                <span className="italic opacity-70">
-                  Share your research journey, expertise, and what drives your work. Highlight your key contributions
-                  and areas of specialization to help collaborators and students discover your profile.
-                </span>
-              )}
-            </p>
-          </CollapsibleSection>
-        </div>
-      )}
-
-      {researcherData?.profileSections && researcherData.profileSections.length > 0 && (
-        <div className="profile-wide-container">
-          <ProfileSections sections={researcherData.profileSections} />
-        </div>
-      )}
-
-      <div className="profile-wide-container">
-        <ResearchInsights
-          openalexId={openalexId}
-          researcherData={researcherData}
-          researcherName={displayName}
-        />
-
-        <CollapsibleSection
-          id="publications" title="Publications"
-          icon={<FileText size={18} />}
-          defaultOpen={true} mobileDefaultOpen={false}>
-          <Publications openalexId={openalexId} inline />
-        </CollapsibleSection>
-      </div>
-
-      {/* Footer */}
-      <footer style={{ background: "#0B1F3A", padding: "28px 32px", marginTop: 16 }}>
-          <div className="profile-wide-container" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
-          <p style={{ color: "rgba(255,255,255,.5)", fontSize: 13, margin: 0 }}>
-            © {new Date().getFullYear()} Scholar.name. All rights reserved.
-          </p>
-          <div style={{ display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
-            {researcherData?.lastSynced && (
-              <p style={{ color: "rgba(255,255,255,.35)", fontSize: 12, margin: 0 }}>
-                Last sync: {new Date(researcherData.lastSynced).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
-              </p>
-            )}
-            <ReportIssue openalexId={openalexId} researcherName={displayName} />
-          </div>
-        </div>
-      </footer>
 
       {/* Sticky Claim Profile CTA — desktop, preview mode only */}
       {isPreview && (
@@ -340,18 +225,14 @@ function ResearcherProfileContent() {
           </div>
         </div>
       )}
-
-      <MobileBottomNav items={researcherMobileNavItems} />
-      <ThemeSwitcher isPreview={isPreview} />
     </div>
   );
 }
 
 export default function ResearcherProfile() {
-  const { id } = useParams();
   return (
     <ProfileThemeProvider initialThemeId={null}>
-      <ResearcherProfileContent />
+      <ResearcherProfileInner />
     </ProfileThemeProvider>
   );
 }

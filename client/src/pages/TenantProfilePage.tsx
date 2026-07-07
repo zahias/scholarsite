@@ -1,20 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
 import Navigation from "@/components/Navigation";
 import { ProfileThemeProvider } from "@/context/ThemeContext";
-import ResearchPassport from "@/components/ResearchPassport";
-import StatsOverview from "@/components/StatsOverview";
-import PublicationAnalytics from "@/components/PublicationAnalytics";
-import ResearchTopics from "@/components/ResearchTopics";
-import Publications from "@/components/Publications";
 import SEO from "@/components/SEO";
-import MobileBottomNav from "@/components/MobileBottomNav";
-import CollapsibleSection from "@/components/CollapsibleSection";
-import ProfilePageShell from "@/components/ProfilePageShell";
-import ProfileSections from "@/components/ProfileSections";
+import ResearcherProfileContent from "@/components/ResearcherProfileContent";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { useMemo } from "react";
-import { Building2, BarChart3, Lightbulb, FileText, Download, ExternalLink } from "lucide-react";
 
 export default function TenantProfilePage() {
   const { data: profileData, isLoading, error } = useQuery<{
@@ -121,87 +111,15 @@ export default function TenantProfilePage() {
           sections={visibleSections.map((s) => ({ id: s.id, title: s.title }))}
         />
 
-        {/* ── Shared shell: banner + identity card + stats ── */}
-        <ProfilePageShell
+        <ResearcherProfileContent
+          data={profileData}
           displayName={displayName}
-          title={profile?.title}
-          currentPosition={profile?.currentPosition}
-          affiliation={profile?.currentAffiliation || researcher?.last_known_institutions?.[0]?.display_name}
-          affiliationUrl={profile?.currentAffiliationUrl}
-          bio={profile?.bio}
-          profileImageUrl={profile?.profileImageUrl}
-          orcidUrl={profile?.orcidUrl}
-          googleScholarUrl={profile?.googleScholarUrl}
-          researchGateUrl={profile?.researchGateUrl}
-          linkedinUrl={profile?.linkedinUrl}
-          websiteUrl={profile?.websiteUrl}
-          twitterUrl={profile?.twitterUrl}
-          contactEmail={profile?.contactEmail || profile?.email}
-          cvUrl={profile?.cvUrl}
-          openalexId={openalexId || null}
-          worksCount={researcher?.works_count}
-          citedByCount={researcher?.cited_by_count}
-          hIndex={researcher?.summary_stats?.h_index}
-          i10Index={researcher?.summary_stats?.i10_index}
-          actionsSlot={
-            tenant?.plan === "professional" && openalexId ? (
-              <ResearchPassport
-                openalexId={openalexId}
-                name={displayName}
-                title={profile?.title}
-                institution={profile?.currentAffiliation || researcher?.last_known_institutions?.[0]?.display_name}
-                publicationCount={researcher?.works_count || 0}
-                citationCount={researcher?.cited_by_count || 0}
-                profileUrl={typeof window !== "undefined" ? window.location.href : ""}
-              />
-            ) : undefined
-          }
+          openalexId={openalexId}
+          showResearchPassport={tenant?.plan === "professional" && !!openalexId}
+          footerBrandName={tenant?.name || "Scholar.name"}
+          showPoweredBy={true}
         />
 
-        {/* ── Section components ── */}
-        <div style={{ maxWidth: 860, margin: "16px auto 0", padding: "0 24px 40px" }}>
-
-          <CollapsibleSection
-            id="analytics" title="Publication Analytics"
-            icon={<BarChart3 size={18} />}
-            defaultOpen={true} mobileDefaultOpen={false}>
-            <PublicationAnalytics openalexId={openalexId} researcherData={profileData} inline />
-          </CollapsibleSection>
-
-          <CollapsibleSection
-            id="research" title="Research Areas"
-            icon={<Lightbulb size={18} />}
-            defaultOpen={true} mobileDefaultOpen={false}
-            badge={profileData?.topics?.length ? <Badge variant="secondary" className="ml-2">{profileData.topics.length}</Badge> : null}>
-            <ResearchTopics openalexId={openalexId} inline />
-          </CollapsibleSection>
-
-          <CollapsibleSection
-            id="publications" title="Publications"
-            icon={<FileText size={18} />}
-            defaultOpen={true} mobileDefaultOpen={false}
-            badge={researcher?.works_count ? <Badge variant="secondary" className="ml-2">{researcher.works_count}</Badge> : null}>
-            <Publications openalexId={openalexId} inline />
-          </CollapsibleSection>
-
-          <ProfileSections sections={visibleSections} />
-        </div>
-
-        {/* Footer */}
-        <footer style={{ background: "#0B1F3A", padding: "28px 32px" }}>
-          <div style={{ maxWidth: 860, margin: "0 auto", display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
-            <p style={{ color: "rgba(255,255,255,.5)", fontSize: 13, margin: 0 }}>
-              © {new Date().getFullYear()} {tenant?.name || "Scholar.name"}. Powered by Scholar.name.
-            </p>
-            {profileData?.lastSynced && (
-              <p style={{ color: "rgba(255,255,255,.35)", fontSize: 12, margin: 0 }}>
-                Last synced: {new Date(profileData.lastSynced).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}
-              </p>
-            )}
-          </div>
-        </footer>
-
-        <MobileBottomNav />
         {profileData?.claimState === "inactive" && (
           <div className="fixed bottom-0 left-0 right-0 z-50 bg-primary text-primary-foreground border-t border-primary/20 shadow-lg">
             <div className="profile-wide-container py-3 flex flex-col sm:flex-row items-center justify-between gap-3">
