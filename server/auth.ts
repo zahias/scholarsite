@@ -333,7 +333,7 @@ router.patch("/profile", isAuthenticated, async (req: Request, res: Response) =>
     const updateSchema = z.object({
       firstName: z.string().min(1).optional(),
       lastName: z.string().min(1).optional(),
-      profileImageUrl: z.string().url().optional().nullable(),
+      profileImageUrl: z.string().url().optional().nullable().or(z.literal("")),
     });
 
     const validatedData = updateSchema.parse(req.body);

@@ -164,8 +164,11 @@ const updateProfileSchema = z.object({
   title: z.string().nullable().optional(),
   currentPosition: z.string().nullable().optional(),
   currentAffiliation: z.string().nullable().optional(),
-  currentAffiliationUrl: z.string().url().nullable().optional(),
-  email: z.string().email().nullable().optional(),
+  // .url()/.email() reject "" outright, but the dashboard form sends "" for
+  // any field the user leaves blank — allow empty string through alongside
+  // a validly-formatted value, same as every other optional field here.
+  currentAffiliationUrl: z.union([z.string().url(), z.literal("")]).nullable().optional(),
+  email: z.union([z.string().email(), z.literal("")]).nullable().optional(),
   bio: z.string().nullable().optional(),
   customCss: z.string().nullable().optional(),
   socialLinks: z.record(z.string()).nullable().optional(),

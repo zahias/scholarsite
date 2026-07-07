@@ -259,7 +259,7 @@ router.patch("/tenants/:id", isAuthenticated, isAdmin, async (req: Request, res:
     const updateSchema = z.object({
       name: z.string().min(1).optional(),
       plan: z.enum(TENANT_PLANS).optional(),
-      contactEmail: z.string().email().optional().nullable(),
+      contactEmail: z.string().email().optional().nullable().or(z.literal("")),
       logoUrl: z.string().optional().nullable(),
       notes: z.string().optional().nullable(),
       subscriptionStartDate: z.string().optional().nullable(),
