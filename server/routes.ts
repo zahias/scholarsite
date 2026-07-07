@@ -1208,9 +1208,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (database.missingConstraints.length > 0) {
         console.error(`[DatabaseHealth] Missing required unique constraints: ${database.missingConstraints.join(", ")}`);
       }
-      // Detail is only included for callers holding the internal job token —
+      // Detail is only included for callers holding the admin API token —
       // avoids leaking internal schema/column names on a public endpoint.
-      const detail = hasValidJobToken(req)
+      const authHeader = req.get('authorization');
+      const providedToken = authHeader?.startsWith('Bearer ') ? authHeader.slice('Bearer '.length) : undefined;
+      const detail = tokensMatch(process.env.ADMIN_API_TOKEN, providedToken)
         ? { missingColumns: database.missingColumns, missingConstraints: database.missingConstraints }
         : undefined;
       return res.status(503).json({
