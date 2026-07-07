@@ -1208,6 +1208,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (database.missingConstraints.length > 0) {
         console.error(`[DatabaseHealth] Missing required unique constraints: ${database.missingConstraints.join(", ")}`);
       }
+      if (database.missingPrivileges.length > 0) {
+        console.error(`[DatabaseHealth] Missing required table privileges: ${database.missingPrivileges.join(", ")}`);
+      }
       return res.status(503).json({
         status: 'error',
         category: database.category,

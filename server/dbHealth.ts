@@ -43,12 +43,30 @@ const REQUIRED_UNIQUE_CONSTRAINTS: Record<string, string[]> = {
   openalex_data: ["openalex_id", "data_type"],
 };
 
+// Tables the app reads/writes at runtime. Kept separate from REQUIRED_COLUMNS
+// because some of these (payments, profile_analytics*, sync_logs) were
+// created by the DB owner role via phpPgAdmin rather than by the app's own
+// migrations — creating a table grants no privileges to other roles in
+// Postgres, so these can exist with the right columns and still be
+// completely unusable to the app. That combination (table present, columns
+// present, privileges absent) is exactly what surfaced as 500s on customer
+// delete/payments/analytics with no earlier warning from this health check.
+const APP_TABLES = Array.from(new Set([
+  ...Object.keys(REQUIRED_COLUMNS),
+  "payments",
+  "profile_analytics",
+  "profile_analytics_daily",
+  "sync_logs",
+  "password_reset_tokens",
+]));
+
 export type DatabaseHealth = {
   connected: boolean;
   schemaReady: boolean;
   category: "ok" | "database_unreachable" | "schema_incomplete";
   missingColumns: string[];
   missingConstraints: string[];
+  missingPrivileges: string[];
 };
 
 export async function checkDatabaseHealth(): Promise<DatabaseHealth> {
@@ -59,6 +77,7 @@ export async function checkDatabaseHealth(): Promise<DatabaseHealth> {
       category: "database_unreachable",
       missingColumns: [],
       missingConstraints: [],
+      missingPrivileges: [],
     };
   }
 
@@ -105,7 +124,30 @@ export async function checkDatabaseHealth(): Promise<DatabaseHealth> {
       .filter(([table, columns]) => !constraintSets.has(`${table}:${[...columns].sort().join(",")}`))
       .map(([table, columns]) => `${table}(${columns.join(", ")})`);
 
-    const schemaReady = missingColumns.length === 0 && missingConstraints.length === 0;
+    // has_table_privilege reflects what the connected role can actually do —
+    // unlike the column/constraint checks above, a table can pass both of
+    // those and still be entirely unusable if it was created by a different
+    // role that never granted this one access.
+    const privilegeResult = await client.query(
+      `SELECT
+         tbl AS table_name,
+         has_table_privilege(current_user, tbl, 'SELECT') AS can_select,
+         has_table_privilege(current_user, tbl, 'INSERT') AS can_insert,
+         has_table_privilege(current_user, tbl, 'UPDATE') AS can_update,
+         has_table_privilege(current_user, tbl, 'DELETE') AS can_delete
+       FROM unnest($1::text[]) AS tbl`,
+      [APP_TABLES],
+    );
+    const missingPrivileges = (privilegeResult.rows as Array<{
+      table_name: string; can_select: boolean; can_insert: boolean; can_update: boolean; can_delete: boolean;
+    }>).flatMap((row) => {
+      const missing = (["select", "insert", "update", "delete"] as const).filter(
+        (priv) => !row[`can_${priv}` as const],
+      );
+      return missing.length > 0 ? [`${row.table_name}(${missing.join(", ")})`] : [];
+    });
+
+    const schemaReady = missingColumns.length === 0 && missingConstraints.length === 0 && missingPrivileges.length === 0;
 
     return {
       connected: true,
@@ -113,6 +155,7 @@ export async function checkDatabaseHealth(): Promise<DatabaseHealth> {
       category: schemaReady ? "ok" : "schema_incomplete",
       missingColumns,
       missingConstraints,
+      missingPrivileges,
     };
   } catch (error) {
     console.error("[DatabaseHealth] Connectivity check failed:", error instanceof Error ? error.message : error);
@@ -122,6 +165,7 @@ export async function checkDatabaseHealth(): Promise<DatabaseHealth> {
       category: "database_unreachable",
       missingColumns: [],
       missingConstraints: [],
+      missingPrivileges: [],
     };
   } finally {
     client?.release();
