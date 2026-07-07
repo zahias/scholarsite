@@ -1,11 +1,12 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { 
-  Lightbulb, 
-  Award, 
-  GraduationCap, 
+import {
+  Lightbulb,
+  Award,
+  GraduationCap,
   DollarSign,
-  FileText 
+  FileText
 } from "lucide-react";
+import SectionContent from "@/lib/renderSectionContent";
 
 interface ProfileSection {
   id: string;
@@ -72,66 +73,6 @@ function getSectionColor(sectionType: string) {
   }
 }
 
-// Simple markdown-like renderer for content
-function renderContent(content: string) {
-  // Split by newlines and process each line
-  const lines = content.split('\n');
-  
-  return lines.map((line, index) => {
-    // Headers
-    if (line.startsWith('### ')) {
-      return <h4 key={index} className="font-semibold text-lg mt-4 mb-2">{line.slice(4)}</h4>;
-    }
-    if (line.startsWith('## ')) {
-      return <h3 key={index} className="font-semibold text-xl mt-4 mb-2">{line.slice(3)}</h3>;
-    }
-    if (line.startsWith('# ')) {
-      return <h2 key={index} className="font-bold text-2xl mt-4 mb-2">{line.slice(2)}</h2>;
-    }
-    
-    // List items
-    if (line.startsWith('- ') || line.startsWith('* ')) {
-      return (
-        <li key={index} className="ml-4 list-disc text-muted-foreground">
-          {line.slice(2)}
-        </li>
-      );
-    }
-    
-    // Numbered list items
-    const numberedMatch = line.match(/^\d+\.\s/);
-    if (numberedMatch) {
-      return (
-        <li key={index} className="ml-4 list-decimal text-muted-foreground">
-          {line.slice(numberedMatch[0].length)}
-        </li>
-      );
-    }
-    
-    // Empty lines
-    if (line.trim() === '') {
-      return <br key={index} />;
-    }
-    
-    // Regular paragraphs - handle bold and italic safely
-    const parts = line.split(/(\*\*.*?\*\*|\*.*?\*|_.*?_)/g);
-    
-    return (
-      <p key={index} className="text-muted-foreground mb-2">
-        {parts.map((part, i) => {
-          if (part.startsWith('**') && part.endsWith('**')) {
-            return <strong key={i}>{part.slice(2, -2)}</strong>;
-          }
-          if ((part.startsWith('*') && part.endsWith('*')) || (part.startsWith('_') && part.endsWith('_'))) {
-            return <em key={i}>{part.slice(1, -1)}</em>;
-          }
-          return part;
-        })}
-      </p>
-    );
-  });
-}
-
 export default function ProfileSections({ sections }: ProfileSectionsProps) {
   if (!sections || sections.length === 0) {
     return null;
@@ -141,16 +82,17 @@ export default function ProfileSections({ sections }: ProfileSectionsProps) {
   const sortedSections = [...sections].sort((a, b) => a.sortOrder - b.sortOrder);
 
   return (
-    <section className="py-12 bg-muted/30" id="about">
+    <section className="py-12 bg-muted/30">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {sortedSections.map((section) => {
             const colors = getSectionColor(section.sectionType);
-            
+
             return (
-              <Card 
+              <Card
                 key={section.id}
-                className={`border ${colors.border} shadow-sm hover:shadow-md transition-shadow`}
+                id={section.id}
+                className={`border ${colors.border} shadow-sm hover:shadow-md transition-shadow scroll-mt-24`}
               >
                 <CardHeader className="pb-3">
                   <CardTitle className="flex items-center gap-3 text-lg">
@@ -162,7 +104,7 @@ export default function ProfileSections({ sections }: ProfileSectionsProps) {
                 </CardHeader>
                 <CardContent>
                   <div className="prose prose-sm max-w-none">
-                    {renderContent(section.content)}
+                    <SectionContent content={section.content} />
                   </div>
                 </CardContent>
               </Card>

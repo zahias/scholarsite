@@ -348,6 +348,56 @@ router.post("/upload-photo", isAuthenticated, uploadImage.single('photo'), async
   }
 });
 
+// Image upload for the profile-sections rich-text editor. Unlike /upload-photo,
+// this doesn't persist anything itself — it just returns a URL for the editor
+// to embed in the section's JSON content, which gets saved via the existing
+// /sections POST/PATCH routes.
+router.post("/sections/upload-image", isAuthenticated, uploadImage.single('image'), async (req: Request, res: Response) => {
+  try {
+    const userId = req.session?.userId;
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    if (!req.file) {
+      return res.status(400).json({ message: "No file uploaded" });
+    }
+
+    const user = await storage.getUser(userId);
+    if (!user || !user.tenantId) {
+      return res.status(404).json({ message: "No tenant associated with this user" });
+    }
+
+    // fileFilter above already rejects anything not in IMAGE_MIME_EXTENSIONS
+    const fileExtension = IMAGE_MIME_EXTENSIONS[req.file.mimetype] || 'jpg';
+    const filename = `uploads/profile-sections/${user.tenantId}-section-${Date.now()}.${fileExtension}`;
+    let url: string;
+
+    const storageBucketId = process.env.DEFAULT_OBJECT_STORAGE_BUCKET_ID;
+    if (storageBucketId) {
+      const objectStorage = new ObjectStorageClient({ bucketId: storageBucketId });
+      const objectFilename = `public/profile-sections/${user.tenantId}-section-${Date.now()}.${fileExtension}`;
+
+      const uploadResult = await objectStorage.uploadFromBytes(objectFilename, req.file.buffer);
+
+      if (!uploadResult.ok) {
+        console.error('Object storage upload error:', uploadResult.error);
+        return res.status(500).json({ message: "Failed to upload file to storage" });
+      }
+
+      const publicPath = objectFilename.replace('public/', '');
+      url = `/public-objects/${publicPath}`;
+    } else {
+      url = await saveFileLocally(filename, req.file.buffer);
+    }
+
+    res.json({ url });
+  } catch (error: unknown) {
+    console.error("Error uploading section image:", error);
+    res.status(500).json({ message: "Failed to upload image" });
+  }
+});
+
 // CV/Resume upload with PDF support
 const uploadDocument = multer({
   storage: multer.memoryStorage(),

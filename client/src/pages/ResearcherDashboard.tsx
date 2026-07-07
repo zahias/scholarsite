@@ -5,6 +5,26 @@ import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import GlobalFooter from "@/components/GlobalFooter";
 import { ThemePreviewSwatch } from "@/components/ThemePreviewSwatch";
+import SectionEditor, { type SectionEditorHandle } from "@/components/SectionEditor";
+import { parseSectionContentForEditing, extractPlainTextPreview } from "@/lib/renderSectionContent";
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  KeyboardSensor,
+  useSensor,
+  useSensors,
+  MeasuringStrategy,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  verticalListSortingStrategy,
+  arrayMove,
+  useSortable,
+  sortableKeyboardCoordinates,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import type { Theme, ThemeConfig } from "@shared/schema";
 import {
   User,
@@ -39,9 +59,17 @@ import {
   History,
   Clock,
   XCircle,
-  ArrowUp,
-  ArrowDown,
 } from "lucide-react";
+
+// dnd-kit's default MeasuringStrategy.Always re-measures every droppable rect
+// on every render — including ones caused by clicking Edit/Delete/visibility-
+// toggle buttons that have nothing to do with dragging — which was
+// triggering a "Cannot update a component while rendering a different
+// component" warning on those unrelated clicks. Only measuring while an
+// actual drag is in progress avoids that.
+const sectionDragMeasuring = {
+  droppable: { strategy: MeasuringStrategy.WhileDragging },
+};
 
 // ───── Types ─────
 
@@ -195,6 +223,68 @@ const emptyProfileForm: ProfileFormState = {
   researchGateUrl: "",
 };
 
+// ───── Sortable section row (drag-to-reorder) ─────
+// useSortable is a hook, so each row needs its own component instance rather
+// than being called inline inside a .map() callback.
+interface SortableSectionRowProps {
+  section: ProfileSection;
+  chip: (color?: "green" | "amber" | "red" | "blue") => React.CSSProperties;
+  btnIcon: (danger?: boolean) => React.CSSProperties;
+  onEdit: () => void;
+  onToggleVisibility: () => void;
+  onDelete: () => void;
+}
+
+function SortableSectionRow({ section, chip, btnIcon, onEdit, onToggleVisibility, onDelete }: SortableSectionRowProps) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: section.id });
+  const style: React.CSSProperties = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+    display: "flex",
+    alignItems: "flex-start",
+    gap: 10,
+    padding: "14px 14px",
+    borderRadius: 10,
+    border: "1px solid rgba(11,31,58,.08)",
+    background: "#F8F9FA",
+  };
+
+  return (
+    <div ref={setNodeRef} style={style}>
+      <button
+        {...attributes}
+        {...listeners}
+        aria-label={`Drag to reorder "${section.title}"`}
+        style={{ background: "none", border: "none", padding: 0, marginTop: 2, cursor: "grab", flexShrink: 0, touchAction: "none" }}
+      >
+        <GripVertical size={15} style={{ color: "#75777E" }} />
+      </button>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 4 }}>
+          <h5 style={{ fontSize: 14, fontWeight: 600, color: "#0B1F3A", margin: 0 }}>{section.title}</h5>
+          <span style={chip()}>{section.sectionType}</span>
+          {!section.isVisible && <span style={chip("amber")}>Hidden</span>}
+        </div>
+        <p style={{ fontSize: 13, color: "#75777E", margin: 0, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
+          {extractPlainTextPreview(section.content)}
+        </p>
+      </div>
+      <div style={{ display: "flex", alignItems: "center", gap: 2, flexShrink: 0 }}>
+        <button style={btnIcon()} aria-label={`Edit "${section.title}"`} onClick={onEdit}>
+          <Edit2 size={14} />
+        </button>
+        <button style={btnIcon()} aria-label={section.isVisible ? `Hide "${section.title}"` : `Show "${section.title}"`} onClick={onToggleVisibility}>
+          {section.isVisible ? <Eye size={14} /> : <EyeOff size={14} />}
+        </button>
+        <button style={btnIcon(true)} aria-label={`Delete "${section.title}"`} onClick={onDelete}>
+          <Trash2 size={14} />
+        </button>
+      </div>
+    </div>
+  );
+}
+
 // ───── Component ─────
 
 export default function ResearcherDashboard() {
@@ -231,8 +321,8 @@ export default function ResearcherDashboard() {
   // Section editing
   const [editingSectionId, setEditingSectionId] = useState<string | null>(null);
   const [sectionTitle, setSectionTitle] = useState("");
-  const [sectionContent, setSectionContent] = useState("");
   const [sectionType, setSectionType] = useState("custom");
+  const sectionEditorRef = useRef<SectionEditorHandle>(null);
 
   // ───── Queries ─────
 
@@ -719,8 +809,8 @@ export default function ResearcherDashboard() {
         queryKey: ["/api/researcher/sections"],
       });
       setSectionTitle("");
-      setSectionContent("");
       setSectionType("custom");
+      sectionEditorRef.current?.setContent({ type: "doc", content: [] });
     },
     onError: (error: Error) => {
       toast({
@@ -759,7 +849,7 @@ export default function ResearcherDashboard() {
       });
       setEditingSectionId(null);
       setSectionTitle("");
-      setSectionContent("");
+      sectionEditorRef.current?.setContent({ type: "doc", content: [] });
     },
     onError: (error: Error) => {
       toast({
@@ -938,16 +1028,33 @@ export default function ResearcherDashboard() {
     [updateProfileMutation, tenantData],
   );
 
-  const handleMoveSection = useCallback(
-    (sectionId: string, direction: -1 | 1) => {
-      const sections = sectionsData?.sections || [];
-      const currentIndex = sections.findIndex((section) => section.id === sectionId);
-      const nextIndex = currentIndex + direction;
-      if (currentIndex < 0 || nextIndex < 0 || nextIndex >= sections.length) return;
+  // Seeds the Tiptap editor when switching which section is being edited.
+  // Deliberately an effect (runs after commit) rather than called directly
+  // inside the "Edit" button's click handler — calling editor.commands.setContent()
+  // synchronously alongside this component's own setState calls triggered a
+  // "Cannot update a component while rendering a different component" warning.
+  useEffect(() => {
+    if (!editingSectionId) return;
+    const section = sectionsData?.sections?.find((s) => s.id === editingSectionId);
+    if (section) {
+      sectionEditorRef.current?.setContent(parseSectionContentForEditing(section.content));
+    }
+  }, [editingSectionId, sectionsData?.sections]);
 
-      const reordered = [...sections];
-      const [section] = reordered.splice(currentIndex, 1);
-      reordered.splice(nextIndex, 0, section);
+  const sectionDragSensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+  );
+
+  const handleSectionDragEnd = useCallback(
+    (event: DragEndEvent) => {
+      const { active, over } = event;
+      if (!over || active.id === over.id) return;
+      const sections = sectionsData?.sections || [];
+      const oldIndex = sections.findIndex((s) => s.id === active.id);
+      const newIndex = sections.findIndex((s) => s.id === over.id);
+      if (oldIndex < 0 || newIndex < 0) return;
+      const reordered = arrayMove(sections, oldIndex, newIndex);
       reorderSectionsMutation.mutate(reordered.map((item) => item.id));
     },
     [reorderSectionsMutation, sectionsData?.sections],
@@ -1846,30 +1953,25 @@ export default function ResearcherDashboard() {
                       </div>
                     </div>
                     <div style={{ marginBottom: 14 }}>
-                      <label htmlFor="section-content" style={labelStyle}>Content</label>
-                      <textarea
-                        id="section-content"
-                        value={sectionContent}
-                        onChange={(e) => setSectionContent(e.target.value)}
-                        placeholder="Enter your content here. You can use markdown for formatting..."
-                        style={{ ...inputStyle, minHeight: 100, resize: "vertical" } as React.CSSProperties}
-                        onFocus={e => (e.target.style.borderColor = "#FFC72E")}
-                        onBlur={e => (e.target.style.borderColor = "rgba(11,31,58,.14)")}
+                      <label style={labelStyle}>Content</label>
+                      <SectionEditor
+                        ref={sectionEditorRef}
+                        initialContent={{ type: "doc", content: [] }}
                       />
                     </div>
                     <div style={{ display: "flex", gap: 8 }}>
                       {editingSectionId ? (
                         <>
                           <button
-                            onClick={() => updateSectionMutation.mutate({ id: editingSectionId, title: sectionTitle, content: sectionContent, sectionType })}
-                            disabled={!sectionTitle || !sectionContent || updateSectionMutation.isPending}
-                            style={btnPrimary(!sectionTitle || !sectionContent || updateSectionMutation.isPending)}
+                            onClick={() => updateSectionMutation.mutate({ id: editingSectionId, title: sectionTitle, content: JSON.stringify(sectionEditorRef.current?.getJSON()), sectionType })}
+                            disabled={!sectionTitle || updateSectionMutation.isPending}
+                            style={btnPrimary(!sectionTitle || updateSectionMutation.isPending)}
                           >
                             <Save size={13} />
                             Save Changes
                           </button>
                           <button
-                            onClick={() => { setEditingSectionId(null); setSectionTitle(""); setSectionContent(""); setSectionType("custom"); }}
+                            onClick={() => { setEditingSectionId(null); setSectionTitle(""); setSectionType("custom"); sectionEditorRef.current?.setContent({ type: "doc", content: [] }); }}
                             style={btnGhost()}
                           >
                             Cancel
@@ -1877,9 +1979,9 @@ export default function ResearcherDashboard() {
                         </>
                       ) : (
                         <button
-                          onClick={() => createSectionMutation.mutate({ title: sectionTitle, content: sectionContent, sectionType })}
-                          disabled={!sectionTitle || !sectionContent || createSectionMutation.isPending}
-                          style={btnPrimary(!sectionTitle || !sectionContent || createSectionMutation.isPending)}
+                          onClick={() => createSectionMutation.mutate({ title: sectionTitle, content: JSON.stringify(sectionEditorRef.current?.getJSON()), sectionType })}
+                          disabled={!sectionTitle || createSectionMutation.isPending}
+                          style={btnPrimary(!sectionTitle || createSectionMutation.isPending)}
                         >
                           <Plus size={13} />
                           Add Section
@@ -1897,62 +1999,23 @@ export default function ResearcherDashboard() {
                         <p style={{ fontSize: 14 }}>No custom sections yet. Add one above!</p>
                       </div>
                     ) : (
-                      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                        {sectionsData.sections.map((section, index) => (
-                          <div key={section.id} style={{ display: "flex", alignItems: "flex-start", gap: 10, padding: "14px 14px", borderRadius: 10, border: "1px solid rgba(11,31,58,.08)", background: "#F8F9FA" }}>
-                            <GripVertical size={15} style={{ color: "#75777E", marginTop: 2, flexShrink: 0 }} />
-                            <div style={{ flex: 1, minWidth: 0 }}>
-                              <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 4 }}>
-                                <h5 style={{ fontSize: 14, fontWeight: 600, color: "#0B1F3A", margin: 0 }}>{section.title}</h5>
-                                <span style={chip()}>{section.sectionType}</span>
-                                {!section.isVisible && <span style={chip("amber")}>Hidden</span>}
-                              </div>
-                              <p style={{ fontSize: 13, color: "#75777E", margin: 0, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
-                                {section.content}
-                              </p>
-                            </div>
-                            <div style={{ display: "flex", alignItems: "center", gap: 2, flexShrink: 0 }}>
-                              <button
-                                style={{ ...btnIcon(), opacity: index === 0 || reorderSectionsMutation.isPending ? 0.45 : 1 }}
-                                aria-label={`Move "${section.title}" up`}
-                                disabled={index === 0 || reorderSectionsMutation.isPending}
-                                onClick={() => handleMoveSection(section.id, -1)}
-                              >
-                                <ArrowUp size={14} />
-                              </button>
-                              <button
-                                style={{ ...btnIcon(), opacity: index === sectionsData.sections.length - 1 || reorderSectionsMutation.isPending ? 0.45 : 1 }}
-                                aria-label={`Move "${section.title}" down`}
-                                disabled={index === sectionsData.sections.length - 1 || reorderSectionsMutation.isPending}
-                                onClick={() => handleMoveSection(section.id, 1)}
-                              >
-                                <ArrowDown size={14} />
-                              </button>
-                              <button
-                                style={btnIcon()}
-                                aria-label={`Edit "${section.title}"`}
-                                onClick={() => { setEditingSectionId(section.id); setSectionTitle(section.title); setSectionContent(section.content); setSectionType(section.sectionType); }}
-                              >
-                                <Edit2 size={14} />
-                              </button>
-                              <button
-                                style={btnIcon()}
-                                aria-label={section.isVisible ? `Hide "${section.title}"` : `Show "${section.title}"`}
-                                onClick={() => updateSectionMutation.mutate({ id: section.id, isVisible: !section.isVisible })}
-                              >
-                                {section.isVisible ? <Eye size={14} /> : <EyeOff size={14} />}
-                              </button>
-                              <button
-                                style={btnIcon(true)}
-                                aria-label={`Delete "${section.title}"`}
-                                onClick={() => { if (confirm("Are you sure you want to delete this section?")) deleteSectionMutation.mutate(section.id); }}
-                              >
-                                <Trash2 size={14} />
-                              </button>
-                            </div>
+                      <DndContext sensors={sectionDragSensors} collisionDetection={closestCenter} measuring={sectionDragMeasuring} onDragEnd={handleSectionDragEnd}>
+                        <SortableContext items={sectionsData.sections.map((s) => s.id)} strategy={verticalListSortingStrategy}>
+                          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                            {sectionsData.sections.map((section) => (
+                              <SortableSectionRow
+                                key={section.id}
+                                section={section}
+                                chip={chip}
+                                btnIcon={btnIcon}
+                                onEdit={() => { setEditingSectionId(section.id); setSectionTitle(section.title); setSectionType(section.sectionType); }}
+                                onToggleVisibility={() => updateSectionMutation.mutate({ id: section.id, isVisible: !section.isVisible })}
+                                onDelete={() => { if (confirm("Are you sure you want to delete this section?")) deleteSectionMutation.mutate(section.id); }}
+                              />
+                            ))}
                           </div>
-                        ))}
-                      </div>
+                        </SortableContext>
+                      </DndContext>
                     )}
                   </div>
                 </div>
