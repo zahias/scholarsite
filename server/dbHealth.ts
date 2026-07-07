@@ -88,7 +88,7 @@ export async function checkDatabaseHealth(): Promise<DatabaseHealth> {
     // row, so a constraint-only check reports false positives here.
     const constraintTables = Object.keys(REQUIRED_UNIQUE_CONSTRAINTS);
     const constraintResult = await client.query(
-      `SELECT t.relname AS table_name, array_agg(a.attname ORDER BY a.attname) AS columns
+      `SELECT t.relname AS table_name, array_agg(a.attname::text ORDER BY a.attname) AS columns
        FROM pg_index i
        JOIN pg_class t ON t.oid = i.indrelid
        JOIN pg_namespace n ON n.oid = t.relnamespace
