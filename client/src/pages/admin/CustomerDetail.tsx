@@ -192,7 +192,7 @@ export default function CustomerDetail() {
   const addDomainMutation = useMutation({
     mutationFn: async (hostname: string) => {
       const response = await apiRequest("POST", `/api/admin/tenants/${tenantId}/domains`, {
-        hostname, isPrimary: !tenant?.domains?.length, isSubdomain: hostname.includes("scholarname"),
+        hostname, isPrimary: !tenant?.domains?.length, isSubdomain: hostname.toLowerCase().endsWith(".scholar.name"),
       });
       return response.json();
     },
@@ -504,7 +504,7 @@ export default function CustomerDetail() {
                     </div>
                   ))}
                   <div className="flex gap-2">
-                    <Input value={newDomain} onChange={(e) => setNewDomain(e.target.value)} placeholder="drsmith.scholarname.com or dr-smith.com" className="bg-card border-border text-foreground" data-testid="input-new-domain" />
+                    <Input value={newDomain} onChange={(e) => setNewDomain(e.target.value)} placeholder="drsmith.scholar.name or dr-smith.com" className="bg-card border-border text-foreground" data-testid="input-new-domain" />
                     <Button onClick={() => newDomain && addDomainMutation.mutate(newDomain)} disabled={!newDomain || addDomainMutation.isPending} data-testid="button-add-domain">
                       <Plus className="w-4 h-4 mr-1" />Add
                     </Button>
@@ -533,7 +533,7 @@ export default function CustomerDetail() {
               <Card className="bg-card border-border">
                 <CardHeader><CardTitle className="text-foreground flex items-center gap-2"><DollarSign className="w-5 h-5" />Payment History</CardTitle></CardHeader>
                 <CardContent className="space-y-2">
-                  {!paymentsData?.payments.length ? (
+                  {!paymentsData?.payments?.length ? (
                     <p className="text-sm text-muted-foreground">No payments recorded for this customer yet.</p>
                   ) : (
                     paymentsData.payments.map((payment) => (
@@ -566,7 +566,7 @@ export default function CustomerDetail() {
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-2">
-                  {!syncLogsData?.logs.length ? (
+                  {!syncLogsData?.logs?.length ? (
                     <p className="text-sm text-muted-foreground">No sync activity recorded yet.</p>
                   ) : (
                     syncLogsData.logs.map((log) => (
