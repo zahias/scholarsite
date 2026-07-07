@@ -2156,11 +2156,11 @@ export default function ResearcherDashboard() {
                   {/* Preview Portfolio */}
                   <div style={{ paddingBottom: 18 }}>
                     <p style={{ ...labelStyle, marginBottom: 8 }}>Preview Portfolio</p>
-                    {profile?.openalexId ? (
+                    {profile?.openalexId && primaryDomain ? (
                       <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 14px", background: "rgba(37,99,235,.05)", borderRadius: 9, border: "1px solid rgba(37,99,235,.15)" }}>
                         <ExternalLink size={15} style={{ color: "#2563EB", flexShrink: 0 }} />
                         <span style={{ fontSize: 13.5, color: "#1d4ed8", flex: 1 }}>See how visitors will view your portfolio</span>
-                        <a href={`/researcher/${profile.openalexId}`} target="_blank" rel="noopener noreferrer"
+                        <a href={`https://${primaryDomain.hostname}`} target="_blank" rel="noopener noreferrer"
                           style={{ fontSize: 13, color: "#fff", background: "#2563EB", padding: "6px 14px", borderRadius: 7, textDecoration: "none", fontWeight: 600, display: "inline-flex", alignItems: "center", gap: 4 }}
                           data-testid="link-preview-portfolio"
                         >

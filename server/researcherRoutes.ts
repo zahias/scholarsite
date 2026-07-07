@@ -158,6 +158,16 @@ router.use((req: Request, _res: Response, next: NextFunction) => {
 
 router.use(isAuthenticated, requireResearcherServiceAccess);
 
+// Zod's .url() requires a scheme, but users naturally type "harvard.edu" or
+// "www.harvard.edu" without one — prepend https:// before validating so a
+// bare domain is accepted instead of rejected as an "invalid url".
+function normalizeUrlInput(val: unknown): unknown {
+  if (typeof val !== "string") return val;
+  const trimmed = val.trim();
+  if (trimmed === "" || /^[a-z][a-z0-9+.-]*:\/\//i.test(trimmed)) return trimmed;
+  return `https://${trimmed}`;
+}
+
 const updateProfileSchema = z.object({
   openalexId: z.string().optional(),
   displayName: z.string().nullable().optional(),
@@ -167,7 +177,7 @@ const updateProfileSchema = z.object({
   // .url()/.email() reject "" outright, but the dashboard form sends "" for
   // any field the user leaves blank — allow empty string through alongside
   // a validly-formatted value, same as every other optional field here.
-  currentAffiliationUrl: z.union([z.string().url(), z.literal("")]).nullable().optional(),
+  currentAffiliationUrl: z.preprocess(normalizeUrlInput, z.union([z.string().url(), z.literal("")]).nullable().optional()),
   email: z.union([z.string().email(), z.literal("")]).nullable().optional(),
   bio: z.string().nullable().optional(),
   customCss: z.string().nullable().optional(),
