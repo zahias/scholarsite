@@ -1199,7 +1199,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Health check endpoint (public, for monitoring)
-  app.get('/api/health', async (_req, res) => {
+  app.get('/api/health', async (req, res) => {
     const database = await checkDatabaseHealth();
     if (!database.connected || !database.schemaReady) {
       if (database.missingColumns.length > 0) {
@@ -1208,6 +1208,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (database.missingConstraints.length > 0) {
         console.error(`[DatabaseHealth] Missing required unique constraints: ${database.missingConstraints.join(", ")}`);
       }
+      // Detail is only included for callers holding the internal job token —
+      // avoids leaking internal schema/column names on a public endpoint.
+      const detail = hasValidJobToken(req)
+        ? { missingColumns: database.missingColumns, missingConstraints: database.missingConstraints }
+        : undefined;
       return res.status(503).json({
         status: 'error',
         category: database.category,
@@ -1215,6 +1220,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         database: {
           connected: database.connected,
           schemaReady: database.schemaReady,
+          ...(detail ? { detail } : {}),
         },
       });
     }
