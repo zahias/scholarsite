@@ -22,6 +22,18 @@ SESSION_SECRET=<long-random-secret>
 
 Launch-critical auth and signup will fail if `DATABASE_URL` cannot connect. A healthy deployment should return `200` from `/api/health`.
 
+To keep the Node process lean under the shared-hosting NPROC limit (which counts
+threads, not just processes), also set:
+
+```bash
+UV_THREADPOOL_SIZE=2
+NODE_OPTIONS=--v8-pool-size=1
+```
+
+By default Node keeps a 4-thread libuv pool plus V8 helper threads sized to the
+server's core count; on a many-core shared server one Node process can count as
+10+ "processes" toward the limit.
+
 ## A2 Node.js App Settings
 
 Use the cPanel Node.js page with these settings:
@@ -52,6 +64,21 @@ ps -u bannwebs -o pid,ppid,stat,etime,comm,args | grep -E 'node|lsnode|passenger
 ```
 
 Kill only stale Scholar.name app processes, then restart the app once from cPanel and rerun the failed GitHub Actions workflow.
+
+## Server Git Repo Maintenance
+
+The deploy workflow pins all git thread settings to 1 and disables auto-gc in
+the server clone, because a default `git fetch` spawns threads equal to the
+server's core count and trips the NPROC limit. With auto-gc off, pack files
+accumulate slowly. Every few months, run this over SSH while nothing is
+deploying:
+
+```bash
+cd $A2_PATH   # the server-side git clone used by GitHub Actions
+git gc --prune=now
+```
+
+(The `pack.threads 1` config in the clone keeps gc single-threaded too.)
 
 ## Email
 

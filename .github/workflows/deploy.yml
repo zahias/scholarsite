@@ -27,7 +27,18 @@ jobs:
             cd ${{ secrets.A2_PATH }}
             
             echo "📥 Fetching latest code..."
-            git fetch origin main
+            # Shared-hosting NPROC limits count threads. Git defaults its
+            # thread counts to the server's core count, so a plain fetch can
+            # spawn dozens of threads at once. Pin everything to 1 and
+            # disable auto-gc (repack is the worst offender).
+            git config pack.threads 1
+            git config index.threads 1
+            git config checkout.workers 1
+            git config fetch.parallel 1
+            git config submodule.fetchJobs 1
+            git config gc.auto 0
+            git config gc.autoDetach false
+            git fetch --depth 1 origin main
             git reset --hard origin/main
             git clean -fd
             
