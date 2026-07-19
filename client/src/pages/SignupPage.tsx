@@ -291,7 +291,7 @@ export default function SignupPage() {
       <nav style={{ background: "rgba(255,255,255,.9)", backdropFilter: "blur(14px)", borderBottom: "1px solid rgba(11,31,58,.08)", position: "sticky", top: 0, zIndex: 50 }}>
         <div style={{ maxWidth: 1200, margin: "0 auto", padding: "10px 32px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <a href="/" style={{ display: "flex", alignItems: "center", gap: 10, fontFamily: "'Newsreader', serif", fontSize: 18, fontWeight: 600, color: "#0B1F3A", textDecoration: "none" }}>
-            <span style={{ width: 26, height: 26, borderRadius: 8, background: "#0B1F3A", color: "#FFC72E", display: "grid", placeItems: "center", fontFamily: "'Newsreader', serif", fontSize: 14, fontWeight: 700, fontStyle: "italic" }}>S</span>
+            <BookOpen size={22} style={{ color: "#0B1F3A" }} />
             Scholar.name
           </a>
           <span style={{ fontSize: 13.5, color: "#44474D" }}>

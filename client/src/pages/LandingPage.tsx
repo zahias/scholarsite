@@ -650,11 +650,7 @@ export default function LandingPage() {
               <div className="flex gap-6 text-[12px] text-white/65">
                 <div className="flex items-center gap-1.5">
                   <span className="inline-block w-2.5 h-2.5 rounded-sm" style={{ background: "#FFC72E" }} />
-                  Citations this year
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <span className="inline-block w-2.5 h-2.5 rounded-sm" style={{ background: "rgba(122,168,116,.6)" }} />
-                  h-index growth
+                  Citations per year
                 </div>
               </div>
             </div>

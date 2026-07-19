@@ -73,24 +73,25 @@ export default function AdminShell({ children }: { children: ReactNode }) {
           {NAV_ITEMS.map(({ href, label, icon: Icon }) => (
             <Link key={href} href={href}>
               <div className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm cursor-pointer ${isActive(href) ? "bg-accent text-foreground font-medium" : "text-muted-foreground hover:bg-accent hover:text-foreground"}`}>
-                <Icon className="w-4 h-4" />{label}
+                <Icon className="w-4 h-4" aria-hidden="true" />{label}
               </div>
             </Link>
           ))}
           <button
             onClick={() => setPlatformOpen(!platformOpen)}
             className="w-full flex items-center justify-between px-3 py-2 rounded-md text-sm text-muted-foreground hover:bg-accent hover:text-foreground"
+            aria-expanded={platformOpen}
             data-testid="button-toggle-platform-nav"
           >
             <span>Platform</span>
-            <ChevronDown className={`w-4 h-4 transition-transform ${platformOpen ? "rotate-180" : ""}`} />
+            <ChevronDown className={`w-4 h-4 transition-transform ${platformOpen ? "rotate-180" : ""}`} aria-hidden="true" />
           </button>
           {platformOpen && (
             <div className="pl-3 space-y-1">
               {PLATFORM_ITEMS.map(({ href, label, icon: Icon }) => (
                 <Link key={href} href={href}>
                   <div className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm cursor-pointer ${isActive(href) ? "bg-accent text-foreground font-medium" : "text-muted-foreground hover:bg-accent hover:text-foreground"}`}>
-                    <Icon className="w-4 h-4" />{label}
+                    <Icon className="w-4 h-4" aria-hidden="true" />{label}
                   </div>
                 </Link>
               ))}
@@ -99,7 +100,7 @@ export default function AdminShell({ children }: { children: ReactNode }) {
         </nav>
         <div className="p-2 border-t border-border">
           <Button variant="ghost" className="w-full justify-start text-muted-foreground hover:text-foreground" onClick={() => logoutMutation.mutate()} data-testid="button-logout">
-            <LogOut className="w-4 h-4 mr-2" />Sign Out
+            <LogOut className="w-4 h-4 mr-2" aria-hidden="true" />Sign Out
           </Button>
         </div>
       </aside>

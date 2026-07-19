@@ -26,10 +26,10 @@ interface CurrentUser {
 }
 
 const STATUS_STYLES: Record<string, string> = {
-  completed: "bg-green-500/20 text-green-600",
-  success: "bg-green-500/20 text-green-600",
-  failed: "bg-red-500/20 text-red-600",
-  skipped: "bg-blue-500/20 text-blue-600",
+  completed: "bg-green-500/20 text-green-700 dark:bg-green-500/15 dark:text-green-400",
+  success: "bg-green-500/20 text-green-700 dark:bg-green-500/15 dark:text-green-400",
+  failed: "bg-red-500/20 text-red-700 dark:bg-red-500/15 dark:text-red-400",
+  skipped: "bg-blue-500/20 text-blue-700 dark:bg-blue-500/15 dark:text-blue-400",
 };
 
 export default function SyncBoard() {

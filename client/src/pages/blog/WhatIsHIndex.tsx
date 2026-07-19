@@ -15,7 +15,7 @@ export default function WhatIsHIndex() {
       title="What Is an H-Index and How Do You Track It?"
       description="The h-index is one of the most cited metrics in academic hiring and grant evaluation. Here's what it means, how it's calculated, and how to monitor yours automatically."
       url="https://scholar.name/blog/what-is-h-index"
-      publishedDate="April 2, 2026"
+      publishedDate="June 22, 2026"
       readingTime="5 min"
       category="Academic Metrics"
       structuredData={structuredData}

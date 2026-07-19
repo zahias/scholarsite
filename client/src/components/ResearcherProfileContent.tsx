@@ -108,16 +108,11 @@ export default function ResearcherProfileContent({
         }
       />
 
-      {(isPreview || profile?.bio) && (
+      {profile?.bio && (
         <div className="profile-wide-container">
           <CollapsibleSection id="about" title="About" icon={<User size={18} />} defaultOpen={true} mobileDefaultOpen={true}>
             <p className="text-sm md:text-base text-muted-foreground leading-relaxed" data-testid="text-bio">
-              {profile?.bio ? profile.bio : (
-                <span className="italic opacity-70">
-                  Share your research journey, expertise, and what drives your work. Highlight your key contributions
-                  and areas of specialization to help collaborators and students discover your profile.
-                </span>
-              )}
+              {profile.bio}
             </p>
           </CollapsibleSection>
         </div>
@@ -169,7 +164,7 @@ export default function ResearcherProfileContent({
         </div>
       </footer>
 
-      <MobileBottomNav items={researcherMobileNavItems} />
+      <MobileBottomNav items={researcherMobileNavItems.filter((item) => item.id !== "about" || !!profile?.bio)} />
     </>
   );
 }

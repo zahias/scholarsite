@@ -10,7 +10,7 @@ const posts = [
     title: "Google Scholar Profile vs. Scholar.name: Which Is Better for Researchers?",
     excerpt: "Google Scholar is the default for academics — but it was never designed as a portfolio. Here's what it can't do, and how Scholar.name fills the gap.",
     category: "Comparison",
-    date: "April 2, 2026",
+    date: "July 8, 2026",
     readingTime: "6 min",
   },
   {
@@ -18,7 +18,7 @@ const posts = [
     title: "What Is an H-Index and How Do You Track It?",
     excerpt: "The h-index is one of the most cited metrics in academic hiring and grant evaluation. Here's what it means, how it's calculated, and how to monitor yours automatically.",
     category: "Academic Metrics",
-    date: "April 2, 2026",
+    date: "June 22, 2026",
     readingTime: "5 min",
   },
   {
@@ -26,7 +26,7 @@ const posts = [
     title: "How to Create an Academic Portfolio Website (Step by Step)",
     excerpt: "A complete guide to building a professional academic portfolio — what to include, which tools to choose, and how to keep it updated without spending hours on maintenance.",
     category: "How-To Guide",
-    date: "April 2, 2026",
+    date: "June 3, 2026",
     readingTime: "7 min",
   },
   {
@@ -34,7 +34,7 @@ const posts = [
     title: "Best Personal Website Builders for Researchers in 2026",
     excerpt: "Comparing WordPress, Squarespace, Google Sites, ORCID, and Scholar.name — across setup time, cost, design quality, and the one feature most tools miss.",
     category: "Comparison",
-    date: "April 2, 2026",
+    date: "May 14, 2026",
     readingTime: "5 min",
   },
   {
@@ -42,7 +42,7 @@ const posts = [
     title: "Academic CV vs. Research Portfolio Website: What's the Difference?",
     excerpt: "Your CV and your portfolio website serve different audiences at different moments. Here's how to think about both — and why every researcher needs each one.",
     category: "Career Advice",
-    date: "April 2, 2026",
+    date: "April 29, 2026",
     readingTime: "4 min",
   },
 ];
@@ -83,7 +83,7 @@ function PostCard({ post, onClick }: { post: typeof posts[number]; onClick: () =
       <div style={{ height: 140, background: `linear-gradient(135deg, ${catColor(post.category)}22 0%, ${catColor(post.category)}0a 100%)`, borderBottom: "1px solid rgba(11,31,58,.06)", position: "relative", overflow: "hidden" }}>
         <div style={{ position: "absolute", inset: 0, background: `repeating-linear-gradient(0deg, ${catColor(post.category)}08 0 1px, transparent 1px 36px), repeating-linear-gradient(90deg, ${catColor(post.category)}08 0 1px, transparent 1px 36px)` }} />
         <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
-          <span style={{ fontFamily: "'Newsreader', serif", fontSize: 48, color: `${catColor(post.category)}20`, fontStyle: "italic", lineHeight: 1, userSelect: "none" }}>J</span>
+          <span style={{ fontFamily: "'Newsreader', serif", fontSize: 48, color: `${catColor(post.category)}20`, fontStyle: "italic", lineHeight: 1, userSelect: "none" }}>S</span>
         </div>
       </div>
       <div style={{ padding: "18px 20px 20px" }}>
@@ -183,7 +183,7 @@ export default function BlogIndex() {
                 <div style={{ background: "linear-gradient(135deg, #0B1F3A 0%, #142850 100%)", minHeight: 260, position: "relative", overflow: "hidden" }}>
                   <div style={{ position: "absolute", inset: 0, background: "radial-gradient(ellipse at 70% 20%, rgba(255,199,46,.22), transparent 55%), repeating-linear-gradient(0deg, rgba(255,255,255,.028) 0 1px, transparent 1px 48px)" }} />
                   <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                    <span style={{ fontFamily: "'Newsreader', serif", fontSize: 80, color: "rgba(255,199,46,.2)", fontStyle: "italic", lineHeight: 1 }}>J</span>
+                    <span style={{ fontFamily: "'Newsreader', serif", fontSize: 80, color: "rgba(255,199,46,.2)", fontStyle: "italic", lineHeight: 1 }}>S</span>
                   </div>
                 </div>
                 {/* Content */}

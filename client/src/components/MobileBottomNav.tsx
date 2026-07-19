@@ -34,6 +34,11 @@ export default function MobileBottomNav({ items = defaultNavItems }: { items?: M
       }
     };
 
+    // Run once immediately on mount instead of waiting for the first scroll
+    // event — otherwise the initial highlighted tab reflects whatever the
+    // default state happened to be, not the section actually in view (e.g.
+    // if the page mounts already scrolled from a restored position).
+    handleScroll();
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, [items]);
@@ -57,14 +62,16 @@ export default function MobileBottomNav({ items = defaultNavItems }: { items?: M
               key={item.id}
               onClick={() => scrollToSection(item.id)}
               className={`flex flex-col items-center justify-center gap-1 min-h-[52px] py-2 px-2 rounded-xl transition-colors active:scale-95 ${
-                isActive 
-                  ? 'bg-warm text-midnight font-semibold' 
+                isActive
+                  ? 'bg-warm text-midnight font-semibold'
                   : 'text-on-surface-variant hover:text-on-surface active:bg-surface-container-high'
               }`}
+              aria-label={item.label}
+              aria-current={isActive ? "true" : undefined}
               data-testid={`nav-mobile-${item.id}`}
             >
-              <Icon className="h-5 w-5" />
-              <span className="text-[11px] font-medium leading-tight">{item.label}</span>
+              <Icon className="h-5 w-5" aria-hidden="true" />
+              <span className="text-[11px] font-medium leading-tight" aria-hidden="true">{item.label}</span>
             </button>
           );
         })}

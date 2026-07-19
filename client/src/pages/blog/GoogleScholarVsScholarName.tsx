@@ -15,7 +15,7 @@ export default function GoogleScholarVsScholarName() {
       title="Google Scholar Profile vs. Scholar.name: Which Is Better for Researchers?"
       description="Google Scholar is the default for academics — but it was never designed as a portfolio. Here's what it can't do, and how Scholar.name fills the gap."
       url="https://scholar.name/blog/google-scholar-vs-scholar-name"
-      publishedDate="April 2, 2026"
+      publishedDate="July 8, 2026"
       readingTime="6 min"
       category="Comparison"
       structuredData={structuredData}

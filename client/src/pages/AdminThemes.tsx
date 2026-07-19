@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { useLocation, Link } from "wouter";
+import { useLocation } from "wouter";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -31,7 +31,6 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import {
-  ArrowLeft,
   Palette,
   Plus,
   Pencil,
@@ -46,6 +45,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import type { Theme, ThemeConfig } from "@shared/schema";
 import { normalizeThemeConfig } from "@/context/ThemeContext";
 import { ThemePreviewSwatch } from "@/components/ThemePreviewSwatch";
+import AdminShell from "@/components/admin/AdminShell";
 
 interface CurrentUser {
   id: string;
@@ -257,28 +257,13 @@ export default function AdminThemes() {
   const themes = themesData || [];
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="border-b border-border bg-card/90 backdrop-blur-lg sticky top-0 z-50">
-        <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-primary/15 rounded-xl flex items-center justify-center">
-              <Palette className="w-5 h-5 text-primary" />
-            </div>
-            <div>
-              <h1 className="text-xl font-semibold text-foreground">Theme Management</h1>
-              <p className="text-sm text-muted-foreground">Customize portfolio themes</p>
-            </div>
-          </div>
-          <Link href="/admin">
-            <Button variant="ghost" className="text-muted-foreground hover:text-foreground hover:bg-accent" data-testid="button-back-admin">
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Dashboard
-            </Button>
-          </Link>
+    <AdminShell>
+      <div className="p-4 md:p-8 max-w-4xl mx-auto space-y-6">
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">Theme Management</h1>
+          <p className="text-sm text-muted-foreground">Customize portfolio themes</p>
         </div>
-      </header>
 
-      <main className="max-w-4xl mx-auto px-4 py-8 space-y-6">
         <div className="flex items-center justify-between flex-wrap gap-3">
           <h2 className="text-lg font-medium text-foreground">Available Themes</h2>
           <div className="flex items-center gap-2">
@@ -579,8 +564,8 @@ export default function AdminThemes() {
             })}
           </div>
         )}
-      </main>
-    </div>
+      </div>
+    </AdminShell>
   );
 }
 

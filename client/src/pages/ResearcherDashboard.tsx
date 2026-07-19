@@ -372,7 +372,7 @@ export default function ResearcherDashboard() {
     ? authorData.cited_by_count - syncedCitedByCount
     : null;
 
-  const { data: themesData } = useQuery<Theme[]>({
+  const { data: themesData, isLoading: themesLoading, isError: themesError, refetch: refetchThemes } = useQuery<Theme[]>({
     queryKey: ["/api/themes"],
     enabled: activeTab === "settings",
   });
@@ -2279,8 +2279,17 @@ export default function ResearcherDashboard() {
                       );
                     })}
                   </div>
-                  {(!themesData || themesData.length === 0) && (
-                    <p style={{ fontSize: 13.5, color: "#75777E", textAlign: "center", padding: "16px 0" }}>No themes available. Contact your administrator.</p>
+                  {themesLoading && (
+                    <p style={{ fontSize: 13.5, color: "#75777E", textAlign: "center", padding: "16px 0" }}>Loading themes…</p>
+                  )}
+                  {!themesLoading && themesError && (
+                    <div style={{ textAlign: "center", padding: "16px 0" }}>
+                      <p style={{ fontSize: 13.5, color: "#75777E", margin: "0 0 8px" }}>Couldn't load themes right now.</p>
+                      <button onClick={() => refetchThemes()} style={btnGhost()}>Try again</button>
+                    </div>
+                  )}
+                  {!themesLoading && !themesError && (!themesData || themesData.length === 0) && (
+                    <p style={{ fontSize: 13.5, color: "#75777E", textAlign: "center", padding: "16px 0" }}>No themes are available yet — check back soon.</p>
                   )}
                 </div>
               </div>

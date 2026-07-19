@@ -170,7 +170,7 @@ export default function CustomerList() {
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
                       <Badge className={ACCESS_STATE_STYLES[accessState]}>{ACCESS_STATE_LABELS[accessState]}</Badge>
-                      <Badge className="bg-purple-500/20 text-purple-600">{PLAN_LABELS[tenant.plan]}</Badge>
+                      <Badge className="bg-[#FFC72E]/20 text-[#8a6300]">{PLAN_LABELS[tenant.plan]}</Badge>
                     </div>
                   </div>
                 </Link>

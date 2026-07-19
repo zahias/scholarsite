@@ -326,7 +326,7 @@ export default function CustomerDetail() {
             {!isNew && tenant && accessState && (
               <div className="flex items-center gap-2 mt-1">
                 <Badge className={ACCESS_STATE_STYLES[accessState]}>{ACCESS_STATE_LABELS[accessState]}</Badge>
-                <Badge className="bg-purple-500/20 text-purple-600">{PLAN_LABELS[tenant.plan]}</Badge>
+                <Badge className="bg-[#FFC72E]/20 text-[#8a6300]">{PLAN_LABELS[tenant.plan]}</Badge>
               </div>
             )}
           </div>
@@ -492,7 +492,7 @@ export default function CustomerDetail() {
                       <div className="flex items-center gap-2 flex-wrap">
                         <Globe className="w-4 h-4 text-muted-foreground" />
                         <a href={`https://${domain.hostname}`} target="_blank" rel="noopener noreferrer" className="text-foreground hover:underline">{domain.hostname}</a>
-                        {domain.isPrimary && <Badge className="bg-green-500/20 text-green-600">Primary</Badge>}
+                        {domain.isPrimary && <Badge className="bg-green-500/20 text-green-700 dark:bg-green-500/15 dark:text-green-400">Primary</Badge>}
                         {(() => {
                           // *.scholar.name subdomains are covered by the platform's
                           // wildcard cert and are always valid — sslStatus is only
@@ -502,12 +502,12 @@ export default function CustomerDetail() {
                           const isWildcardCovered = domain.hostname.endsWith(".scholar.name");
                           const isActive = isWildcardCovered || domain.sslStatus === "active";
                           return (
-                            <Badge className={isActive ? "bg-green-500/20 text-green-600" : "bg-yellow-500/20 text-yellow-600"}>
+                            <Badge className={isActive ? "bg-green-500/20 text-green-700 dark:bg-green-500/15 dark:text-green-400" : "bg-yellow-500/20 text-yellow-700 dark:bg-yellow-500/15 dark:text-yellow-400"}>
                               SSL: {isActive ? "active" : (domain.sslStatus || "pending")}
                             </Badge>
                           );
                         })()}
-                        {domain.verifiedAt && <Badge className="bg-blue-500/20 text-blue-600">Verified</Badge>}
+                        {domain.verifiedAt && <Badge className="bg-blue-500/20 text-blue-700 dark:bg-blue-500/15 dark:text-blue-400">Verified</Badge>}
                       </div>
                       <Button variant="ghost" size="icon" onClick={() => deleteDomainMutation.mutate(domain.id)} className="text-red-600 hover:text-red-600 hover:bg-red-500/10" data-testid={`button-delete-domain-${domain.id}`}>
                         <Trash2 className="w-4 h-4" />
@@ -555,7 +555,7 @@ export default function CustomerDetail() {
                         </div>
                         <div className="text-right">
                           <p className="text-sm font-semibold text-foreground">${payment.amount} {payment.currency}</p>
-                          <Badge className={payment.status === "completed" ? "bg-green-500/20 text-green-600" : payment.status === "pending" ? "bg-yellow-500/20 text-yellow-600" : "bg-red-500/20 text-red-600"}>
+                          <Badge className={payment.status === "completed" ? "bg-green-500/20 text-green-700 dark:bg-green-500/15 dark:text-green-400" : payment.status === "pending" ? "bg-yellow-500/20 text-yellow-700 dark:bg-yellow-500/15 dark:text-yellow-400" : "bg-red-500/20 text-red-700 dark:bg-red-500/15 dark:text-red-400"}>
                             {payment.status}
                           </Badge>
                         </div>
@@ -586,7 +586,7 @@ export default function CustomerDetail() {
                           <p className="text-sm text-foreground">{new Date(log.startedAt).toLocaleString()}</p>
                           {log.errorMessage && <p className="text-xs text-red-600">{log.errorMessage}</p>}
                         </div>
-                        <Badge className={log.status === "completed" ? "bg-green-500/20 text-green-600" : log.status === "failed" ? "bg-red-500/20 text-red-600" : "bg-blue-500/20 text-blue-600"}>
+                        <Badge className={log.status === "completed" ? "bg-green-500/20 text-green-700 dark:bg-green-500/15 dark:text-green-400" : log.status === "failed" ? "bg-red-500/20 text-red-700 dark:bg-red-500/15 dark:text-red-400" : "bg-blue-500/20 text-blue-700 dark:bg-blue-500/15 dark:text-blue-400"}>
                           {log.status}
                         </Badge>
                       </div>

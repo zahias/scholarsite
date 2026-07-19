@@ -15,7 +15,7 @@ export default function HowToCreateAcademicPortfolio() {
       title="How to Create an Academic Portfolio Website (Step by Step)"
       description="A complete guide to building a professional academic portfolio — what to include, which tools to choose, and how to keep it updated without spending hours on maintenance."
       url="https://scholar.name/blog/how-to-create-academic-portfolio"
-      publishedDate="April 2, 2026"
+      publishedDate="June 3, 2026"
       readingTime="7 min"
       category="How-To Guide"
       structuredData={structuredData}

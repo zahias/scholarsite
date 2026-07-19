@@ -99,7 +99,7 @@ export default function AdminLogin() {
                         <Input
                           {...field}
                           type="email"
-                          placeholder="admin@scholar.name"
+                          placeholder="you@example.com"
                           className="pl-10 bg-white/5 border-white/10 text-white placeholder:text-slate-500"
                           data-testid="input-email"
                         />

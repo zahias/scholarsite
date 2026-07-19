@@ -474,8 +474,14 @@ export default function Publications({ openalexId, inline = false }: Publication
                   </div>
                   <div className="mt-4 lg:mt-0 lg:ml-6 flex flex-col items-end space-y-2">
                     <div className="text-right mb-3" data-testid={`text-publication-citations-${index}`}>
-                      <p className="text-2xl font-bold font-serif text-midnight dark:text-white leading-none">{(publication.citationCount || 0).toLocaleString()}</p>
-                      <p className="text-[10px] uppercase tracking-widest text-muted-foreground mt-1">Citations</p>
+                      {publication.citationCount ? (
+                        <>
+                          <p className="text-2xl font-bold font-serif text-midnight dark:text-white leading-none">{publication.citationCount.toLocaleString()}</p>
+                          <p className="text-[10px] uppercase tracking-widest text-muted-foreground mt-1">Citations</p>
+                        </>
+                      ) : (
+                        <p className="text-xs text-muted-foreground italic">No citations yet</p>
+                      )}
                     </div>
                     {publication.pdfUrl && (
                       <a

@@ -254,7 +254,7 @@ export default function AdminUsers() {
           </div>
           <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
             <DialogTrigger asChild>
-              <Button className="bg-blue-600 hover:bg-blue-700">
+              <Button className="bg-primary hover:bg-primary/90">
                 <UserPlus className="w-4 h-4 mr-2" />
                 Add User
               </Button>
@@ -328,7 +328,7 @@ export default function AdminUsers() {
                 <Button
                   onClick={() => createUserMutation.mutate({ email: newEmail, password: newPassword, firstName: newFirstName, lastName: newLastName, role: newRole })}
                   disabled={!newEmail || !newPassword || newPassword.length < 8 || createUserMutation.isPending}
-                  className="bg-blue-600 hover:bg-blue-700"
+                  className="bg-primary hover:bg-primary/90"
                 >
                   {createUserMutation.isPending ? "Creating..." : "Create User"}
                 </Button>
@@ -462,11 +462,11 @@ export default function AdminUsers() {
                     <TableRow key={user.id} className="border-border hover:bg-card">
                       <TableCell>
                         <div className="flex items-center gap-3">
-                          <div className={`w-8 h-8 rounded-full flex items-center justify-center ${user.role === "admin" ? "bg-purple-500/20" : "bg-blue-500/20"}`}>
+                          <div className={`w-8 h-8 rounded-full flex items-center justify-center ${user.role === "admin" ? "bg-[#FFC72E]/20" : "bg-blue-500/20 dark:bg-blue-500/15"}`}>
                             {user.role === "admin" ? (
-                              <Shield className="w-4 h-4 text-purple-600" />
+                              <Shield className="w-4 h-4 text-[#8a6300]" />
                             ) : (
-                              <User className="w-4 h-4 text-blue-600" />
+                              <User className="w-4 h-4 text-blue-700 dark:text-blue-400" />
                             )}
                           </div>
                           <div>
@@ -478,12 +478,12 @@ export default function AdminUsers() {
                       </TableCell>
                       <TableCell className="text-muted-foreground">{user.email}</TableCell>
                       <TableCell>
-                        <Badge className={user.role === "admin" ? "bg-purple-500/20 text-purple-600" : "bg-blue-500/20 text-blue-600"}>
+                        <Badge className={user.role === "admin" ? "bg-[#FFC72E]/20 text-[#8a6300]" : "bg-blue-500/20 text-blue-700 dark:bg-blue-500/15 dark:text-blue-400"}>
                           {user.role}
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        <Badge className={user.isActive ? "bg-green-500/20 text-green-600" : "bg-red-500/20 text-red-600"}>
+                        <Badge className={user.isActive ? "bg-green-500/20 text-green-700 dark:bg-green-500/15 dark:text-green-400" : "bg-red-500/20 text-red-700 dark:bg-red-500/15 dark:text-red-400"}>
                           {user.isActive ? "Active" : "Inactive"}
                         </Badge>
                       </TableCell>
@@ -611,7 +611,7 @@ export default function AdminUsers() {
                 })
               }
               disabled={updateUserMutation.isPending}
-              className="bg-blue-600 hover:bg-blue-700"
+              className="bg-primary hover:bg-primary/90"
             >
               {updateUserMutation.isPending ? "Saving..." : "Save Changes"}
             </Button>
@@ -650,7 +650,7 @@ export default function AdminUsers() {
                 resetPasswordMutation.mutate({ id: resetPasswordUser.id, newPassword: resetNewPassword })
               }
               disabled={resetNewPassword.length < 8 || resetPasswordMutation.isPending}
-              className="bg-blue-600 hover:bg-blue-700"
+              className="bg-primary hover:bg-primary/90"
             >
               {resetPasswordMutation.isPending ? "Resetting..." : "Reset Password"}
             </Button>

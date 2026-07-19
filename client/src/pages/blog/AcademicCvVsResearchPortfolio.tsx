@@ -15,7 +15,7 @@ export default function AcademicCvVsResearchPortfolio() {
       title="Academic CV vs. Research Portfolio Website: What's the Difference?"
       description="Your CV and your portfolio website serve different audiences at different moments. Here's how to think about both — and why every researcher needs each one."
       url="https://scholar.name/blog/academic-cv-vs-research-portfolio"
-      publishedDate="April 2, 2026"
+      publishedDate="April 29, 2026"
       readingTime="4 min"
       category="Career Advice"
       structuredData={structuredData}

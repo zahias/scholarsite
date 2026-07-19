@@ -31,9 +31,9 @@ interface CurrentUser {
 }
 
 const STATUS_STYLES: Record<string, string> = {
-  completed: "bg-green-500/20 text-green-600",
-  pending: "bg-yellow-500/20 text-yellow-600",
-  failed: "bg-red-500/20 text-red-600",
+  completed: "bg-green-500/20 text-green-700 dark:bg-green-500/15 dark:text-green-400",
+  pending: "bg-yellow-500/20 text-yellow-700 dark:bg-yellow-500/15 dark:text-yellow-400",
+  failed: "bg-red-500/20 text-red-700 dark:bg-red-500/15 dark:text-red-400",
   refunded: "bg-slate-500/20 text-muted-foreground",
   cancelled: "bg-slate-500/20 text-muted-foreground",
 };

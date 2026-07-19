@@ -150,7 +150,7 @@ export default function AdminDashboard() {
     <AdminShell>
       <div className="p-4 md:p-8 max-w-5xl mx-auto space-y-6">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Welcome, {userData.user.firstName}</h1>
+          <h1 className="text-2xl font-bold text-foreground">Welcome, {userData.user.firstName} {userData.user.lastName}</h1>
           <p className="text-sm text-muted-foreground">Here's what needs attention today.</p>
         </div>
 
@@ -241,7 +241,7 @@ export default function AdminDashboard() {
                 payments.slice(0, 5).map((p) => (
                   <div key={p.id} className="flex items-center justify-between text-sm">
                     <span className="text-foreground truncate">{p.customerName}</span>
-                    <Badge className={p.status === "completed" ? "bg-green-500/20 text-green-600" : p.status === "pending" ? "bg-yellow-500/20 text-yellow-600" : "bg-red-500/20 text-red-600"}>
+                    <Badge className={p.status === "completed" ? "bg-green-500/20 text-green-700 dark:bg-green-500/15 dark:text-green-400" : p.status === "pending" ? "bg-yellow-500/20 text-yellow-700 dark:bg-yellow-500/15 dark:text-yellow-400" : "bg-red-500/20 text-red-700 dark:bg-red-500/15 dark:text-red-400"}>
                       {p.status}
                     </Badge>
                   </div>
@@ -260,7 +260,7 @@ export default function AdminDashboard() {
                 syncLogs.slice(0, 5).map((log, i) => (
                   <div key={i} className="flex items-center justify-between text-sm">
                     <span className="text-foreground truncate">{log.tenantName || "Unknown"}</span>
-                    <Badge className={log.status === "completed" ? "bg-green-500/20 text-green-600" : log.status === "failed" ? "bg-red-500/20 text-red-600" : "bg-blue-500/20 text-blue-600"}>
+                    <Badge className={log.status === "completed" ? "bg-green-500/20 text-green-700 dark:bg-green-500/15 dark:text-green-400" : log.status === "failed" ? "bg-red-500/20 text-red-700 dark:bg-red-500/15 dark:text-red-400" : "bg-blue-500/20 text-blue-700 dark:bg-blue-500/15 dark:text-blue-400"}>
                       {log.status}
                     </Badge>
                   </div>

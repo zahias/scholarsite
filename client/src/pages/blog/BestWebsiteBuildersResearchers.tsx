@@ -15,7 +15,7 @@ export default function BestWebsiteBuildersResearchers() {
       title="Best Personal Website Builders for Researchers in 2026"
       description="Comparing WordPress, Squarespace, Google Sites, ORCID, and Scholar.name — across setup time, cost, design quality, and the one feature most tools miss."
       url="https://scholar.name/blog/best-website-builders-researchers"
-      publishedDate="April 2, 2026"
+      publishedDate="May 14, 2026"
       readingTime="5 min"
       category="Comparison"
       structuredData={structuredData}
