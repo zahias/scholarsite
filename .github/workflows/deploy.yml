@@ -50,6 +50,13 @@ jobs:
             rm -f /home/bannwebs/scholarsite/index.js.bak
             rm -f /home/bannwebs/scholarsite/package-lock.json.bak.*
             rm -rf /home/bannwebs/scholarsite/node_modules.bak.*
+            # Static files the app no longer ships (e.g. the old hand-maintained
+            # sitemap.xml, now generated dynamically by Express) are served
+            # directly by LiteSpeed ahead of Node and never get cleaned up by
+            # a plain `cp -rf`, which only overwrites — it never deletes files
+            # missing from the new production/ folder. Remove known-retired
+            # ones explicitly.
+            rm -f /home/bannwebs/scholarsite/public/sitemap.xml
             cp -rf production/* /home/bannwebs/scholarsite/
             rm -rf /home/bannwebs/scholarsite/public/assets/*
             cp -rf production/public/assets/* /home/bannwebs/scholarsite/public/assets/
