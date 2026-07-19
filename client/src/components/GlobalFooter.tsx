@@ -1,4 +1,4 @@
-import { useLocation } from "wouter";
+import { Link } from "wouter";
 import { BookOpen, Lock } from "lucide-react";
 
 interface GlobalFooterProps {
@@ -6,8 +6,6 @@ interface GlobalFooterProps {
 }
 
 export default function GlobalFooter({ mode = "landing" }: GlobalFooterProps) {
-  const [, navigate] = useLocation();
-
   const handleNavClick = () => {
     window.scrollTo(0, 0);
   };
@@ -45,40 +43,24 @@ export default function GlobalFooter({ mode = "landing" }: GlobalFooterProps) {
                 <h4 className="font-medium mb-4 text-white/90">Product</h4>
                 <ul className="space-y-2 text-sm text-white/60">
                   <li>
-                    <button
-                      onClick={() => { handleNavClick(); navigate("/features"); }}
-                      className="hover:text-white transition-colors"
-                      data-testid="link-footer-features"
-                    >
+                    <Link href="/features" onClick={handleNavClick} className="hover:text-white transition-colors" data-testid="link-footer-features">
                       Features
-                    </button>
+                    </Link>
                   </li>
                   <li>
-                    <button
-                      onClick={() => { handleNavClick(); navigate("/pricing"); }}
-                      className="hover:text-white transition-colors"
-                      data-testid="link-footer-pricing"
-                    >
+                    <Link href="/pricing" onClick={handleNavClick} className="hover:text-white transition-colors" data-testid="link-footer-pricing">
                       Pricing
-                    </button>
+                    </Link>
                   </li>
                   <li>
-                    <button
-                      onClick={() => { handleNavClick(); navigate("/faq"); }}
-                      className="hover:text-white transition-colors"
-                      data-testid="link-footer-faq"
-                    >
+                    <Link href="/faq" onClick={handleNavClick} className="hover:text-white transition-colors" data-testid="link-footer-faq">
                       FAQ
-                    </button>
+                    </Link>
                   </li>
                   <li>
-                    <button
-                      onClick={() => { handleNavClick(); navigate("/blog"); }}
-                      className="hover:text-white transition-colors"
-                      data-testid="link-footer-blog"
-                    >
+                    <Link href="/blog" onClick={handleNavClick} className="hover:text-white transition-colors" data-testid="link-footer-blog">
                       Blog
-                    </button>
+                    </Link>
                   </li>
                 </ul>
               </div>
@@ -88,28 +70,14 @@ export default function GlobalFooter({ mode = "landing" }: GlobalFooterProps) {
                 <h4 className="font-medium mb-4 text-white/90">Company</h4>
                 <ul className="space-y-2 text-sm text-white/60">
                   <li>
-                    <button
-                      onClick={() => {
-                        handleNavClick();
-                        navigate("/about");
-                      }}
-                      className="hover:text-white transition-colors"
-                      data-testid="link-footer-about"
-                    >
+                    <Link href="/about" onClick={handleNavClick} className="hover:text-white transition-colors" data-testid="link-footer-about">
                       About Us
-                    </button>
+                    </Link>
                   </li>
                   <li>
-                    <button
-                      onClick={() => {
-                        handleNavClick();
-                        navigate("/contact");
-                      }}
-                      className="hover:text-white transition-colors"
-                      data-testid="link-footer-contact"
-                    >
+                    <Link href="/contact" onClick={handleNavClick} className="hover:text-white transition-colors" data-testid="link-footer-contact">
                       Contact
-                    </button>
+                    </Link>
                   </li>
                 </ul>
               </div>
@@ -119,28 +87,14 @@ export default function GlobalFooter({ mode = "landing" }: GlobalFooterProps) {
                 <h4 className="font-medium mb-4 text-white/90">Legal</h4>
                 <ul className="space-y-2 text-sm text-white/60">
                   <li>
-                    <button
-                      onClick={() => {
-                        handleNavClick();
-                        navigate("/privacy");
-                      }}
-                      className="hover:text-white transition-colors"
-                      data-testid="link-footer-privacy"
-                    >
+                    <Link href="/privacy" onClick={handleNavClick} className="hover:text-white transition-colors" data-testid="link-footer-privacy">
                       Privacy Policy
-                    </button>
+                    </Link>
                   </li>
                   <li>
-                    <button
-                      onClick={() => {
-                        handleNavClick();
-                        navigate("/terms");
-                      }}
-                      className="hover:text-white transition-colors"
-                      data-testid="link-footer-terms"
-                    >
+                    <Link href="/terms" onClick={handleNavClick} className="hover:text-white transition-colors" data-testid="link-footer-terms">
                       Terms of Service
-                    </button>
+                    </Link>
                   </li>
                 </ul>
               </div>
@@ -163,25 +117,13 @@ export default function GlobalFooter({ mode = "landing" }: GlobalFooterProps) {
           <div className="text-center text-sm text-muted-foreground">
             <p>&copy; {new Date().getFullYear()} Scholar.name. All rights reserved.</p>
             <div className="flex items-center justify-center gap-2 mt-2 text-xs">
-              <button
-                onClick={() => {
-                  handleNavClick();
-                  navigate("/privacy");
-                }}
-                className="hover:text-foreground"
-              >
+              <Link href="/privacy" onClick={handleNavClick} className="hover:text-foreground">
                 Privacy
-              </button>
+              </Link>
               <span>•</span>
-              <button
-                onClick={() => {
-                  handleNavClick();
-                  navigate("/terms");
-                }}
-                className="hover:text-foreground"
-              >
+              <Link href="/terms" onClick={handleNavClick} className="hover:text-foreground">
                 Terms
-              </button>
+              </Link>
             </div>
           </div>
         )}

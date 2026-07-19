@@ -21,6 +21,7 @@ import nodemailer from "nodemailer";
 import { runScheduledSync } from "./services/syncScheduler";
 import { checkDatabaseHealth } from "./dbHealth";
 import { pool } from "./db";
+import { renderIndexHtml } from "./renderIndexHtml";
 
 type PublicProfileClaimState = "unclaimed" | "active" | "inactive" | "orphaned" | "database_unavailable";
 
@@ -710,8 +711,144 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   };
 
+  // Dynamic sitemap — the previous static client/public/sitemap.xml was
+  // hand-maintained and missing /pricing, /features, /faq, and every blog
+  // post. Regenerated per-request from the route list + live public tenants;
+  // traffic is far too low for this to be a performance concern.
+  app.get('/sitemap.xml', async (_req, res) => {
+    const today = new Date().toISOString().slice(0, 10);
+    const staticUrls: Array<{ loc: string; priority: string; changefreq: string }> = [
+      { loc: "https://scholar.name/", priority: "1.0", changefreq: "weekly" },
+      { loc: "https://scholar.name/features", priority: "0.8", changefreq: "monthly" },
+      { loc: "https://scholar.name/pricing", priority: "0.8", changefreq: "monthly" },
+      { loc: "https://scholar.name/faq", priority: "0.6", changefreq: "monthly" },
+      { loc: "https://scholar.name/contact", priority: "0.6", changefreq: "monthly" },
+      { loc: "https://scholar.name/blog", priority: "0.7", changefreq: "weekly" },
+      { loc: "https://scholar.name/blog/google-scholar-vs-scholar-name", priority: "0.6", changefreq: "monthly" },
+      { loc: "https://scholar.name/blog/what-is-h-index", priority: "0.6", changefreq: "monthly" },
+      { loc: "https://scholar.name/blog/how-to-create-academic-portfolio", priority: "0.6", changefreq: "monthly" },
+      { loc: "https://scholar.name/blog/best-website-builders-researchers", priority: "0.6", changefreq: "monthly" },
+      { loc: "https://scholar.name/blog/academic-cv-vs-research-portfolio", priority: "0.6", changefreq: "monthly" },
+      { loc: "https://scholar.name/privacy", priority: "0.3", changefreq: "monthly" },
+      { loc: "https://scholar.name/terms", priority: "0.3", changefreq: "monthly" },
+    ];
+
+    const tenantUrls: Array<{ loc: string; priority: string; changefreq: string }> = [];
+    try {
+      if (pool) {
+        const tenants = await storage.getAllTenants();
+        for (const tenant of tenants) {
+          if (!tenantHasServiceAccess(tenant)) continue;
+          const profile = await storage.getResearcherProfileByTenant(tenant.id).catch(() => null);
+          if (!profile?.isPublic || !profile.openalexId) continue;
+          const domains = await storage.getDomainsByTenant(tenant.id).catch(() => []);
+          const primary = domains.find((d) => d.isPrimary) || domains[0];
+          if (!primary) continue;
+          tenantUrls.push({ loc: `https://${primary.hostname}/`, priority: "0.7", changefreq: "weekly" });
+        }
+      }
+    } catch (error) {
+      console.error("Error building tenant URLs for sitemap:", error);
+    }
+
+    const xml = [
+      '<?xml version="1.0" encoding="UTF-8"?>',
+      '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
+      ...[...staticUrls, ...tenantUrls].map((u) =>
+        `  <url><loc>${u.loc}</loc><lastmod>${today}</lastmod><changefreq>${u.changefreq}</changefreq><priority>${u.priority}</priority></url>`
+      ),
+      '</urlset>',
+    ].join('\n');
+
+    res.set('Content-Type', 'application/xml').send(xml);
+  });
+
   // Tenant resolution middleware
   app.use(tenantResolver);
+
+  // Server-rendered <head> for the two profile-sharing surfaces — link-preview
+  // bots (LinkedIn, X, Slack, WhatsApp, iMessage) and most crawlers don't run
+  // the client-side SEO.tsx useEffect, so without this every shared profile
+  // link showed the generic marketing title/description/image. Falls through
+  // to the plain SPA shell (unchanged behavior) on any lookup failure.
+  app.get('/researcher/:openalexId', async (req, res, next) => {
+    try {
+      const { openalexId } = req.params;
+      const profile = pool ? await storage.getResearcherProfileByOpenalexId(openalexId).catch(() => null) : null;
+      const researcherData = await storage.getOpenalexData(openalexId, 'researcher').catch(() => null);
+      let liveResearcher: any = researcherData?.data;
+      if (!liveResearcher) {
+        const preview: any = await getPreviewResponse(openalexId).catch(() => null);
+        liveResearcher = preview?.data?.researcher;
+      }
+      const displayName = profile?.displayName || liveResearcher?.display_name;
+
+      if (!profile && !liveResearcher) {
+        res.status(404);
+      }
+
+      const description = profile?.bio
+        || (liveResearcher ? `${displayName || "Researcher"} — ${liveResearcher.works_count || 0} publications, ${liveResearcher.cited_by_count || 0} citations` : "Research Profile");
+      const image = profile?.profileImageUrl
+        ? (profile.profileImageUrl.startsWith('http') ? profile.profileImageUrl : `https://scholar.name${profile.profileImageUrl}`)
+        : undefined;
+
+      const html = renderIndexHtml({
+        title: `${displayName || "Researcher"} - Research Profile`,
+        description,
+        image,
+        url: `https://scholar.name/researcher/${openalexId}`,
+        type: 'profile',
+      });
+      res.set('Content-Type', 'text/html');
+      res.send(html);
+    } catch (error) {
+      next();
+    }
+  });
+
+  const KNOWN_MARKETING_HOSTNAMES = ["localhost", "127.0.0.1", "scholar.name", "www.scholar.name", "scholarname.com", "www.scholarname.com"];
+  app.get('/', async (req, res, next) => {
+    try {
+      const hostname = (req.hostname || "").toLowerCase();
+      const isUnclaimedSubdomain = req.isMarketingSite
+        && !KNOWN_MARKETING_HOSTNAMES.includes(hostname)
+        && !hostname.endsWith(".replit.dev") && !hostname.endsWith(".replit.app") && !hostname.endsWith(".repl.co");
+      if (isUnclaimedSubdomain) {
+        const html = renderIndexHtml({
+          title: "No portfolio here yet — Scholar.name",
+          description: "This address hasn't been claimed as a Scholar.name profile yet.",
+          url: `https://${hostname}/`,
+        });
+        res.status(404).set('Content-Type', 'text/html').send(html);
+        return;
+      }
+      if (!req.tenant || req.isMarketingSite) return next();
+      const profile = await storage.getResearcherProfileByTenant(req.tenant.id).catch(() => null);
+      if (!profile || !profile.openalexId || !profile.isPublic) return next();
+
+      const researcherData = await storage.getOpenalexData(profile.openalexId, 'researcher').catch(() => null);
+      const liveResearcher: any = researcherData?.data;
+      const displayName = profile.displayName || liveResearcher?.display_name || req.tenant.name || "Researcher";
+      const description = profile.bio
+        || (liveResearcher ? `${displayName} — ${liveResearcher.works_count || 0} publications, ${liveResearcher.cited_by_count || 0} citations` : `${displayName}'s research profile`);
+      const image = profile.profileImageUrl
+        ? (profile.profileImageUrl.startsWith('http') ? profile.profileImageUrl : `https://${req.hostname}${profile.profileImageUrl}`)
+        : undefined;
+
+      const html = renderIndexHtml({
+        title: `${displayName} - Research Profile`,
+        description,
+        image,
+        url: `https://${req.hostname}/`,
+        type: 'profile',
+      });
+      res.set('Content-Type', 'text/html');
+      res.send(html);
+    } catch (error) {
+      next();
+    }
+  });
 
   // Authentication routes
   app.use("/api/auth", authRouter);
@@ -1146,9 +1283,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.json({ results: [] });
       }
 
-      // Preserve OpenAlex relevance ordering, then promote exact normalized name matches.
+      // OpenAlex's /authors?search= is a full-text search across the whole
+      // author record (including affiliations), so "Marie Curie" could return
+      // unrelated people at unrelated institutions ahead of the real match.
+      // /autocomplete/authors is purpose-built for name-prefix lookups and
+      // ranks by name relevance first — preserve that ordering, then promote
+      // exact normalized name matches on top of it.
       const response = await fetch(
-        `https://api.openalex.org/authors?search=${encodeURIComponent(query)}&per_page=10`
+        `https://api.openalex.org/autocomplete/authors?q=${encodeURIComponent(query)}`
       );
 
       if (!response.ok) {
@@ -1178,7 +1320,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return {
             id: author.id.replace('https://openalex.org/', ''),
             display_name: author.display_name,
-            hint: author.last_known_institutions?.[0]?.display_name || '',
+            hint: author.hint || author.last_known_institutions?.[0]?.display_name || '',
             works_count: author.works_count || 0,
             cited_by_count: author.cited_by_count || 0,
             rank: isExact ? 0 : containsAllTokens ? 1 : 2,

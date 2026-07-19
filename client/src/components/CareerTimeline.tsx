@@ -2,6 +2,10 @@ import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useMemo } from "react";
+
+// Caps the timeline's x-axis span so one very early outlier publication
+// doesn't compress decades of real growth into a sliver on the right edge.
+const MAX_DISPLAY_SPAN_YEARS = 40;
 import {
   AreaChart,
   Area,
@@ -97,8 +101,12 @@ export default function CareerTimeline({ openalexId, researcherData: propResearc
       });
 
       const years = Object.keys(yearCounts).map(Number).sort((a, b) => a - b);
-      const startYear = Math.min(...years);
-      const endYear = Math.max(...years, new Date().getFullYear());
+      // Don't extend the range to the current year for authors with no
+      // recent activity, and cap the displayed span so one very early
+      // outlier publication doesn't compress decades of real growth into a
+      // sliver at the right edge of the chart.
+      const endYear = Math.max(...years);
+      const startYear = Math.max(Math.min(...years), endYear - MAX_DISPLAY_SPAN_YEARS + 1);
 
       // Build timeline data
       const data = [];
@@ -124,8 +132,9 @@ export default function CareerTimeline({ openalexId, researcherData: propResearc
 
     // Use OpenAlex counts_by_year - sort by year ascending
     const sortedCounts = [...countsByYear].sort((a, b) => a.year - b.year);
-    const startYear = sortedCounts[0]?.year;
-    const endYear = Math.max(sortedCounts[sortedCounts.length - 1]?.year, new Date().getFullYear());
+    const rawStartYear = sortedCounts[0]?.year;
+    const endYear = sortedCounts[sortedCounts.length - 1]?.year;
+    const startYear = Math.max(rawStartYear, endYear - MAX_DISPLAY_SPAN_YEARS + 1);
 
     // Build timeline with cumulative values
     const data = [];

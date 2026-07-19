@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useLocation } from "wouter";
+import { useLocation, Link } from "wouter";
 import SEO from "@/components/SEO";
 import GlobalNav from "@/components/GlobalNav";
 import GlobalFooter from "@/components/GlobalFooter";
@@ -256,22 +256,24 @@ export default function LandingPage() {
               </p>
 
               <div className="flex gap-3 justify-center items-center flex-wrap mb-3">
-                <button
+                <Link
+                  href="/signup"
                   className="btn-gold inline-flex items-center gap-2 px-6 py-3.5 rounded-lg text-[15px] font-semibold"
-                  onClick={() => { window.scrollTo(0, 0); navigate("/signup"); }}
+                  onClick={() => window.scrollTo(0, 0)}
                   data-testid="button-free-trial"
                 >
                   <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                     <path d="M12 3l1.9 5.8L20 9l-4.8 3.5L17 19l-5-3.6L7 19l1.8-6.5L4 9l6.1-.2z"/>
                   </svg>
                   Start free 14-day trial
-                </button>
-                <button
+                </Link>
+                <Link
+                  href="/researcher/A5037710835"
                   className="text-white/70 hover:text-white text-[14px] transition-colors underline underline-offset-4"
-                  onClick={() => { window.scrollTo(0, 0); navigate("/researcher/A5037710835"); }}
+                  onClick={() => window.scrollTo(0, 0)}
                 >
                   View a demo profile →
-                </button>
+                </Link>
               </div>
 
               {/* Trust line */}
@@ -561,12 +563,13 @@ export default function LandingPage() {
               ))}
             </div>
             <div className="text-center mt-9">
-              <button
+              <Link
+                href="/features"
                 className="btn-navy inline-flex items-center gap-2 px-5 py-3 text-[14px] font-semibold"
-                onClick={() => { window.scrollTo(0, 0); navigate("/features"); }}
+                onClick={() => window.scrollTo(0, 0)}
               >
                 Explore all features <ArrowRight className="w-4 h-4" />
-              </button>
+              </Link>
             </div>
           </div>
         </section>
@@ -756,12 +759,12 @@ export default function LandingPage() {
               ))}
             </div>
             <div className="flex justify-center gap-3 flex-wrap mt-8">
-              <button className="btn-gold px-6 py-3 text-[14px] font-semibold" onClick={() => { window.scrollTo(0, 0); navigate("/signup"); }}>
+              <Link href="/signup" className="btn-gold px-6 py-3 text-[14px] font-semibold" onClick={() => window.scrollTo(0, 0)}>
                 Start free trial
-              </button>
-              <button className="btn-navy px-6 py-3 text-[14px] font-semibold" onClick={() => { window.scrollTo(0, 0); navigate("/pricing"); }}>
+              </Link>
+              <Link href="/pricing" className="btn-navy px-6 py-3 text-[14px] font-semibold" onClick={() => window.scrollTo(0, 0)}>
                 Compare plans <ArrowRight className="inline w-4 h-4 ml-1" />
-              </button>
+              </Link>
             </div>
           </div>
         </section>
@@ -812,9 +815,9 @@ export default function LandingPage() {
               })}
             </div>
             <div className="text-center mt-8">
-              <button className="btn-navy px-5 py-3 text-[14px] font-semibold" onClick={() => { window.scrollTo(0, 0); navigate("/faq"); }}>
+              <Link href="/faq" className="btn-navy px-5 py-3 text-[14px] font-semibold" onClick={() => window.scrollTo(0, 0)}>
                 View all questions <ArrowRight className="inline w-4 h-4 ml-1" />
-              </button>
+              </Link>
             </div>
           </div>
         </section>
@@ -840,12 +843,13 @@ export default function LandingPage() {
             <p className="text-white/70 mb-8" style={{ fontSize: 17 }}>
               Join researchers who&rsquo;ve replaced outdated faculty pages with a living, breathing portfolio.
             </p>
-            <button
+            <Link
+              href="/signup"
               className="btn-gold inline-flex items-center gap-2 px-7 py-4 rounded-lg text-[15px] font-semibold"
-              onClick={() => { window.scrollTo(0, 0); navigate("/signup"); }}
+              onClick={() => window.scrollTo(0, 0)}
             >
               Start free 14-day trial
-            </button>
+            </Link>
             <p className="text-white/40 text-[13px] mt-4">No credit card required &middot; Cancel anytime</p>
           </div>
         </section>

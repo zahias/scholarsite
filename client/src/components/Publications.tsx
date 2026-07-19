@@ -18,7 +18,10 @@ interface PublicationsProps {
 
 export default function Publications({ openalexId, inline = false }: PublicationsProps) {
   const [searchTerm, setSearchTerm] = useState("");
-  const [sortBy, setSortBy] = useState<"year" | "citations" | "title">("year");
+  // Citations-first puts a researcher's most-impactful work at the top by
+  // default instead of whatever was published most recently (which is often
+  // 0-citation preprints/reissues) — best foot forward for a first-time visitor.
+  const [sortBy, setSortBy] = useState<"year" | "citations" | "title">("citations");
   const [sortOrder, setSortOrder] = useState<"desc" | "asc">("desc");
   const [yearFilter, setYearFilter] = useState<string>("all");
   const [openAccessFilter, setOpenAccessFilter] = useState<"all" | "open" | "closed">("all");

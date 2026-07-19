@@ -93,6 +93,27 @@ function Router() {
     );
   }
 
+  // A subdomain/domain with no registered tenant (e.g. an unclaimed
+  // name.scholar.name) previously fell through to the full marketing
+  // homepage, which was disorienting and created duplicate-content pages for
+  // crawlers. Show a dedicated "not claimed yet" state instead.
+  if (!siteContext?.isTenantSite && !isMarketingHostname) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-[#0B1F3A] to-[#1a3a5c] flex items-center justify-center px-6" data-testid="page-unclaimed-subdomain">
+        <div className="max-w-lg text-center text-white">
+          <h1 className="text-3xl font-bold mb-4">No portfolio here yet</h1>
+          <p className="text-white/70 mb-8">
+            {hostname} hasn't been claimed as a Scholar.name profile. If this is your name, you can create it now.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <a href="https://scholar.name/signup" className="px-5 py-2.5 bg-[#FFC72E] text-[#0B1F3A] font-semibold rounded-md">Claim this address</a>
+            <a href="https://scholar.name" className="px-5 py-2.5 border border-white/30 text-white rounded-md">Search for a researcher</a>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (siteContext?.isTenantSite) {
     return (
       <Switch>
