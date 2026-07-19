@@ -7,7 +7,7 @@ export default function CheckoutCancelPage() {
   const [, navigate] = useLocation();
 
   return (
-    <div style={{ minHeight: "100vh", background: "#F0F4F8" }}>
+    <div className="min-h-screen bg-[#F0F4F8]">
       <SEO
         title="Payment Cancelled — Scholar.name"
         description="Your payment was cancelled. No charges were made."
@@ -15,46 +15,46 @@ export default function CheckoutCancelPage() {
       />
       <GlobalNav mode="auth" />
 
-      <div style={{ maxWidth: 500, margin: "0 auto", padding: "80px 24px 48px" }}>
-        <div style={{ background: "#fff", borderRadius: 20, border: "1px solid rgba(11,31,58,.08)", boxShadow: "0 20px 60px -20px rgba(11,31,58,.12)", padding: "44px 40px 40px", textAlign: "center" }}>
+      <div className="max-w-[500px] mx-auto px-6 pt-20 pb-12">
+        <div className="bg-white rounded-[20px] border border-midnight/[.08] shadow-[0_20px_60px_-20px_rgba(11,31,58,.12)] px-10 pt-11 pb-10 text-center">
 
           {/* Icon */}
-          <div style={{ width: 64, height: 64, borderRadius: "50%", background: "#F0F4F8", border: "1px solid rgba(11,31,58,.08)", display: "grid", placeItems: "center", margin: "0 auto 24px" }}>
-            <XCircle size={28} style={{ color: "#0B1F3A", opacity: .5 }} />
+          <div className="w-16 h-16 rounded-full bg-[#F0F4F8] border border-midnight/[.08] grid place-items-center mx-auto mb-6">
+            <XCircle size={28} className="text-midnight opacity-50" />
           </div>
 
-          <h1 style={{ fontFamily: "'Newsreader', serif", fontSize: "clamp(22px,3vw,30px)", fontWeight: 500, color: "#0B1F3A", margin: "0 0 10px", letterSpacing: "-0.015em" }}>
+          <h1 className="font-serif font-medium text-midnight mb-2.5 tracking-[-0.015em]" style={{ fontSize: "clamp(22px,3vw,30px)" }}>
             Payment Cancelled
           </h1>
-          <p style={{ fontSize: 15, color: "#44474D", lineHeight: 1.6, margin: "0 0 28px" }}>
+          <p className="text-[15px] text-[#44474D] leading-relaxed mb-7">
             Your payment was not completed. No charges were made to your account.
           </p>
 
           {/* Divider */}
-          <div style={{ height: 1, background: "rgba(11,31,58,.06)", margin: "0 0 28px" }} />
+          <div className="h-px bg-midnight/[.06] mb-7" />
 
-          <p style={{ fontSize: 14, color: "#75777E", lineHeight: 1.6, margin: "0 0 32px" }}>
+          <p className="text-sm text-[#75777E] leading-relaxed mb-8">
             If you experienced any issues or have questions about our plans, we're happy to help.
           </p>
 
-          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          <div className="flex flex-col gap-2.5">
             <button
               onClick={() => navigate("/pricing")}
-              style={{ width: "100%", padding: "12px 20px", background: "#FFC72E", color: "#6F5400", border: "none", borderRadius: 10, fontSize: 14.5, fontWeight: 700, fontFamily: "inherit", cursor: "pointer" }}
+              className="w-full px-5 py-3 bg-warm text-on-secondary-container border-none rounded-[10px] text-[14.5px] font-bold cursor-pointer"
               data-testid="button-try-again"
             >
               Try Again
             </button>
             <button
               onClick={() => navigate("/contact")}
-              style={{ width: "100%", padding: "12px 20px", background: "#fff", color: "#0B1F3A", border: "1px solid rgba(11,31,58,.14)", borderRadius: 10, fontSize: 14.5, fontWeight: 600, fontFamily: "inherit", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}
+              className="w-full px-5 py-3 bg-white text-midnight border border-midnight/[.14] rounded-[10px] text-[14.5px] font-semibold cursor-pointer flex items-center justify-center gap-1.5"
               data-testid="button-contact-support"
             >
               <MessageCircle size={15} /> Contact Support
             </button>
             <button
               onClick={() => navigate("/")}
-              style={{ width: "100%", padding: "12px 20px", background: "transparent", color: "#75777E", border: "none", borderRadius: 10, fontSize: 14, fontWeight: 500, fontFamily: "inherit", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}
+              className="w-full px-5 py-3 bg-transparent text-[#75777E] border-none rounded-[10px] text-sm font-medium cursor-pointer flex items-center justify-center gap-1.5"
               data-testid="button-back-home"
             >
               <ArrowLeft size={14} /> Back to Homepage

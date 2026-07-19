@@ -30,17 +30,17 @@ export default function CheckoutSuccessPage() {
 
   if (isLoading) {
     return (
-      <div style={{ minHeight: "100vh", background: "#F0F4F8", display: "flex", alignItems: "center", justifyContent: "center" }}>
-        <div style={{ textAlign: "center" }}>
-          <Loader2 size={40} style={{ color: "#FFC72E", animation: "spin 1s linear infinite", margin: "0 auto 16px", display: "block" }} />
-          <p style={{ color: "#44474D", fontSize: 15 }}>Confirming your payment…</p>
+      <div className="min-h-screen bg-[#F0F4F8] flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 size={40} className="text-warm animate-spin mx-auto mb-4 block" />
+          <p className="text-[#44474D] text-[15px]">Confirming your payment…</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div style={{ minHeight: "100vh", background: "#F0F4F8" }}>
+    <div className="min-h-screen bg-[#F0F4F8]">
       <SEO
         title="Payment Successful — Scholar.name"
         description="Your payment was successful. Welcome to Scholar.name."
@@ -48,62 +48,65 @@ export default function CheckoutSuccessPage() {
       />
       <GlobalNav mode="auth" />
 
-      <div style={{ maxWidth: 520, margin: "0 auto", padding: "80px 24px 48px" }}>
-        <div style={{ background: "#fff", borderRadius: 20, border: "1px solid rgba(11,31,58,.08)", boxShadow: "0 20px 60px -20px rgba(11,31,58,.12)", padding: "44px 40px 40px", textAlign: "center" }}>
+      <div className="max-w-[520px] mx-auto px-6 pt-20 pb-12">
+        <div className="bg-white rounded-[20px] border border-midnight/[.08] shadow-[0_20px_60px_-20px_rgba(11,31,58,.12)] px-10 pt-11 pb-10 text-center">
 
           {/* Icon */}
-          <div style={{ width: 64, height: 64, borderRadius: "50%", background: "rgba(255,199,46,.15)", border: "1px solid rgba(255,199,46,.3)", display: "grid", placeItems: "center", margin: "0 auto 24px" }}>
-            <CheckCircle size={28} style={{ color: "#FFC72E" }} />
+          <div className="w-16 h-16 rounded-full bg-warm/15 border border-warm/30 grid place-items-center mx-auto mb-6">
+            <CheckCircle size={28} className="text-warm" />
           </div>
 
-          <h1 style={{ fontFamily: "'Newsreader', serif", fontSize: "clamp(22px,3vw,30px)", fontWeight: 500, color: "#0B1F3A", margin: "0 0 10px", letterSpacing: "-0.015em" }}>
+          <h1 className="font-serif font-medium text-midnight mb-2.5 tracking-[-0.015em]" style={{ fontSize: "clamp(22px,3vw,30px)" }}>
             Payment Successful!
           </h1>
-          <p style={{ fontSize: 15, color: "#44474D", lineHeight: 1.6, margin: "0 0 28px" }}>
+          <p className="text-[15px] text-[#44474D] leading-relaxed mb-7">
             Welcome to Scholar.name. Your research portfolio is being set up.
           </p>
 
           {/* Order details */}
           {paymentStatus && (
-            <div style={{ background: "#F0F4F8", borderRadius: 12, padding: "16px 20px", marginBottom: 20, textAlign: "left" }}>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px 0", fontSize: 13.5 }}>
-                <span style={{ color: "#75777E" }}>Order Number</span>
-                <span style={{ color: "#0B1F3A", fontWeight: 600, textAlign: "right" }}>{paymentStatus.orderNumber}</span>
-                <span style={{ color: "#75777E" }}>Plan</span>
-                <span style={{ color: "#0B1F3A", fontWeight: 600, textAlign: "right", textTransform: "capitalize" }}>{paymentStatus.plan}</span>
-                <span style={{ color: "#75777E" }}>Amount</span>
-                <span style={{ color: "#0B1F3A", fontWeight: 600, textAlign: "right" }}>${paymentStatus.amount} USD</span>
-                <span style={{ color: "#75777E" }}>Status</span>
-                <span style={{ color: "#059669", fontWeight: 600, textAlign: "right", textTransform: "capitalize" }}>{paymentStatus.status}</span>
+            <div className="bg-[#F0F4F8] rounded-xl px-5 py-4 mb-5 text-left">
+              <div className="grid grid-cols-2 gap-y-2 text-[13.5px]">
+                <span className="text-[#75777E]">Order Number</span>
+                <span className="text-midnight font-semibold text-right">{paymentStatus.orderNumber}</span>
+                <span className="text-[#75777E]">Plan</span>
+                <span className="text-midnight font-semibold text-right capitalize">{paymentStatus.plan}</span>
+                <span className="text-[#75777E]">Amount</span>
+                <span className="text-midnight font-semibold text-right">${paymentStatus.amount} USD</span>
+                <span className="text-[#75777E]">Status</span>
+                <span className="text-[#059669] font-semibold text-right capitalize">{paymentStatus.status}</span>
               </div>
             </div>
           )}
 
           {/* Email notice — navy callout */}
-          <div style={{ background: "#0B1F3A", borderRadius: 12, padding: "16px 20px", marginBottom: 28, textAlign: "left", position: "relative", overflow: "hidden" }}>
-            <div style={{ position: "absolute", inset: 0, background: "radial-gradient(ellipse at 85% 0%, rgba(255,199,46,.18), transparent 60%)", pointerEvents: "none" }} />
-            <div style={{ position: "relative", display: "flex", alignItems: "flex-start", gap: 12 }}>
-              <Mail size={17} style={{ color: "#FFC72E", flexShrink: 0, marginTop: 1 }} />
+          <div className="bg-midnight rounded-xl px-5 py-4 mb-7 text-left relative overflow-hidden">
+            <div
+              className="absolute inset-0 pointer-events-none"
+              style={{ background: "radial-gradient(ellipse at 85% 0%, rgba(255,199,46,.18), transparent 60%)" }}
+            />
+            <div className="relative flex items-start gap-3">
+              <Mail size={17} className="text-warm shrink-0 mt-px" />
               <div>
-                <p style={{ fontSize: 13.5, fontWeight: 600, color: "#fff", margin: "0 0 3px" }}>Check your email</p>
-                <p style={{ fontSize: 13, color: "rgba(255,255,255,.7)", margin: 0, lineHeight: 1.5 }}>
+                <p className="text-[13.5px] font-semibold text-white mb-[3px]">Check your email</p>
+                <p className="text-[13px] text-white/70 leading-normal m-0">
                   We've sent setup instructions to your email. Follow them to customize your portfolio.
                 </p>
               </div>
             </div>
           </div>
 
-          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          <div className="flex flex-col gap-2.5">
             <button
               onClick={() => navigate("/")}
-              style={{ width: "100%", padding: "12px 20px", background: "#FFC72E", color: "#6F5400", border: "none", borderRadius: 10, fontSize: 14.5, fontWeight: 700, fontFamily: "inherit", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}
+              className="w-full px-5 py-3 bg-warm text-on-secondary-container border-none rounded-[10px] text-[14.5px] font-bold cursor-pointer flex items-center justify-center gap-1.5"
               data-testid="button-go-home"
             >
               Go to Homepage <ArrowRight size={15} />
             </button>
             <button
               onClick={() => navigate("/contact")}
-              style={{ width: "100%", padding: "12px 20px", background: "#fff", color: "#0B1F3A", border: "1px solid rgba(11,31,58,.14)", borderRadius: 10, fontSize: 14.5, fontWeight: 600, fontFamily: "inherit", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}
+              className="w-full px-5 py-3 bg-white text-midnight border border-midnight/[.14] rounded-[10px] text-[14.5px] font-semibold cursor-pointer flex items-center justify-center gap-1.5"
               data-testid="button-need-help"
             >
               <MessageCircle size={15} /> Need Help?

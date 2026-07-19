@@ -43,44 +43,39 @@ export default function PricingPage() {
           <div className="public-container-lg">
 
             {/* Monthly / Yearly toggle */}
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 12, marginBottom: 32 }}>
-              <span style={{ fontSize: 14, fontWeight: isYearly ? 400 : 600, color: isYearly ? "#75777E" : "#0B1F3A", transition: "color .15s" }}>Monthly</span>
+            <div className="flex items-center justify-center gap-3 mb-8">
+              <span className={`text-sm transition-colors duration-150 ${isYearly ? "font-normal text-[#75777E]" : "font-semibold text-midnight"}`}>Monthly</span>
               <button
                 onClick={() => setIsYearly(!isYearly)}
                 role="switch"
                 aria-checked={isYearly}
-                style={{
-                  width: 44, height: 24, borderRadius: 12, background: isYearly ? "#0B1F3A" : "rgba(11,31,58,.12)",
-                  border: "none", cursor: "pointer", position: "relative", transition: "background .2s", flexShrink: 0,
-                }}
+                className={`w-11 h-6 rounded-xl border-none cursor-pointer relative transition-colors duration-200 shrink-0 ${isYearly ? "bg-midnight" : "bg-midnight/[.12]"}`}
               >
-                <span style={{
-                  position: "absolute", top: 3, left: isYearly ? 23 : 3, width: 18, height: 18,
-                  borderRadius: "50%", background: isYearly ? "#FFC72E" : "#fff",
-                  boxShadow: "0 1px 4px rgba(0,0,0,.2)", transition: "left .2s, background .2s",
-                }} />
+                <span
+                  className={`absolute top-[3px] w-[18px] h-[18px] rounded-full shadow-[0_1px_4px_rgba(0,0,0,.2)] transition-[left,background] duration-200 ${isYearly ? "bg-warm" : "bg-white"}`}
+                  style={{ left: isYearly ? 23 : 3 }}
+                />
               </button>
-              <span style={{ fontSize: 14, fontWeight: isYearly ? 600 : 400, color: isYearly ? "#0B1F3A" : "#75777E", transition: "color .15s", display: "flex", alignItems: "center", gap: 6 }}>
+              <span className={`text-sm transition-colors duration-150 flex items-center gap-1.5 ${isYearly ? "font-semibold text-midnight" : "font-normal text-[#75777E]"}`}>
                 Yearly
-                <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: ".08em", background: "rgba(5,150,105,.12)", color: "#059669", padding: "2px 7px", borderRadius: 999 }}>
+                <span className="text-[11px] font-bold tracking-[.08em] bg-[#059669]/10 text-[#059669] px-[7px] py-0.5 rounded-full">
                   Save 2 months
                 </span>
               </span>
             </div>
 
             {/* Free trial banner */}
-            <div className="public-subtle-card" style={{ margin: "0 0 28px", padding: "28px 32px", borderStyle: "dashed", display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 24, flexWrap: "wrap" }}>
+            <div className="public-subtle-card mb-7 px-8 py-7 border-dashed flex flex-row items-center justify-between gap-6 flex-wrap">
               <div>
-                <div style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "3px 10px", borderRadius: 999, fontSize: 12, fontWeight: 600, background: "rgba(47,109,58,.1)", color: "#2F6D3A", border: "1px solid rgba(47,109,58,.18)", marginBottom: 8 }}>
-                  <Check style={{ width: 12, height: 12, flexShrink: 0 }} />
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-[3px] rounded-full text-xs font-semibold bg-[#2F6D3A]/10 text-[#2F6D3A] border border-[#2F6D3A]/[.18] mb-2">
+                  <Check className="w-3 h-3 shrink-0" />
                   Free &mdash; no credit card
                 </div>
-                <div style={{ fontFamily: "'Newsreader', serif", fontSize: 20, fontWeight: 500, color: "#0B1F3A", marginBottom: 4 }}>14-day free trial</div>
-                <p style={{ fontSize: 13.5, color: "#75777E", margin: 0 }}>Full access to all features. Your portfolio goes live immediately. Choose a paid plan when you&rsquo;re ready.</p>
+                <div className="font-serif text-xl font-medium text-midnight mb-1">14-day free trial</div>
+                <p className="text-[13.5px] text-[#75777E] m-0">Full access to all features. Your portfolio goes live immediately. Choose a paid plan when you&rsquo;re ready.</p>
               </div>
               <button
-                className="btn-navy"
-                style={{ border: "none", padding: "10px 22px", fontSize: 14, cursor: "pointer", flexShrink: 0 }}
+                className="btn-navy border-none px-[22px] py-2.5 text-sm cursor-pointer shrink-0"
                 onClick={() => { window.scrollTo(0, 0); navigate("/signup"); }}
               >
                 Start free trial
@@ -101,27 +96,30 @@ export default function PricingPage() {
                     </div>
                   )}
 
-                  <div style={{ position: "relative" }}>
-                    <div style={{ fontFamily: "'Newsreader', serif", fontSize: 22, fontWeight: 500, color: plan.highlighted ? "#fff" : "#0B1F3A", marginBottom: 4 }}>{plan.name}</div>
-                    <p style={{ fontSize: 13.5, color: plan.highlighted ? "rgba(255,255,255,.6)" : "#75777E", margin: "0 0 20px" }}>{plan.description}</p>
+                  <div className="relative">
+                    <div className={`font-serif text-[22px] font-medium mb-1 ${plan.highlighted ? "text-white" : "text-midnight"}`}>{plan.name}</div>
+                    <p className={`text-[13.5px] mb-5 ${plan.highlighted ? "text-white/60" : "text-[#75777E]"}`}>{plan.description}</p>
 
-                    <div style={{ marginBottom: 20 }}>
-                      <span style={{ fontFamily: "'Newsreader', serif", fontSize: "clamp(36px,5vw,44px)", fontWeight: 600, color: plan.highlighted ? "#FFC72E" : "#0B1F3A", letterSpacing: "-0.02em" }}>
+                    <div className="mb-5">
+                      <span
+                        className={`font-serif font-semibold tracking-[-0.02em] ${plan.highlighted ? "text-warm" : "text-midnight"}`}
+                        style={{ fontSize: "clamp(36px,5vw,44px)" }}
+                      >
                         ${isYearly ? plan.yearlyPrice.toFixed(2) : plan.monthlyPrice.toFixed(2)}
                       </span>
-                      <span style={{ fontSize: 14, color: plan.highlighted ? "rgba(255,255,255,.5)" : "#75777E", marginLeft: 4 }}>/{isYearly ? "year" : "month"}</span>
+                      <span className={`text-sm ml-1 ${plan.highlighted ? "text-white/50" : "text-[#75777E]"}`}>/{isYearly ? "year" : "month"}</span>
                       {isYearly && (
-                        <p style={{ fontSize: 12.5, color: plan.highlighted ? "rgba(255,199,46,.8)" : "#059669", marginTop: 3 }}>
+                        <p className={`text-[12.5px] mt-[3px] ${plan.highlighted ? "text-warm/80" : "text-[#059669]"}`}>
                           Save ${plan.yearlySavings}
                         </p>
                       )}
                     </div>
 
-                    <ul style={{ listStyle: "none", padding: 0, margin: "0 0 24px", display: "flex", flexDirection: "column", gap: 10 }}>
+                    <ul className="list-none p-0 mb-6 flex flex-col gap-2.5">
                       {plan.features.map((feat, j) => (
-                        <li key={j} style={{ display: "flex", alignItems: "center", gap: 9, fontSize: 14, color: plan.highlighted ? "rgba(255,255,255,.85)" : "#171C1F" }}>
-                          <span style={{ width: 18, height: 18, borderRadius: "50%", background: plan.highlighted ? "rgba(255,199,46,.2)" : "rgba(11,31,58,.06)", display: "grid", placeItems: "center", flexShrink: 0 }}>
-                            <Check size={10} style={{ color: plan.highlighted ? "#FFC72E" : "#0B1F3A" }} />
+                        <li key={j} className={`flex items-center gap-[9px] text-sm ${plan.highlighted ? "text-white/85" : "text-[#171C1F]"}`}>
+                          <span className={`w-[18px] h-[18px] rounded-full grid place-items-center shrink-0 ${plan.highlighted ? "bg-warm/20" : "bg-midnight/[.06]"}`}>
+                            <Check size={10} className={plan.highlighted ? "text-warm" : "text-midnight"} />
                           </span>
                           {feat}
                         </li>
@@ -130,10 +128,7 @@ export default function PricingPage() {
 
                     <button
                       onClick={() => { window.scrollTo(0, 0); navigate(checkoutPathForPlan(plan.name)); }}
-                      className={plan.highlighted ? "btn-gold" : "btn-navy"}
-                      style={{
-                        width: "100%", padding: "12px 20px", fontSize: 14.5, fontFamily: "inherit", cursor: "pointer", border: "none",
-                      }}
+                      className={`${plan.highlighted ? "btn-gold" : "btn-navy"} w-full px-5 py-3 text-[14.5px] cursor-pointer border-none`}
                     >
                       Get Started
                     </button>
@@ -142,27 +137,27 @@ export default function PricingPage() {
               ))}
             </div>
 
-            <p style={{ textAlign: "center", fontSize: 13.5, color: "#75777E", marginTop: 24 }}>
+            <p className="text-center text-[13.5px] text-[#75777E] mt-6">
               Cancel anytime — your profile stays active until the billing period ends.
             </p>
           </div>
         </section>
 
         {/* Bottom CTA */}
-        <section style={{ background: "var(--surface-container-lowest)", padding: "56px 24px", textAlign: "center", borderTop: "1px solid rgba(11,31,58,.06)" }}>
-          <div style={{ maxWidth: 480, margin: "0 auto" }}>
-            <h2 style={{ fontFamily: "'Newsreader', serif", fontSize: "clamp(22px,3vw,30px)", fontWeight: 500, color: "#0B1F3A", margin: "0 0 24px", letterSpacing: "-0.015em" }}>
+        <section className="bg-surface-container-lowest px-6 py-14 text-center border-t border-midnight/[.06]">
+          <div className="max-w-[480px] mx-auto">
+            <h2 className="font-serif font-medium text-midnight mb-6 tracking-[-0.015em]" style={{ fontSize: "clamp(22px,3vw,30px)" }}>
               Have questions before you start?
             </h2>
-            <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap" }}>
+            <div className="flex gap-2.5 justify-center flex-wrap">
               <button
                 onClick={() => { window.scrollTo(0, 0); navigate("/faq"); }}
-                style={{ padding: "10px 22px", background: "var(--surface-container-lowest)", color: "var(--primary-container)", border: "1px solid rgba(11,31,58,.14)", borderRadius: 9, fontSize: 14, fontWeight: 600, fontFamily: "inherit", cursor: "pointer" }}>
+                className="px-[22px] py-2.5 bg-surface-container-lowest text-primary-container border border-midnight/[.14] rounded-[9px] text-sm font-semibold cursor-pointer">
                 Read the FAQ →
               </button>
               <button
                 onClick={() => { window.scrollTo(0, 0); navigate("/contact"); }}
-                style={{ padding: "10px 22px", background: "transparent", color: "#44474D", border: "none", borderRadius: 9, fontSize: 14, fontWeight: 500, fontFamily: "inherit", cursor: "pointer" }}>
+                className="px-[22px] py-2.5 bg-transparent text-[#44474D] border-none rounded-[9px] text-sm font-medium cursor-pointer">
                 Contact Us
               </button>
             </div>

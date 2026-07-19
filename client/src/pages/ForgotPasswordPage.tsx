@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
+import { BookOpen } from "lucide-react";
 import SEO from "@/components/SEO";
 
 export default function ForgotPasswordPage() {
@@ -23,53 +24,42 @@ export default function ForgotPasswordPage() {
     onError: (err: Error) => toast({ title: "Error", description: err.message, variant: "destructive" }),
   });
 
-  const cardStyle: React.CSSProperties = {
-    background: "#fff",
-    borderRadius: 16,
-    boxShadow: "0 24px 60px -20px rgba(11,31,58,.18)",
-    padding: "48px 40px",
-    width: "100%",
-    maxWidth: 440,
-  };
-
   return (
     <>
       <SEO title="Forgot Password — Scholar.name" description="Reset your Scholar.name account password." />
-      <div style={{ minHeight: "100vh", background: "#F0F4F8", display: "flex", alignItems: "center", justifyContent: "center", padding: "24px 16px" }}>
-        <div style={cardStyle}>
-          <div style={{ marginBottom: 32 }}>
-            <a href="/" style={{ display: "inline-flex", alignItems: "center", gap: 8, textDecoration: "none", marginBottom: 24 }}>
-              <div style={{ width: 36, height: 36, background: "#0B1F3A", borderRadius: 10, display: "grid", placeItems: "center" }}>
-                <span style={{ color: "#FFC72E", fontFamily: "'Newsreader', serif", fontStyle: "italic", fontWeight: 700, fontSize: 16 }}>S</span>
-              </div>
-              <span style={{ fontFamily: "'Newsreader', serif", fontWeight: 700, fontSize: 20, color: "#0B1F3A" }}>Scholar.name</span>
+      <div className="min-h-screen bg-[#F0F4F8] flex items-center justify-center px-4 py-6">
+        <div className="bg-white rounded-2xl shadow-[0_24px_60px_-20px_rgba(11,31,58,.18)] p-10 w-full max-w-[440px]">
+          <div className="mb-8">
+            <a href="/" className="inline-flex items-center gap-2 no-underline mb-6">
+              <BookOpen className="w-6 h-6 text-midnight" />
+              <span className="font-serif font-bold text-xl text-midnight">Scholar.name</span>
             </a>
-            <h1 style={{ fontFamily: "'Newsreader', serif", fontStyle: "italic", fontSize: 28, fontWeight: 700, color: "#0B1F3A", margin: 0 }}>
+            <h1 className="font-serif italic text-[28px] font-bold text-midnight m-0">
               Forgot your password?
             </h1>
-            <p style={{ color: "#75777E", fontSize: 14, marginTop: 8 }}>
+            <p className="text-[#75777E] text-sm mt-2">
               Enter your email and we'll send you a reset link.
             </p>
           </div>
 
           {submitted ? (
-            <div style={{ textAlign: "center", padding: "24px 0" }}>
-              <div style={{ fontSize: 48, marginBottom: 16 }}>✉️</div>
-              <p style={{ fontWeight: 600, color: "#0B1F3A", fontSize: 16, marginBottom: 8 }}>Check your inbox</p>
-              <p style={{ color: "#75777E", fontSize: 14 }}>
+            <div className="text-center py-6">
+              <div className="text-5xl mb-4">✉️</div>
+              <p className="font-semibold text-midnight text-base mb-2">Check your inbox</p>
+              <p className="text-[#75777E] text-sm">
                 If <strong>{email}</strong> is registered, a reset link is on its way.
               </p>
-              <a href="/dashboard/login" style={{ display: "inline-block", marginTop: 24, color: "#0B1F3A", fontSize: 14, fontWeight: 600 }}>
+              <a href="/dashboard/login" className="inline-block mt-6 text-midnight text-sm font-semibold">
                 ← Back to sign in
               </a>
             </div>
           ) : (
             <form
               onSubmit={(e) => { e.preventDefault(); mutation.mutate(); }}
-              style={{ display: "flex", flexDirection: "column", gap: 20 }}
+              className="flex flex-col gap-5"
             >
               <div>
-                <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "#0B1F3A", marginBottom: 6 }}>
+                <label className="block text-[13px] font-semibold text-midnight mb-1.5">
                   Email address
                 </label>
                 <input
@@ -78,20 +68,20 @@ export default function ForgotPasswordPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="you@university.edu"
-                  style={{ width: "100%", padding: "10px 14px", borderRadius: 8, border: "1.5px solid #D4D9E2", fontSize: 14, outline: "none", boxSizing: "border-box" }}
+                  className="w-full px-3.5 py-2.5 rounded-lg border-[1.5px] border-[#D4D9E2] text-sm outline-none box-border"
                 />
               </div>
 
               <button
                 type="submit"
                 disabled={mutation.isPending}
-                style={{ background: "#0B1F3A", color: "#FFC72E", border: "none", borderRadius: 10, padding: "13px 0", fontSize: 15, fontWeight: 700, cursor: mutation.isPending ? "not-allowed" : "pointer", opacity: mutation.isPending ? 0.7 : 1, fontFamily: "'Newsreader', serif" }}
+                className={`bg-midnight text-warm border-none rounded-[10px] py-3.5 text-[15px] font-bold font-serif ${mutation.isPending ? "cursor-not-allowed opacity-70" : "cursor-pointer"}`}
               >
                 {mutation.isPending ? "Sending…" : "Send reset link"}
               </button>
 
-              <p style={{ textAlign: "center", fontSize: 13, color: "#75777E" }}>
-                <a href="/dashboard/login" style={{ color: "#0B1F3A", fontWeight: 600 }}>← Back to sign in</a>
+              <p className="text-center text-[13px] text-[#75777E]">
+                <a href="/dashboard/login" className="text-midnight font-semibold">← Back to sign in</a>
               </p>
             </form>
           )}

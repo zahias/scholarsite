@@ -24,19 +24,19 @@ export default function FeaturesPage() {
       <main className="public-main">
         {/* Hero */}
         <section className="public-masthead">
-          <div className="public-masthead-inner" style={{ textAlign: "left" }}>
+          <div className="public-masthead-inner text-left">
             <span className="public-eyebrow">Platform</span>
             <h1 className="public-title">
               Everything you need to showcase your research
             </h1>
-            <p className="public-copy" style={{ maxWidth: 640, margin: 0 }}>
+            <p className="public-copy max-w-[640px] m-0">
               From automatic publication syncing to downloadable Research Passports — built by academics, for academics.
             </p>
           </div>
         </section>
 
         {/* Feature grid */}
-        <section className="public-section" style={{ paddingBottom: 72 }}>
+        <section className="public-section pb-[72px]">
           <div className="public-container-lg">
             <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 20 }} className="features-grid">
               <style>{`@media (max-width: 1120px) { .features-grid { grid-template-columns: repeat(3, 1fr) !important; } } @media (max-width: 900px) { .features-grid { grid-template-columns: repeat(2, 1fr) !important; } } @media (max-width: 560px) { .features-grid { grid-template-columns: 1fr !important; } }`}</style>
@@ -51,21 +51,21 @@ export default function FeaturesPage() {
         </section>
 
         {/* CTA band */}
-        <div className="public-cta-band" style={{ padding: "64px 32px", textAlign: "center" }}>
-          <div className="public-cta-content" style={{ maxWidth: 520, margin: "0 auto" }}>
-            <h2 style={{ fontFamily: "'Newsreader', serif", fontSize: "clamp(24px,3vw,36px)", fontWeight: 500, color: "#fff", margin: "0 0 12px", letterSpacing: "-0.015em" }}>
+        <div className="public-cta-band px-8 py-16 text-center">
+          <div className="public-cta-content max-w-[520px] mx-auto">
+            <h2 className="font-serif font-medium text-white mb-3 tracking-[-0.015em]" style={{ fontSize: "clamp(24px,3vw,36px)" }}>
               Ready to build your portfolio?
             </h2>
-            <p style={{ fontSize: 15.5, color: "rgba(255,255,255,.65)", margin: "0 0 28px" }}>No credit card required to start.</p>
-            <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap" }}>
+            <p className="text-[15.5px] text-white/65 mb-7">No credit card required to start.</p>
+            <div className="flex gap-2.5 justify-center flex-wrap">
               <button
                 onClick={() => { window.scrollTo(0, 0); navigate("/signup"); }}
-                style={{ padding: "12px 28px", background: "#FFC72E", color: "#6F5400", border: "none", borderRadius: 10, fontSize: 14.5, fontWeight: 700, fontFamily: "inherit", cursor: "pointer" }}>
+                className="px-7 py-3 bg-warm text-on-secondary-container border-none rounded-[10px] text-[14.5px] font-bold cursor-pointer">
                 Create Your Portfolio
               </button>
               <button
                 onClick={() => { window.scrollTo(0, 0); navigate("/pricing"); }}
-                style={{ padding: "12px 22px", background: "rgba(255,255,255,.1)", color: "#fff", border: "1px solid rgba(255,255,255,.18)", borderRadius: 10, fontSize: 14.5, fontWeight: 600, fontFamily: "inherit", cursor: "pointer" }}>
+                className="px-[22px] py-3 bg-white/10 text-white border border-white/[.18] rounded-[10px] text-[14.5px] font-semibold cursor-pointer">
                 View Pricing →
               </button>
             </div>
@@ -91,13 +91,13 @@ function FeatureCard({ f, color }: { f: (typeof marketingFeatures)[number]; colo
         boxShadow: hovered ? "0 12px 32px -12px rgba(11,31,58,.14)" : "none",
       }}
     >
-      <div style={{ width: 44, height: 44, borderRadius: 11, background: `${color}18`, display: "grid", placeItems: "center", marginBottom: 16 }}>
+      <div className="w-11 h-11 rounded-[11px] grid place-items-center mb-4" style={{ background: `${color}18` }}>
         <f.icon size={20} style={{ color }} />
       </div>
-      <h3 style={{ fontFamily: "'Newsreader', serif", fontSize: 18, fontWeight: 500, color: "#0B1F3A", margin: "0 0 8px", letterSpacing: "-0.01em" }}>
+      <h3 className="font-serif text-lg font-medium text-midnight mb-2 tracking-[-0.01em]">
         {f.title}
       </h3>
-      <p style={{ fontSize: 14, color: "#44474D", lineHeight: 1.6, margin: 0 }}>{f.description}</p>
+      <p className="text-sm text-[#44474D] leading-relaxed m-0">{f.description}</p>
     </div>
   );
 }
