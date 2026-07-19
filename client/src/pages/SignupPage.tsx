@@ -23,11 +23,7 @@ const step1Schema = z.object({
 
 type Step1Data = z.infer<typeof step1Schema>;
 
-const inputStyle: React.CSSProperties = {
-  width: "100%", padding: "10px 12px", fontSize: 14.5, fontFamily: "inherit",
-  color: "#171C1F", background: "#fff", border: "1px solid rgba(11,31,58,.14)",
-  borderRadius: 8, outline: "none", boxSizing: "border-box",
-};
+const inputClass = "w-full px-3 py-2.5 text-[14.5px] text-[#171C1F] bg-white border border-midnight/[.14] rounded-lg outline-none box-border";
 
 // FormControl's Slot only forwards id/aria-describedby to its direct child, but the
 // show/hide toggle needs a wrapping <div>. useFormField() must be called from a
@@ -40,14 +36,14 @@ function PasswordField({ showPassword, onToggleShow, field }: {
 }) {
   const { formItemId, formDescriptionId, formMessageId, error } = useFormField();
   return (
-    <div style={{ position: "relative" }}>
+    <div className="relative">
       <input type={showPassword ? "text" : "password"} placeholder="Min. 8 characters" autoComplete="new-password"
         id={formItemId}
         aria-describedby={!error ? formDescriptionId : `${formDescriptionId} ${formMessageId}`}
         aria-invalid={!!error}
-        style={{ ...inputStyle, paddingRight: 40 }} {...field} />
+        className={`${inputClass} pr-10`} {...field} />
       <button type="button" aria-label={showPassword ? "Hide" : "Show"} onClick={onToggleShow}
-        style={{ position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "#75777E", padding: 2 }}>
+        className="absolute right-2.5 top-1/2 -translate-y-1/2 bg-transparent border-none cursor-pointer text-[#75777E] p-0.5">
         {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
       </button>
     </div>
@@ -83,49 +79,49 @@ const STRENGTH_LABELS = ["", "Weak", "Fair", "Strong"];
 // Benefits panel for right column
 function BenefitsPanel() {
   return (
-    <div className="signup-benefits-grid" style={{ borderRadius: "0 16px 16px 0", overflow: "hidden", display: "flex", flexDirection: "column", justifyContent: "space-between", padding: "48px 40px" }}>
+    <div className="signup-benefits-grid rounded-r-2xl overflow-hidden flex flex-col justify-between px-10 py-12">
       {/* Mini profile preview */}
       <div>
-        <div style={{ background: "rgba(255,255,255,.06)", border: "1px solid rgba(255,255,255,.1)", borderRadius: 14, padding: "20px 22px", marginBottom: 36 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 14 }}>
-            <div style={{ width: 44, height: 44, borderRadius: "50%", background: "linear-gradient(135deg, #FFC72E, #FFB700)", display: "grid", placeItems: "center" }}>
-              <span style={{ fontFamily: "'Newsreader', serif", fontSize: 18, color: "#0B1F3A", fontWeight: 700, fontStyle: "italic" }}>J</span>
+        <div className="bg-white/[.06] border border-white/10 rounded-[14px] px-[22px] py-5 mb-9">
+          <div className="flex items-center gap-3 mb-3.5">
+            <div className="w-11 h-11 rounded-full bg-[linear-gradient(135deg,#FFC72E,#FFB700)] grid place-items-center">
+              <span className="font-serif text-lg text-midnight font-bold italic">J</span>
             </div>
             <div>
-              <div style={{ color: "#fff", fontWeight: 600, fontSize: 14 }}>Jane Smith, PhD</div>
-              <div style={{ color: "rgba(255,255,255,.55)", fontSize: 12 }}>scholar.name/janesmith</div>
+              <div className="text-white font-semibold text-sm">Jane Smith, PhD</div>
+              <div className="text-white/55 text-xs">scholar.name/janesmith</div>
             </div>
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, marginBottom: 12 }}>
+          <div className="grid grid-cols-3 gap-2 mb-3">
             {[["142", "h-index"], ["412", "papers"], ["189k", "citations"]].map(([val, label]) => (
-              <div key={label} style={{ background: "rgba(255,255,255,.08)", borderRadius: 8, padding: "8px 10px", textAlign: "center" }}>
-                <div style={{ fontFamily: "'Newsreader', serif", fontSize: 18, color: "#FFC72E", fontWeight: 600, lineHeight: 1 }}>{val}</div>
-                <div style={{ fontSize: 10, color: "rgba(255,255,255,.5)", textTransform: "uppercase", letterSpacing: ".1em", marginTop: 2 }}>{label}</div>
+              <div key={label} className="bg-white/[.08] rounded-lg px-2.5 py-2 text-center">
+                <div className="font-serif text-lg text-warm font-semibold leading-none">{val}</div>
+                <div className="text-[10px] text-white/50 uppercase tracking-[.1em] mt-0.5">{label}</div>
               </div>
             ))}
           </div>
-          <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+          <div className="flex gap-1.5 flex-wrap">
             {["CRISPR", "Gene Editing", "Biochemistry"].map((t) => (
-              <span key={t} style={{ fontSize: 10.5, background: "rgba(255,199,46,.15)", color: "#FFC72E", padding: "3px 8px", borderRadius: 999, border: "1px solid rgba(255,199,46,.25)" }}>{t}</span>
+              <span key={t} className="text-[10.5px] bg-warm/15 text-warm px-2 py-[3px] rounded-full border border-warm/25">{t}</span>
             ))}
           </div>
         </div>
 
         {/* Benefits list */}
-        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+        <div className="flex flex-col gap-4">
           {[
             ["Auto-sync publications", "Linked to OpenAlex — checked monthly for newly indexed works."],
             ["Institutional credibility", "A URL like scholar.name/you signals professionalism."],
             ["Citation analytics", "Track your h-index, i10, and citation trends over time."],
             ["14-day free trial", `Full access, no credit card required. Starter from $${PRICING.starter.monthly}/mo after.`],
           ].map(([title, desc]) => (
-            <div key={title as string} style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
-              <div style={{ width: 22, height: 22, borderRadius: "50%", background: "rgba(255,199,46,.15)", border: "1px solid rgba(255,199,46,.3)", display: "grid", placeItems: "center", flexShrink: 0, marginTop: 1 }}>
+            <div key={title as string} className="flex gap-3 items-start">
+              <div className="w-[22px] h-[22px] rounded-full bg-warm/15 border border-warm/30 grid place-items-center shrink-0 mt-px">
                 <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#FFC72E" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
               </div>
               <div>
-                <div style={{ fontSize: 13.5, color: "#fff", fontWeight: 600, marginBottom: 2 }}>{title}</div>
-                <div style={{ fontSize: 12.5, color: "rgba(255,255,255,.55)", lineHeight: 1.5 }}>{desc}</div>
+                <div className="text-[13.5px] text-white font-semibold mb-0.5">{title}</div>
+                <div className="text-[12.5px] text-white/55 leading-normal">{desc}</div>
               </div>
             </div>
           ))}
@@ -246,14 +242,14 @@ export default function SignupPage() {
   // Success state
   if (isSuccess) {
     return (
-      <div className="auth-page-shell" style={{ alignItems: "center", justifyContent: "center", padding: 24 }}>
-        <div className="auth-card" style={{ padding: "48px 36px", maxWidth: 400, textAlign: "center" }}>
-          <div style={{ width: 64, height: 64, borderRadius: "50%", background: "#DDF2E4", display: "grid", placeItems: "center", margin: "0 auto 20px" }}>
-            <CheckCircle size={32} style={{ color: "#2F6D3A" }} />
+      <div className="auth-page-shell items-center justify-center p-6">
+        <div className="auth-card px-9 pt-12 pb-12 max-w-[400px] text-center">
+          <div className="w-16 h-16 rounded-full bg-[#DDF2E4] grid place-items-center mx-auto mb-5">
+            <CheckCircle size={32} className="text-[#2F6D3A]" />
           </div>
-          <h1 style={{ fontFamily: "'Newsreader', serif", fontSize: 26, fontWeight: 500, color: "#0B1F3A", margin: "0 0 10px" }}>Welcome to Scholar.name!</h1>
-          <p style={{ color: "#44474D", fontSize: 14, margin: "0 0 24px", lineHeight: 1.55 }}>Your account has been created. Redirecting to your dashboard...</p>
-          <Loader2 size={24} style={{ animation: "spin 1s linear infinite", color: "#0B1F3A", margin: "0 auto" }} />
+          <h1 className="font-serif text-2xl font-medium text-midnight mb-2.5">Welcome to Scholar.name!</h1>
+          <p className="text-[#44474D] text-sm mb-6 leading-[1.55]">Your account has been created. Redirecting to your dashboard...</p>
+          <Loader2 size={24} className="animate-spin text-midnight mx-auto" />
         </div>
       </div>
     );
@@ -261,17 +257,17 @@ export default function SignupPage() {
 
   // Step progress dots
   const ProgressDots = () => (
-    <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 28 }}>
+    <div className="flex items-center gap-1.5 mb-7">
       {Array.from({ length: totalSteps }, (_, i) => {
         const s = i + 1;
         const done = s < step;
         const active = s === step;
         return (
-          <div key={s} style={{ display: "flex", alignItems: "center", gap: 6 }}>
-            <div style={{ width: 28, height: 28, borderRadius: "50%", display: "grid", placeItems: "center", fontSize: 11, fontWeight: 700, background: done ? "#2F6D3A" : active ? "#0B1F3A" : "#E4E9F7", color: done || active ? "#fff" : "#75777E", transition: "all .2s" }}>
+          <div key={s} className="flex items-center gap-1.5">
+            <div className={`w-7 h-7 rounded-full grid place-items-center text-[11px] font-bold transition-all duration-200 ${done ? "bg-[#2F6D3A] text-white" : active ? "bg-midnight text-white" : "bg-[#E4E9F7] text-[#75777E]"}`}>
               {done ? <CheckCircle size={14} /> : s}
             </div>
-            {s < totalSteps && <div style={{ width: 28, height: 2, background: done ? "#2F6D3A" : "#E4E9F7", borderRadius: 1 }} />}
+            {s < totalSteps && <div className={`w-7 h-0.5 rounded-sm ${done ? "bg-[#2F6D3A]" : "bg-[#E4E9F7]"}`} />}
           </div>
         );
       })}
@@ -288,33 +284,32 @@ export default function SignupPage() {
       />
 
       {/* Auth nav */}
-      <nav style={{ background: "rgba(255,255,255,.9)", backdropFilter: "blur(14px)", borderBottom: "1px solid rgba(11,31,58,.08)", position: "sticky", top: 0, zIndex: 50 }}>
-        <div style={{ maxWidth: 1200, margin: "0 auto", padding: "10px 32px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <a href="/" style={{ display: "flex", alignItems: "center", gap: 10, fontFamily: "'Newsreader', serif", fontSize: 18, fontWeight: 600, color: "#0B1F3A", textDecoration: "none" }}>
-            <BookOpen size={22} style={{ color: "#0B1F3A" }} />
+      <nav className="bg-white/90 backdrop-blur-[14px] border-b border-midnight/[.08] sticky top-0 z-50">
+        <div className="max-w-[1200px] mx-auto px-8 py-2.5 flex items-center justify-between">
+          <a href="/" className="flex items-center gap-2.5 font-serif text-lg font-semibold text-midnight no-underline">
+            <BookOpen size={22} className="text-midnight" />
             Scholar.name
           </a>
-          <span style={{ fontSize: 13.5, color: "#44474D" }}>
+          <span className="text-[13.5px] text-[#44474D]">
             Already a member?{" "}
-            <a href="/login" style={{ color: "#0B1F3A", fontWeight: 600, textDecoration: "underline", textDecorationColor: "#FFC72E", textUnderlineOffset: 2 }}>Sign in</a>
+            <a href="/login" className="text-midnight font-semibold underline decoration-warm underline-offset-2">Sign in</a>
           </span>
         </div>
       </nav>
 
       {/* Main two-column grid */}
-      <div style={{ flex: 1, display: "flex", alignItems: "stretch", justifyContent: "center" }}>
-        <div style={{ display: "grid", gridTemplateColumns: "1.15fr 1fr", width: "100%", maxWidth: 1040, margin: "32px auto", borderRadius: 16, overflow: "hidden", boxShadow: "0 24px 60px -20px rgba(11,31,58,.18)", border: "1px solid rgba(11,31,58,.08)" }}
-          className="signup-grid">
+      <div className="flex-1 flex items-stretch justify-center">
+        <div style={{ display: "grid", gridTemplateColumns: "1.15fr 1fr" }} className="signup-grid w-full max-w-[1040px] my-8 mx-auto rounded-2xl overflow-hidden shadow-[0_24px_60px_-20px_rgba(11,31,58,.18)] border border-midnight/[.08]">
           <style>{`
             @media (max-width: 860px) { .signup-grid { grid-template-columns: 1fr !important; margin: 16px !important; } .signup-panel-right { display: none !important; } }
             @media (max-width: 520px) { .signup-form-left { padding: 24px 20px !important; } }
           `}</style>
 
           {/* LEFT: Form panel */}
-          <div className="signup-form-left" style={{ background: "#fff", padding: "44px 48px" }}>
+          <div className="signup-form-left bg-white px-12 py-11">
             {/* Back button */}
             <button onClick={() => step === 1 ? navigate("/") : setStep(step - 1)}
-              style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 13, color: "#44474D", background: "none", border: "none", cursor: "pointer", padding: 0, marginBottom: 24, fontFamily: "inherit" }}>
+              className="flex items-center gap-[5px] text-[13px] text-[#44474D] bg-transparent border-none cursor-pointer p-0 mb-6">
               <ArrowLeft size={14} />
               {step === 1 ? "Back to Home" : "Back"}
             </button>
@@ -324,49 +319,49 @@ export default function SignupPage() {
             {/* Step 1: Credentials */}
             {step === 1 && (
               <>
-                <h1 style={{ fontFamily: "'Newsreader', serif", fontSize: 26, fontWeight: 500, color: "#0B1F3A", margin: "0 0 6px", letterSpacing: "-0.015em" }}>Start your free 14-day trial</h1>
-                <p style={{ fontSize: 14, color: "#44474D", margin: "0 0 28px", lineHeight: 1.5 }}>Step 1 of {totalSteps} — no credit card required</p>
+                <h1 className="font-serif text-2xl font-medium text-midnight mb-1.5 tracking-[-0.015em]">Start your free 14-day trial</h1>
+                <p className="text-sm text-[#44474D] mb-7 leading-normal">Step 1 of {totalSteps} — no credit card required</p>
 
-                <div className="auth-divider" style={{ marginTop: 0 }}>Sign up with email</div>
+                <div className="auth-divider mt-0">Sign up with email</div>
 
                 <Form {...form}>
-                  <form onSubmit={(e) => { e.preventDefault(); handleStep1Next(); }} style={{ display: "flex", flexDirection: "column", gap: 13 }}>
+                  <form onSubmit={(e) => { e.preventDefault(); handleStep1Next(); }} className="flex flex-col gap-3.5">
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }} className="name-row">
                       <FormField control={form.control} name="firstName" render={({ field }) => (
-                        <FormItem style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                          <FormLabel style={{ fontSize: 13, color: "#0B1F3A", fontWeight: 500 }}>First name</FormLabel>
-                          <FormControl><input placeholder="Jane" autoComplete="given-name" style={inputStyle} {...field} /></FormControl>
+                        <FormItem className="flex flex-col gap-1">
+                          <FormLabel className="text-[13px] text-midnight font-medium">First name</FormLabel>
+                          <FormControl><input placeholder="Jane" autoComplete="given-name" className={inputClass} {...field} /></FormControl>
                           <FormMessage />
                         </FormItem>
                       )} />
                       <FormField control={form.control} name="lastName" render={({ field }) => (
-                        <FormItem style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                          <FormLabel style={{ fontSize: 13, color: "#0B1F3A", fontWeight: 500 }}>Last name</FormLabel>
-                          <FormControl><input placeholder="Smith" autoComplete="family-name" style={inputStyle} {...field} /></FormControl>
+                        <FormItem className="flex flex-col gap-1">
+                          <FormLabel className="text-[13px] text-midnight font-medium">Last name</FormLabel>
+                          <FormControl><input placeholder="Smith" autoComplete="family-name" className={inputClass} {...field} /></FormControl>
                           <FormMessage />
                         </FormItem>
                       )} />
                     </div>
 
                     <FormField control={form.control} name="email" render={({ field }) => (
-                      <FormItem style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                        <FormLabel style={{ fontSize: 13, color: "#0B1F3A", fontWeight: 500 }}>Email</FormLabel>
-                        <FormControl><input type="email" placeholder="jane.smith@university.edu" autoComplete="email" style={inputStyle} {...field} /></FormControl>
+                      <FormItem className="flex flex-col gap-1">
+                        <FormLabel className="text-[13px] text-midnight font-medium">Email</FormLabel>
+                        <FormControl><input type="email" placeholder="jane.smith@university.edu" autoComplete="email" className={inputClass} {...field} /></FormControl>
                         <FormMessage />
                       </FormItem>
                     )} />
 
                     <FormField control={form.control} name="password" render={({ field }) => (
-                      <FormItem style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                        <FormLabel style={{ fontSize: 13, color: "#0B1F3A", fontWeight: 500 }}>Password</FormLabel>
+                      <FormItem className="flex flex-col gap-1">
+                        <FormLabel className="text-[13px] text-midnight font-medium">Password</FormLabel>
                         <PasswordField showPassword={showPassword} onToggleShow={() => setShowPassword(!showPassword)} field={field} />
                         {/* Password strength meter */}
                         {passwordValue && (
-                          <div style={{ display: "flex", gap: 4, marginTop: 2 }}>
+                          <div className="flex gap-1 mt-0.5">
                             {[1, 2, 3].map((i) => (
-                              <div key={i} style={{ flex: 1, height: 3, borderRadius: 2, background: i <= strengthLevel ? STRENGTH_COLORS[strengthLevel] : "#E4E9F7", transition: "background .2s" }} />
+                              <div key={i} className="flex-1 h-[3px] rounded-sm transition-colors duration-200" style={{ background: i <= strengthLevel ? STRENGTH_COLORS[strengthLevel] : "#E4E9F7" }} />
                             ))}
-                            <span style={{ fontSize: 11, color: STRENGTH_COLORS[strengthLevel], fontWeight: 600, marginLeft: 4, lineHeight: "12px" }}>{STRENGTH_LABELS[strengthLevel]}</span>
+                            <span className="text-[11px] font-semibold ml-1 leading-3" style={{ color: STRENGTH_COLORS[strengthLevel] }}>{STRENGTH_LABELS[strengthLevel]}</span>
                           </div>
                         )}
                         <FormMessage />
@@ -374,23 +369,23 @@ export default function SignupPage() {
                     )} />
 
                     <FormField control={form.control} name="affiliation" render={({ field }) => (
-                      <FormItem style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                        <FormLabel style={{ fontSize: 13, color: "#0B1F3A", fontWeight: 500 }}>
-                          Affiliation <span style={{ color: "#75777E", fontWeight: 400 }}>(optional)</span>
+                      <FormItem className="flex flex-col gap-1">
+                        <FormLabel className="text-[13px] text-midnight font-medium">
+                          Affiliation <span className="text-[#75777E] font-normal">(optional)</span>
                         </FormLabel>
-                        <FormControl><input placeholder="e.g., MIT, Stanford University" autoComplete="organization" style={inputStyle} {...field} /></FormControl>
+                        <FormControl><input placeholder="e.g., MIT, Stanford University" autoComplete="organization" className={inputClass} {...field} /></FormControl>
                         <FormMessage />
                       </FormItem>
                     )} />
 
-                    <p style={{ fontSize: 11.5, color: "#75777E", margin: "4px 0" }}>
+                    <p className="text-[11.5px] text-[#75777E] my-1">
                       By continuing you agree to our{" "}
-                      <a href="/terms" style={{ color: "#0B1F3A", textDecorationColor: "#FFC72E", textDecoration: "underline" }}>Terms</a>
+                      <a href="/terms" className="text-midnight underline decoration-warm">Terms</a>
                       {" "}and{" "}
-                      <a href="/privacy" style={{ color: "#0B1F3A", textDecorationColor: "#FFC72E", textDecoration: "underline" }}>Privacy Policy</a>.
+                      <a href="/privacy" className="text-midnight underline decoration-warm">Privacy Policy</a>.
                     </p>
 
-                    <button type="submit" style={{ width: "100%", padding: "12px 20px", background: "#0B1F3A", color: "#fff", borderRadius: 8, fontSize: 14, fontWeight: 600, fontFamily: "inherit", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+                    <button type="submit" className="w-full px-5 py-3 bg-midnight text-white rounded-lg text-sm font-semibold border-none cursor-pointer flex items-center justify-center gap-2">
                       Continue <ArrowRight size={15} />
                     </button>
                   </form>
@@ -401,39 +396,37 @@ export default function SignupPage() {
             {/* Step 2: Find your profile */}
             {step === 2 && (
               <>
-                <h1 style={{ fontFamily: "'Newsreader', serif", fontSize: 26, fontWeight: 500, color: "#0B1F3A", margin: "0 0 6px", letterSpacing: "-0.015em" }}>Find your research profile</h1>
-                <p style={{ fontSize: 14, color: "#44474D", margin: "0 0 28px", lineHeight: 1.5 }}>Step 2 of {totalSteps} — link your OpenAlex publications (optional)</p>
+                <h1 className="font-serif text-2xl font-medium text-midnight mb-1.5 tracking-[-0.015em]">Find your research profile</h1>
+                <p className="text-sm text-[#44474D] mb-7 leading-normal">Step 2 of {totalSteps} — link your OpenAlex publications (optional)</p>
 
                 {/* Search box */}
-                <div style={{ position: "relative", marginBottom: 20 }} ref={searchRef}>
-                  <div style={{ position: "relative" }}>
-                    <Search size={15} style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: "#75777E" }} />
+                <div className="relative mb-5" ref={searchRef}>
+                  <div className="relative">
+                    <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#75777E]" />
                     <input type="text" placeholder="Search by name..." value={searchQuery}
                       onChange={(e) => { setSearchQuery(e.target.value); setShowResults(true); setSelectedAuthor(null); }}
                       onFocus={() => setShowResults(true)}
-                      style={{ ...inputStyle, paddingLeft: 36 }} />
+                      className={`${inputClass} pl-9`} />
                   </div>
                   {showResults && debouncedQuery.length >= 2 && (
-                    <div style={{ position: "absolute", zIndex: 50, width: "100%", marginTop: 4, background: "#fff", border: "1px solid rgba(11,31,58,.12)", borderRadius: 10, boxShadow: "0 12px 30px -8px rgba(11,31,58,.2)", maxHeight: 256, overflowY: "auto" }}>
+                    <div className="absolute z-50 w-full mt-1 bg-white border border-midnight/[.12] rounded-[10px] shadow-[0_12px_30px_-8px_rgba(11,31,58,.2)] max-h-64 overflow-y-auto">
                       {isSearching ? (
-                        <div style={{ padding: 16, display: "flex", alignItems: "center", justifyContent: "center", gap: 8, fontSize: 13.5, color: "#44474D" }}>
-                          <Loader2 size={15} style={{ animation: "spin 1s linear infinite" }} /> Searching...
+                        <div className="p-4 flex items-center justify-center gap-2 text-[13.5px] text-[#44474D]">
+                          <Loader2 size={15} className="animate-spin" /> Searching...
                         </div>
                       ) : searchResults?.results?.length ? (
                         searchResults.results.map((author) => (
                           <button key={author.id} onClick={() => handleSelectAuthor(author)}
-                            style={{ width: "100%", textAlign: "left", padding: "11px 16px", background: "none", border: "none", borderBottom: "1px solid rgba(11,31,58,.06)", cursor: "pointer", fontFamily: "inherit", transition: "background .12s" }}
-                            onMouseEnter={(e) => (e.currentTarget.style.background = "#F0F4F8")}
-                            onMouseLeave={(e) => (e.currentTarget.style.background = "none")}>
-                            <div style={{ fontWeight: 600, fontSize: 13.5, color: "#0B1F3A" }}>{author.display_name}</div>
-                            <div style={{ fontSize: 12, color: "#75777E", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{author.hint}</div>
-                            <div style={{ fontSize: 12, color: "#75777E", marginTop: 2 }}>
+                            className="w-full text-left px-4 py-2.5 bg-transparent border-none border-b border-midnight/[.06] cursor-pointer transition-colors duration-100 hover:bg-[#F0F4F8]">
+                            <div className="font-semibold text-[13.5px] text-midnight">{author.display_name}</div>
+                            <div className="text-xs text-[#75777E] overflow-hidden text-ellipsis whitespace-nowrap">{author.hint}</div>
+                            <div className="text-xs text-[#75777E] mt-0.5">
                               {author.works_count.toLocaleString()} works · {author.cited_by_count.toLocaleString()} citations
                             </div>
                           </button>
                         ))
                       ) : (
-                        <div style={{ padding: 16, fontSize: 13.5, color: "#75777E", textAlign: "center" }}>No researchers found for "{debouncedQuery}"</div>
+                        <div className="p-4 text-[13.5px] text-[#75777E] text-center">No researchers found for "{debouncedQuery}"</div>
                       )}
                     </div>
                   )}
@@ -441,20 +434,20 @@ export default function SignupPage() {
 
                 {/* Selected author card */}
                 {selectedAuthor && (
-                  <div style={{ borderRadius: 12, padding: "16px 18px", background: "#F0F4F8", border: "1px solid rgba(11,31,58,.08)", marginBottom: 20 }}>
-                    <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
-                      <div style={{ width: 40, height: 40, borderRadius: "50%", background: "rgba(11,31,58,.08)", display: "grid", placeItems: "center", flexShrink: 0 }}>
-                        <BookOpen size={18} style={{ color: "#0B1F3A" }} />
+                  <div className="rounded-xl px-[18px] py-4 bg-[#F0F4F8] border border-midnight/[.08] mb-5">
+                    <div className="flex items-start gap-3">
+                      <div className="w-10 h-10 rounded-full bg-midnight/[.08] grid place-items-center shrink-0">
+                        <BookOpen size={18} className="text-midnight" />
                       </div>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontWeight: 600, fontSize: 14, color: "#0B1F3A" }}>{selectedAuthor.display_name}</div>
-                        <div style={{ fontSize: 12, color: "#75777E", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{selectedAuthor.hint}</div>
-                        <div style={{ fontSize: 12, color: "#75777E", marginTop: 3 }}>
+                      <div className="flex-1 min-w-0">
+                        <div className="font-semibold text-sm text-midnight">{selectedAuthor.display_name}</div>
+                        <div className="text-xs text-[#75777E] overflow-hidden text-ellipsis whitespace-nowrap">{selectedAuthor.hint}</div>
+                        <div className="text-xs text-[#75777E] mt-[3px]">
                           {selectedAuthor.works_count.toLocaleString()} works · {selectedAuthor.cited_by_count.toLocaleString()} citations
                         </div>
                       </div>
                       <a href={`/researcher/${selectedAuthor.id}`} target="_blank" rel="noopener noreferrer" title="Preview profile"
-                        style={{ color: "#0B1F3A", flexShrink: 0, display: "grid", placeItems: "center" }}>
+                        className="text-midnight shrink-0 grid place-items-center">
                         <ExternalLink size={15} />
                       </a>
                     </div>
@@ -462,14 +455,14 @@ export default function SignupPage() {
                 )}
 
                 {/* Actions */}
-                <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                <div className="flex flex-col gap-2.5">
                   <button onClick={handleStep2Next} disabled={signupMutation.isPending}
-                    style={{ width: "100%", padding: "12px 20px", background: signupMutation.isPending ? "#9AA3B2" : "#0B1F3A", color: "#fff", borderRadius: 8, fontSize: 14, fontWeight: 600, fontFamily: "inherit", border: "none", cursor: signupMutation.isPending ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
-                    {signupMutation.isPending ? <><Loader2 size={15} style={{ animation: "spin 1s linear infinite" }} /> Creating account...</> : <>Create Your Portfolio <ArrowRight size={15} /></>}
+                    className={`w-full px-5 py-3 ${signupMutation.isPending ? "bg-[#9AA3B2] cursor-not-allowed" : "bg-midnight cursor-pointer"} text-white rounded-lg text-sm font-semibold border-none flex items-center justify-center gap-2`}>
+                    {signupMutation.isPending ? <><Loader2 size={15} className="animate-spin" /> Creating account...</> : <>Create Your Portfolio <ArrowRight size={15} /></>}
                   </button>
                   {!selectedAuthor && (
                     <button type="button" onClick={handleStep2Next} disabled={signupMutation.isPending}
-                      style={{ background: "none", border: "none", fontSize: 13, color: "#75777E", cursor: "pointer", fontFamily: "inherit", padding: "8px 0", textAlign: "center" }}>
+                      className="bg-transparent border-none text-[13px] text-[#75777E] cursor-pointer py-2 text-center">
                       Skip — I'll add this later
                     </button>
                   )}

@@ -22,12 +22,7 @@ const PLAN_NAMES: Record<keyof typeof PRICING, string> = {
   pro: "Pro",
 };
 
-const inputStyle: React.CSSProperties = {
-  width: "100%", padding: "11px 14px", fontSize: 14, fontFamily: "inherit",
-  borderRadius: 9, border: "1px solid rgba(11,31,58,.14)", outline: "none",
-  color: "#171C1F", background: "#fff", boxSizing: "border-box",
-  transition: "border-color .15s",
-};
+const inputClass = "w-full px-3.5 py-2.5 text-sm rounded-[9px] border border-midnight/[.14] outline-none text-[#171C1F] bg-white box-border transition-colors duration-150 focus:border-warm";
 
 const planFeatures: Record<string, string[]> = {
   starter: ["scholar.name subdomain", "Publication analytics", "Monthly data sync"],
@@ -77,14 +72,14 @@ export default function CheckoutPage() {
 
   if (checkoutConfig && !checkoutConfig.isConfigured) {
     return (
-      <div style={{ minHeight: "100vh", background: "#F0F4F8" }}>
+      <div className="min-h-screen bg-[#F0F4F8]">
         <SEO title="Checkout — Scholar.name" description="Complete your order." url="https://scholar.name/checkout" type="website" />
         <GlobalNav mode="auth" />
-        <div style={{ maxWidth: 440, margin: "0 auto", padding: "80px 24px" }}>
-          <div style={{ background: "#fff", borderRadius: 20, border: "1px solid rgba(11,31,58,.08)", padding: "40px 36px", textAlign: "center" }}>
-            <h1 style={{ fontFamily: "'Newsreader', serif", fontSize: 24, fontWeight: 500, color: "#0B1F3A", margin: "0 0 10px" }}>Payment Coming Soon</h1>
-            <p style={{ fontSize: 15, color: "#44474D", margin: "0 0 24px", lineHeight: 1.6 }}>Online payment is being set up. Please contact us to get started.</p>
-            <button onClick={() => navigate("/contact")} style={{ padding: "11px 24px", background: "#FFC72E", color: "#6F5400", border: "none", borderRadius: 9, fontSize: 14, fontWeight: 700, fontFamily: "inherit", cursor: "pointer" }}>
+        <div className="max-w-[440px] mx-auto px-6 py-20">
+          <div className="bg-white rounded-[20px] border border-midnight/[.08] px-9 pt-10 pb-9 text-center">
+            <h1 className="font-serif text-2xl font-medium text-midnight mb-2.5">Payment Coming Soon</h1>
+            <p className="text-[15px] text-[#44474D] leading-relaxed mb-6">Online payment is being set up. Please contact us to get started.</p>
+            <button onClick={() => navigate("/contact")} className="px-6 py-2.5 bg-warm text-on-secondary-container border-none rounded-[9px] text-sm font-bold cursor-pointer">
               Contact Us
             </button>
           </div>
@@ -94,41 +89,41 @@ export default function CheckoutPage() {
   }
 
   return (
-    <div style={{ minHeight: "100vh", background: "#F0F4F8" }}>
+    <div className="min-h-screen bg-[#F0F4F8]">
       <SEO title="Checkout — Scholar.name" description="Complete your order for a Scholar.name research portfolio." url="https://scholar.name/checkout" type="website" />
       <GlobalNav mode="auth" />
 
-      <div style={{ maxWidth: 880, margin: "0 auto", padding: "64px 24px 80px" }}>
+      <div className="max-w-[880px] mx-auto px-6 pt-16 pb-20">
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24, alignItems: "start" }} className="checkout-grid">
           <style>{`@media (max-width: 680px) { .checkout-grid { grid-template-columns: 1fr !important; } }`}</style>
 
           {/* Left: Order summary */}
           <div>
-            <h1 style={{ fontFamily: "'Newsreader', serif", fontSize: "clamp(24px,3vw,32px)", fontWeight: 500, color: "#0B1F3A", margin: "0 0 8px", letterSpacing: "-0.015em" }}>
+            <h1 className="font-serif font-medium text-midnight mb-2 tracking-[-0.015em]" style={{ fontSize: "clamp(24px,3vw,32px)" }}>
               Complete your order
             </h1>
-            <p style={{ fontSize: 15, color: "#44474D", margin: "0 0 24px", lineHeight: 1.6 }}>
+            <p className="text-[15px] text-[#44474D] leading-relaxed mb-6">
               You're one step away from your professional research portfolio.
             </p>
 
             {/* Plan card */}
-            <div style={{ background: "#fff", borderRadius: 16, border: "1px solid rgba(11,31,58,.08)", padding: "24px 24px 20px", marginBottom: 16 }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
+            <div className="bg-white rounded-2xl border border-midnight/[.08] px-6 pt-6 pb-5 mb-4">
+              <div className="flex justify-between items-start mb-4">
                 <div>
-                  <div style={{ fontFamily: "'Newsreader', serif", fontSize: 20, fontWeight: 500, color: "#0B1F3A" }}>{PLAN_NAMES[plan]} Plan</div>
-                  <div style={{ fontSize: 13.5, color: "#75777E", textTransform: "capitalize" }}>{billingPeriod} billing</div>
+                  <div className="font-serif text-xl font-medium text-midnight">{PLAN_NAMES[plan]} Plan</div>
+                  <div className="text-[13.5px] text-[#75777E] capitalize">{billingPeriod} billing</div>
                 </div>
-                <div style={{ textAlign: "right" }}>
-                  <span style={{ fontFamily: "'Newsreader', serif", fontSize: 28, fontWeight: 600, color: "#0B1F3A" }}>${amount.toFixed(2)}</span>
-                  <span style={{ fontSize: 13, color: "#75777E" }}>/{billingPeriod === "yearly" ? "year" : "month"}</span>
+                <div className="text-right">
+                  <span className="font-serif text-[28px] font-semibold text-midnight">${amount.toFixed(2)}</span>
+                  <span className="text-[13px] text-[#75777E]">/{billingPeriod === "yearly" ? "year" : "month"}</span>
                 </div>
               </div>
 
-              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              <div className="flex flex-col gap-2">
                 {planFeatures[plan]?.map((feat) => (
-                  <div key={feat} style={{ display: "flex", alignItems: "center", gap: 9, fontSize: 14, color: "#171C1F" }}>
-                    <span style={{ width: 18, height: 18, borderRadius: "50%", background: "rgba(11,31,58,.06)", display: "grid", placeItems: "center", flexShrink: 0 }}>
-                      <Check size={10} style={{ color: "#0B1F3A" }} />
+                  <div key={feat} className="flex items-center gap-[9px] text-sm text-[#171C1F]">
+                    <span className="w-[18px] h-[18px] rounded-full bg-midnight/[.06] grid place-items-center shrink-0">
+                      <Check size={10} className="text-midnight" />
                     </span>
                     {feat}
                   </div>
@@ -137,67 +132,63 @@ export default function CheckoutPage() {
             </div>
 
             {/* Security note */}
-            <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: "#75777E" }}>
-              <Shield size={14} style={{ color: "#FFC72E" }} />
+            <div className="flex items-center gap-2 text-[13px] text-[#75777E]">
+              <Shield size={14} className="text-warm" />
               Secure payment powered by MontyPay
             </div>
           </div>
 
           {/* Right: Form */}
-          <div style={{ background: "#fff", borderRadius: 16, border: "1px solid rgba(11,31,58,.08)", padding: "28px 28px 24px" }}>
-            <h2 style={{ fontFamily: "'Newsreader', serif", fontSize: 20, fontWeight: 500, color: "#0B1F3A", margin: "0 0 4px" }}>Your details</h2>
-            <p style={{ fontSize: 13.5, color: "#75777E", margin: "0 0 20px" }}>Enter your information to proceed to payment</p>
+          <div className="bg-white rounded-2xl border border-midnight/[.08] px-7 pt-7 pb-6">
+            <h2 className="font-serif text-xl font-medium text-midnight mb-1">Your details</h2>
+            <p className="text-[13.5px] text-[#75777E] mb-5">Enter your information to proceed to payment</p>
 
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-3.5">
                 <FormField control={form.control} name="customerName" render={({ field }) => (
-                  <FormItem style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                    <FormLabel style={{ fontSize: 13, color: "#0B1F3A", fontWeight: 500 }}>Full Name</FormLabel>
+                  <FormItem className="flex flex-col gap-1">
+                    <FormLabel className="text-[13px] text-midnight font-medium">Full Name</FormLabel>
                     <FormControl>
-                      <input placeholder="Dr. Jane Smith" style={inputStyle} {...field} data-testid="input-customer-name"
-                        onFocus={(e) => { (e.target as HTMLInputElement).style.borderColor = "#FFC72E"; }}
-                        onBlur={(e) => { (e.target as HTMLInputElement).style.borderColor = "rgba(11,31,58,.14)"; }} />
+                      <input placeholder="Dr. Jane Smith" className={inputClass} {...field} data-testid="input-customer-name" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )} />
 
                 <FormField control={form.control} name="customerEmail" render={({ field }) => (
-                  <FormItem style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                    <FormLabel style={{ fontSize: 13, color: "#0B1F3A", fontWeight: 500 }}>Email Address</FormLabel>
+                  <FormItem className="flex flex-col gap-1">
+                    <FormLabel className="text-[13px] text-midnight font-medium">Email Address</FormLabel>
                     <FormControl>
-                      <input type="email" placeholder="jane.smith@university.edu" style={inputStyle} {...field} data-testid="input-customer-email"
-                        onFocus={(e) => { (e.target as HTMLInputElement).style.borderColor = "#FFC72E"; }}
-                        onBlur={(e) => { (e.target as HTMLInputElement).style.borderColor = "rgba(11,31,58,.14)"; }} />
+                      <input type="email" placeholder="jane.smith@university.edu" className={inputClass} {...field} data-testid="input-customer-email" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )} />
 
                 {checkoutMutation.error && (
-                  <div style={{ padding: "12px 14px", background: "#FEF2F2", border: "1px solid #FECACA", borderRadius: 9, fontSize: 13.5, color: "#B91C1C" }}>
+                  <div className="px-3.5 py-3 bg-[#FEF2F2] border border-[#FECACA] rounded-[9px] text-[13.5px] text-[#B91C1C]">
                     {(checkoutMutation.error as any)?.message || "Payment failed. Please try again."}
                   </div>
                 )}
 
                 <button type="submit" disabled={checkoutMutation.isPending} data-testid="button-proceed-to-payment"
-                  style={{ width: "100%", padding: "13px 20px", background: checkoutMutation.isPending ? "rgba(255,199,46,.5)" : "#FFC72E", color: "#6F5400", border: "none", borderRadius: 10, fontSize: 14.5, fontWeight: 700, fontFamily: "inherit", cursor: checkoutMutation.isPending ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, marginTop: 4 }}>
+                  className={`w-full px-5 py-3.5 ${checkoutMutation.isPending ? "bg-warm/50 cursor-not-allowed" : "bg-warm cursor-pointer"} text-on-secondary-container border-none rounded-[10px] text-[14.5px] font-bold flex items-center justify-center gap-2 mt-1`}>
                   {checkoutMutation.isPending ? (
-                    <><Loader2 size={15} style={{ animation: "spin 1s linear infinite" }} /> Processing…</>
+                    <><Loader2 size={15} className="animate-spin" /> Processing…</>
                   ) : (
                     `Proceed to Payment — $${amount.toFixed(2)}`
                   )}
                 </button>
 
-                <p style={{ fontSize: 12.5, textAlign: "center", color: "#75777E", margin: 0 }}>
+                <p className="text-[12.5px] text-center text-[#75777E] m-0">
                   By proceeding, you agree to our Terms of Service and Privacy Policy.
                 </p>
               </form>
             </Form>
 
-            <div style={{ marginTop: 16, textAlign: "center" }}>
+            <div className="mt-4 text-center">
               <button onClick={() => navigate("/pricing")} data-testid="button-back-to-pricing"
-                style={{ background: "none", border: "none", fontSize: 13.5, color: "#75777E", cursor: "pointer", fontFamily: "inherit" }}>
+                className="bg-transparent border-none text-[13.5px] text-[#75777E] cursor-pointer">
                 ← Back to pricing
               </button>
             </div>

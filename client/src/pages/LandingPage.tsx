@@ -191,10 +191,8 @@ export default function LandingPage() {
 
         {/* ═══════ HERO ═══════ */}
         <section
-          className="relative flex items-center hero-section"
+          className="relative flex items-center hero-section text-white bg-[linear-gradient(135deg,#081529_0%,#0B1F3A_45%,#17345b_100%)]"
           style={{
-            background: "linear-gradient(135deg,#081529 0%,#0B1F3A 45%,#17345b 100%)",
-            color: "#fff",
             padding: "clamp(60px,10vh,110px) 0 clamp(70px,10vh,120px)",
             minHeight: "clamp(520px,70vh,640px)",
           }}
@@ -202,56 +200,30 @@ export default function LandingPage() {
         >
           <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
             <div className="landing-hero-grid absolute inset-0" />
-            <div
-              className="absolute rounded-full"
-              style={{
-                width: 460, height: 460, top: -120, right: -100,
-                background: "radial-gradient(circle,rgba(255,199,46,.22),transparent 68%)",
-                filter: "blur(90px)",
-              }}
-            />
-            <div
-              className="absolute rounded-full"
-              style={{
-                width: 340, height: 340, bottom: -80, left: -60,
-                background: "radial-gradient(circle,rgba(100,140,210,.18),transparent 70%)",
-                filter: "blur(90px)",
-              }}
-            />
+            <div className="absolute rounded-full w-[460px] h-[460px] -top-[120px] -right-[100px] blur-[90px] bg-[radial-gradient(circle,rgba(255,199,46,.22),transparent_68%)]" />
+            <div className="absolute rounded-full w-[340px] h-[340px] -bottom-20 -left-[60px] blur-[90px] bg-[radial-gradient(circle,rgba(100,140,210,.18),transparent_70%)]" />
           </div>
 
           <div className="relative z-10 w-full max-w-[1200px] mx-auto px-8">
             <div className="text-center max-w-[920px] mx-auto">
               {/* Pill badge */}
               <div className="inline-flex items-center gap-2 px-3.5 py-1.5 mb-6 rounded-full border border-white/15 bg-white/8 text-[12px] text-white/80">
-                <span
-                  className="rounded-full"
-                  style={{
-                    width: 6, height: 6, flexShrink: 0,
-                    background: "#FFC72E",
-                    boxShadow: "0 0 10px rgba(255,199,46,.8)",
-                    display: "inline-block",
-                  }}
-                />
+                <span className="w-1.5 h-1.5 shrink-0 rounded-full bg-warm shadow-[0_0_10px_rgba(255,199,46,.8)] inline-block" />
                 Monthly OpenAlex sync · 250M+ works
               </div>
 
               <h1
                 id="hero-heading"
-                className="font-serif font-medium text-white mb-5"
-                style={{
-                  fontSize: "clamp(42px,6vw,80px)",
-                  lineHeight: 1.02,
-                  letterSpacing: "-0.025em",
-                }}
+                className="font-serif font-medium text-white mb-5 leading-[1.02] tracking-[-0.025em]"
+                style={{ fontSize: "clamp(42px,6vw,80px)" }}
               >
                 Your research, one link,{" "}
-                <em className="font-serif not-italic" style={{ color: "#FFC72E", fontStyle: "italic", fontWeight: 500 }}>
+                <em className="font-serif italic font-medium text-warm">
                   always up to date
                 </em>
               </h1>
 
-              <p className="mb-8 text-white/72" style={{ fontSize: 18, maxWidth: 620, margin: "0 auto 32px", lineHeight: 1.55 }}>
+              <p className="mb-8 text-white/72 text-lg max-w-[620px] mx-auto leading-[1.55]">
                 Scholar.name creates a professional academic portfolio from your publications — no manual entry, no maintenance.
               </p>
 
@@ -277,16 +249,13 @@ export default function LandingPage() {
               </div>
 
               {/* Trust line */}
-              <p className="text-white/50 text-[13px] mb-8" style={{ letterSpacing: "0.01em" }}>
+              <p className="text-white/50 text-[13px] mb-8 tracking-[0.01em]">
                 No credit card required &middot; Full access for 14 days &middot; Cancel anytime
               </p>
 
               {/* Search bar */}
               <div className="relative max-w-[580px] mx-auto" ref={searchRef}>
-                <div
-                  className="flex items-center gap-3 rounded-[14px] bg-white"
-                  style={{ padding: "6px 6px 6px 18px", boxShadow: "0 20px 60px -20px rgba(0,0,0,.5)" }}
-                >
+                <div className="flex items-center gap-3 rounded-[14px] bg-white py-1.5 pr-1.5 pl-[18px] shadow-[0_20px_60px_-20px_rgba(0,0,0,.5)]">
                   <Search className="w-5 h-5 text-gray-400 flex-shrink-0" aria-hidden="true" />
                   <input
                     ref={inputRef}
@@ -320,10 +289,7 @@ export default function LandingPage() {
                 </div>
 
                 {showResults && searchQuery.length >= 2 && (
-                  <div
-                    className="absolute top-full left-0 right-0 mt-2 bg-white rounded-[14px] overflow-y-auto overscroll-contain text-left z-[60] max-h-[min(60vh,520px)]"
-                    style={{ boxShadow: "0 20px 60px -20px rgba(0,0,0,.4)" }}
-                  >
+                  <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-[14px] overflow-y-auto overscroll-contain text-left z-[60] max-h-[min(60vh,520px)] shadow-[0_20px_60px_-20px_rgba(0,0,0,.4)]">
                     {isSearching ? (
                       <div className="p-6 text-center" role="status">
                         <Loader2 className="h-6 w-6 animate-spin mx-auto mb-2 text-[#0B1F3A]" />
@@ -421,14 +387,10 @@ export default function LandingPage() {
             {/* Browser mockup */}
             <div className="max-w-[820px] mx-auto relative">
               <div
-                className="absolute pointer-events-none"
+                className="absolute -inset-6 -z-10 rounded-[32px] pointer-events-none bg-[radial-gradient(ellipse_at_50%_40%,rgba(255,199,46,.1),transparent_60%)]"
                 aria-hidden="true"
-                style={{
-                  inset: -24, zIndex: -1, borderRadius: 32,
-                  background: "radial-gradient(ellipse at 50% 40%,rgba(255,199,46,.1),transparent 60%)",
-                }}
               />
-              <div className="bg-white border border-gray-200 rounded-[14px] overflow-hidden" style={{ boxShadow: "0 30px 80px -20px rgba(11,31,58,.18)" }}>
+              <div className="bg-white border border-gray-200 rounded-[14px] overflow-hidden shadow-[0_30px_80px_-20px_rgba(11,31,58,.18)]">
                 {/* Browser bar */}
                 <div className="bg-[#F0F4F8] px-4 py-2.5 flex items-center gap-2.5 border-b border-gray-200">
                   <div className="flex gap-1.5">
@@ -445,47 +407,29 @@ export default function LandingPage() {
                 {/* P1 Profile card */}
                 <div>
                   {/* Profile hero */}
-                  <div
-                    className="relative overflow-hidden px-11 pt-10 pb-9 text-white"
-                    style={{
-                      background: "linear-gradient(130deg,#0B1F3A 0%,#142850 50%,#1E3A5F 100%)",
-                    }}
-                  >
+                  <div className="relative overflow-hidden px-11 pt-10 pb-9 text-white bg-[linear-gradient(130deg,#0B1F3A_0%,#142850_50%,#1E3A5F_100%)]">
                     <div
-                      className="absolute inset-0 pointer-events-none"
+                      className="absolute inset-0 pointer-events-none bg-[radial-gradient(ellipse_at_top_right,rgba(255,199,46,.14),transparent_55%)]"
                       aria-hidden="true"
-                      style={{ background: "radial-gradient(ellipse at top right,rgba(255,199,46,.14),transparent 55%)" }}
                     />
                     <div className="relative flex justify-between items-start mb-6">
                       <span className="text-[10px] tracking-[.3em] uppercase text-white/65">Researcher portfolio</span>
-                      <span
-                        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px]"
-                        style={{ background: "rgba(255,199,46,.15)", border: "1px solid rgba(255,199,46,.3)", color: "#FFC72E" }}
-                      >
-                        <span
-                          className="rounded-full"
-                          style={{ width: 5, height: 5, background: "#FFC72E", boxShadow: "0 0 8px rgba(255,199,46,.8)", display: "inline-block" }}
-                        />
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] bg-warm/15 border border-warm/30 text-warm">
+                        <span className="w-[5px] h-[5px] rounded-full bg-warm shadow-[0_0_8px_rgba(255,199,46,.8)] inline-block" />
                         Data checked 2 min ago
                       </span>
                     </div>
                     <div className="relative flex gap-5 items-center">
-                      <div
-                        className="w-[86px] h-[86px] rounded-full flex items-center justify-center font-serif text-3xl font-semibold flex-shrink-0 text-[#0B1F3A]"
-                        style={{
-                          background: "linear-gradient(135deg,#FFC72E,#E5A922)",
-                          boxShadow: "0 0 0 3px rgba(255,255,255,.08),0 0 30px rgba(255,199,46,.25)",
-                        }}
-                      >
+                      <div className="w-[86px] h-[86px] rounded-full flex items-center justify-center font-serif text-3xl font-semibold shrink-0 text-midnight bg-[linear-gradient(135deg,#FFC72E,#E5A922)] shadow-[0_0_0_3px_rgba(255,255,255,.08),0_0_30px_rgba(255,199,46,.25)]">
                         EM
                       </div>
                       <div>
-                        <div className="font-serif text-3xl font-medium text-white" style={{ letterSpacing: "-0.01em", lineHeight: 1.1 }}>Dr. Elena Marsh</div>
+                        <div className="font-serif text-3xl font-medium text-white tracking-[-0.01em] leading-[1.1]">Dr. Elena Marsh</div>
                         <div className="text-[14px] text-white/72 mt-1">Illustrative example · Dept. of Genetics</div>
-                        <div className="text-[12px] font-mono mt-2" style={{ color: "#FFC72E" }}>emarsh.scholar.name</div>
+                        <div className="text-xs font-mono mt-2 text-warm">emarsh.scholar.name</div>
                       </div>
                     </div>
-                    <div className="w-[60px] h-[3px] rounded mt-5" style={{ background: "#FFC72E" }} />
+                    <div className="w-[60px] h-[3px] rounded mt-5 bg-warm" />
                   </div>
 
                   {/* Profile body */}
@@ -498,10 +442,9 @@ export default function LandingPage() {
                       ].map((s) => (
                         <div
                           key={s.l}
-                          className="rounded-[10px] px-4 py-4"
-                          style={s.gold ? { background: "rgba(255,199,46,.12)", border: "1px solid rgba(255,199,46,.3)" } : { background: "#F0F4F8" }}
+                          className={`rounded-[10px] px-4 py-4 ${s.gold ? "bg-warm/[.12] border border-warm/30" : "bg-[#F0F4F8]"}`}
                         >
-                          <div className="font-serif text-3xl font-medium text-[#0B1F3A]" style={{ lineHeight: 1 }}>{s.n}</div>
+                          <div className="font-serif text-3xl font-medium text-midnight leading-none">{s.n}</div>
                           <div className="text-[11px] tracking-[.1em] uppercase text-gray-500 mt-1.5">{s.l}</div>
                         </div>
                       ))}
@@ -511,11 +454,7 @@ export default function LandingPage() {
                       {["CRISPR", "Cas9 nuclease", "Gene editing", "RNA biology", "Genome engineering", "Guide RNA"].map((t, i) => (
                         <span
                           key={t}
-                          className="px-3 py-1 rounded-full text-[12px]"
-                          style={i === 0
-                            ? { background: "rgba(255,199,46,.2)", color: "#6F5400", fontWeight: 600 }
-                            : { background: "#E4E9F7", color: "#0B1F3A" }
-                          }
+                          className={`px-3 py-1 rounded-full text-xs ${i === 0 ? "bg-warm/20 text-[#6F5400] font-semibold" : "bg-[#E4E9F7] text-midnight"}`}
                         >
                           {t}
                         </span>
@@ -546,18 +485,12 @@ export default function LandingPage() {
               {homepageFeatures.map((f) => (
                 <div
                   key={f.title}
-                  className="bg-white rounded-[14px] p-8 transition-all duration-200 hover:-translate-y-1"
-                  style={{ border: "1px solid rgba(11,31,58,.08)", boxShadow: "none" }}
-                  onMouseEnter={(e) => (e.currentTarget.style.boxShadow = "0 18px 40px -16px rgba(11,31,58,.15)")}
-                  onMouseLeave={(e) => (e.currentTarget.style.boxShadow = "none")}
+                  className="bg-white rounded-[14px] p-8 border border-midnight/[.08] transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_18px_40px_-16px_rgba(11,31,58,.15)]"
                 >
-                  <div
-                    className="w-12 h-12 rounded-xl flex items-center justify-center mb-5"
-                    style={{ background: "rgba(11,31,58,.06)" }}
-                  >
-                    <f.icon className="w-[22px] h-[22px] text-[#0B1F3A]" />
+                  <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-5 bg-midnight/[.06]">
+                    <f.icon className="w-[22px] h-[22px] text-midnight" />
                   </div>
-                  <h3 className="font-serif font-medium text-[#0B1F3A] mb-2.5" style={{ fontSize: 21, lineHeight: 1.25 }}>{f.title}</h3>
+                  <h3 className="font-serif font-medium text-midnight mb-2.5 text-[21px] leading-[1.25]">{f.title}</h3>
                   <p className="text-[15px] text-gray-600 leading-relaxed">{f.description}</p>
                 </div>
               ))}
@@ -576,14 +509,13 @@ export default function LandingPage() {
 
         {/* ═══════ DASHBOARD BAND ═══════ */}
         <section
-          className="relative overflow-hidden py-[112px]"
-          style={{ background: "linear-gradient(180deg,#081529,#0B1F3A)", color: "#fff" }}
+          className="relative overflow-hidden py-[112px] text-white bg-[linear-gradient(180deg,#081529,#0B1F3A)]"
           aria-label="Analytics dashboard"
         >
           <div className="dash-grid absolute inset-0 pointer-events-none" aria-hidden="true" />
           <div className="relative max-w-[1200px] mx-auto px-8">
             <div className="text-center mb-14 max-w-[720px] mx-auto">
-              <div className="eyebrow mb-3.5" style={{ color: "#FFC72E" }}>Analytics</div>
+              <div className="eyebrow mb-3.5 text-warm">Analytics</div>
               <h2
                 className="font-serif font-medium text-white mb-3.5"
                 style={{ fontSize: "clamp(32px,3.6vw,48px)", lineHeight: 1.08, letterSpacing: "-0.015em" }}
@@ -594,24 +526,17 @@ export default function LandingPage() {
             </div>
 
             {/* Citation bars (D1) */}
-            <div
-              className="max-w-[1040px] mx-auto rounded-[20px] p-10"
-              style={{ background: "rgba(255,255,255,.03)", border: "1px solid rgba(255,255,255,.08)", backdropFilter: "blur(10px)" }}
-            >
+            <div className="max-w-[1040px] mx-auto rounded-[20px] p-10 bg-white/[.03] border border-white/[.08] backdrop-blur-[10px]">
               <div className="flex justify-between items-end mb-7 gap-8 flex-wrap">
                 <div>
-                  <h3 className="font-serif text-white mb-1" style={{ fontSize: 24 }}>Citations per year</h3>
+                  <h3 className="font-serif text-white mb-1 text-2xl">Citations per year</h3>
                   <p className="text-[13px] text-white/60">Trend based on OpenAlex metadata</p>
                 </div>
-                <div
-                  className="flex gap-0.5 rounded-[9px] p-[3px] text-[12px]"
-                  style={{ background: "rgba(0,0,0,.3)", border: "1px solid rgba(255,255,255,.06)" }}
-                >
+                <div className="flex gap-0.5 rounded-[9px] p-[3px] text-xs bg-black/30 border border-white/[.06]">
                   {["1y", "5y", "All"].map((t) => (
                     <span
                       key={t}
-                      className="px-3.5 py-1 rounded-md cursor-pointer"
-                      style={t === "All" ? { background: "rgba(255,199,46,.18)", color: "#FFC72E" } : { color: "rgba(255,255,255,.55)" }}
+                      className={`px-3.5 py-1 rounded-md cursor-pointer ${t === "All" ? "bg-warm/[.18] text-warm" : "text-white/55"}`}
                     >
                       {t}
                     </span>
@@ -620,36 +545,23 @@ export default function LandingPage() {
               </div>
 
               {/* Bar chart */}
-              <div
-                className="flex gap-2 items-end pb-8 mb-5 relative"
-                style={{ height: 240, borderBottom: "1px solid rgba(255,255,255,.06)" }}
-              >
+              <div className="flex gap-2 items-end pb-8 mb-5 relative h-[240px] border-b border-white/[.06]">
                 {citationBars.map((b) => (
-                  <div key={b.year} className="flex-1 relative group" style={{ height: "100%", display: "flex", alignItems: "flex-end" }}>
+                  <div key={b.year} className="flex-1 relative group h-full flex items-end">
                     <div
-                      className="w-full rounded-sm transition-all duration-300"
-                      style={{
-                        height: b.pct + "%",
-                        borderRadius: "3px 3px 0 0",
-                        background: b.hi
-                          ? "linear-gradient(180deg,#FFC72E,rgba(255,199,46,.4))"
-                          : "linear-gradient(180deg,rgba(255,199,46,.7),rgba(255,199,46,.15))",
-                        minHeight: 12,
-                      }}
+                      className={`w-full rounded-t-[3px] min-h-[12px] transition-all duration-300 ${b.hi ? "bg-[linear-gradient(180deg,#FFC72E,rgba(255,199,46,.4))]" : "bg-[linear-gradient(180deg,rgba(255,199,46,.7),rgba(255,199,46,.15))]"}`}
+                      style={{ height: b.pct + "%" }}
                     />
-                    <span
-                      className="absolute font-mono text-white/50"
-                      style={{ bottom: -22, left: "50%", transform: "translateX(-50%)", fontSize: 10 }}
-                    >
+                    <span className="absolute -bottom-[22px] left-1/2 -translate-x-1/2 font-mono text-white/50 text-[10px]">
                       {b.year}
                     </span>
                   </div>
                 ))}
               </div>
 
-              <div className="flex gap-6 text-[12px] text-white/65">
+              <div className="flex gap-6 text-xs text-white/65">
                 <div className="flex items-center gap-1.5">
-                  <span className="inline-block w-2.5 h-2.5 rounded-sm" style={{ background: "#FFC72E" }} />
+                  <span className="inline-block w-2.5 h-2.5 rounded-sm bg-warm" />
                   Citations per year
                 </div>
               </div>
@@ -675,15 +587,12 @@ export default function LandingPage() {
               {personas.map((p) => (
                 <div
                   key={p.title}
-                  className="bg-white rounded-[14px] p-6 transition-all duration-200 hover:-translate-y-[3px]"
-                  style={{ border: "1px solid rgba(11,31,58,.08)", boxShadow: "none" }}
-                  onMouseEnter={(e) => (e.currentTarget.style.boxShadow = "0 16px 36px -16px rgba(11,31,58,.12)")}
-                  onMouseLeave={(e) => (e.currentTarget.style.boxShadow = "none")}
+                  className="bg-white rounded-[14px] p-6 border border-midnight/[.08] transition-all duration-200 hover:-translate-y-[3px] hover:shadow-[0_16px_36px_-16px_rgba(11,31,58,.12)]"
                 >
-                  <div className="w-10 h-10 rounded-[10px] flex items-center justify-center mb-4" style={{ background: "rgba(11,31,58,.06)" }}>
-                    <p.icon className="w-5 h-5 text-[#0B1F3A]" />
+                  <div className="w-10 h-10 rounded-[10px] flex items-center justify-center mb-4 bg-midnight/[.06]">
+                    <p.icon className="w-5 h-5 text-midnight" />
                   </div>
-                  <h3 className="font-serif font-medium text-[#0B1F3A] mb-2" style={{ fontSize: 18, lineHeight: 1.25 }}>{p.title}</h3>
+                  <h3 className="font-serif font-medium text-midnight mb-2 text-lg leading-[1.25]">{p.title}</h3>
                   <p className="text-[13.5px] text-gray-600 leading-snug">{p.desc}</p>
                 </div>
               ))}
@@ -708,14 +617,13 @@ export default function LandingPage() {
               {useCases.map((u) => (
                 <div
                   key={u.title}
-                  className="bg-white rounded-[14px] p-7"
-                  style={{ border: "1px solid rgba(11,31,58,.08)" }}
+                  className="bg-white rounded-[14px] p-7 border border-midnight/[.08]"
                 >
-                  <div className="w-10 h-10 rounded-[10px] flex items-center justify-center mb-3.5" style={{ background: "rgba(11,31,58,.06)" }}>
-                    <u.icon className="w-5 h-5 text-[#0B1F3A]" />
+                  <div className="w-10 h-10 rounded-[10px] flex items-center justify-center mb-3.5 bg-midnight/[.06]">
+                    <u.icon className="w-5 h-5 text-midnight" />
                   </div>
-                  <h3 className="font-serif font-medium text-[#0B1F3A] mb-2" style={{ fontSize: 20, lineHeight: 1.25 }}>{u.title}</h3>
-                  <p className="text-[14px] text-gray-600 leading-snug">{u.desc}</p>
+                  <h3 className="font-serif font-medium text-midnight mb-2 text-xl leading-[1.25]">{u.title}</h3>
+                  <p className="text-sm text-gray-600 leading-snug">{u.desc}</p>
                 </div>
               ))}
             </div>
@@ -740,19 +648,18 @@ export default function LandingPage() {
               {pricingPlans.map((plan) => (
                 <div
                   key={plan.name}
-                  className="bg-white rounded-[14px] p-7 flex flex-col gap-4"
-                  style={{ border: plan.highlighted ? "2px solid #FFC72E" : "1px solid rgba(11,31,58,.08)" }}
+                  className={`bg-white rounded-[14px] p-7 flex flex-col gap-4 ${plan.highlighted ? "border-2 border-warm" : "border border-midnight/[.08]"}`}
                   data-testid={"card-pricing-" + plan.name.toLowerCase()}
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <h3 className="font-serif font-medium text-[#0B1F3A] mb-1" style={{ fontSize: 21 }}>{plan.name}</h3>
+                      <h3 className="font-serif font-medium text-midnight mb-1 text-[21px]">{plan.name}</h3>
                       <p className="text-[13px] text-gray-500 mb-3">{plan.description}</p>
-                      <span className="font-serif text-[#0B1F3A]" style={{ fontSize: 30, fontWeight: 500 }}>${plan.monthlyPrice.toFixed(2)}</span>
+                      <span className="font-serif text-midnight text-[30px] font-medium">${plan.monthlyPrice.toFixed(2)}</span>
                       <span className="text-[13px] text-gray-500 ml-1">/month</span>
                     </div>
                     {plan.highlighted && (
-                      <span className="text-[10px] tracking-[.1em] uppercase font-semibold px-2 py-1 rounded-full flex-shrink-0" style={{ background: "rgba(255,199,46,.15)", color: "#8a6300" }}>
+                      <span className="text-[10px] tracking-[.1em] uppercase font-semibold px-2 py-1 rounded-full shrink-0 bg-warm/15 text-[#8a6300]">
                         Most popular
                       </span>
                     )}
@@ -834,14 +741,12 @@ export default function LandingPage() {
 
         {/* ═══════ FINAL CTA ═══════ */}
         <section
-          className="relative overflow-hidden py-24 text-center"
-          style={{ background: "linear-gradient(135deg,#081529,#0B1F3A 50%,#1A3358)", color: "#fff" }}
+          className="relative overflow-hidden py-24 text-center text-white bg-[linear-gradient(135deg,#081529,#0B1F3A_50%,#1A3358)]"
           aria-label="Get started"
         >
           <div
-            className="absolute inset-0 pointer-events-none"
+            className="absolute inset-0 pointer-events-none bg-[radial-gradient(ellipse_at_80%_50%,rgba(255,199,46,.1),transparent_55%)]"
             aria-hidden="true"
-            style={{ background: "radial-gradient(ellipse at 80% 50%,rgba(255,199,46,.1),transparent 55%)" }}
           />
           <div className="relative max-w-[640px] mx-auto px-8">
             <h2

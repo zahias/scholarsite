@@ -69,32 +69,23 @@ function PostCard({ post, onClick }: { post: typeof posts[number]; onClick: () =
       onClick={onClick}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
-      style={{
-        background: "#fff",
-        border: "1px solid rgba(11,31,58,.08)",
-        borderRadius: 14,
-        overflow: "hidden",
-        cursor: "pointer",
-        transition: "transform .2s, box-shadow .2s",
-        transform: hovered ? "translateY(-4px)" : "none",
-        boxShadow: hovered ? "0 16px 40px -16px rgba(11,31,58,.16)" : "0 2px 8px -2px rgba(11,31,58,.06)",
-      }}>
+      className={`bg-white border border-midnight/[.08] rounded-[14px] overflow-hidden cursor-pointer transition-[transform,box-shadow] duration-200 ${hovered ? "-translate-y-1 shadow-[0_16px_40px_-16px_rgba(11,31,58,.16)]" : "shadow-[0_2px_8px_-2px_rgba(11,31,58,.06)]"}`}>
       {/* Thumbnail */}
-      <div style={{ height: 140, background: `linear-gradient(135deg, ${catColor(post.category)}22 0%, ${catColor(post.category)}0a 100%)`, borderBottom: "1px solid rgba(11,31,58,.06)", position: "relative", overflow: "hidden" }}>
-        <div style={{ position: "absolute", inset: 0, background: `repeating-linear-gradient(0deg, ${catColor(post.category)}08 0 1px, transparent 1px 36px), repeating-linear-gradient(90deg, ${catColor(post.category)}08 0 1px, transparent 1px 36px)` }} />
-        <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
-          <span style={{ fontFamily: "'Newsreader', serif", fontSize: 48, color: `${catColor(post.category)}20`, fontStyle: "italic", lineHeight: 1, userSelect: "none" }}>S</span>
+      <div className="h-[140px] border-b border-midnight/[.06] relative overflow-hidden" style={{ background: `linear-gradient(135deg, ${catColor(post.category)}22 0%, ${catColor(post.category)}0a 100%)` }}>
+        <div className="absolute inset-0" style={{ background: `repeating-linear-gradient(0deg, ${catColor(post.category)}08 0 1px, transparent 1px 36px), repeating-linear-gradient(90deg, ${catColor(post.category)}08 0 1px, transparent 1px 36px)` }} />
+        <div className="absolute inset-0 flex items-center justify-center">
+          <span className="font-serif text-5xl italic leading-none select-none" style={{ color: `${catColor(post.category)}20` }}>S</span>
         </div>
       </div>
-      <div style={{ padding: "18px 20px 20px" }}>
-        <span style={{ display: "inline-block", fontSize: 10.5, fontWeight: 700, letterSpacing: ".14em", textTransform: "uppercase", color: catColor(post.category), background: `${catColor(post.category)}14`, padding: "3px 9px", borderRadius: 999, marginBottom: 10 }}>
+      <div className="px-5 pt-[18px] pb-5">
+        <span className="inline-block text-[10.5px] font-bold tracking-[.14em] uppercase rounded-full mb-2.5 px-[9px] py-[3px]" style={{ color: catColor(post.category), background: `${catColor(post.category)}14` }}>
           {post.category}
         </span>
-        <h2 style={{ fontFamily: "'Newsreader', serif", fontSize: 17, fontWeight: 500, color: "#0B1F3A", lineHeight: 1.3, margin: "0 0 8px", letterSpacing: "-0.01em" }}>
+        <h2 className="font-serif text-[17px] font-medium text-midnight leading-[1.3] mb-2 tracking-[-0.01em]">
           {post.title}
         </h2>
-        <p style={{ fontSize: 13.5, color: "#44474D", lineHeight: 1.55, margin: "0 0 14px" }}>{post.excerpt}</p>
-        <div style={{ display: "flex", gap: 12, fontSize: 12, color: "#75777E" }}>
+        <p className="text-[13.5px] text-[#44474D] leading-[1.55] mb-3.5">{post.excerpt}</p>
+        <div className="flex gap-3 text-xs text-[#75777E]">
           <span>{post.date}</span>
           <span>·</span>
           <span>{post.readingTime} read</span>
@@ -127,75 +118,60 @@ export default function BlogIndex() {
       <main className="public-main">
         {/* Masthead */}
         <section className="public-masthead">
-          <div className="public-masthead-inner" style={{ textAlign: "left" }}>
+          <div className="public-masthead-inner text-left">
             <span className="public-eyebrow">
               The Scholar Journal
             </span>
-            <h1 className="public-title" style={{ fontSize: "clamp(36px,5vw,64px)", maxWidth: 640 }}>
-              Research, visibility, and <em style={{ fontStyle: "italic", color: "#FFC72E" }}>craft</em>.
+            <h1 className="public-title max-w-[640px]" style={{ fontSize: "clamp(36px,5vw,64px)" }}>
+              Research, visibility, and <em className="italic text-warm">craft</em>.
             </h1>
-            <p className="public-copy" style={{ maxWidth: 480, margin: 0 }}>
+            <p className="public-copy max-w-[480px] m-0">
               Practical guides on academic portfolios, research metrics, and career development — for researchers at every stage.
             </p>
           </div>
         </section>
 
         {/* Category tabs */}
-        <div style={{ borderBottom: "1px solid rgba(11,31,58,.08)", background: "#fff", position: "sticky", top: 60, zIndex: 10 }}>
-          <div style={{ maxWidth: 1280, margin: "0 auto", padding: "0 32px", display: "flex", gap: 4, overflowX: "auto" }}>
+        <div className="border-b border-midnight/[.08] bg-white sticky top-[60px] z-10">
+          <div className="max-w-[1280px] mx-auto px-8 flex gap-1 overflow-x-auto">
             {allCategories.map((cat) => (
               <button key={cat} onClick={() => setActiveCategory(cat)}
-                style={{
-                  padding: "13px 16px",
-                  fontSize: 13.5,
-                  fontWeight: activeCategory === cat ? 600 : 400,
-                  color: activeCategory === cat ? "#0B1F3A" : "#44474D",
-                  background: "none",
-                  border: "none",
-                  borderBottom: activeCategory === cat ? "2px solid #FFC72E" : "2px solid transparent",
-                  cursor: "pointer",
-                  whiteSpace: "nowrap",
-                  fontFamily: "inherit",
-                  transition: "color .15s",
-                  marginBottom: -1,
-                }}>
+                className={`px-4 py-3.5 text-[13.5px] whitespace-nowrap transition-colors duration-150 -mb-px ${activeCategory === cat ? "font-semibold text-midnight border-b-2 border-warm" : "font-normal text-[#44474D] border-b-2 border-transparent"} bg-transparent border-t-0 border-x-0 cursor-pointer`}>
                 {cat}
               </button>
             ))}
           </div>
         </div>
 
-        <section className="public-section" style={{ paddingTop: 48, paddingBottom: 72 }}>
+        <section className="public-section pt-12 pb-[72px]">
         <div className="public-container-lg">
 
           {/* Featured story */}
           {featured && (
-            <div style={{ marginBottom: 56 }}>
-              <div style={{ fontSize: 11, letterSpacing: ".18em", textTransform: "uppercase", color: "#75777E", fontWeight: 600, marginBottom: 16 }}>Featured</div>
+            <div className="mb-14">
+              <div className="text-[11px] tracking-[.18em] uppercase text-[#75777E] font-semibold mb-4">Featured</div>
               <article
                 onClick={() => { window.scrollTo(0, 0); navigate("/blog/" + featured.slug); }}
-                className="public-card featured-card"
-                style={{ display: "grid", gridTemplateColumns: "1fr 1.1fr", overflow: "hidden", cursor: "pointer", transition: "box-shadow .2s" }}
-                onMouseEnter={(e) => (e.currentTarget.style.boxShadow = "0 20px 50px -16px rgba(11,31,58,.18)")}
-                onMouseLeave={(e) => (e.currentTarget.style.boxShadow = "none")}>
+                className="public-card featured-card overflow-hidden cursor-pointer transition-shadow duration-200 hover:shadow-[0_20px_50px_-16px_rgba(11,31,58,.18)]"
+                style={{ display: "grid", gridTemplateColumns: "1fr 1.1fr" }}>
                 <style>{`@media (max-width: 720px) { .featured-card { grid-template-columns: 1fr !important; } }`}</style>
                 {/* Illustration */}
-                <div style={{ background: "linear-gradient(135deg, #0B1F3A 0%, #142850 100%)", minHeight: 260, position: "relative", overflow: "hidden" }}>
-                  <div style={{ position: "absolute", inset: 0, background: "radial-gradient(ellipse at 70% 20%, rgba(255,199,46,.22), transparent 55%), repeating-linear-gradient(0deg, rgba(255,255,255,.028) 0 1px, transparent 1px 48px)" }} />
-                  <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                    <span style={{ fontFamily: "'Newsreader', serif", fontSize: 80, color: "rgba(255,199,46,.2)", fontStyle: "italic", lineHeight: 1 }}>S</span>
+                <div className="min-h-[260px] relative overflow-hidden" style={{ background: "linear-gradient(135deg, #0B1F3A 0%, #142850 100%)" }}>
+                  <div className="absolute inset-0" style={{ background: "radial-gradient(ellipse at 70% 20%, rgba(255,199,46,.22), transparent 55%), repeating-linear-gradient(0deg, rgba(255,255,255,.028) 0 1px, transparent 1px 48px)" }} />
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <span className="font-serif text-8xl italic leading-none text-warm/20">S</span>
                   </div>
                 </div>
                 {/* Content */}
-                <div style={{ padding: "36px 36px 36px 32px", background: "#fff", display: "flex", flexDirection: "column", justifyContent: "center" }}>
-                  <span style={{ display: "inline-block", fontSize: 10.5, fontWeight: 700, letterSpacing: ".14em", textTransform: "uppercase", color: catColor(featured.category), background: `${catColor(featured.category)}14`, padding: "3px 9px", borderRadius: 999, marginBottom: 14, alignSelf: "flex-start" }}>
+                <div className="pt-9 pr-9 pb-9 pl-8 bg-white flex flex-col justify-center">
+                  <span className="inline-block self-start text-[10.5px] font-bold tracking-[.14em] uppercase rounded-full mb-3.5 px-[9px] py-[3px]" style={{ color: catColor(featured.category), background: `${catColor(featured.category)}14` }}>
                     {featured.category}
                   </span>
-                  <h2 style={{ fontFamily: "'Newsreader', serif", fontSize: "clamp(20px,2.4vw,28px)", fontWeight: 500, color: "#0B1F3A", lineHeight: 1.2, margin: "0 0 12px", letterSpacing: "-0.015em" }}>
+                  <h2 className="font-serif font-medium text-midnight leading-[1.2] mb-3 tracking-[-0.015em]" style={{ fontSize: "clamp(20px,2.4vw,28px)" }}>
                     {featured.title}
                   </h2>
-                  <p style={{ fontSize: 14.5, color: "#44474D", lineHeight: 1.6, margin: "0 0 20px" }}>{featured.excerpt}</p>
-                  <div style={{ display: "flex", gap: 12, fontSize: 12.5, color: "#75777E" }}>
+                  <p className="text-[14.5px] text-[#44474D] leading-relaxed mb-5">{featured.excerpt}</p>
+                  <div className="flex gap-3 text-[12.5px] text-[#75777E]">
                     <span>{featured.date}</span><span>·</span><span>{featured.readingTime} read</span>
                   </div>
                 </div>
@@ -214,26 +190,26 @@ export default function BlogIndex() {
           )}
 
           {filtered.length === 0 && (
-            <p style={{ textAlign: "center", color: "#75777E", padding: "48px 0", fontSize: 15 }}>No articles in this category yet — check back soon.</p>
+            <p className="text-center text-[#75777E] py-12 text-[15px]">No articles in this category yet — check back soon.</p>
           )}
         </div>
         </section>
 
         {/* Newsletter band */}
-        <div style={{ background: "#F0F4F8", borderTop: "1px solid rgba(11,31,58,.06)", padding: "60px 32px" }}>
-          <div style={{ maxWidth: 520, margin: "0 auto", textAlign: "center" }}>
-            <span style={{ fontFamily: "'Newsreader', serif", fontSize: 11, letterSpacing: ".22em", textTransform: "uppercase", color: "#6F5400", fontWeight: 600, display: "block", marginBottom: 12 }}>Newsletter</span>
-            <h2 style={{ fontFamily: "'Newsreader', serif", fontSize: "clamp(22px,3vw,32px)", fontWeight: 500, color: "#0B1F3A", margin: "0 0 10px", letterSpacing: "-0.015em" }}>
+        <div className="bg-[#F0F4F8] border-t border-midnight/[.06] px-8 py-[60px]">
+          <div className="max-w-[520px] mx-auto text-center">
+            <span className="font-serif text-[11px] tracking-[.22em] uppercase text-[#6F5400] font-semibold block mb-3">Newsletter</span>
+            <h2 className="font-serif font-medium text-midnight mb-2.5 tracking-[-0.015em]" style={{ fontSize: "clamp(22px,3vw,32px)" }}>
               Get the digest.
             </h2>
-            <p style={{ color: "#44474D", fontSize: 15, lineHeight: 1.55, margin: "0 0 24px" }}>New articles, academic career tips, and research visibility insights — delivered monthly.</p>
-            <form onSubmit={(e) => e.preventDefault()} style={{ display: "flex", gap: 8, maxWidth: 400, margin: "0 auto" }} className="newsletter-form">
+            <p className="text-[#44474D] text-[15px] leading-[1.55] mb-6">New articles, academic career tips, and research visibility insights — delivered monthly.</p>
+            <form onSubmit={(e) => e.preventDefault()} className="flex gap-2 max-w-[400px] mx-auto newsletter-form">
               <style>{`@media (max-width: 480px) { .newsletter-form { flex-direction: column !important; } .newsletter-form button { width: 100% !important; } }`}</style>
               <input type="email" value={newsletterEmail} onChange={(e) => setNewsletterEmail(e.target.value)}
                 placeholder="you@university.edu"
-                style={{ flex: 1, padding: "11px 14px", fontSize: 14, fontFamily: "inherit", borderRadius: 8, border: "1px solid rgba(11,31,58,.14)", outline: "none", color: "#171C1F", background: "#fff" }} />
+                className="flex-1 px-3.5 py-2.5 text-sm rounded-lg border border-midnight/[.14] outline-none text-[#171C1F] bg-white" />
               <button type="submit"
-                style={{ padding: "11px 20px", background: "#0B1F3A", color: "#fff", borderRadius: 8, fontSize: 14, fontWeight: 600, fontFamily: "inherit", border: "none", cursor: "pointer", whiteSpace: "nowrap" }}>
+                className="px-5 py-2.5 bg-midnight text-white rounded-lg text-sm font-semibold border-none cursor-pointer whitespace-nowrap">
                 Subscribe
               </button>
             </form>
