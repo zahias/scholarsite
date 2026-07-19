@@ -377,6 +377,11 @@ export default function ResearcherDashboard() {
     enabled: activeTab === "settings",
   });
 
+  const { data: analyticsSummary } = useQuery<{ totalViews: number; uniqueVisitors: number }>({
+    queryKey: [`/api/analytics/${openalexIdForSyncedData}`],
+    enabled: activeTab === "settings" && !!openalexIdForSyncedData,
+  });
+
   const tenantHasAccess = tenantData?.tenant?.hasServiceAccess !== false;
 
   // PERF-1: Lazy-load per active tab
@@ -2149,6 +2154,26 @@ export default function ResearcherDashboard() {
           {/* ═══════ Settings Tab ═══════ */}
           {activeTab === "settings" && (
             <div style={{ marginTop: 20, display: "flex", flexDirection: "column", gap: 16 }}>
+              {/* Traffic */}
+              {analyticsSummary && (
+                <div style={cardStyle}>
+                  <div style={cardHeaderStyle}>
+                    <div style={cardTitleStyle}><BarChart3 size={17} style={{ color: "#2563EB" }} /> Traffic</div>
+                    <div style={cardDescStyle}>How many people have visited your public profile in the last 30 days.</div>
+                  </div>
+                  <div style={{ ...cardBodyStyle, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                    <div style={{ background: "#F8F9FA", borderRadius: 10, padding: "14px 16px", border: "1px solid rgba(11,31,58,.08)" }}>
+                      <p style={{ fontSize: 12, color: "#75777E", margin: "0 0 4px" }}>Views</p>
+                      <p style={{ fontFamily: "'Newsreader', serif", fontSize: 24, fontWeight: 600, color: "#0B1F3A", margin: 0 }}>{analyticsSummary.totalViews.toLocaleString()}</p>
+                    </div>
+                    <div style={{ background: "#F8F9FA", borderRadius: 10, padding: "14px 16px", border: "1px solid rgba(11,31,58,.08)" }}>
+                      <p style={{ fontSize: 12, color: "#75777E", margin: "0 0 4px" }}>Unique visitors</p>
+                      <p style={{ fontFamily: "'Newsreader', serif", fontSize: 24, fontWeight: 600, color: "#0B1F3A", margin: 0 }}>{analyticsSummary.uniqueVisitors.toLocaleString()}</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* Profile Visibility */}
               <div style={cardStyle}>
                 <div style={cardHeaderStyle}>

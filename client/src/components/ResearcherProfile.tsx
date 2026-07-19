@@ -9,24 +9,7 @@ import { useMemo, useEffect } from "react";
 import { Lock, UserX } from "lucide-react";
 import EmptyState from "@/components/EmptyState";
 import { titleCaseName } from "@shared/formatName";
-
-// Analytics tracking helper
-const trackProfileEvent = async (openalexId: string, eventType: string, eventTarget?: string) => {
-  try {
-    let visitorId = localStorage.getItem("scholar_visitor_id");
-    if (!visitorId) {
-      visitorId = crypto.randomUUID();
-      localStorage.setItem("scholar_visitor_id", visitorId);
-    }
-    await fetch("/api/analytics/track", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ openalexId, eventType, eventTarget, visitorId, referrer: document.referrer || null }),
-    });
-  } catch (error) {
-    console.debug("Analytics tracking failed:", error);
-  }
-};
+import { trackProfileEvent } from "@/lib/profileViewTracking";
 
 function ResearcherProfileInner() {
   const { id } = useParams();

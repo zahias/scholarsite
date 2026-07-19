@@ -4,8 +4,9 @@ import { ProfileThemeProvider } from "@/context/ThemeContext";
 import SEO from "@/components/SEO";
 import ResearcherProfileContent from "@/components/ResearcherProfileContent";
 import { Card, CardContent } from "@/components/ui/card";
-import { useMemo } from "react";
+import { useMemo, useEffect } from "react";
 import { titleCaseName } from "@shared/formatName";
+import { trackProfileEvent } from "@/lib/profileViewTracking";
 
 export default function TenantProfilePage() {
   const { data: profileData, isLoading, error } = useQuery<{
@@ -29,6 +30,12 @@ export default function TenantProfilePage() {
   const tenant = profileData?.tenant;
   const openalexId = profile?.openalexId || "";
   const displayName = titleCaseName(profile?.displayName) || titleCaseName(researcher?.display_name) || "Researcher";
+
+  useEffect(() => {
+    if (openalexId && profileData?.claimState === "active" && !profileData?.isPreview) {
+      trackProfileEvent(openalexId, "view");
+    }
+  }, [openalexId, profileData?.claimState, profileData?.isPreview]);
 
   const seoTitle = profile ? `${displayName} - Research Profile` : "Research Profile";
   const seoDescription = profile?.bio || (researcher ? `${displayName} - ${researcher?.works_count || 0} publications, ${researcher?.cited_by_count || 0} citations` : "Research Profile");
