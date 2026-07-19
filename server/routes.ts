@@ -1232,16 +1232,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Researcher profile not found" });
       }
 
-      if (profile.openalexId) {
-        await openalexService.syncResearcherData(profile.openalexId);
+      const syncLog = profile.tenantId
+        ? await storage.createSyncLog({
+            tenantId: profile.tenantId,
+            profileId: profile.id,
+            syncType: "full",
+            status: "in_progress",
+          })
+        : null;
+
+      try {
+        const syncResult = profile.openalexId
+          ? await openalexService.syncResearcherData(profile.openalexId)
+          : { publicationsProcessed: 0, worksCount: 0 };
+
+        // Update last synced timestamp
+        await storage.updateResearcherProfile(profile.id, {
+          lastSyncedAt: new Date()
+        });
+
+        if (syncLog) {
+          await storage.updateSyncLog(syncLog.id, {
+            status: "completed",
+            completedAt: new Date(),
+            itemsProcessed: syncResult.publicationsProcessed,
+            itemsTotal: syncResult.worksCount,
+          });
+        }
+
+        res.json({ message: "Data sync completed successfully" });
+      } catch (syncError) {
+        if (syncLog) {
+          await storage.updateSyncLog(syncLog.id, {
+            status: "failed",
+            completedAt: new Date(),
+            errorMessage: syncError instanceof Error ? syncError.message : "Unknown sync error",
+          });
+        }
+        throw syncError;
       }
-
-      // Update last synced timestamp
-      await storage.updateResearcherProfile(profile.id, {
-        lastSyncedAt: new Date()
-      });
-
-      res.json({ message: "Data sync completed successfully" });
     } catch (error) {
       console.error("Error syncing researcher data:", error);
       res.status(500).json({ message: "Failed to sync researcher data" });

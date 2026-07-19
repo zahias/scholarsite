@@ -265,7 +265,7 @@ router.post("/sync", isAuthenticated, async (req: Request, res: Response) => {
       const timeoutPromise = new Promise<never>((_, reject) =>
         setTimeout(() => reject(new Error("Sync timed out after 45 seconds")), 45_000),
       );
-      await Promise.race([
+      const syncResult = await Promise.race([
         openalexService.syncResearcherData(tenant.profile.openalexId),
         timeoutPromise,
       ]);
@@ -273,6 +273,8 @@ router.post("/sync", isAuthenticated, async (req: Request, res: Response) => {
       await storage.updateSyncLog(syncLog.id, {
         status: "completed",
         completedAt: new Date(),
+        itemsProcessed: syncResult.publicationsProcessed,
+        itemsTotal: syncResult.worksCount,
       });
 
       // Update the last synced timestamp

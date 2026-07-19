@@ -18,6 +18,8 @@ interface SyncLog {
   status: 'success' | 'skipped' | 'error';
   message: string;
   timestamp: Date;
+  itemsProcessed?: number;
+  itemsTotal?: number;
 }
 
 let isSyncRunning = false;
@@ -41,6 +43,8 @@ async function persistSyncLog(tenantId: string, profileId: string | undefined, l
       errorMessage: log.status === 'error' ? log.message : null,
       startedAt: log.timestamp,
       completedAt: log.status === 'skipped' ? log.timestamp : new Date(),
+      itemsProcessed: log.itemsProcessed,
+      itemsTotal: log.itemsTotal,
     } as any);
   } catch (error) {
     console.error('[SyncScheduler] Failed to persist sync log:', error);
@@ -75,7 +79,9 @@ async function syncTenant(tenantId: string, tenantName: string, openalexId: stri
   try {
     console.log(`[SyncScheduler] Starting sync for tenant: ${tenantName} (${openalexId})`);
 
-    await openalexService.syncResearcherData(openalexId);
+    const syncResult = await openalexService.syncResearcherData(openalexId);
+    log.itemsProcessed = syncResult.publicationsProcessed;
+    log.itemsTotal = syncResult.worksCount;
 
     const profile = await storage.getResearcherProfileByTenant(tenantId);
     if (profile) {

@@ -357,6 +357,21 @@ export default function ResearcherDashboard() {
     enabled: !!tenantData?.tenant?.profile?.openalexId,
   });
 
+  // authorData above is a LIVE OpenAlex fetch; the public profile shows the
+  // last-synced snapshot instead, which can lag behind it by up to 30 days.
+  // Fetching that same snapshot here lets the dashboard show what's actually
+  // live on the public site, plus a delta, instead of numbers a visitor
+  // can't currently see.
+  const openalexIdForSyncedData = tenantData?.tenant?.profile?.openalexId;
+  const { data: syncedProfileData } = useQuery<{ researcher: OpenAlexAuthor | null }>({
+    queryKey: [`/api/researcher/${openalexIdForSyncedData}/data`],
+    enabled: !!openalexIdForSyncedData,
+  });
+  const syncedCitedByCount = syncedProfileData?.researcher?.cited_by_count;
+  const citationsDelta = (authorData?.cited_by_count != null && syncedCitedByCount != null)
+    ? authorData.cited_by_count - syncedCitedByCount
+    : null;
+
   const { data: themesData } = useQuery<Theme[]>({
     queryKey: ["/api/themes"],
     enabled: activeTab === "settings",
@@ -1509,8 +1524,8 @@ export default function ResearcherDashboard() {
             <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 12 }} className="dash-stats-grid">
               <style>{`@media (max-width: 560px) { .dash-stats-grid { grid-template-columns: 1fr !important; } }`}</style>
               {[
-                { label: "Publications", value: authorData?.works_count?.toLocaleString() || "—", icon: BookOpen, iconBg: "rgba(37,99,235,.1)", iconColor: "#2563EB" },
-                { label: "Citations", value: authorData?.cited_by_count?.toLocaleString() || "—", icon: BarChart3, iconBg: "rgba(5,150,105,.1)", iconColor: "#059669" },
+                { label: "Publications", value: (syncedProfileData?.researcher?.works_count ?? authorData?.works_count)?.toLocaleString() || "—", icon: BookOpen, iconBg: "rgba(37,99,235,.1)", iconColor: "#2563EB" },
+                { label: "Citations", value: (syncedCitedByCount ?? authorData?.cited_by_count)?.toLocaleString() || "—", icon: BarChart3, iconBg: "rgba(5,150,105,.1)", iconColor: "#059669" },
                 { label: "Status", value: tenant?.status === "active" ? "Live" : "Pending", icon: Award, iconBg: "rgba(139,92,246,.1)", iconColor: "#7c3aed" },
               ].map(({ label, value, icon: Icon, iconBg, iconColor }) => (
                 <div key={label} style={{ background: "#fff", borderRadius: 14, border: "1px solid rgba(11,31,58,.08)", padding: "20px 20px" }}>
@@ -1535,6 +1550,19 @@ export default function ResearcherDashboard() {
                 </div>
               ))}
             </div>
+
+            {citationsDelta !== null && citationsDelta > 0 && (
+              <p style={{ fontSize: 13, color: "#B87A0A", margin: "-8px 0 0", display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+                <RefreshCw size={13} />
+                OpenAlex has {citationsDelta.toLocaleString()} more citation{citationsDelta === 1 ? "" : "s"} than your public profile shows.
+                <button
+                  onClick={() => setActiveTab("sync")}
+                  style={{ color: "#0B1F3A", fontWeight: 600, background: "none", border: "none", padding: 0, cursor: "pointer", textDecoration: "underline", font: "inherit" }}
+                >
+                  Sync now →
+                </button>
+              </p>
+            )}
 
             {/* OpenAlex Badge Bar */}
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 10 }}>
@@ -1818,7 +1846,10 @@ export default function ResearcherDashboard() {
                   ) : (
                     <div>
                       <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: "#75777E", paddingBottom: 12, borderBottom: "1px solid rgba(11,31,58,.07)", marginBottom: 12 }}>
-                        <span>{publicationsData.publications.filter(p => p.isFeatured).length} featured</span>
+                        <span>
+                          {publicationsData.publications.filter(p => p.isFeatured).length} featured
+                          {publicationsData.publications.filter(p => p.isFeatured).length === 0 && " (showing your top 3 most-cited on your public page — star any 3 below to choose your own)"}
+                        </span>
                         <span>{publicationsData.publications.length} total</span>
                       </div>
                       <div style={{ maxHeight: 520, overflowY: "auto", display: "flex", flexDirection: "column", gap: 8 }}>

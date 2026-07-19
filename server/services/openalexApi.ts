@@ -193,10 +193,10 @@ export class OpenAlexService {
     };
   }
 
-  async syncResearcherData(openalexId: string): Promise<void> {
+  async syncResearcherData(openalexId: string): Promise<{ publicationsProcessed: number; worksCount: number; citedByCount: number }> {
     try {
       console.log(`Starting sync for researcher: ${openalexId}`);
-      
+
       // Fetch researcher data - handle 404 gracefully
       let researcher;
       try {
@@ -204,7 +204,7 @@ export class OpenAlexService {
       } catch (error) {
         if (error instanceof Error && error.message.includes('404')) {
           console.log(`OpenAlex researcher ${openalexId} not found (404) - skipping sync`);
-          return; // Exit gracefully, don't fail profile creation
+          return { publicationsProcessed: 0, worksCount: 0, citedByCount: 0 }; // Exit gracefully, don't fail profile creation
         }
         throw error; // Re-throw other errors
       }
@@ -257,11 +257,12 @@ export class OpenAlexService {
       } catch (error) {
         if (error instanceof Error && error.message.includes('404')) {
           console.log(`OpenAlex works for ${openalexId} not found (404) - skipping works sync`);
-          return;
+          return { publicationsProcessed: 0, worksCount: researcher.works_count || 0, citedByCount: researcher.cited_by_count || 0 };
         }
         throw error;
       }
-      
+
+      let publicationsProcessed = 0;
       if (worksResponse.results && worksResponse.results.length > 0) {
         const publications: InsertPublication[] = worksResponse.results
           .filter(work => work.title && work.title.trim() !== '') // Filter out works without valid titles
@@ -286,7 +287,8 @@ export class OpenAlexService {
           });
         
         console.log(`Processed ${publications.length} valid publications (filtered out ${worksResponse.results.length - publications.length} without titles)`);
-        
+        publicationsProcessed = publications.length;
+
         if (publications.length > 0) {
           await storage.upsertPublications(publications);
         }
@@ -300,6 +302,11 @@ export class OpenAlexService {
       });
 
       console.log(`Successfully synced data for researcher: ${openalexId}`);
+      return {
+        publicationsProcessed,
+        worksCount: researcher.works_count || 0,
+        citedByCount: researcher.cited_by_count || 0,
+      };
     } catch (error) {
       console.error(`Error syncing researcher data for ${openalexId}:`, error);
       throw error;
