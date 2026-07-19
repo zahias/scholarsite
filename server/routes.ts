@@ -22,6 +22,7 @@ import { runScheduledSync } from "./services/syncScheduler";
 import { checkDatabaseHealth } from "./dbHealth";
 import { pool } from "./db";
 import { renderIndexHtml } from "./renderIndexHtml";
+import { titleCaseName } from "@shared/formatName";
 
 type PublicProfileClaimState = "unclaimed" | "active" | "inactive" | "orphaned" | "database_unavailable";
 
@@ -793,7 +794,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const preview: any = await getPreviewResponse(openalexId).catch(() => null);
         liveResearcher = preview?.data?.researcher;
       }
-      const displayName = profile?.displayName || liveResearcher?.display_name;
+      const displayName = titleCaseName(profile?.displayName) || titleCaseName(liveResearcher?.display_name);
 
       if (!profile && !liveResearcher) {
         res.status(404);
@@ -841,7 +842,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const researcherData = await storage.getOpenalexData(profile.openalexId, 'researcher').catch(() => null);
       const liveResearcher: any = researcherData?.data;
-      const displayName = profile.displayName || liveResearcher?.display_name || req.tenant.name || "Researcher";
+      const displayName = titleCaseName(profile.displayName) || titleCaseName(liveResearcher?.display_name) || req.tenant.name || "Researcher";
       const description = profile.bio
         || (liveResearcher ? `${displayName} — ${liveResearcher.works_count || 0} publications, ${liveResearcher.cited_by_count || 0} citations` : `${displayName}'s research profile`);
       const image = profile.profileImageUrl

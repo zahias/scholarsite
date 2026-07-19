@@ -745,7 +745,11 @@ router.post("/sections", isAuthenticated, async (req: Request, res: Response) =>
       content,
       sectionType: sectionType || 'custom',
       sortOrder: sortOrder || 0,
-      isVisible: isVisible !== false,
+      // New sections start hidden unless the caller explicitly asks for them
+      // to be visible immediately — previously any omitted `isVisible`
+      // defaulted to true, so a section could go live on the public profile
+      // the instant it was created, with no review step.
+      isVisible: isVisible === true,
     });
 
     res.json({ section });

@@ -77,10 +77,10 @@ export default function ReportIssue({ openalexId, researcherName }: ReportIssueP
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button 
-          variant="ghost" 
-          size="sm" 
-          className="text-muted-foreground hover:text-foreground gap-1.5"
+        <Button
+          variant="ghost-light"
+          size="sm"
+          className="gap-1.5"
         >
           <Flag className="w-3.5 h-3.5" />
           <span className="hidden sm:inline">Report Issue</span>

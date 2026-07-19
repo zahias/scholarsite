@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Share2, Linkedin, Mail, QrCode } from "lucide-react";
+import { Link as LinkIcon, Linkedin, Mail, QrCode } from "lucide-react";
 import { FaXTwitter } from "react-icons/fa6";
 import { useState } from "react";
 import {
@@ -11,6 +11,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
+import { trackProfileEvent } from "@/lib/profileViewTracking";
 
 interface ShareButtonsProps {
   url: string;
@@ -29,22 +30,29 @@ export default function ShareButtons({ url, title, description, openalexId }: Sh
   const shareText = description || `Check out ${title}'s research profile`;
 
   const handleLinkedInShare = () => {
+    trackProfileEvent(openalexId, "click", "LinkedIn");
+    trackProfileEvent(openalexId, "share", "LinkedIn");
     const linkedInUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`;
     window.open(linkedInUrl, '_blank', 'width=600,height=600');
   };
 
   const handleTwitterShare = () => {
+    trackProfileEvent(openalexId, "click", "X (Twitter)");
+    trackProfileEvent(openalexId, "share", "X (Twitter)");
     const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`;
     window.open(twitterUrl, '_blank', 'width=600,height=600');
   };
 
   const handleEmailShare = () => {
+    trackProfileEvent(openalexId, "click", "Email");
+    trackProfileEvent(openalexId, "share", "Email");
     const subject = encodeURIComponent(shareTitle);
     const body = encodeURIComponent(`${shareText}\n\n${shareUrl}`);
     window.location.href = `mailto:?subject=${subject}&body=${body}`;
   };
 
   const handleCopyLink = async () => {
+    trackProfileEvent(openalexId, "click", "Copy Link");
     try {
       await navigator.clipboard.writeText(shareUrl);
       toast({
@@ -61,6 +69,7 @@ export default function ShareButtons({ url, title, description, openalexId }: Sh
   };
 
   const handleGenerateQR = async () => {
+    trackProfileEvent(openalexId, "click", "QR Code");
     // Generate QR code via API
     const qrUrl = `/api/researcher/${openalexId}/qr-code?url=${encodeURIComponent(shareUrl)}`;
     setQrCodeUrl(qrUrl);
@@ -70,7 +79,7 @@ export default function ShareButtons({ url, title, description, openalexId }: Sh
   return (
     <div className="flex flex-wrap gap-2" data-testid="section-share-buttons">
       <Button
-        variant="outline"
+        variant="ghost-light"
         size="sm"
         onClick={handleLinkedInShare}
         className="gap-2"
@@ -82,7 +91,7 @@ export default function ShareButtons({ url, title, description, openalexId }: Sh
       </Button>
 
       <Button
-        variant="outline"
+        variant="ghost-light"
         size="sm"
         onClick={handleTwitterShare}
         className="gap-2"
@@ -90,11 +99,11 @@ export default function ShareButtons({ url, title, description, openalexId }: Sh
         aria-label="Share on Twitter"
       >
         <FaXTwitter className="h-4 w-4" />
-        <span className="hidden sm:inline">Twitter</span>
+        <span className="hidden sm:inline">X</span>
       </Button>
 
       <Button
-        variant="outline"
+        variant="ghost-light"
         size="sm"
         onClick={handleEmailShare}
         className="gap-2"
@@ -106,21 +115,21 @@ export default function ShareButtons({ url, title, description, openalexId }: Sh
       </Button>
 
       <Button
-        variant="outline"
+        variant="ghost-light"
         size="sm"
         onClick={handleCopyLink}
         className="gap-2"
         data-testid="button-copy-link"
         aria-label="Copy link to clipboard"
       >
-        <Share2 className="h-4 w-4" />
+        <LinkIcon className="h-4 w-4" />
         <span className="hidden sm:inline">Copy Link</span>
       </Button>
 
       <Dialog open={qrDialogOpen} onOpenChange={setQrDialogOpen}>
         <DialogTrigger asChild>
           <Button
-            variant="outline"
+            variant="ghost-light"
             size="sm"
             onClick={handleGenerateQR}
             className="gap-2"
@@ -140,9 +149,9 @@ export default function ShareButtons({ url, title, description, openalexId }: Sh
           </DialogHeader>
           <div className="flex flex-col items-center gap-4 py-4">
             {qrCodeUrl && (
-              <img 
-                src={qrCodeUrl} 
-                alt="QR Code for profile" 
+              <img
+                src={qrCodeUrl}
+                alt="QR Code for profile"
                 className="w-64 h-64 border rounded-lg"
                 loading="lazy"
                 data-testid="img-qr-code"

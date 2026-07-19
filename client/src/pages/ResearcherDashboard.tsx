@@ -2010,6 +2010,11 @@ export default function ResearcherDashboard() {
                         initialContent={{ type: "doc", content: [] }}
                       />
                     </div>
+                    {!editingSectionId && (
+                      <p style={{ fontSize: 12.5, color: "#75777E", margin: "0 0 10px" }}>
+                        New sections start hidden — use the eye icon below to make one visible once you're happy with it.
+                      </p>
+                    )}
                     <div style={{ display: "flex", gap: 8 }}>
                       {editingSectionId ? (
                         <>
@@ -2291,11 +2296,11 @@ export default function ResearcherDashboard() {
                   <div style={{ paddingBottom: 18 }}>
                     <p style={{ ...labelStyle, marginBottom: 8 }}>Preview Portfolio</p>
                     {profile?.openalexId && primaryDomain ? (
-                      <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 14px", background: "rgba(37,99,235,.05)", borderRadius: 9, border: "1px solid rgba(37,99,235,.15)" }}>
-                        <ExternalLink size={15} style={{ color: "#2563EB", flexShrink: 0 }} />
-                        <span style={{ fontSize: 13.5, color: "#1d4ed8", flex: 1 }}>See how visitors will view your portfolio</span>
+                      <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 14px", background: "#F8F9FA", borderRadius: 9, border: "1px solid rgba(11,31,58,.08)" }}>
+                        <ExternalLink size={15} style={{ color: "#0B1F3A", flexShrink: 0 }} />
+                        <span style={{ fontSize: 13.5, color: "#44474D", flex: 1 }}>See how visitors will view your portfolio</span>
                         <a href={`https://${primaryDomain.hostname}`} target="_blank" rel="noopener noreferrer"
-                          style={{ fontSize: 13, color: "#fff", background: "#2563EB", padding: "6px 14px", borderRadius: 7, textDecoration: "none", fontWeight: 600, display: "inline-flex", alignItems: "center", gap: 4 }}
+                          style={{ fontSize: 13, color: "#6F5400", background: "#FFC72E", padding: "6px 14px", borderRadius: 7, textDecoration: "none", fontWeight: 700, display: "inline-flex", alignItems: "center", gap: 4 }}
                           data-testid="link-preview-portfolio"
                         >
                           Preview <ExternalLink size={11} />
@@ -2311,13 +2316,13 @@ export default function ResearcherDashboard() {
                   <div style={{ paddingBottom: 18 }}>
                     <p style={{ ...labelStyle, marginBottom: 8 }}>QR Code</p>
                     {profile?.openalexId ? (
-                      <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 14px", background: "rgba(139,92,246,.05)", borderRadius: 9, border: "1px solid rgba(139,92,246,.15)" }}>
-                        <QrCode size={15} style={{ color: "#7c3aed", flexShrink: 0 }} />
-                        <span style={{ fontSize: 13.5, color: "#6d28d9", flex: 1 }}>Download a QR code linking to your portfolio</span>
+                      <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 14px", background: "#F8F9FA", borderRadius: 9, border: "1px solid rgba(11,31,58,.08)" }}>
+                        <QrCode size={15} style={{ color: "#0B1F3A", flexShrink: 0 }} />
+                        <span style={{ fontSize: 13.5, color: "#44474D", flex: 1 }}>Download a QR code linking to your portfolio</span>
                         <a
                           href={`/api/researcher/${profile.openalexId}/qr-code${primaryDomain ? `?url=https://${primaryDomain.hostname}` : ""}`}
                           download={`${profile.displayName || "portfolio"}-qr-code.png`}
-                          style={{ fontSize: 13, color: "#fff", background: "#7c3aed", padding: "6px 14px", borderRadius: 7, textDecoration: "none", fontWeight: 600, display: "inline-flex", alignItems: "center", gap: 4 }}
+                          style={{ fontSize: 13, color: "#6F5400", background: "#FFC72E", padding: "6px 14px", borderRadius: 7, textDecoration: "none", fontWeight: 700, display: "inline-flex", alignItems: "center", gap: 4 }}
                           data-testid="link-download-qr"
                         >
                           <Download size={11} /> Download QR

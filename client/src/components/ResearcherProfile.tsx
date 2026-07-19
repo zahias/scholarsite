@@ -144,8 +144,12 @@ function ResearcherProfileInner() {
             onClick: () => window.location.reload(),
           }
         : {
-            desktop: `This is a preview of what your profile could look like. Create yours at ${displayName.toLowerCase().replace(/\s+/g, "")}.scholar.name`,
-            mobile: "Like what you see? Create your own portfolio!",
+            // Previously mixed two audiences in one line ("Create yours at
+            // X" read as visitor-facing, while the button said "Claim This
+            // Profile" — researcher-facing). One CTA slot exists here, so
+            // address the one audience it actually serves: the researcher.
+            desktop: "Is this you? Claim this profile to make it yours — free to start.",
+            mobile: "Is this you? Claim your profile.",
             action: "Claim This Profile",
             onClick: () => navigate("/signup"),
           };

@@ -102,6 +102,7 @@ export default function ResearcherProfileContent({
               publicationCount={researcher?.works_count || 0}
               citationCount={researcher?.cited_by_count || 0}
               profileUrl={typeof window !== "undefined" ? window.location.href : ""}
+              profileImageUrl={profile?.profileImageUrl}
             />
           ) : undefined
         }
@@ -144,17 +145,19 @@ export default function ResearcherProfileContent({
       </div>
 
       {/* Footer */}
-      <footer style={{ background: "#0B1F3A", padding: "28px 32px", marginTop: 16 }}>
-        <div className="profile-wide-container" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
-          <p style={{ color: "rgba(255,255,255,.5)", fontSize: 13, margin: 0 }}>
-            © {new Date().getFullYear()} {footerBrandName}. {showPoweredBy ? "Powered by Scholar.name." : "All rights reserved."}
-          </p>
-          <div style={{ display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
+      <footer style={{ background: "#0B1F3A", padding: "24px 32px", marginTop: 16 }}>
+        <div className="profile-wide-container" style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+            <p style={{ color: "rgba(255,255,255,.5)", fontSize: 13, margin: 0 }}>
+              © {new Date().getFullYear()} {footerBrandName}. {showPoweredBy ? "Powered by Scholar.name." : "All rights reserved."}
+            </p>
             {data.lastSynced && (
               <p style={{ color: "rgba(255,255,255,.35)", fontSize: 12, margin: 0 }}>
                 Last sync: {new Date(data.lastSynced).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
               </p>
             )}
+          </div>
+          <div style={{ borderTop: "1px solid rgba(255,255,255,.1)", paddingTop: 16, display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
             <ShareButtons
               url={typeof window !== "undefined" ? window.location.href : ""}
               title={displayName}
