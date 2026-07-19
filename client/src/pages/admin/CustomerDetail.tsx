@@ -493,9 +493,20 @@ export default function CustomerDetail() {
                         <Globe className="w-4 h-4 text-muted-foreground" />
                         <a href={`https://${domain.hostname}`} target="_blank" rel="noopener noreferrer" className="text-foreground hover:underline">{domain.hostname}</a>
                         {domain.isPrimary && <Badge className="bg-green-500/20 text-green-600">Primary</Badge>}
-                        <Badge className={domain.sslStatus === "active" ? "bg-green-500/20 text-green-600" : "bg-yellow-500/20 text-yellow-600"}>
-                          SSL: {domain.sslStatus || "pending"}
-                        </Badge>
+                        {(() => {
+                          // *.scholar.name subdomains are covered by the platform's
+                          // wildcard cert and are always valid — sslStatus is only
+                          // meaningful (and only ever gets set) for custom domains,
+                          // which need their own cert provisioning. Without this,
+                          // every subdomain showed a permanently-stuck "pending" badge.
+                          const isWildcardCovered = domain.hostname.endsWith(".scholar.name");
+                          const isActive = isWildcardCovered || domain.sslStatus === "active";
+                          return (
+                            <Badge className={isActive ? "bg-green-500/20 text-green-600" : "bg-yellow-500/20 text-yellow-600"}>
+                              SSL: {isActive ? "active" : (domain.sslStatus || "pending")}
+                            </Badge>
+                          );
+                        })()}
                         {domain.verifiedAt && <Badge className="bg-blue-500/20 text-blue-600">Verified</Badge>}
                       </div>
                       <Button variant="ghost" size="icon" onClick={() => deleteDomainMutation.mutate(domain.id)} className="text-red-600 hover:text-red-600 hover:bg-red-500/10" data-testid={`button-delete-domain-${domain.id}`}>

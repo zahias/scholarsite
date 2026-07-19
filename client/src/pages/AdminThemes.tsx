@@ -261,8 +261,8 @@ export default function AdminThemes() {
       <header className="border-b border-border bg-card/90 backdrop-blur-lg sticky top-0 z-50">
         <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-purple-500/20 rounded-xl flex items-center justify-center">
-              <Palette className="w-5 h-5 text-purple-600" />
+            <div className="w-10 h-10 bg-primary/15 rounded-xl flex items-center justify-center">
+              <Palette className="w-5 h-5 text-primary" />
             </div>
             <div>
               <h1 className="text-xl font-semibold text-foreground">Theme Management</h1>
@@ -314,8 +314,8 @@ export default function AdminThemes() {
                             onClick={() => setSelectedThemeForBulk(theme)}
                             className={`flex items-center gap-3 p-3 rounded-lg border transition-all ${
                               selectedThemeForBulk?.id === theme.id
-                                ? 'border-purple-500 bg-purple-500/10'
-                                : 'border-border hover:border-purple-500/50'
+                                ? 'border-primary bg-primary/10'
+                                : 'border-border hover:border-primary/50'
                             }`}
                             data-testid={`button-select-theme-${theme.id}`}
                           >
@@ -324,7 +324,7 @@ export default function AdminThemes() {
                               <p className="text-sm font-medium">{theme.name}</p>
                             </div>
                             {selectedThemeForBulk?.id === theme.id && (
-                              <Check className="w-4 h-4 text-purple-600" />
+                              <Check className="w-4 h-4 text-primary" />
                             )}
                           </button>
                         );
@@ -392,7 +392,7 @@ export default function AdminThemes() {
                   <Button
                     onClick={handleBulkApply}
                     disabled={!selectedThemeForBulk || bulkApplyMutation.isPending}
-                    className="bg-purple-500 hover:bg-purple-600"
+                    className="bg-primary hover:bg-primary/90"
                     data-testid="button-confirm-bulk-apply"
                   >
                     {bulkApplyMutation.isPending ? (
@@ -412,7 +412,7 @@ export default function AdminThemes() {
             
             <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
               <DialogTrigger asChild>
-                <Button className="bg-purple-500 hover:bg-purple-600" data-testid="button-create-theme">
+                <Button className="bg-primary hover:bg-primary/90" data-testid="button-create-theme">
                   <Plus className="w-4 h-4 mr-2" />
                   Create Theme
                 </Button>

@@ -461,10 +461,22 @@ function generateBibTeX(publications: Publication[]): string {
     'paratext': 'misc',
   };
 
-  return publications.map((pub, index) => {
+  const usedKeys = new Set<string>();
+  return publications.map((pub) => {
     const openalexType = pub.publicationType?.toLowerCase() || 'article';
     const bibtexType = bibtexTypeMap[openalexType] || 'misc';
-    const key = `${bibtexType}${pub.publicationYear || 'unknown'}${index + 1}`;
+    // Standard BibTeX convention: first author's last name + year, with a/b/c
+    // suffixes for duplicates, instead of an opaque type+year+index string.
+    const firstAuthorLastName = (pub.authorNames?.split(',')[0]?.trim().split(' ').pop() || 'unknown')
+      .replace(/[^a-zA-Z]/g, '') || 'unknown';
+    const keyBase = `${firstAuthorLastName}${pub.publicationYear || 'nd'}`.toLowerCase();
+    let key = keyBase;
+    let suffix = 0;
+    while (usedKeys.has(key)) {
+      suffix += 1;
+      key = `${keyBase}${String.fromCharCode(96 + suffix)}`; // a, b, c, ...
+    }
+    usedKeys.add(key);
     const authors = pub.authorNames?.replace(/,/g, ' and') || 'Unknown Author';
     const title = pub.title || 'Untitled';
     const year = pub.publicationYear || '';
