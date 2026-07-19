@@ -81,7 +81,6 @@ export const pricingPlans = [
       "Everything in Starter",
       "Custom domain (yourname.com)",
       "Research Passport download",
-      "Monthly data sync",
       "Priority support",
     ],
     highlighted: true,

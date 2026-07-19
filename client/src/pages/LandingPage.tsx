@@ -291,7 +291,7 @@ export default function LandingPage() {
                   <input
                     ref={inputRef}
                     type="text"
-                    placeholder="Search for any researcher by name…"
+                    placeholder="Search researchers by name…"
                     value={searchQuery}
                     onChange={(e) => { setSearchQuery(e.target.value); setShowResults(true); setSelectedIndex(-1); }}
                     onFocus={() => setShowResults(true)}
@@ -744,17 +744,31 @@ export default function LandingPage() {
               {pricingPlans.map((plan) => (
                 <div
                   key={plan.name}
-                  className="bg-white rounded-[14px] p-7 flex items-center justify-between gap-5"
+                  className="bg-white rounded-[14px] p-7 flex flex-col gap-4"
                   style={{ border: plan.highlighted ? "2px solid #FFC72E" : "1px solid rgba(11,31,58,.08)" }}
                   data-testid={"card-pricing-" + plan.name.toLowerCase()}
                 >
-                  <div>
-                    <h3 className="font-serif font-medium text-[#0B1F3A] mb-1" style={{ fontSize: 21 }}>{plan.name}</h3>
-                    <p className="text-[13px] text-gray-500 mb-3">{plan.description}</p>
-                    <span className="font-serif text-[#0B1F3A]" style={{ fontSize: 30, fontWeight: 500 }}>${plan.monthlyPrice.toFixed(2)}</span>
-                    <span className="text-[13px] text-gray-500 ml-1">/month</span>
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <h3 className="font-serif font-medium text-[#0B1F3A] mb-1" style={{ fontSize: 21 }}>{plan.name}</h3>
+                      <p className="text-[13px] text-gray-500 mb-3">{plan.description}</p>
+                      <span className="font-serif text-[#0B1F3A]" style={{ fontSize: 30, fontWeight: 500 }}>${plan.monthlyPrice.toFixed(2)}</span>
+                      <span className="text-[13px] text-gray-500 ml-1">/month</span>
+                    </div>
+                    {plan.highlighted && (
+                      <span className="text-[10px] tracking-[.1em] uppercase font-semibold px-2 py-1 rounded-full flex-shrink-0" style={{ background: "rgba(255,199,46,.15)", color: "#8a6300" }}>
+                        Most popular
+                      </span>
+                    )}
                   </div>
-                  <Check className="w-6 h-6 text-[#2F6D3A] flex-shrink-0" aria-hidden="true" />
+                  <ul className="flex flex-col gap-2">
+                    {plan.features.map((feature) => (
+                      <li key={feature} className="flex items-start gap-2 text-[13.5px] text-gray-700">
+                        <Check className="w-4 h-4 text-[#2F6D3A] flex-shrink-0 mt-[2px]" aria-hidden="true" />
+                        {feature}
+                      </li>
+                    ))}
+                  </ul>
                 </div>
               ))}
             </div>
