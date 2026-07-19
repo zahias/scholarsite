@@ -299,8 +299,8 @@ export default function AdminThemes() {
                             onClick={() => setSelectedThemeForBulk(theme)}
                             className={`flex items-center gap-3 p-3 rounded-lg border transition-all ${
                               selectedThemeForBulk?.id === theme.id
-                                ? 'border-primary bg-primary/10'
-                                : 'border-border hover:border-primary/50'
+                                ? 'border-primary-container bg-primary-container/10'
+                                : 'border-border hover:border-primary-container/50'
                             }`}
                             data-testid={`button-select-theme-${theme.id}`}
                           >
@@ -309,7 +309,7 @@ export default function AdminThemes() {
                               <p className="text-sm font-medium">{theme.name}</p>
                             </div>
                             {selectedThemeForBulk?.id === theme.id && (
-                              <Check className="w-4 h-4 text-primary" />
+                              <Check className="w-4 h-4 text-primary-container" />
                             )}
                           </button>
                         );
@@ -377,7 +377,7 @@ export default function AdminThemes() {
                   <Button
                     onClick={handleBulkApply}
                     disabled={!selectedThemeForBulk || bulkApplyMutation.isPending}
-                    className="bg-primary hover:bg-primary/90"
+                    className="bg-primary-container hover:bg-primary-container/90"
                     data-testid="button-confirm-bulk-apply"
                   >
                     {bulkApplyMutation.isPending ? (
@@ -397,7 +397,7 @@ export default function AdminThemes() {
             
             <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
               <DialogTrigger asChild>
-                <Button className="bg-primary hover:bg-primary/90" data-testid="button-create-theme">
+                <Button className="bg-primary-container hover:bg-primary-container/90" data-testid="button-create-theme">
                   <Plus className="w-4 h-4 mr-2" />
                   Create Theme
                 </Button>

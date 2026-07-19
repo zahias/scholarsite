@@ -50,60 +50,48 @@ export default function FaqPage() {
         {/* FAQ accordion */}
         <section className="public-section">
           <div className="public-container-lg public-aside-grid">
-            <aside className="public-subtle-card" style={{ padding: 28, position: "sticky", top: 92 }}>
-              <Sparkles size={22} style={{ color: "#6F5400", marginBottom: 16 }} />
-              <h2 style={{ fontFamily: "'Newsreader', serif", fontSize: 26, fontWeight: 500, color: "#0B1F3A", margin: "0 0 10px" }}>
+            <aside className="public-subtle-card p-7 sticky top-[92px]">
+              <Sparkles size={22} className="text-on-secondary-container mb-4" />
+              <h2 className="font-serif text-[26px] font-medium text-midnight mb-2.5">
                 Quick answers before you launch
               </h2>
-              <p style={{ fontSize: 14.5, color: "#44474D", lineHeight: 1.65, margin: "0 0 20px" }}>
+              <p className="text-[14.5px] text-[#44474D] leading-relaxed mb-5">
                 Browse setup, billing, data, and portfolio questions. If you need institution-level help, contact us directly.
               </p>
               <button
                 onClick={() => { window.scrollTo(0, 0); navigate("/contact"); }}
-                style={{ padding: "10px 18px", background: "#0B1F3A", color: "#fff", border: "none", borderRadius: 9, fontSize: 14, fontWeight: 600, fontFamily: "inherit", cursor: "pointer" }}
+                className="px-[18px] py-2.5 bg-midnight text-white border-none rounded-[9px] text-sm font-semibold cursor-pointer"
               >
                 Contact Us
               </button>
             </aside>
             <div>
-            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            <div className="flex flex-col gap-2.5">
               {faqs.map((faq, index) => (
                 <div
                   key={index}
-                  style={{
-                    background: "#fff",
-                    borderRadius: 14,
-                    border: openIndex === index ? "1px solid rgba(255,199,46,.4)" : "1px solid rgba(11,31,58,.08)",
-                    overflow: "hidden",
-                    transition: "border-color .2s",
-                  }}
+                  className={`bg-white rounded-[14px] overflow-hidden border transition-colors duration-200 ${openIndex === index ? "border-warm/40" : "border-midnight/[.08]"}`}
                 >
                   <button
                     id={`faq-heading-${index}`}
                     aria-expanded={openIndex === index}
                     aria-controls={`faq-panel-${index}`}
                     onClick={() => setOpenIndex(openIndex === index ? null : index)}
-                    style={{
-                      width: "100%", textAlign: "left", padding: "20px 24px",
-                      background: "none", border: "none", cursor: "pointer", fontFamily: "inherit",
-                      display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12,
-                      borderLeft: openIndex === index ? "3px solid #FFC72E" : "3px solid transparent",
-                      transition: "border-color .2s",
-                    }}
+                    className={`w-full text-left px-6 py-5 bg-transparent border-none cursor-pointer flex items-center justify-between gap-3 transition-colors duration-200 border-l-[3px] ${openIndex === index ? "border-l-warm" : "border-l-transparent"}`}
                   >
-                    <span style={{ fontFamily: "'Newsreader', serif", fontSize: "clamp(15px,2vw,17px)", fontWeight: 500, color: "#0B1F3A", lineHeight: 1.35, flex: 1 }}>
+                    <span className="font-serif font-medium text-midnight leading-snug flex-1" style={{ fontSize: "clamp(15px,2vw,17px)" }}>
                       {faq.question}
                     </span>
-                    <div style={{ width: 28, height: 28, borderRadius: "50%", background: openIndex === index ? "rgba(255,199,46,.15)" : "#F0F4F8", border: "1px solid rgba(11,31,58,.08)", display: "grid", placeItems: "center", flexShrink: 0, transition: "background .2s" }}>
+                    <div className={`w-7 h-7 rounded-full border border-midnight/[.08] grid place-items-center shrink-0 transition-colors duration-200 ${openIndex === index ? "bg-warm/15" : "bg-[#F0F4F8]"}`}>
                       {openIndex === index
-                        ? <ChevronUp size={14} style={{ color: "#6F5400" }} />
-                        : <ChevronDown size={14} style={{ color: "#75777E" }} />}
+                        ? <ChevronUp size={14} className="text-on-secondary-container" />
+                        : <ChevronDown size={14} className="text-[#75777E]" />}
                     </div>
                   </button>
                   {openIndex === index && (
                     <div id={`faq-panel-${index}`} role="region" aria-labelledby={`faq-heading-${index}`}
-                      style={{ padding: "0 24px 20px 27px" }}>
-                      <p style={{ fontSize: 15, color: "#44474D", lineHeight: 1.65, margin: 0 }}>{faq.answer}</p>
+                      className="px-6 pb-5 pl-[27px]">
+                      <p className="text-[15px] text-[#44474D] leading-relaxed m-0">{faq.answer}</p>
                     </div>
                   )}
                 </div>
@@ -111,22 +99,22 @@ export default function FaqPage() {
             </div>
 
             {/* Still have questions CTA band */}
-            <div className="public-cta-band" style={{ marginTop: 48, borderRadius: 16, padding: "40px 36px", textAlign: "center" }}>
+            <div className="public-cta-band mt-12 rounded-2xl px-9 py-10 text-center">
               <div className="public-cta-content">
-                <h2 style={{ fontFamily: "'Newsreader', serif", fontSize: "clamp(20px,3vw,26px)", fontWeight: 500, color: "#fff", margin: "0 0 10px", letterSpacing: "-0.01em" }}>
+                <h2 className="font-serif font-medium text-white mb-2.5 tracking-[-0.01em]" style={{ fontSize: "clamp(20px,3vw,26px)" }}>
                   Still have questions?
                 </h2>
-                <p style={{ fontSize: 15, color: "rgba(255,255,255,.65)", margin: "0 0 24px" }}>We're happy to help.</p>
-                <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap" }}>
+                <p className="text-[15px] text-white/65 mb-6">We're happy to help.</p>
+                <div className="flex gap-2.5 justify-center flex-wrap">
                   <button
                     onClick={() => { window.scrollTo(0, 0); navigate("/contact"); }}
-                    style={{ padding: "10px 22px", background: "rgba(255,255,255,.1)", color: "#fff", border: "1px solid rgba(255,255,255,.18)", borderRadius: 9, fontSize: 14, fontWeight: 600, fontFamily: "inherit", cursor: "pointer" }}
+                    className="px-[22px] py-2.5 bg-white/10 text-white border border-white/[.18] rounded-[9px] text-sm font-semibold cursor-pointer"
                   >
                     Contact Us
                   </button>
                   <button
                     onClick={() => { window.scrollTo(0, 0); navigate("/signup"); }}
-                    style={{ padding: "10px 22px", background: "#FFC72E", color: "#6F5400", border: "none", borderRadius: 9, fontSize: 14, fontWeight: 700, fontFamily: "inherit", cursor: "pointer" }}
+                    className="px-[22px] py-2.5 bg-warm text-on-secondary-container border-none rounded-[9px] text-sm font-bold cursor-pointer"
                   >
                     Create Your Portfolio
                   </button>

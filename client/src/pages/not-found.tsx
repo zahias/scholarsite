@@ -1,41 +1,51 @@
 import { useLocation } from "wouter";
+import { BookOpen } from "lucide-react";
 import SEO from "@/components/SEO";
 
 export default function NotFound() {
   const [, navigate] = useLocation();
 
   return (
-    <div style={{ minHeight: "100vh", background: "#0B1F3A", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "32px 24px", position: "relative", overflow: "hidden" }}>
+    <div className="min-h-screen bg-midnight flex flex-col items-center justify-center relative overflow-hidden px-6 py-8">
       <SEO title="Page Not Found — Scholar.name" description="The page you're looking for doesn't exist." />
 
-      {/* Background grid */}
-      <div style={{ position: "absolute", inset: 0, background: "radial-gradient(ellipse at 70% 0%, rgba(255,199,46,.14), transparent 55%), repeating-linear-gradient(0deg, rgba(255,255,255,.025) 0 1px, transparent 1px 52px)", pointerEvents: "none" }} />
+      {/* Background grid — a static multi-layer gradient; left as inline
+          style since Tailwind's arbitrary-value syntax can't express a
+          layered radial+repeating-linear background cleanly. */}
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{ background: "radial-gradient(ellipse at 70% 0%, rgba(255,199,46,.14), transparent 55%), repeating-linear-gradient(0deg, rgba(255,255,255,.025) 0 1px, transparent 1px 52px)" }}
+      />
 
       {/* Minimal logo nav */}
-      <div style={{ position: "absolute", top: 0, left: 0, right: 0, padding: "18px 32px", display: "flex", alignItems: "center" }}>
-        <a href="/" style={{ display: "flex", alignItems: "center", gap: 8, textDecoration: "none" }}>
-          <div style={{ width: 28, height: 28, borderRadius: 7, background: "#FFC72E", display: "grid", placeItems: "center" }}>
-            <span style={{ fontFamily: "'Newsreader', serif", fontSize: 16, fontWeight: 700, color: "#0B1F3A", lineHeight: 1 }}>S</span>
-          </div>
-          <span style={{ fontFamily: "'Newsreader', serif", fontSize: 17, fontWeight: 500, color: "#fff", letterSpacing: "-0.01em" }}>Scholar.name</span>
+      <div className="absolute top-0 left-0 right-0 px-8 py-[18px] flex items-center">
+        <a href="/" className="flex items-center gap-2 no-underline">
+          <BookOpen className="w-6 h-6 text-warm" />
+          <span className="font-serif text-[17px] font-medium text-white tracking-[-0.01em]">Scholar.name</span>
         </a>
       </div>
 
       {/* Content */}
-      <div style={{ position: "relative", zIndex: 1, textAlign: "center", maxWidth: 480 }}>
-        <div style={{ fontFamily: "'Newsreader', serif", fontSize: "clamp(80px,18vw,140px)", fontWeight: 500, color: "rgba(255,199,46,.18)", lineHeight: 1, marginBottom: 0, letterSpacing: "-0.04em", userSelect: "none" }}>
+      <div className="relative z-10 text-center max-w-[480px]">
+        <div
+          className="font-serif font-medium leading-none tracking-[-0.04em] select-none"
+          style={{ fontSize: "clamp(80px,18vw,140px)", color: "rgba(255,199,46,.18)" }}
+        >
           404
         </div>
-        <div style={{ width: 48, height: 3, background: "#FFC72E", borderRadius: 2, margin: "-12px auto 24px" }} />
-        <h1 style={{ fontFamily: "'Newsreader', serif", fontSize: "clamp(24px,4vw,36px)", fontWeight: 500, color: "#fff", margin: "0 0 12px", letterSpacing: "-0.015em" }}>
+        <div className="w-12 h-[3px] bg-warm rounded mx-auto -mt-3 mb-6" />
+        <h1
+          className="font-serif font-medium text-white mb-3 tracking-[-0.015em]"
+          style={{ fontSize: "clamp(24px,4vw,36px)" }}
+        >
           Page not found
         </h1>
-        <p style={{ fontSize: 15.5, color: "rgba(255,255,255,.6)", lineHeight: 1.6, margin: "0 0 32px" }}>
+        <p className="text-[15.5px] text-white/60 leading-relaxed mb-8">
           The page you're looking for doesn't exist or has been moved.
         </p>
         <button
           onClick={() => navigate("/")}
-          style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "12px 28px", background: "#FFC72E", color: "#6F5400", border: "none", borderRadius: 10, fontSize: 14.5, fontWeight: 700, fontFamily: "inherit", cursor: "pointer", letterSpacing: ".01em" }}
+          className="inline-flex items-center gap-2 px-7 py-3 bg-warm text-on-secondary-container border-none rounded-[10px] text-[14.5px] font-bold cursor-pointer tracking-[.01em]"
           data-testid="button-go-home"
         >
           ← Go Home

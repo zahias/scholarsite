@@ -254,7 +254,7 @@ export default function AdminUsers() {
           </div>
           <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
             <DialogTrigger asChild>
-              <Button className="bg-primary hover:bg-primary/90">
+              <Button className="bg-primary-container hover:bg-primary-container/90">
                 <UserPlus className="w-4 h-4 mr-2" />
                 Add User
               </Button>
@@ -328,7 +328,7 @@ export default function AdminUsers() {
                 <Button
                   onClick={() => createUserMutation.mutate({ email: newEmail, password: newPassword, firstName: newFirstName, lastName: newLastName, role: newRole })}
                   disabled={!newEmail || !newPassword || newPassword.length < 8 || createUserMutation.isPending}
-                  className="bg-primary hover:bg-primary/90"
+                  className="bg-primary-container hover:bg-primary-container/90"
                 >
                   {createUserMutation.isPending ? "Creating..." : "Create User"}
                 </Button>
@@ -611,7 +611,7 @@ export default function AdminUsers() {
                 })
               }
               disabled={updateUserMutation.isPending}
-              className="bg-primary hover:bg-primary/90"
+              className="bg-primary-container hover:bg-primary-container/90"
             >
               {updateUserMutation.isPending ? "Saving..." : "Save Changes"}
             </Button>
@@ -650,7 +650,7 @@ export default function AdminUsers() {
                 resetPasswordMutation.mutate({ id: resetPasswordUser.id, newPassword: resetNewPassword })
               }
               disabled={resetNewPassword.length < 8 || resetPasswordMutation.isPending}
-              className="bg-primary hover:bg-primary/90"
+              className="bg-primary-container hover:bg-primary-container/90"
             >
               {resetPasswordMutation.isPending ? "Resetting..." : "Reset Password"}
             </Button>
