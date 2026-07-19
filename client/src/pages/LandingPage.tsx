@@ -435,7 +435,7 @@ export default function LandingPage() {
                     <span className="w-2.5 h-2.5 rounded-full bg-[#D7DDE4]" />
                   </div>
                   <div className="flex-1 bg-white rounded-md py-1.5 px-3 text-[12px] text-gray-400 font-mono text-center">
-                    <strong className="text-[#0B1F3A] font-medium">doudna</strong>.scholar.name
+                    <strong className="text-[#0B1F3A] font-medium">emarsh</strong>.scholar.name
                   </div>
                   <div className="w-10" />
                 </div>
@@ -475,12 +475,12 @@ export default function LandingPage() {
                           boxShadow: "0 0 0 3px rgba(255,255,255,.08),0 0 30px rgba(255,199,46,.25)",
                         }}
                       >
-                        JD
+                        EM
                       </div>
                       <div>
-                        <div className="font-serif text-3xl font-medium text-white" style={{ letterSpacing: "-0.01em", lineHeight: 1.1 }}>Dr. Jennifer Doudna</div>
-                        <div className="text-[14px] text-white/72 mt-1">UC Berkeley · Innovative Genomics Institute</div>
-                        <div className="text-[12px] font-mono mt-2" style={{ color: "#FFC72E" }}>doudna.scholar.name</div>
+                        <div className="font-serif text-3xl font-medium text-white" style={{ letterSpacing: "-0.01em", lineHeight: 1.1 }}>Dr. Elena Marsh</div>
+                        <div className="text-[14px] text-white/72 mt-1">Illustrative example · Dept. of Genetics</div>
+                        <div className="text-[12px] font-mono mt-2" style={{ color: "#FFC72E" }}>emarsh.scholar.name</div>
                       </div>
                     </div>
                     <div className="w-[60px] h-[3px] rounded mt-5" style={{ background: "#FFC72E" }} />
@@ -490,9 +490,9 @@ export default function LandingPage() {
                   <div className="px-11 py-9 bg-white">
                     <div className="grid grid-cols-3 gap-3 mb-6">
                       {[
-                        { n: "412", l: "Publications" },
-                        { n: "189k", l: "Citations", gold: true },
-                        { n: "142", l: "h-index" },
+                        { n: "286", l: "Publications" },
+                        { n: "94k", l: "Citations", gold: true },
+                        { n: "118", l: "h-index" },
                       ].map((s) => (
                         <div
                           key={s.l}

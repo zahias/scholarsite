@@ -888,6 +888,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         tenant: {
           name: tenant.name,
           plan: tenant.plan,
+          hostname: req.hostname,
         },
         isPreview: false,
         claimState: "active" as PublicProfileClaimState,
@@ -1255,7 +1256,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/contact', publicWriteRateLimit, async (req, res) => {
     console.log("[Contact] Received contact form submission");
     try {
-      const { fullName, email, institution, role, planInterest, researchField, openalexId, estimatedProfiles, biography, preferredTheme } = req.body;
+      const {
+        fullName, email, role, planInterest, researchField, openalexId, preferredTheme,
+        institution: institutionRaw, institutionName,
+        estimatedProfiles: estimatedProfilesRaw, teamSize,
+        biography: biographyRaw, message,
+      } = req.body;
+      const institution = institutionRaw || institutionName;
+      const estimatedProfiles = estimatedProfilesRaw || teamSize;
+      const biography = biographyRaw || message;
       console.log("[Contact] Form data:", { fullName, email, planInterest });
 
       if (!fullName || !email || !planInterest || !biography) {

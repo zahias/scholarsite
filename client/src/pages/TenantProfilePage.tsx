@@ -5,6 +5,7 @@ import SEO from "@/components/SEO";
 import ResearcherProfileContent from "@/components/ResearcherProfileContent";
 import { Card, CardContent } from "@/components/ui/card";
 import { useMemo } from "react";
+import { titleCaseName } from "@shared/formatName";
 
 export default function TenantProfilePage() {
   const { data: profileData, isLoading, error } = useQuery<{
@@ -27,18 +28,21 @@ export default function TenantProfilePage() {
   const researcher = profileData?.researcher;
   const tenant = profileData?.tenant;
   const openalexId = profile?.openalexId || "";
+  const displayName = titleCaseName(profile?.displayName) || titleCaseName(researcher?.display_name) || "Researcher";
 
-  const seoTitle = profile ? `${profile.displayName || researcher?.display_name} - Research Profile` : "Research Profile";
-  const seoDescription = profile?.bio || (researcher ? `${profile?.displayName || researcher.display_name} - ${researcher?.works_count || 0} publications, ${researcher?.cited_by_count || 0} citations` : "Research Profile");
+  const seoTitle = profile ? `${displayName} - Research Profile` : "Research Profile";
+  const seoDescription = profile?.bio || (researcher ? `${displayName} - ${researcher?.works_count || 0} publications, ${researcher?.cited_by_count || 0} citations` : "Research Profile");
   const profileUrl = typeof window !== "undefined" ? window.location.href : "";
-  const profileImage = profile?.profileImageUrl || "https://images.unsplash.com/photo-1582750433449-648ed127bb54?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&h=500";
+  const profileImage = profile?.profileImageUrl
+    ? (profile.profileImageUrl.startsWith("http") ? profile.profileImageUrl : `https://scholar.name${profile.profileImageUrl}`)
+    : undefined;
 
   const structuredData = useMemo(() => {
     if (!profile) return null;
     return {
       "@context": "https://schema.org",
       "@type": "Person",
-      "name": profile.displayName || researcher?.display_name,
+      "name": displayName,
       "description": profile.bio || `Researcher with ${researcher?.works_count || 0} publications`,
       "jobTitle": profile.title,
       "url": profileUrl,
@@ -92,8 +96,6 @@ export default function TenantProfilePage() {
     .filter((s) => s.isVisible)
     .sort((a, b) => a.sortOrder - b.sortOrder);
 
-  const displayName = profile?.displayName || researcher?.display_name || "Researcher";
-
   return (
     <ProfileThemeProvider initialThemeId={profile?.selectedThemeId ?? null}>
       <div className="min-h-screen pb-20 md:pb-0" style={{ background: "#F0F4F8" }} data-testid="page-tenant-profile">
@@ -118,6 +120,7 @@ export default function TenantProfilePage() {
           showResearchPassport={tenant?.plan === "professional" && !!openalexId}
           footerBrandName={tenant?.name || "Scholar.name"}
           showPoweredBy={true}
+          profileHostname={tenant?.hostname}
         />
 
         {profileData?.claimState === "inactive" && (

@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { useMemo, useEffect } from "react";
 import { Lock, UserX } from "lucide-react";
 import EmptyState from "@/components/EmptyState";
+import { titleCaseName } from "@shared/formatName";
 
 // Analytics tracking helper
 const trackProfileEvent = async (openalexId: string, eventType: string, eventTarget?: string) => {
@@ -135,7 +136,7 @@ function ResearcherProfileInner() {
     );
   }
 
-  const displayName = profile?.displayName || researcher?.display_name || "Researcher";
+  const displayName = titleCaseName(profile?.displayName) || titleCaseName(researcher?.display_name) || "Researcher";
   const isPreview = !!researcherData?.isPreview;
   const claimState = researcherData?.claimState || (isPreview ? "unclaimed" : "active");
   const previewBanner = claimState === "inactive"

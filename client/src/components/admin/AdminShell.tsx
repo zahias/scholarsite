@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from "react";
+import { useState, useEffect, type ReactNode } from "react";
 import { Link, useLocation } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
@@ -33,6 +33,11 @@ export default function AdminShell({ children }: { children: ReactNode }) {
   const [searchQuery, setSearchQuery] = useState("");
   const [showResults, setShowResults] = useState(false);
   const [platformOpen, setPlatformOpen] = useState(location.startsWith("/admin/themes") || location.startsWith("/admin/users"));
+
+  useEffect(() => {
+    const match = [...NAV_ITEMS, ...PLATFORM_ITEMS].find((item) => item.href === location || (item.href !== "/admin" && location.startsWith(item.href)));
+    document.title = match ? `${match.label} — Scholar.name Admin` : "Scholar.name Admin";
+  }, [location]);
 
   const { data: tenantsData } = useQuery<{ tenants: Tenant[] }>({
     queryKey: ["/api/admin/tenants"],

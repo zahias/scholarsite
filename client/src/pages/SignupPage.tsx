@@ -131,14 +131,6 @@ function BenefitsPanel() {
           ))}
         </div>
       </div>
-
-      {/* Blockquote */}
-      <blockquote style={{ marginTop: 36, padding: "16px 20px", borderLeft: "3px solid rgba(255,199,46,.4)", background: "rgba(255,255,255,.04)", borderRadius: "0 8px 8px 0" }}>
-        <p style={{ fontFamily: "'Newsreader', serif", fontStyle: "italic", fontSize: 15, color: "rgba(255,255,255,.85)", lineHeight: 1.55, margin: "0 0 8px" }}>
-          "Set it up in five minutes, and now it's the first thing I send to collaborators."
-        </p>
-        <cite style={{ fontSize: 12, color: "rgba(255,255,255,.45)", fontStyle: "normal" }}>— A. Researcher, MIT</cite>
-      </blockquote>
     </div>
   );
 }

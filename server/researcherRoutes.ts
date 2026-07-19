@@ -72,6 +72,14 @@ async function deleteFileLocally(filename: string): Promise<void> {
   }
 }
 
+// Only cleans up files this server actually wrote to the local /uploads
+// directory (saveFileLocally's return shape). Object-storage URLs
+// (/public-objects/...) and any externally-hosted URL are left alone.
+async function deleteLocalFileFromUrl(url: string | null | undefined): Promise<void> {
+  if (!url || !url.startsWith('/uploads/')) return;
+  await deleteFileLocally(url.slice(1));
+}
+
 // Explicit whitelist — do not accept image/svg+xml: an uploaded SVG is served
 // back to browsers and can carry inline <script>, making "any image/* mimetype"
 // a stored-XSS vector.
@@ -183,12 +191,12 @@ const updateProfileSchema = z.object({
   customCss: z.string().nullable().optional(),
   socialLinks: z.record(z.string()).nullable().optional(),
   featuredWorks: z.array(z.string()).nullable().optional(),
-  orcidUrl: z.string().nullable().optional(),
-  googleScholarUrl: z.string().nullable().optional(),
-  researchGateUrl: z.string().nullable().optional(),
-  linkedinUrl: z.string().nullable().optional(),
-  websiteUrl: z.string().nullable().optional(),
-  twitterUrl: z.string().nullable().optional(),
+  orcidUrl: z.preprocess(normalizeUrlInput, z.union([z.string().url(), z.literal("")]).nullable().optional()),
+  googleScholarUrl: z.preprocess(normalizeUrlInput, z.union([z.string().url(), z.literal("")]).nullable().optional()),
+  researchGateUrl: z.preprocess(normalizeUrlInput, z.union([z.string().url(), z.literal("")]).nullable().optional()),
+  linkedinUrl: z.preprocess(normalizeUrlInput, z.union([z.string().url(), z.literal("")]).nullable().optional()),
+  websiteUrl: z.preprocess(normalizeUrlInput, z.union([z.string().url(), z.literal("")]).nullable().optional()),
+  twitterUrl: z.preprocess(normalizeUrlInput, z.union([z.string().url(), z.literal("")]).nullable().optional()),
   // Phase 1 additions
   isPublic: z.boolean().optional(),
   cvUrl: z.string().nullable().optional(),
@@ -334,6 +342,8 @@ router.post("/upload-photo", isAuthenticated, uploadImage.single('photo'), async
       profileImageUrl = await saveFileLocally(filename, req.file.buffer);
     }
 
+    await deleteLocalFileFromUrl(profile.profileImageUrl);
+
     await storage.updateTenantProfile(user.tenantId, {
       profileImageUrl: profileImageUrl,
     });
@@ -466,6 +476,8 @@ router.post("/upload-cv", isAuthenticated, uploadDocument.single('cv'), async (r
       cvUrl = await saveFileLocally(filename, req.file.buffer);
     }
 
+    await deleteLocalFileFromUrl(profile.cvUrl);
+
     await storage.updateTenantProfile(user.tenantId, {
       cvUrl: cvUrl,
     });
@@ -492,6 +504,9 @@ router.delete("/cv", isAuthenticated, async (req: Request, res: Response) => {
     if (!user || !user.tenantId) {
       return res.status(404).json({ message: "No tenant associated with this user" });
     }
+
+    const profile = await storage.getResearcherProfileByTenant(user.tenantId);
+    await deleteLocalFileFromUrl(profile?.cvUrl);
 
     await storage.updateTenantProfile(user.tenantId, {
       cvUrl: null,
@@ -622,6 +637,8 @@ router.post("/publications/:publicationId/upload-pdf", isAuthenticated, uploadDo
       pdfUrl = await saveFileLocally(filename, req.file.buffer);
     }
 
+    await deleteLocalFileFromUrl((pub as any).pdfUrl);
+
     const publication = await storage.updatePublicationPdf(publicationId, pdfUrl);
 
     res.json({
@@ -656,6 +673,7 @@ router.delete("/publications/:publicationId/pdf", isAuthenticated, async (req: R
       return res.status(403).json({ message: "Not authorized to modify this publication" });
     }
 
+    await deleteLocalFileFromUrl((pub as any).pdfUrl);
     const publication = await storage.updatePublicationPdf(publicationId, null);
 
     res.json({ message: "PDF removed successfully", publication });

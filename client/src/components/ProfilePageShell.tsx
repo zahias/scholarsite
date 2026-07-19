@@ -32,6 +32,9 @@ export interface ProfileShellData {
   cvUrl?: string | null;
   openalexId?: string | null;
   topics?: ProfileTopic[];
+  /** Real primary domain hostname (e.g. "jdoe.scholar.name"). Falls back to a
+   * name-derived guess when not provided (unclaimed-profile preview only). */
+  profileHostname?: string | null;
 }
 
 interface ProfilePageShellProps extends ProfileShellData {
@@ -79,13 +82,16 @@ export default function ProfilePageShell({
   topics = [],
   actionsSlot,
   identityCardId,
+  profileHostname,
 }: ProfilePageShellProps) {
-  const profileHandle = displayName.toLowerCase().replace(/[^a-z0-9]+/g, "").slice(0, 28) || "researcher";
+  const profileHandle = profileHostname || `${displayName.toLowerCase().replace(/[^a-z0-9]+/g, "").slice(0, 28) || "researcher"}.scholar.name`;
+  const honorific = title?.trim();
+  const fullDisplayName = honorific ? `${honorific} ${displayName}` : displayName;
   const visibleTopics = topics
     .map((topic) => topic.displayName || topic.display_name)
     .filter((topic): topic is string => Boolean(topic))
     .slice(0, 8);
-  const subtitleParts = Array.from(new Set([title, currentPosition, affiliation].filter(Boolean)));
+  const subtitleParts = Array.from(new Set([currentPosition, affiliation].filter(Boolean)));
   const stats = [
     { label: "Publications", value: formatMetric(worksCount) },
     { label: "Citations", value: formatMetric(citedByCount), featured: true },
@@ -110,7 +116,7 @@ export default function ProfilePageShell({
               </div>
             )}
             <div className="profile-portfolio-copy">
-              <h1 data-testid="text-display-name">{displayName}</h1>
+              <h1 data-testid="text-display-name">{fullDisplayName}</h1>
               <p data-testid="text-title">
                 {subtitleParts.length > 0 ? subtitleParts.map((part, index) => (
                   <span key={part}>
@@ -121,7 +127,7 @@ export default function ProfilePageShell({
                   </span>
                 )) : "Research professional"}
               </p>
-              <span>{profileHandle}.scholar.name</span>
+              <span>{profileHandle}</span>
             </div>
           </div>
           <div className="profile-portfolio-rule" aria-hidden="true" />

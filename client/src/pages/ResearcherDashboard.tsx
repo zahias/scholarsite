@@ -7,6 +7,7 @@ import GlobalFooter from "@/components/GlobalFooter";
 import { ThemePreviewSwatch } from "@/components/ThemePreviewSwatch";
 import SectionEditor, { type SectionEditorHandle } from "@/components/SectionEditor";
 import { parseSectionContentForEditing, extractPlainTextPreview } from "@/lib/renderSectionContent";
+import { titleCaseName } from "@shared/formatName";
 import {
   DndContext,
   closestCenter,
@@ -385,6 +386,10 @@ export default function ResearcherDashboard() {
     queryKey: ["/api/researcher/sync-logs"],
     enabled: tenantHasAccess && !!tenantData?.tenant?.profile && activeTab === "sync",
   });
+
+  useEffect(() => {
+    document.title = "Dashboard — Scholar.name";
+  }, []);
 
   // ───── Populate form from server data ─────
 
@@ -1318,9 +1323,9 @@ export default function ResearcherDashboard() {
           <h2 style={{ fontFamily: "'Newsreader', serif", fontSize: "clamp(22px,3vw,30px)", fontWeight: 500, color: "#0B1F3A", margin: "0 0 4px", letterSpacing: "-0.01em" }}>
             Welcome back,{" "}
             <em>
-              {profile?.displayName
-                ? profile.displayName.split(" ").slice(-1)[0]
-                : userData.user.firstName}.
+              {userData.user.firstName
+                ? titleCaseName(userData.user.firstName)
+                : titleCaseName(profile?.displayName?.split(" ")[0]) || "there"}.
             </em>
           </h2>
           <p style={{ fontSize: 14, color: "#75777E", margin: 0 }}>
@@ -1360,10 +1365,10 @@ export default function ResearcherDashboard() {
         {/* ═══════ Profile Completion Card ═══════ */}
         {(() => {
           const steps = [
-            { done: !!profile?.openalexId, label: "Connect OpenAlex", href: "#openalex" },
-            { done: !!(profile as any)?.bio, label: "Write your bio", href: "#profile" },
-            { done: !!(profile as any)?.photoUrl, label: "Upload a photo", href: "#profile" },
-            { done: !!(tenant?.domains && tenant.domains.length > 1), label: "Add a custom domain", href: "/dashboard/domains" },
+            { done: !!profile?.openalexId, label: "Connect OpenAlex", tab: "profile", anchor: "openalex" },
+            { done: !!profile?.bio, label: "Write your bio", tab: "profile" },
+            { done: !!profile?.profileImageUrl, label: "Upload a photo", tab: "profile" },
+            { done: !!profile?.selectedThemeId, label: "Choose a theme", tab: "settings" },
           ];
           const score = Math.round((steps.filter((s) => s.done).length / steps.length) * 100);
           const nextStep = steps.find((s) => !s.done);
@@ -1379,9 +1384,19 @@ export default function ResearcherDashboard() {
               {score < 100 && nextStep ? (
                 <p style={{ fontSize: 13, color: "#75777E", margin: 0 }}>
                   Next:{" "}
-                  <a href={nextStep.href} style={{ color: "#0B1F3A", fontWeight: 600, textDecoration: "none" }}>
+                  <button
+                    onClick={() => {
+                      setActiveTab(nextStep.tab);
+                      if (nextStep.anchor) {
+                        setTimeout(() => document.getElementById(nextStep.anchor!)?.scrollIntoView({ behavior: "smooth" }), 50);
+                      } else {
+                        window.scrollTo(0, 0);
+                      }
+                    }}
+                    style={{ color: "#0B1F3A", fontWeight: 600, textDecoration: "none", background: "none", border: "none", padding: 0, cursor: "pointer", font: "inherit" }}
+                  >
                     {nextStep.label}
-                  </a>
+                  </button>
                   {" "}→ reach {Math.min(score + 25, 100)}%
                 </p>
               ) : score === 100 ? (
@@ -2279,21 +2294,31 @@ export default function ResearcherDashboard() {
                   <div style={{ paddingBottom: 18 }}>
                     <p style={{ ...labelStyle, marginBottom: 8 }}>Plan</p>
                     <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 14px", background: "#F8F9FA", borderRadius: 9, border: "1px solid rgba(11,31,58,.08)" }}>
-                      <span style={{ ...chip(), textTransform: "capitalize" }}>{tenant?.plan}</span>
-                      <span style={{ fontSize: 13, color: "#75777E" }}>Contact support to change your plan</span>
+                      <span style={{ ...chip(), textTransform: "capitalize" }}>{tenant?.plan === "free" ? "Free Trial" : tenant?.plan}</span>
+                      {tenant?.plan === "free" ? (
+                        <button onClick={() => { window.scrollTo(0, 0); navigate(upgradeUrl); }} style={{ fontSize: 13, color: "#2563EB", background: "none", border: "none", cursor: "pointer", padding: 0, textDecoration: "underline" }}>
+                          Upgrade to a paid plan →
+                        </button>
+                      ) : (
+                        <a href="/contact" style={{ fontSize: 13, color: "#2563EB", textDecoration: "underline" }}>Contact support to change your plan</a>
+                      )}
                     </div>
                   </div>
                   <hr style={{ border: "none", borderTop: "1px solid rgba(11,31,58,.07)", margin: "0 0 18px" }} />
 
-                  {/* Cancel Subscription */}
+                  {/* Cancel Subscription / End Trial */}
                   <div style={{ paddingBottom: 18 }}>
-                    <p style={{ ...labelStyle, marginBottom: 4, color: "#DC2626" }}>Cancel Subscription</p>
-                    <p style={{ fontSize: 13, color: "#75777E", marginBottom: 10 }}>Your profile stays active until the end of the current billing period.</p>
+                    <p style={{ ...labelStyle, marginBottom: 4, color: "#DC2626" }}>{tenant?.plan === "free" ? "End Trial" : "Cancel Subscription"}</p>
+                    <p style={{ fontSize: 13, color: "#75777E", marginBottom: 10 }}>
+                      {tenant?.plan === "free"
+                        ? "Ending your trial early deactivates your portfolio immediately."
+                        : "Your profile stays active until the end of the current billing period."}
+                    </p>
                     <a
-                      href={`mailto:support@scholar.name?subject=Cancel%20subscription&body=Please%20cancel%20my%20subscription%20for%20account%20${encodeURIComponent(userData?.user?.email || "")}.`}
+                      href={`mailto:support@scholar.name?subject=${tenant?.plan === "free" ? "End%20trial" : "Cancel%20subscription"}&body=Please%20${tenant?.plan === "free" ? "end%20my%20trial" : "cancel%20my%20subscription"}%20for%20account%20${encodeURIComponent(userData?.user?.email || "")}.`}
                       style={{ fontSize: 13, color: "#DC2626", textDecoration: "underline" }}
                     >
-                      Request cancellation →
+                      {tenant?.plan === "free" ? "Request early cancellation →" : "Request cancellation →"}
                     </a>
                   </div>
                   <hr style={{ border: "none", borderTop: "1px solid rgba(11,31,58,.07)", margin: "0 0 18px" }} />

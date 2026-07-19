@@ -41,6 +41,10 @@ interface ResearcherProfileContentProps {
   // Tenant subdomains show "Powered by Scholar.name" under their own brand
   // name; the generic /researcher/:id page (which IS Scholar.name) doesn't.
   showPoweredBy?: boolean;
+  // Real primary domain hostname for a claimed tenant; omitted on the
+  // unclaimed-profile preview, where ProfilePageShell falls back to a
+  // name-derived guess.
+  profileHostname?: string | null;
 }
 
 // This is the ONE design for a public researcher profile — rendered by both
@@ -57,6 +61,7 @@ export default function ResearcherProfileContent({
   showResearchPassport,
   footerBrandName = "Scholar.name",
   showPoweredBy = false,
+  profileHostname,
 }: ResearcherProfileContentProps) {
   const profile = data.profile;
   const researcher = data.researcher;
@@ -81,6 +86,7 @@ export default function ResearcherProfileContent({
         contactEmail={profile?.contactEmail || profile?.email}
         cvUrl={profile?.cvUrl}
         openalexId={openalexId}
+        profileHostname={profileHostname}
         worksCount={researcher?.works_count}
         citedByCount={researcher?.cited_by_count}
         hIndex={researcher?.summary_stats?.h_index}
