@@ -1,4 +1,5 @@
 import "dotenv/config";
+import { randomBytes } from "crypto";
 import express, { type Request, Response, NextFunction } from "express";
 import session from "express-session";
 import connectPgSimple from "connect-pg-simple";
@@ -32,7 +33,8 @@ app.use(session({
     tableName: 'sessions', // Managed by connect-pg-simple
     createTableIfMissing: true // Allow connect-pg-simple to manage the sessions table
   }),
-  secret: process.env.SESSION_SECRET || 'research-profile-admin-secret-key',
+  // Random per-process fallback: a hard-coded secret in a public repo is forgeable.
+  secret: process.env.SESSION_SECRET || randomBytes(48).toString('hex'),
   resave: false,
   saveUninitialized: false,
   proxy: true,

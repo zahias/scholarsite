@@ -216,6 +216,12 @@ export async function runMigrations(): Promise<void> {
     await run("tenants.created_at", `ALTER TABLE "tenants" ADD COLUMN IF NOT EXISTS "created_at" timestamp DEFAULT now();`);
     await run("tenants.updated_at", `ALTER TABLE "tenants" ADD COLUMN IF NOT EXISTS "updated_at" timestamp DEFAULT now();`);
     await run("tenants.id_default", `ALTER TABLE "tenants" ALTER COLUMN "id" SET DEFAULT gen_random_uuid();`);
+    // Added with DEFAULT now() so tenants that already existed when ownership
+    // review was introduced are grandfathered in as approved; the default is
+    // dropped right after so every new tenant starts unapproved. Re-running is
+    // a no-op (ADD ... IF NOT EXISTS skips, DROP DEFAULT on no default is fine).
+    await run("tenants.claim_approved_at", `ALTER TABLE "tenants" ADD COLUMN IF NOT EXISTS "claim_approved_at" timestamp DEFAULT now();`);
+    await run("tenants.claim_approved_at_default", `ALTER TABLE "tenants" ALTER COLUMN "claim_approved_at" DROP DEFAULT;`);
     await run("tenants.monthly_sync_frequency", `UPDATE "tenants" SET "sync_frequency" = 'monthly' WHERE "sync_frequency" IS DISTINCT FROM 'monthly';`);
 
     // ── 2b. profile/publication additions used by researcher dashboards ──

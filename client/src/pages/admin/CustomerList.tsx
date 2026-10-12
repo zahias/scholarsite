@@ -19,6 +19,7 @@ interface Tenant {
   contactEmail: string | null;
   trialEndsAt: string | null;
   subscriptionEndDate: string | null;
+  claimApprovedAt: string | null;
   createdAt: string;
   domains: Array<{ hostname: string; isPrimary: boolean }>;
   users: Array<{ id: string }>;
@@ -64,7 +65,8 @@ export default function CustomerList() {
         (t.contactEmail || "").toLowerCase().includes(query) ||
         t.domains.some((d) => d.hostname.toLowerCase().includes(query)) ||
         (t.profile?.openalexId || "").toLowerCase().includes(query);
-      const matchesStatus = statusFilter === "all" || t.status === statusFilter;
+      const matchesStatus = statusFilter === "all"
+        || (statusFilter === "review" ? !t.claimApprovedAt : t.status === statusFilter);
       const matchesPlan = planFilter === "all" || t.plan === planFilter;
       return matchesQuery && matchesStatus && matchesPlan;
     });
@@ -117,6 +119,7 @@ export default function CustomerList() {
             <SelectTrigger className="w-[160px] bg-card border-border text-foreground" data-testid="select-status-filter"><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All statuses</SelectItem>
+              <SelectItem value="review">Awaiting review</SelectItem>
               <SelectItem value="active">Active</SelectItem>
               <SelectItem value="pending">Pending</SelectItem>
               <SelectItem value="suspended">Suspended</SelectItem>
@@ -169,6 +172,9 @@ export default function CustomerList() {
                       <p className="text-xs text-muted-foreground truncate">{tenant.contactEmail || "No contact email"} · {tenant.users.length} user{tenant.users.length === 1 ? "" : "s"}</p>
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
+                      {!tenant.claimApprovedAt && (
+                        <Badge className="bg-orange-500/20 text-orange-700" data-testid={`badge-review-${tenant.id}`}>Awaiting review</Badge>
+                      )}
                       <Badge className={ACCESS_STATE_STYLES[accessState]}>{ACCESS_STATE_LABELS[accessState]}</Badge>
                       <Badge className="bg-[#FFC72E]/20 text-[#8a6300]">{PLAN_LABELS[tenant.plan]}</Badge>
                     </div>

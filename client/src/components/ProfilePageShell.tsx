@@ -32,8 +32,7 @@ export interface ProfileShellData {
   cvUrl?: string | null;
   openalexId?: string | null;
   topics?: ProfileTopic[];
-  /** Real primary domain hostname (e.g. "jdoe.scholar.name"). Falls back to a
-   * name-derived guess when not provided (unclaimed-profile preview only). */
+  /** Real primary domain hostname (e.g. "jdoe.scholar.name"); hidden when absent. */
   profileHostname?: string | null;
 }
 
@@ -84,7 +83,9 @@ export default function ProfilePageShell({
   identityCardId,
   profileHostname,
 }: ProfilePageShellProps) {
-  const profileHandle = profileHostname || `${displayName.toLowerCase().replace(/[^a-z0-9]+/g, "").slice(0, 28) || "researcher"}.scholar.name`;
+  // Only show a real, routable hostname — previews of unclaimed authors used to
+  // show a made-up "name.scholar.name" that 404s and isn't what signup assigns.
+  const profileHandle = profileHostname || null;
   const honorific = title?.trim();
   const fullDisplayName = honorific ? `${honorific} ${displayName}` : displayName;
   const visibleTopics = topics
@@ -127,7 +128,7 @@ export default function ProfilePageShell({
                   </span>
                 )) : "Research professional"}
               </p>
-              <span>{profileHandle}</span>
+              {profileHandle && <span>{profileHandle}</span>}
             </div>
           </div>
           <div className="profile-portfolio-rule" aria-hidden="true" />

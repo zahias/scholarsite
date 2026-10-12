@@ -6,6 +6,7 @@ import { storage } from './storage';
 import crypto from 'crypto';
 import nodemailer from 'nodemailer';
 import { renderEmailHtml } from './emailTemplates';
+import { sendNewClaimAdminEmail } from './auth';
 
 const router = Router();
 
@@ -153,41 +154,21 @@ router.post('/create-session', async (req: Request, res: Response) => {
 
 router.post('/webhook', async (req: Request, res: Response) => {
   try {
-    // C1: Verify webhook authenticity via shared secret.
-    // PRODUCTION_ENV.md documents MONTYPAY_WEBHOOK_SECRET; accept the older
-    // WEBHOOK_SECRET name too in case that's what's already configured live.
-    const webhookSecret = process.env.MONTYPAY_WEBHOOK_SECRET || process.env.WEBHOOK_SECRET;
-    if (!webhookSecret) {
-      // Fail closed: an unsigned webhook endpoint lets anyone forge a "payment completed"
-      // event and provision a paid tenant for free. Refuse rather than process unverified.
-      console.error('WEBHOOK_SECRET not set — rejecting webhook to avoid processing unverified payment events');
-      return res.status(503).send('Webhook verification not configured');
-    }
-
-    const rawSig = req.headers['x-webhook-signature'] || req.headers['x-signature'];
-    const signature = Array.isArray(rawSig) ? rawSig[0] : rawSig;
-    if (!signature) {
-      console.warn('Webhook rejected: missing signature header');
-      return res.status(403).send('Forbidden');
-    }
-    const expectedSig = crypto.createHmac('sha256', webhookSecret)
-      .update(JSON.stringify(req.body))
-      .digest('hex');
-    // Use constant-time comparison to prevent timing attacks
-    const expectedBuf = Buffer.from(expectedSig, 'hex');
-    const receivedBuf = Buffer.from(signature, 'hex');
-    if (expectedBuf.length !== receivedBuf.length || !crypto.timingSafeEqual(expectedBuf, receivedBuf)) {
-      console.warn('Webhook rejected: invalid signature');
+    // MontyPay posts callbacks form-encoded, signed with
+    // sha1(md5(UPPER(id + order_number + order_amount + order_currency + order_description + merchant password))).
+    // Unverifiable callbacks are rejected: a forged "success" would provision a paid tenant for free.
+    if (!montyPayService.verifyCallback(req.body)) {
+      console.warn('Webhook rejected: invalid or missing hash');
       return res.status(403).send('Forbidden');
     }
 
     const payload = req.body;
-    
-    console.log('MontyPay webhook received:', JSON.stringify(payload, null, 2));
+    console.log(`MontyPay callback: order=${payload.order_number} type=${payload.type} status=${payload.status} order_status=${payload.order_status}`);
 
-    const orderNumber = payload.order?.number;
-    const status = payload.result || payload.status;
-    const transactionId = payload.transaction_id;
+    const orderNumber = payload.order_number;
+    const transactionId = payload.id;
+    const isPaid = payload.type === 'sale' && payload.status === 'success';
+    const isFailed = payload.status === 'fail';
 
     if (!orderNumber) {
       console.warn('Webhook missing order number');
@@ -200,7 +181,12 @@ router.post('/webhook', async (req: Request, res: Response) => {
       return res.send('OK');
     }
 
-    if (status === 'SUCCESS' || status === 'SETTLED') {
+    if (isPaid && Number(payload.order_amount) !== Number(payment.amount)) {
+      console.error(`Webhook amount mismatch for ${orderNumber}: paid ${payload.order_amount}, expected ${payment.amount}`);
+      return res.send('OK');
+    }
+
+    if (isPaid) {
       await storage.updatePaymentStatus(orderNumber, 'completed', transactionId);
       
       // H6: Skip provisioning if tenant already created (idempotent webhook)
@@ -212,9 +198,15 @@ router.post('/webhook', async (req: Request, res: Response) => {
         if (tenant) {
           sendWelcomeEmail(payment.customerEmail, payment.customerName, tenant.id)
             .catch((err) => console.error('Welcome email failed:', err));
+          const provisioned = await storage.getTenant(tenant.id);
+          if (provisioned && !provisioned.claimApprovedAt) {
+            const metadata = payment.metadata as { openalexId?: string } | null;
+            sendNewClaimAdminEmail(payment.customerEmail, payment.customerName, metadata?.openalexId)
+              .catch((err) => console.error('New-claim admin email failed:', err));
+          }
         }
       }
-    } else if (status === 'DECLINE' || status === 'ERROR') {
+    } else if (isFailed) {
       await storage.updatePaymentStatus(orderNumber, 'failed', transactionId);
     }
 

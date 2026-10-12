@@ -156,7 +156,7 @@ function ResearcherProfileInner() {
 
   // ── Main render ────────────────────────────────────────────────────────────
   return (
-    <div className={`min-h-screen ${isPreview ? "pb-44 md:pb-16" : "pb-20 md:pb-0"}`} style={{ background: "#F0F4F8", ...getThemeStyles(themeConfig) }} data-testid="page-researcher-profile">
+    <div className={`min-h-screen ${isPreview ? "pb-36 md:pb-16" : "pb-20 md:pb-0"}`} style={{ background: "#F0F4F8", ...getThemeStyles(themeConfig) }} data-testid="page-researcher-profile">
       <SEO
         title={seoTitle}
         description={seoDescription}
@@ -201,11 +201,13 @@ function ResearcherProfileInner() {
       {/* Mobile sticky CTA — preview mode only */}
       {isPreview && (
         <div className="fixed bottom-[84px] left-0 right-0 z-40 bg-primary shadow-lg border-t border-primary/20 md:hidden" data-testid="banner-claim-profile-mobile">
-          <div className="px-4 py-3">
-            <div className="flex flex-col gap-2 text-center">
+          {/* One compact row: stacked text + full-width button doubled the
+              height and, with the bottom nav, covered ~200px of a phone screen. */}
+          <div className="px-4 py-2">
+            <div className="flex items-center justify-between gap-3">
               <p className="text-white text-sm font-medium">{previewBanner.mobile}</p>
               <Button onClick={previewBanner.onClick}
-                className="bg-white text-primary hover:bg-white/90 font-semibold px-6 py-2 rounded-lg shadow-md w-full"
+                className="bg-white text-primary hover:bg-white/90 font-semibold px-4 py-1.5 h-9 rounded-lg shadow-md shrink-0"
                 data-testid="button-claim-profile-mobile">
                 {previewBanner.action}
               </Button>

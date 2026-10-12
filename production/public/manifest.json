@@ -1,34 +1,16 @@
 {
-  "name": "Research Profile Platform",
-  "short_name": "ResearchHub",
-  "description": "Showcase researcher profiles with OpenAlex API integration and comprehensive publication analytics",
+  "name": "Scholar.name",
+  "short_name": "Scholar.name",
+  "description": "Professional research portfolios for academics, auto-updated from OpenAlex.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
-  "theme_color": "#3b82f6",
-  "orientation": "portrait-primary",
+  "theme_color": "#0B1F3A",
   "icons": [
-    {
-      "src": "/icon-192.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "/icon-512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any maskable"
-    }
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" },
+    { "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml" }
   ],
-  "categories": ["education", "research", "productivity"],
-  "shortcuts": [
-    {
-      "name": "View Profile",
-      "short_name": "Profile",
-      "description": "View researcher profile",
-      "url": "/researcher",
-      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
-    }
-  ]
+  "categories": ["education", "productivity"]
 }

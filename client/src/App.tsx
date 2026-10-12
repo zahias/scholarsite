@@ -61,12 +61,22 @@ interface SiteContext {
 }
 
 function Router() {
+  const hostname = typeof window !== "undefined" ? window.location.hostname.toLowerCase() : "";
+  const isMarketingHostname = ["localhost", "127.0.0.1", "scholar.name", "www.scholar.name", "scholarname.com", "www.scholarname.com"].includes(hostname)
+    || hostname.endsWith(".replit.dev")
+    || hostname.endsWith(".replit.app")
+    || hostname.endsWith(".repl.co");
+
+  // These hostnames always resolve to the marketing site server-side
+  // (tenantMiddleware MARKETING_DOMAINS), so don't hold first paint on a
+  // round-trip whose answer is already known.
   const { data: siteContext, isLoading, error } = useQuery<SiteContext>({
     queryKey: ['/api/site-context'],
     staleTime: 1000 * 60 * 5,
+    enabled: !isMarketingHostname,
   });
 
-  if (isLoading) {
+  if (isLoading && !isMarketingHostname) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-[#0B1F3A] to-[#1a3a5c] flex items-center justify-center" role="status" aria-label="Loading">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#F2994A]"></div>
@@ -74,12 +84,6 @@ function Router() {
       </div>
     );
   }
-
-  const hostname = typeof window !== "undefined" ? window.location.hostname.toLowerCase() : "";
-  const isMarketingHostname = ["localhost", "127.0.0.1", "scholar.name", "www.scholar.name", "scholarname.com", "www.scholarname.com"].includes(hostname)
-    || hostname.endsWith(".replit.dev")
-    || hostname.endsWith(".replit.app")
-    || hostname.endsWith(".repl.co");
 
   if (error && !isMarketingHostname) {
     return (
@@ -103,10 +107,10 @@ function Router() {
         <div className="max-w-lg text-center text-white">
           <h1 className="text-3xl font-bold mb-4">No portfolio here yet</h1>
           <p className="text-white/70 mb-8">
-            {hostname} hasn't been claimed as a Scholar.name profile. If this is your name, you can create it now.
+            {hostname} isn't a Scholar.name portfolio. Researchers can create their own portfolio in a few minutes.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <a href="https://scholar.name/signup" className="px-5 py-2.5 bg-[#FFC72E] text-[#0B1F3A] font-semibold rounded-md">Claim this address</a>
+            <a href="https://scholar.name/signup" className="px-5 py-2.5 bg-[#FFC72E] text-[#0B1F3A] font-semibold rounded-md">Create your portfolio</a>
             <a href="https://scholar.name" className="px-5 py-2.5 border border-white/30 text-white rounded-md">Search for a researcher</a>
           </div>
         </div>

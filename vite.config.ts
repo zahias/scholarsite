@@ -31,7 +31,6 @@ export default defineConfig({
       output: {
         manualChunks: {
           "vendor-react": ["react", "react-dom", "react-dom/client"],
-          "vendor-charts": ["recharts"],
           "vendor-forms": ["react-hook-form", "@hookform/resolvers", "zod"],
           "vendor-query": ["@tanstack/react-query"],
         },

@@ -2,7 +2,7 @@ import { Router, Request, Response } from "express";
 import { z } from "zod";
 import bcrypt from "bcryptjs";
 import { storage } from "./storage";
-import { isAuthenticated, isAdmin } from "./auth";
+import { isAuthenticated, isAdmin, loginRateLimit, sendClaimApprovedEmail } from "./auth";
 import { TENANT_PLANS, TENANT_STATUSES, type PlanType, type TenantStatus } from "@shared/schema";
 import { forceSyncTenant, runScheduledSync } from "./services/syncScheduler";
 import { canTransition, appendTransitionNote } from "./tenantLifecycle";
@@ -16,7 +16,7 @@ const adminLoginSchema = z.object({
 });
 
 // Admin login
-router.post("/login", async (req: Request, res: Response) => {
+router.post("/login", loginRateLimit, async (req: Request, res: Response) => {
   try {
     const { email, password } = adminLoginSchema.parse(req.body);
 
@@ -227,6 +227,8 @@ router.post("/tenants", isAuthenticated, isAdmin, async (req: Request, res: Resp
       status: "pending" as TenantStatus,
       plan: validatedData.plan as PlanType,
       syncFrequency: "monthly",
+      // Admin-created customers are vetted by whoever creates them.
+      claimApprovedAt: new Date(),
     });
 
     await storage.upsertResearcherProfile({
@@ -482,6 +484,62 @@ router.post("/tenants/:id/activate", isAuthenticated, isAdmin, async (req: Reque
   } catch (error) {
     console.error("Activate tenant error:", error);
     return res.status(500).json({ message: "Failed to activate tenant" });
+  }
+});
+
+function prependAdminNote(existingNotes: string | null, action: string): string {
+  const line = `[${new Date().toISOString().slice(0, 10)}] ${action}`;
+  return existingNotes ? `${line}\n${existingNotes}` : line;
+}
+
+// Ownership review for self-serve signups: the public site stays offline until
+// an admin confirms the account holder is the researcher they claimed.
+router.post("/tenants/:id/approve-claim", isAuthenticated, isAdmin, async (req: Request, res: Response) => {
+  try {
+    const tenant = await storage.getTenant(req.params.id);
+    if (!tenant) {
+      return res.status(404).json({ message: "Tenant not found" });
+    }
+
+    const usersList = await storage.getUsersByTenant(tenant.id);
+    const verifiedUser = usersList.find((u) => u.emailVerifiedAt);
+    if (!verifiedUser) {
+      return res.status(400).json({ message: "The account holder hasn't verified their email yet. Approve once they have." });
+    }
+
+    const updatedTenant = await storage.updateTenant(tenant.id, {
+      claimApprovedAt: new Date(),
+      notes: prependAdminNote(tenant.notes, "Ownership claim approved"),
+    });
+
+    if (!tenant.claimApprovedAt) {
+      const domainsList = await storage.getDomainsByTenant(tenant.id);
+      const primary = domainsList.find((d) => d.isPrimary) || domainsList[0];
+      sendClaimApprovedEmail(verifiedUser.email, verifiedUser.firstName || "there", primary ? `https://${primary.hostname}` : null)
+        .catch((err) => console.error("Claim-approved email failed:", err));
+    }
+
+    return res.json({ message: "Claim approved", tenant: updatedTenant });
+  } catch (error) {
+    console.error("Approve claim error:", error);
+    return res.status(500).json({ message: "Failed to approve claim" });
+  }
+});
+
+router.post("/tenants/:id/revoke-claim", isAuthenticated, isAdmin, async (req: Request, res: Response) => {
+  try {
+    const tenant = await storage.getTenant(req.params.id);
+    if (!tenant) {
+      return res.status(404).json({ message: "Tenant not found" });
+    }
+    const updatedTenant = await storage.updateTenant(tenant.id, {
+      claimApprovedAt: null,
+      notes: prependAdminNote(tenant.notes, "Ownership claim approval revoked"),
+    });
+    return res.json({ message: "Claim approval revoked", tenant: updatedTenant });
+  } catch (error) {
+    console.error("Revoke claim error:", error);
+    return res.status(500).json({ message: "Failed to revoke claim" });
   }
 });
 

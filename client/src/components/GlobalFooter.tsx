@@ -41,24 +41,24 @@ export default function GlobalFooter({ mode = "landing" }: GlobalFooterProps) {
               {/* Product */}
               <div>
                 <h4 className="font-medium mb-4 text-white/90">Product</h4>
-                <ul className="space-y-2 text-sm text-white/60">
+                <ul className="space-y-0.5 text-sm text-white/60">
                   <li>
-                    <Link href="/features" onClick={handleNavClick} className="hover:text-white transition-colors" data-testid="link-footer-features">
+                    <Link href="/features" onClick={handleNavClick} className="inline-block py-1 hover:text-white transition-colors" data-testid="link-footer-features">
                       Features
                     </Link>
                   </li>
                   <li>
-                    <Link href="/pricing" onClick={handleNavClick} className="hover:text-white transition-colors" data-testid="link-footer-pricing">
+                    <Link href="/pricing" onClick={handleNavClick} className="inline-block py-1 hover:text-white transition-colors" data-testid="link-footer-pricing">
                       Pricing
                     </Link>
                   </li>
                   <li>
-                    <Link href="/faq" onClick={handleNavClick} className="hover:text-white transition-colors" data-testid="link-footer-faq">
+                    <Link href="/faq" onClick={handleNavClick} className="inline-block py-1 hover:text-white transition-colors" data-testid="link-footer-faq">
                       FAQ
                     </Link>
                   </li>
                   <li>
-                    <Link href="/blog" onClick={handleNavClick} className="hover:text-white transition-colors" data-testid="link-footer-blog">
+                    <Link href="/blog" onClick={handleNavClick} className="inline-block py-1 hover:text-white transition-colors" data-testid="link-footer-blog">
                       Blog
                     </Link>
                   </li>
@@ -68,14 +68,14 @@ export default function GlobalFooter({ mode = "landing" }: GlobalFooterProps) {
               {/* Company */}
               <div>
                 <h4 className="font-medium mb-4 text-white/90">Company</h4>
-                <ul className="space-y-2 text-sm text-white/60">
+                <ul className="space-y-0.5 text-sm text-white/60">
                   <li>
-                    <Link href="/about" onClick={handleNavClick} className="hover:text-white transition-colors" data-testid="link-footer-about">
+                    <Link href="/about" onClick={handleNavClick} className="inline-block py-1 hover:text-white transition-colors" data-testid="link-footer-about">
                       About Us
                     </Link>
                   </li>
                   <li>
-                    <Link href="/contact" onClick={handleNavClick} className="hover:text-white transition-colors" data-testid="link-footer-contact">
+                    <Link href="/contact" onClick={handleNavClick} className="inline-block py-1 hover:text-white transition-colors" data-testid="link-footer-contact">
                       Contact
                     </Link>
                   </li>
@@ -85,14 +85,14 @@ export default function GlobalFooter({ mode = "landing" }: GlobalFooterProps) {
               {/* Legal */}
               <div>
                 <h4 className="font-medium mb-4 text-white/90">Legal</h4>
-                <ul className="space-y-2 text-sm text-white/60">
+                <ul className="space-y-0.5 text-sm text-white/60">
                   <li>
-                    <Link href="/privacy" onClick={handleNavClick} className="hover:text-white transition-colors" data-testid="link-footer-privacy">
+                    <Link href="/privacy" onClick={handleNavClick} className="inline-block py-1 hover:text-white transition-colors" data-testid="link-footer-privacy">
                       Privacy Policy
                     </Link>
                   </li>
                   <li>
-                    <Link href="/terms" onClick={handleNavClick} className="hover:text-white transition-colors" data-testid="link-footer-terms">
+                    <Link href="/terms" onClick={handleNavClick} className="inline-block py-1 hover:text-white transition-colors" data-testid="link-footer-terms">
                       Terms of Service
                     </Link>
                   </li>

@@ -1,6 +1,7 @@
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
+import { DEFAULT_OG_IMAGE } from "@shared/siteMeta";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -18,7 +19,8 @@ export interface PageMeta {
   description: string;
   image?: string;
   url: string;
-  type?: "website" | "profile";
+  type?: "website" | "profile" | "article";
+  noindex?: boolean;
 }
 
 function escapeHtml(value: string): string {
@@ -53,16 +55,23 @@ export function renderIndexHtml(meta: PageMeta): string {
     `<meta property="og:type" content="${type}" />`,
     `<meta property="og:url" content="${url}" />`,
     `<meta property="og:site_name" content="Scholar.name" />`,
-    `<meta name="twitter:card" content="${meta.image ? "summary_large_image" : "summary"}" />`,
+    `<meta name="twitter:card" content="summary_large_image" />`,
     `<meta name="twitter:title" content="${title}" />`,
     `<meta name="twitter:description" content="${description}" />`,
   ];
   if (meta.image) {
     const image = escapeHtml(meta.image);
     tags.push(`<meta property="og:image" content="${image}" />`);
+    tags.push(`<meta name="twitter:image" content="${image}" />`);
+  } else {
+    // Social cards need a raster image — Facebook/LinkedIn/X/WhatsApp ignore SVG.
+    tags.push(`<meta property="og:image" content="${DEFAULT_OG_IMAGE}" />`);
     tags.push(`<meta property="og:image:width" content="1200" />`);
     tags.push(`<meta property="og:image:height" content="630" />`);
-    tags.push(`<meta name="twitter:image" content="${image}" />`);
+    tags.push(`<meta name="twitter:image" content="${DEFAULT_OG_IMAGE}" />`);
+  }
+  if (meta.noindex) {
+    tags.push(`<meta name="robots" content="noindex, nofollow" />`);
   }
 
   return html.replace("</head>", `${tags.join("\n    ")}\n  </head>`);

@@ -52,10 +52,11 @@ interface Tenant {
   notes: string | null;
   trialEndsAt: string | null;
   subscriptionEndDate: string | null;
+  claimApprovedAt: string | null;
   lastSyncAt: string | null;
   domains: Array<{ id: string; hostname: string; isPrimary: boolean; isSubdomain: boolean; sslStatus: string | null; verifiedAt: string | null }>;
-  users: Array<{ id: string; email: string; firstName: string; lastName: string; isActive?: boolean }>;
-  profile: { id: string; openalexId: string | null } | null;
+  users: Array<{ id: string; email: string; firstName: string; lastName: string; isActive?: boolean; emailVerifiedAt?: string | null }>;
+  profile: { id: string; openalexId: string | null; currentAffiliation?: string | null } | null;
 }
 
 interface CurrentUser {
@@ -185,6 +186,19 @@ export default function CustomerDetail() {
       toast({ title: "Success", description: data.message });
       setStatusReason("");
       queryClient.invalidateQueries({ queryKey: ["/api/admin/tenants", tenantId] });
+    },
+    onError: (error: any) => toast({ title: "Error", description: error.message, variant: "destructive" }),
+  });
+
+  const claimMutation = useMutation({
+    mutationFn: async (action: "approve-claim" | "revoke-claim") => {
+      const response = await apiRequest("POST", `/api/admin/tenants/${tenantId}/${action}`);
+      return response.json();
+    },
+    onSuccess: (data) => {
+      toast({ title: "Success", description: data.message });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/tenants", tenantId] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/tenants"] });
     },
     onError: (error: any) => toast({ title: "Error", description: error.message, variant: "destructive" }),
   });
@@ -343,6 +357,54 @@ export default function CustomerDetail() {
             </TabsList>
 
             <TabsContent value="overview" className="space-y-6 mt-4">
+              {tenant && (
+                <Card className={`bg-card ${tenant.claimApprovedAt ? "border-border" : "border-orange-400"}`} data-testid="card-ownership-review">
+                  <CardHeader>
+                    <CardTitle className="text-foreground">
+                      Ownership review {tenant.claimApprovedAt
+                        ? <Badge className="ml-2 bg-green-500/20 text-green-600">Approved</Badge>
+                        : <Badge className="ml-2 bg-orange-500/20 text-orange-700">Awaiting review</Badge>}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3 text-sm">
+                    <p className="text-muted-foreground">
+                      The public site stays offline until the claim is approved. Check that the account holder plausibly
+                      is this researcher (institutional email, affiliation, ORCID) before approving.
+                    </p>
+                    <div>
+                      <span className="text-muted-foreground">Claimed author: </span>
+                      {tenant.profile?.openalexId ? (
+                        <a href={`https://openalex.org/authors/${tenant.profile.openalexId}`} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                          {tenant.profile.openalexId}
+                        </a>
+                      ) : <span>none yet</span>}
+                      {tenant.profile?.currentAffiliation && <span className="text-muted-foreground"> · {tenant.profile.currentAffiliation}</span>}
+                    </div>
+                    <ul className="space-y-1">
+                      {tenant.users.map((u) => (
+                        <li key={u.id}>
+                          {u.firstName} {u.lastName} &lt;{u.email}&gt;{" "}
+                          {u.emailVerifiedAt
+                            ? <Badge className="bg-green-500/20 text-green-600">email verified</Badge>
+                            : <Badge className="bg-yellow-500/20 text-yellow-700">email not verified</Badge>}
+                        </li>
+                      ))}
+                      {tenant.users.length === 0 && <li className="text-muted-foreground">No user account linked yet.</li>}
+                    </ul>
+                    <div className="flex gap-2">
+                      {tenant.claimApprovedAt ? (
+                        <Button variant="outline" onClick={() => claimMutation.mutate("revoke-claim")} disabled={claimMutation.isPending} data-testid="button-revoke-claim">
+                          Revoke approval
+                        </Button>
+                      ) : (
+                        <Button onClick={() => claimMutation.mutate("approve-claim")} disabled={claimMutation.isPending || !tenant.users.some((u) => u.emailVerifiedAt)} data-testid="button-approve-claim">
+                          Approve claim
+                        </Button>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
               <Card className="bg-card border-border">
                 <CardHeader><CardTitle className="text-foreground">Customer Details</CardTitle></CardHeader>
                 <CardContent>

@@ -149,6 +149,7 @@ router.get("/my-tenant", isAuthenticated, async (req: Request, res: Response) =>
         accessState,
         accessMessage: getTenantAccessMessage(accessState),
         hasServiceAccess: tenantHasServiceAccess(tenant),
+        claimApproved: !!tenant.claimApprovedAt,
       },
     });
   } catch (error: unknown) {
@@ -223,8 +224,27 @@ router.patch("/profile", isAuthenticated, async (req: Request, res: Response) =>
       });
     }
 
-    const profile = await storage.updateTenantProfile(user.tenantId, validation.data);
-    res.json({ profile });
+    const updates = validation.data;
+    const existingProfile = await storage.getResearcherProfileByTenant(user.tenantId);
+    const openalexIdChanged = updates.openalexId !== undefined
+      && (updates.openalexId || null) !== (existingProfile?.openalexId || null);
+
+    if (openalexIdChanged && updates.openalexId) {
+      const claimedElsewhere = await storage.getResearcherProfileByOpenalexId(updates.openalexId);
+      if (claimedElsewhere && claimedElsewhere.tenantId && claimedElsewhere.tenantId !== user.tenantId) {
+        return res.status(409).json({ message: "This researcher profile is already claimed by another account." });
+      }
+    }
+
+    const profile = await storage.updateTenantProfile(user.tenantId, updates);
+
+    // Approval covers one specific OpenAlex author; pointing the site at a
+    // different author sends it back for ownership review.
+    if (openalexIdChanged) {
+      await storage.updateTenant(user.tenantId, { claimApprovedAt: null });
+    }
+
+    res.json({ profile, claimReviewRequired: openalexIdChanged });
   } catch (error: unknown) {
     console.error("Error updating profile:", error);
     res.status(500).json({ message: "Failed to update profile" });
