@@ -7,9 +7,3 @@ vite.config.ts.*
 *.zip
 scholarsite_production_v*
 !production/
-# User uploads written at runtime (saveFileLocally → <app>/public/uploads,
-# legacy <app>/uploads). Ignored so the deploy's `git clean -fd` on A2 can
-# never delete them.
-/uploads/
-/public/uploads/
-/backups/

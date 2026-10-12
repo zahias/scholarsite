@@ -7,7 +7,6 @@ import { OpenAlexService } from "./services/openalexApi";
 import { registerUserSchema, loginUserSchema, forgotPasswordSchema, resetPasswordSchema, type SafeUser, type UserRole } from "@shared/schema";
 import { z } from "zod";
 import { renderEmailHtml } from "./emailTemplates";
-import { pool } from "./db";
 
 const router = Router();
 const openalexService = new OpenAlexService();
@@ -46,7 +45,7 @@ function createIpRateLimit(windowMs: number, maxRequests: number, label: string)
   };
 }
 
-export const loginRateLimit = createIpRateLimit(15 * 60 * 1000, 15, "Login");
+const loginRateLimit = createIpRateLimit(15 * 60 * 1000, 15, "Login");
 const registerRateLimit = createIpRateLimit(15 * 60 * 1000, 8, "Registration");
 
 // ─── Email helper ───────────────────────────────────────────────────────────
@@ -139,96 +138,6 @@ async function sendPasswordResetEmail(email: string, firstName: string, resetTok
   );
 }
 
-export async function sendNewClaimAdminEmail(claimantEmail: string, claimantName: string, openalexId: string | undefined): Promise<void> {
-  const adminEmail = process.env.ADMIN_EMAIL || process.env.SMTP_USER;
-  if (!adminEmail) return;
-  const baseUrl = process.env.BASE_URL || "https://scholar.name";
-  const openalexLine = openalexId ? `https://openalex.org/authors/${openalexId}` : "(no OpenAlex ID yet)";
-  await sendEmail(
-    adminEmail,
-    `New profile claim to review: ${claimantName}`,
-    [
-      `${claimantName} <${claimantEmail}> signed up and claimed:`,
-      openalexLine,
-      "",
-      "Their public site stays offline until you approve the claim:",
-      `${baseUrl}/admin/customers`,
-    ].join("\n"),
-    renderEmailHtml({
-      preheader: `${claimantName} claimed a researcher profile.`,
-      heading: "New profile claim to review",
-      bodyHtml: `
-        <p style="margin:0 0 14px;"><strong>${escapeEmailHtml(claimantName)}</strong> (${escapeEmailHtml(claimantEmail)}) signed up and claimed ${openalexId ? `<a href="https://openalex.org/authors/${encodeURIComponent(openalexId)}">OpenAlex author ${escapeEmailHtml(openalexId)}</a>` : "no OpenAlex profile yet"}.</p>
-        <p style="margin:0;">Their public site stays offline until you approve the claim. Check that the email or affiliation plausibly belongs to that researcher before approving.</p>
-      `,
-      ctaLabel: "Review claims",
-      ctaUrl: `${baseUrl}/admin/customers`,
-    }),
-  );
-}
-
-export async function sendClaimApprovedEmail(email: string, firstName: string, siteUrl: string | null): Promise<void> {
-  const baseUrl = process.env.BASE_URL || "https://scholar.name";
-  await sendEmail(
-    email,
-    "Your Scholar.name portfolio is live",
-    [
-      `Hi ${firstName},`,
-      "",
-      "We've confirmed your profile claim, so your portfolio is now public.",
-      siteUrl ? `View it at: ${siteUrl}` : `Manage it at: ${baseUrl}/dashboard`,
-      "",
-      "The Scholar.name team",
-    ].join("\n"),
-    renderEmailHtml({
-      preheader: "Your Scholar.name portfolio is now public.",
-      heading: "Your portfolio is live",
-      bodyHtml: `<p style="margin:0;">Hi ${escapeEmailHtml(firstName)}, we've confirmed your profile claim, so your portfolio is now public.</p>`,
-      ctaLabel: siteUrl ? "View my portfolio" : "Open my dashboard",
-      ctaUrl: siteUrl || `${baseUrl}/dashboard`,
-    }),
-  );
-}
-
-function escapeEmailHtml(value: string): string {
-  return value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-}
-
-// ─── Session helpers ────────────────────────────────────────────────────────
-
-// Issue a fresh session ID on sign-in so a pre-planted session cookie can't be
-// promoted to an authenticated one (session fixation). regenerate() destroys
-// the old row in the pg store; it has failed on A2 before, so on error we log
-// and fall back to the existing session rather than blocking sign-in.
-export function establishSession(req: Request, data: { userId: string; userRole: UserRole }): Promise<void> {
-  return new Promise((resolve, reject) => {
-    const assignAndSave = () => {
-      req.session.userId = data.userId;
-      req.session.userRole = data.userRole;
-      req.session.isAuthenticated = true;
-      req.session.save((err) => (err ? reject(err) : resolve()));
-    };
-    req.session.regenerate((err) => {
-      if (err) console.error("[auth] session.regenerate failed, keeping existing session:", err);
-      assignAndSave();
-    });
-  });
-}
-
-// Sign the user out everywhere (except optionally the current session) after a
-// password change or reset, so a stolen session doesn't survive the reset.
-async function revokeUserSessions(userId: string, keepSessionId?: string): Promise<void> {
-  if (!pool) return;
-  try {
-    await pool.query(
-      `DELETE FROM "sessions" WHERE "sess"->>'userId' = $1 AND ($2::varchar IS NULL OR "sid" <> $2)`,
-      [userId, keepSessionId ?? null],
-    );
-  } catch (error) {
-    console.error("[auth] Failed to revoke sessions for user:", error);
-  }
-}
-
 declare module "express-session" {
   interface SessionData {
     userId?: string;
@@ -314,21 +223,20 @@ router.post("/register", registerRateLimit, async (req: Request, res: Response) 
         .catch((err) => console.error("[auth] Failed to sync OpenAlex data after signup:", err));
     }
 
-    sendNewClaimAdminEmail(
-      validatedData.email,
-      `${validatedData.firstName} ${validatedData.lastName || ""}`.trim(),
-      validatedData.openalexId,
-    ).catch((err) => console.error("[auth] Failed to send new-claim admin email:", err));
+    // Set session data directly (session.regenerate can cause issues with some session stores)
+    req.session.userId = user.id;
+    req.session.userRole = user.role as UserRole;
+    req.session.isAuthenticated = true;
 
-    try {
-      await establishSession(req, { userId: user.id, userRole: user.role as UserRole });
-    } catch (err) {
-      console.error("Session save error after register:", err);
-      return res.status(500).json({ message: "Registration failed" });
-    }
-    return res.status(201).json({
-      message: "Registration successful",
-      user: toSafeUser(user),
+    req.session.save((err) => {
+      if (err) {
+        console.error("Session save error after register:", err);
+        return res.status(500).json({ message: "Registration failed" });
+      }
+      return res.status(201).json({
+        message: "Registration successful",
+        user: toSafeUser(user),
+      });
     });
   } catch (error) {
     if (error instanceof z.ZodError) {
@@ -342,17 +250,12 @@ router.post("/register", registerRateLimit, async (req: Request, res: Response) 
   }
 });
 
-const DUMMY_PASSWORD_HASH = bcrypt.hashSync("timing-equalizer-not-a-real-password", 12);
-
 router.post("/login", loginRateLimit, async (req: Request, res: Response) => {
   try {
     const validatedData = loginUserSchema.parse(req.body);
 
     const user = await storage.getUserByEmail(validatedData.email);
     if (!user) {
-      // Spend the same bcrypt time as a real check so response timing doesn't
-      // reveal which emails have accounts.
-      await bcrypt.compare(validatedData.password, DUMMY_PASSWORD_HASH);
       return res.status(401).json({ message: "Invalid email or password" });
     }
 
@@ -372,15 +275,20 @@ router.post("/login", loginRateLimit, async (req: Request, res: Response) => {
       return res.status(401).json({ message: "Invalid email or password" });
     }
 
-    try {
-      await establishSession(req, { userId: user.id, userRole: user.role as UserRole });
-    } catch (err) {
-      console.error("Session save error:", err);
-      return res.status(500).json({ message: "Login failed" });
-    }
-    return res.json({
-      message: "Login successful",
-      user: toSafeUser(user),
+    // Set session data directly - regenerate can cause issues with some session stores
+    req.session.userId = user.id;
+    req.session.userRole = user.role as UserRole;
+    req.session.isAuthenticated = true;
+
+    req.session.save((err) => {
+      if (err) {
+        console.error("Session save error:", err);
+        return res.status(500).json({ message: "Login failed" });
+      }
+      return res.json({
+        message: "Login successful",
+        user: toSafeUser(user),
+      });
     });
   } catch (error) {
     if (error instanceof z.ZodError) {
@@ -475,14 +383,18 @@ router.patch("/password", isAuthenticated, async (req: Request, res: Response) =
     const newPasswordHash = await bcrypt.hash(newPassword, 12);
     await storage.updateUser(userId, { passwordHash: newPasswordHash });
 
-    try {
-      await establishSession(req, { userId, userRole: user.role as UserRole });
-    } catch (err) {
-      console.error("Session save error after password change:", err);
-      return res.status(500).json({ message: "Failed to update password" });
-    }
-    await revokeUserSessions(userId, req.sessionID);
-    return res.json({ message: "Password updated successfully" });
+    // Use session.save (not regenerate) — regenerate fails with pg session store in production
+    req.session.userId = userId;
+    req.session.userRole = user.role as UserRole;
+    req.session.isAuthenticated = true;
+
+    req.session.save((err) => {
+      if (err) {
+        console.error("Session save error after password change:", err);
+        return res.status(500).json({ message: "Failed to update password" });
+      }
+      return res.json({ message: "Password updated successfully" });
+    });
   } catch (error) {
     if (error instanceof z.ZodError) {
       return res.status(400).json({
@@ -528,7 +440,7 @@ router.post("/forgot-password", registerRateLimit, async (req: Request, res: Res
 
 // ─── Reset password ──────────────────────────────────────────────────────────
 
-router.post("/reset-password", registerRateLimit, async (req: Request, res: Response) => {
+router.post("/reset-password", async (req: Request, res: Response) => {
   try {
     const { token, newPassword } = resetPasswordSchema.parse(req.body);
 
@@ -546,7 +458,6 @@ router.post("/reset-password", registerRateLimit, async (req: Request, res: Resp
     const newPasswordHash = await bcrypt.hash(newPassword, 12);
     await storage.updateUser(resetToken.userId, { passwordHash: newPasswordHash });
     await storage.markPasswordResetTokenUsed(token);
-    await revokeUserSessions(resetToken.userId);
 
     return res.json({ message: "Password updated successfully. You can now log in." });
   } catch (error) {

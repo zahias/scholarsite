@@ -126,7 +126,6 @@ interface TenantData {
   accessState?: string;
   accessMessage?: string;
   hasServiceAccess?: boolean;
-  claimApproved?: boolean;
   domains: Domain[];
   profile: TenantProfile | null;
 }
@@ -1276,7 +1275,7 @@ export default function ResearcherDashboard() {
       {userData.user && !userData.user.emailVerifiedAt && (
         <div style={{ background: "#FFF8E1", borderBottom: "1px solid #FFD600", padding: "10px 16px", display: "flex", alignItems: "center", justifyContent: "center", gap: 12, flexWrap: "wrap" }}>
           <span style={{ fontSize: 14, color: "#5D4037" }}>
-            ✉️ Please verify your email address. Your portfolio can't go public until you do.
+            ✉️ Please verify your email address to secure your account.
           </span>
           <button
             onClick={() => resendVerificationMutation.mutate()}
@@ -1285,15 +1284,6 @@ export default function ResearcherDashboard() {
           >
             {resendVerificationMutation.isPending ? "Sending…" : "Resend verification email"}
           </button>
-        </div>
-      )}
-
-      {/* Ownership review banner */}
-      {tenant && tenant.claimApproved === false && userData.user?.emailVerifiedAt && (
-        <div style={{ background: "rgba(11,31,58,.05)", borderBottom: "1px solid rgba(11,31,58,.12)", padding: "10px 16px", display: "flex", alignItems: "center", justifyContent: "center", gap: 12, flexWrap: "wrap" }}>
-          <span style={{ fontSize: 14, color: "#0B1F3A" }}>
-            🔎 We're confirming you're the researcher on this profile. You can keep editing, and your portfolio goes public as soon as it's approved. We'll email you.
-          </span>
         </div>
       )}
 

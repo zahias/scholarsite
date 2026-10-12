@@ -55,26 +55,20 @@ export class MontyPayService {
     };
   }
 
-  // MontyPay (Akurateco) signature: sha1(md5(UPPER(fields... + merchant password))).
-  // secretKey is the merchant *password* from the MontyPay admin panel.
-  private sign(values: Array<string | number>): string {
-    const raw = (values.map(String).join('') + this.config.secretKey).toUpperCase();
-    const md5 = crypto.createHash('md5').update(raw).digest('hex');
-    return crypto.createHash('sha1').update(md5).digest('hex');
-  }
-
   private generateHash(payload: Record<string, any>): string {
-    const { number, amount, currency, description } = payload.order;
-    return this.sign([number, amount, currency, description]);
-  }
-
-  /** Verify a server-to-server callback (form-encoded POST to notification_url). */
-  verifyCallback(body: Record<string, any>): boolean {
-    if (!this.config.secretKey || typeof body?.hash !== 'string') return false;
-    const expected = this.sign([body.id, body.order_number, body.order_amount, body.order_currency, body.order_description]);
-    const a = Buffer.from(expected, 'utf8');
-    const b = Buffer.from(body.hash.toLowerCase(), 'utf8');
-    return a.length === b.length && crypto.timingSafeEqual(a, b);
+    const sortedKeys = Object.keys(payload).sort();
+    const dataString = sortedKeys.map(key => {
+      const value = payload[key];
+      if (typeof value === 'object' && value !== null) {
+        return JSON.stringify(value);
+      }
+      return String(value);
+    }).join('');
+    
+    return crypto
+      .createHmac('sha256', this.config.secretKey)
+      .update(dataString + this.config.secretKey)
+      .digest('hex');
   }
 
   async createCheckoutSession(params: CreateSessionParams): Promise<MontyPaySessionResponse> {

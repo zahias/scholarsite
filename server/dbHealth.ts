@@ -4,7 +4,7 @@ const REQUIRED_COLUMNS: Record<string, string[]> = {
   tenants: [
     "id", "name", "plan", "status", "subscription_start_date", "subscription_end_date", "last_sync_at",
     "sync_frequency", "primary_color", "accent_color", "logo_url", "selected_theme_id", "trial_ends_at",
-    "contact_email", "notes", "claim_approved_at", "created_at", "updated_at",
+    "contact_email", "notes", "created_at", "updated_at",
   ],
   users: [
     "id", "tenant_id", "email", "password_hash", "role", "first_name", "last_name", "profile_image_url",

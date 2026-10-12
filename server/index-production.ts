@@ -7,26 +7,11 @@ import { serveStatic, log } from "./static";
 import { seedThemesIfEmpty } from "./services/themeSeed";
 import { runMigrations } from "./runMigrations";
 import { pool } from "./db";
-import crypto from "crypto";
 
 const app = express();
 
 // Trust proxy for A2 Hosting (behind cPanel reverse proxy)
 app.set('trust proxy', 1);
-app.disable('x-powered-by');
-
-// Canonical origin: https, no www. LiteSpeed forwards X-Forwarded-Proto on
-// https (secure session cookies depend on it), so only redirect when it
-// explicitly says "http" — a missing header must never cause a redirect loop.
-app.use((req, res, next) => {
-  const host = (req.headers.host || '').toLowerCase();
-  const forwardedProto = String(req.headers['x-forwarded-proto'] || '').split(',')[0].trim();
-  if (host === 'www.scholar.name' || forwardedProto === 'http') {
-    const targetHost = host === 'www.scholar.name' ? 'scholar.name' : host;
-    return res.redirect(301, `https://${targetHost}${req.originalUrl}`);
-  }
-  next();
-});
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -37,33 +22,12 @@ app.use((_req, res, next) => {
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
   res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
-  // Enforced: directives that can't break legitimate page behavior.
-  res.setHeader('Content-Security-Policy', "frame-ancestors 'self'; base-uri 'self'; object-src 'none'");
-  // Full policy in report-only until it's been watched in production (browser
-  // console shows violations); promote to the enforced header once clean.
-  res.setHeader(
-    'Content-Security-Policy-Report-Only',
-    [
-      "default-src 'self'",
-      "script-src 'self' https://www.googletagmanager.com",
-      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-      "font-src 'self' https://fonts.gstatic.com data:",
-      "img-src 'self' data: blob: https:",
-      "connect-src 'self' https://www.google-analytics.com https://*.google-analytics.com https://*.analytics.google.com",
-      "frame-ancestors 'self'",
-      "base-uri 'self'",
-      "object-src 'none'",
-    ].join('; '),
-  );
   next();
 });
 
-// The repo is public, so a hard-coded fallback secret would let anyone forge
-// session cookies (including admin). Without SESSION_SECRET, use a random
-// per-process secret instead: sessions reset on restart, but can't be forged.
-const sessionSecret = process.env.SESSION_SECRET || crypto.randomBytes(48).toString('hex');
+// Warn loudly if SESSION_SECRET is not set in production
 if (!process.env.SESSION_SECRET) {
-  console.error('⚠️  WARNING: SESSION_SECRET not set — using a random per-process secret; all sessions will reset on restart. Set SESSION_SECRET.');
+  console.error('⚠️  WARNING: SESSION_SECRET not set — using insecure fallback. Set SESSION_SECRET env var ASAP!');
 }
 
 const PgSession = connectPgSimple(session);
@@ -73,7 +37,7 @@ app.use(session({
     tableName: 'sessions',
     createTableIfMissing: true
   }),
-  secret: sessionSecret,
+  secret: process.env.SESSION_SECRET || 'research-profile-admin-secret-key',
   resave: false,
   saveUninitialized: false,
   proxy: true,
@@ -123,9 +87,7 @@ app.use((req, res, next) => {
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
-    // Client errors (bad JSON, payload too large, upload filter) carry a
-    // user-facing message; server errors may leak internals (SQL, paths).
-    const message = status < 500 ? (err.message || "Bad Request") : "Internal Server Error";
+    const message = err.message || "Internal Server Error";
 
     res.status(status).json({ message });
     console.error('Unhandled route error:', err);

@@ -49,9 +49,6 @@ export const tenants = pgTable("tenants", {
   selectedThemeId: varchar("selected_theme_id"), // Reference to themes table
   // Trial
   trialEndsAt: timestamp("trial_ends_at"),
-  // Ownership: a self-serve signup can name any OpenAlex author, so the public
-  // site stays offline until an admin approves the claim (null = not approved).
-  claimApprovedAt: timestamp("claim_approved_at"),
   // Contact
   contactEmail: varchar("contact_email"),
   notes: text("notes"), // Admin notes about this tenant

@@ -113,7 +113,7 @@ var require_main = __commonJS({
     var fs7 = __require("fs");
     var path5 = __require("path");
     var os = __require("os");
-    var crypto18 = __require("crypto");
+    var crypto17 = __require("crypto");
     var packageJson4 = require_package();
     var version4 = packageJson4.version;
     var TIPS = [
@@ -364,7 +364,7 @@ var require_main = __commonJS({
       const authTag = ciphertext.subarray(-16);
       ciphertext = ciphertext.subarray(12, -16);
       try {
-        const aesgcm = crypto18.createDecipheriv("aes-256-gcm", key, nonce);
+        const aesgcm = crypto17.createDecipheriv("aes-256-gcm", key, nonce);
         aesgcm.setAuthTag(authTag);
         return `${aesgcm.update(ciphertext)}${aesgcm.final()}`;
       } catch (error) {
@@ -20297,14 +20297,14 @@ var require_etag = __commonJS({
   "node_modules/etag/index.js"(exports, module) {
     "use strict";
     module.exports = etag;
-    var crypto18 = __require("crypto");
+    var crypto17 = __require("crypto");
     var Stats = __require("fs").Stats;
     var toString = Object.prototype.toString;
     function entitytag(entity) {
       if (entity.length === 0) {
         return '"0-2jmj7l5rSw0yVb/vlWAYkK/YBwk"';
       }
-      var hash2 = crypto18.createHash("sha1").update(entity, "utf8").digest("base64").substring(0, 27);
+      var hash2 = crypto17.createHash("sha1").update(entity, "utf8").digest("base64").substring(0, 27);
       var len = typeof entity === "string" ? Buffer.byteLength(entity, "utf8") : entity.length;
       return '"' + len.toString(16) + "-" + hash2 + '"';
     }
@@ -23196,11 +23196,11 @@ var require_request = __commonJS({
 // node_modules/cookie-signature/index.js
 var require_cookie_signature = __commonJS({
   "node_modules/cookie-signature/index.js"(exports) {
-    var crypto18 = __require("crypto");
+    var crypto17 = __require("crypto");
     exports.sign = function(val, secret) {
       if ("string" != typeof val) throw new TypeError("Cookie value must be provided as a string.");
       if ("string" != typeof secret) throw new TypeError("Secret string must be provided.");
-      return val + "." + crypto18.createHmac("sha256", secret).update(val).digest("base64").replace(/\=+$/, "");
+      return val + "." + crypto17.createHmac("sha256", secret).update(val).digest("base64").replace(/\=+$/, "");
     };
     exports.unsign = function(val, secret) {
       if ("string" != typeof val) throw new TypeError("Signed cookie string must be provided.");
@@ -23209,7 +23209,7 @@ var require_cookie_signature = __commonJS({
       return sha13(mac) == sha13(val) ? str : false;
     };
     function sha13(str) {
-      return crypto18.createHash("sha1").update(str).digest("hex");
+      return crypto17.createHash("sha1").update(str).digest("hex");
     }
   }
 });
@@ -24829,11 +24829,11 @@ var require_on_headers = __commonJS({
 // node_modules/express-session/node_modules/cookie-signature/index.js
 var require_cookie_signature2 = __commonJS({
   "node_modules/express-session/node_modules/cookie-signature/index.js"(exports) {
-    var crypto18 = __require("crypto");
+    var crypto17 = __require("crypto");
     exports.sign = function(val, secret) {
       if ("string" !== typeof val) throw new TypeError("Cookie value must be provided as a string.");
       if (null == secret) throw new TypeError("Secret key must be provided.");
-      return val + "." + crypto18.createHmac("sha256", secret).update(val).digest("base64").replace(/\=+$/, "");
+      return val + "." + crypto17.createHmac("sha256", secret).update(val).digest("base64").replace(/\=+$/, "");
     };
     exports.unsign = function(val, secret) {
       if ("string" !== typeof val) throw new TypeError("Signed cookie string must be provided.");
@@ -24842,7 +24842,7 @@ var require_cookie_signature2 = __commonJS({
       return sha13(mac) == sha13(val) ? str : false;
     };
     function sha13(str) {
-      return crypto18.createHash("sha1").update(str).digest("hex");
+      return crypto17.createHash("sha1").update(str).digest("hex");
     }
   }
 });
@@ -24851,8 +24851,8 @@ var require_cookie_signature2 = __commonJS({
 var require_random_bytes = __commonJS({
   "node_modules/random-bytes/index.js"(exports, module) {
     "use strict";
-    var crypto18 = __require("crypto");
-    var generateAttempts = crypto18.randomBytes === crypto18.pseudoRandomBytes ? 1 : 3;
+    var crypto17 = __require("crypto");
+    var generateAttempts = crypto17.randomBytes === crypto17.pseudoRandomBytes ? 1 : 3;
     module.exports = randomBytes2;
     module.exports.sync = randomBytesSync;
     function randomBytes2(size, callback) {
@@ -24876,7 +24876,7 @@ var require_random_bytes = __commonJS({
       var err = null;
       for (var i2 = 0; i2 < generateAttempts; i2++) {
         try {
-          return crypto18.randomBytes(size);
+          return crypto17.randomBytes(size);
         } catch (e2) {
           err = e2;
         }
@@ -24884,7 +24884,7 @@ var require_random_bytes = __commonJS({
       throw err;
     }
     function generateRandomBytes(size, attempts, callback) {
-      crypto18.randomBytes(size, function onRandomBytes(err, buf) {
+      crypto17.randomBytes(size, function onRandomBytes(err, buf) {
         if (!err) return callback(null, buf);
         if (!--attempts) return callback(err);
         setTimeout(generateRandomBytes.bind(null, size, attempts, callback), 10);
@@ -25226,7 +25226,7 @@ var require_express_session = __commonJS({
     "use strict";
     var Buffer4 = require_safe_buffer().Buffer;
     var cookie = require_cookie2();
-    var crypto18 = __require("crypto");
+    var crypto17 = __require("crypto");
     var debug = require_src5()("express-session");
     var deprecate3 = require_depd()("express-session");
     var onHeaders = require_on_headers();
@@ -25594,7 +25594,7 @@ var require_express_session = __commonJS({
         }
         return val;
       });
-      return crypto18.createHash("sha1").update(str, "utf8").digest("hex");
+      return crypto17.createHash("sha1").update(str, "utf8").digest("hex");
     }
     function issecure(req, trustProxy) {
       if (req.connection && req.connection.encrypted) {
@@ -27001,7 +27001,7 @@ var require_cert_signatures = __commonJS({
 var require_sasl = __commonJS({
   "node_modules/pg/lib/crypto/sasl.js"(exports, module) {
     "use strict";
-    var crypto18 = require_utils4();
+    var crypto17 = require_utils4();
     var { signatureAlgorithmHashFromCertificate } = require_cert_signatures();
     function startSession(mechanisms, stream) {
       const candidates = ["SCRAM-SHA-256"];
@@ -27013,7 +27013,7 @@ var require_sasl = __commonJS({
       if (mechanism === "SCRAM-SHA-256-PLUS" && typeof stream.getPeerCertificate !== "function") {
         throw new Error("SASL: Mechanism SCRAM-SHA-256-PLUS requires a certificate");
       }
-      const clientNonce = crypto18.randomBytes(18).toString("base64");
+      const clientNonce = crypto17.randomBytes(18).toString("base64");
       const gs2Header = mechanism === "SCRAM-SHA-256-PLUS" ? "p=tls-server-end-point" : stream ? "y" : "n";
       return {
         mechanism,
@@ -27048,20 +27048,20 @@ var require_sasl = __commonJS({
         const peerCert = stream.getPeerCertificate().raw;
         let hashName = signatureAlgorithmHashFromCertificate(peerCert);
         if (hashName === "MD5" || hashName === "SHA-1") hashName = "SHA-256";
-        const certHash = await crypto18.hashByName(hashName, peerCert);
+        const certHash = await crypto17.hashByName(hashName, peerCert);
         const bindingData = Buffer.concat([Buffer.from("p=tls-server-end-point,,"), Buffer.from(certHash)]);
         channelBinding = bindingData.toString("base64");
       }
       const clientFinalMessageWithoutProof = "c=" + channelBinding + ",r=" + sv.nonce;
       const authMessage = clientFirstMessageBare + "," + serverFirstMessage + "," + clientFinalMessageWithoutProof;
       const saltBytes = Buffer.from(sv.salt, "base64");
-      const saltedPassword = await crypto18.deriveKey(password, saltBytes, sv.iteration);
-      const clientKey = await crypto18.hmacSha256(saltedPassword, "Client Key");
-      const storedKey = await crypto18.sha256(clientKey);
-      const clientSignature = await crypto18.hmacSha256(storedKey, authMessage);
+      const saltedPassword = await crypto17.deriveKey(password, saltBytes, sv.iteration);
+      const clientKey = await crypto17.hmacSha256(saltedPassword, "Client Key");
+      const storedKey = await crypto17.sha256(clientKey);
+      const clientSignature = await crypto17.hmacSha256(storedKey, authMessage);
       const clientProof = xorBuffers(Buffer.from(clientKey), Buffer.from(clientSignature)).toString("base64");
-      const serverKey = await crypto18.hmacSha256(saltedPassword, "Server Key");
-      const serverSignatureBytes = await crypto18.hmacSha256(serverKey, authMessage);
+      const serverKey = await crypto17.hmacSha256(saltedPassword, "Server Key");
+      const serverSignatureBytes = await crypto17.hmacSha256(serverKey, authMessage);
       session2.message = "SASLResponse";
       session2.serverSignature = Buffer.from(serverSignatureBytes).toString("base64");
       session2.response = clientFinalMessageWithoutProof + ",p=" + clientProof;
@@ -29197,7 +29197,7 @@ var require_client = __commonJS({
     var Query2 = require_query2();
     var defaults2 = require_defaults();
     var Connection2 = require_connection();
-    var crypto18 = require_utils4();
+    var crypto17 = require_utils4();
     var Client3 = class extends EventEmitter2 {
       constructor(config) {
         super();
@@ -29392,7 +29392,7 @@ var require_client = __commonJS({
       _handleAuthMD5Password(msg) {
         this._checkPgPass(async () => {
           try {
-            const hashedPassword = await crypto18.postgresMd5PasswordHash(this.user, this.password, msg.salt);
+            const hashedPassword = await crypto17.postgresMd5PasswordHash(this.user, this.password, msg.salt);
             this.connection.password(hashedPassword);
           } catch (e2) {
             this.emit("error", e2);
@@ -40311,10 +40311,10 @@ var require_disk = __commonJS({
     var fs7 = __require("fs");
     var os = __require("os");
     var path5 = __require("path");
-    var crypto18 = __require("crypto");
+    var crypto17 = __require("crypto");
     var mkdirp = require_mkdirp();
     function getFilename(req, file, cb) {
-      crypto18.randomBytes(16, function(err, raw) {
+      crypto17.randomBytes(16, function(err, raw) {
         cb(err, err ? void 0 : raw.toString("hex"));
       });
     }
@@ -51726,22 +51726,22 @@ var require_crypto2 = __commonJS({
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.NodeCrypto = void 0;
-    var crypto18 = __require("crypto");
+    var crypto17 = __require("crypto");
     var NodeCrypto = class {
       async sha256DigestBase64(str) {
-        return crypto18.createHash("sha256").update(str).digest("base64");
+        return crypto17.createHash("sha256").update(str).digest("base64");
       }
       randomBytesBase64(count2) {
-        return crypto18.randomBytes(count2).toString("base64");
+        return crypto17.randomBytes(count2).toString("base64");
       }
       async verify(pubkey, data, signature) {
-        const verifier = crypto18.createVerify("RSA-SHA256");
+        const verifier = crypto17.createVerify("RSA-SHA256");
         verifier.update(data);
         verifier.end();
         return verifier.verify(pubkey, signature, "base64");
       }
       async sign(privateKey, data) {
-        const signer = crypto18.createSign("RSA-SHA256");
+        const signer = crypto17.createSign("RSA-SHA256");
         signer.update(data);
         signer.end();
         return signer.sign(privateKey, "base64");
@@ -51759,7 +51759,7 @@ var require_crypto2 = __commonJS({
        *   string in hexadecimal encoding.
        */
       async sha256DigestHex(str) {
-        return crypto18.createHash("sha256").update(str).digest("hex");
+        return crypto17.createHash("sha256").update(str).digest("hex");
       }
       /**
        * Computes the HMAC hash of a message using the provided crypto key and the
@@ -51771,7 +51771,7 @@ var require_crypto2 = __commonJS({
        */
       async signWithHmacSha256(key, msg) {
         const cryptoKey = typeof key === "string" ? key : toBuffer(key);
-        return toArrayBuffer(crypto18.createHmac("sha256", cryptoKey).update(msg).digest());
+        return toArrayBuffer(crypto17.createHmac("sha256", cryptoKey).update(msg).digest());
       }
     };
     exports.NodeCrypto = NodeCrypto;
@@ -52491,10 +52491,10 @@ var require_oauth2client = __commonJS({
        * https://github.com/googleapis/google-auth-library-nodejs/blob/main/samples/oauth2-codeVerifier.js
        */
       async generateCodeVerifierAsync() {
-        const crypto18 = (0, crypto_1.createCrypto)();
-        const randomString = crypto18.randomBytesBase64(96);
+        const crypto17 = (0, crypto_1.createCrypto)();
+        const randomString = crypto17.randomBytesBase64(96);
         const codeVerifier = randomString.replace(/\+/g, "~").replace(/=/g, "_").replace(/\//g, "-");
-        const unencodedCodeChallenge = await crypto18.sha256DigestBase64(codeVerifier);
+        const unencodedCodeChallenge = await crypto17.sha256DigestBase64(codeVerifier);
         const codeChallenge = unencodedCodeChallenge.split("=")[0].replace(/\+/g, "-").replace(/\//g, "_");
         return { codeVerifier, codeChallenge };
       }
@@ -52938,7 +52938,7 @@ var require_oauth2client = __commonJS({
        * @return Returns a promise resolving to LoginTicket on verification.
        */
       async verifySignedJwtWithCertsAsync(jwt, certs, requiredAudience, issuers, maxExpiry) {
-        const crypto18 = (0, crypto_1.createCrypto)();
+        const crypto17 = (0, crypto_1.createCrypto)();
         if (!maxExpiry) {
           maxExpiry = _OAuth2Client.DEFAULT_MAX_TOKEN_LIFETIME_SECS_;
         }
@@ -52951,7 +52951,7 @@ var require_oauth2client = __commonJS({
         let envelope;
         let payload;
         try {
-          envelope = JSON.parse(crypto18.decodeBase64StringUtf8(segments[0]));
+          envelope = JSON.parse(crypto17.decodeBase64StringUtf8(segments[0]));
         } catch (err) {
           if (err instanceof Error) {
             err.message = `Can't parse token envelope: ${segments[0]}': ${err.message}`;
@@ -52962,7 +52962,7 @@ var require_oauth2client = __commonJS({
           throw new Error("Can't parse token envelope: " + segments[0]);
         }
         try {
-          payload = JSON.parse(crypto18.decodeBase64StringUtf8(segments[1]));
+          payload = JSON.parse(crypto17.decodeBase64StringUtf8(segments[1]));
         } catch (err) {
           if (err instanceof Error) {
             err.message = `Can't parse token payload '${segments[0]}`;
@@ -52979,7 +52979,7 @@ var require_oauth2client = __commonJS({
         if (envelope.alg === "ES256") {
           signature = formatEcdsa.joseToDer(signature, "ES256").toString("base64");
         }
-        const verified = await crypto18.verify(cert, signed, signature);
+        const verified = await crypto17.verify(cert, signed, signature);
         if (!verified) {
           throw new Error("Invalid token signature: " + jwt);
         }
@@ -53347,14 +53347,14 @@ var require_buffer_equal_constant_time = __commonJS({
 var require_jwa = __commonJS({
   "node_modules/jwa/index.js"(exports, module) {
     var Buffer4 = require_safe_buffer().Buffer;
-    var crypto18 = __require("crypto");
+    var crypto17 = __require("crypto");
     var formatEcdsa = require_ecdsa_sig_formatter();
     var util3 = __require("util");
     var MSG_INVALID_ALGORITHM = '"%s" is not a valid algorithm.\n  Supported algorithms are:\n  "HS256", "HS384", "HS512", "RS256", "RS384", "RS512", "PS256", "PS384", "PS512", "ES256", "ES384", "ES512" and "none".';
     var MSG_INVALID_SECRET = "secret must be a string or buffer";
     var MSG_INVALID_VERIFIER_KEY = "key must be a string or a buffer";
     var MSG_INVALID_SIGNER_KEY = "key must be a string, a buffer or an object";
-    var supportsKeyObjects = typeof crypto18.createPublicKey === "function";
+    var supportsKeyObjects = typeof crypto17.createPublicKey === "function";
     if (supportsKeyObjects) {
       MSG_INVALID_VERIFIER_KEY += " or a KeyObject";
       MSG_INVALID_SECRET += "or a KeyObject";
@@ -53444,17 +53444,17 @@ var require_jwa = __commonJS({
       return function sign(thing, secret) {
         checkIsSecretKey(secret);
         thing = normalizeInput(thing);
-        var hmac = crypto18.createHmac("sha" + bits, secret);
+        var hmac = crypto17.createHmac("sha" + bits, secret);
         var sig = (hmac.update(thing), hmac.digest("base64"));
         return fromBase64(sig);
       };
     }
     var bufferEqual;
-    var timingSafeEqual2 = "timingSafeEqual" in crypto18 ? function timingSafeEqual3(a, b) {
+    var timingSafeEqual2 = "timingSafeEqual" in crypto17 ? function timingSafeEqual3(a, b) {
       if (a.byteLength !== b.byteLength) {
         return false;
       }
-      return crypto18.timingSafeEqual(a, b);
+      return crypto17.timingSafeEqual(a, b);
     } : function timingSafeEqual3(a, b) {
       if (!bufferEqual) {
         bufferEqual = require_buffer_equal_constant_time();
@@ -53471,7 +53471,7 @@ var require_jwa = __commonJS({
       return function sign(thing, privateKey) {
         checkIsPrivateKey(privateKey);
         thing = normalizeInput(thing);
-        var signer = crypto18.createSign("RSA-SHA" + bits);
+        var signer = crypto17.createSign("RSA-SHA" + bits);
         var sig = (signer.update(thing), signer.sign(privateKey, "base64"));
         return fromBase64(sig);
       };
@@ -53481,7 +53481,7 @@ var require_jwa = __commonJS({
         checkIsPublicKey(publicKey);
         thing = normalizeInput(thing);
         signature = toBase64(signature);
-        var verifier = crypto18.createVerify("RSA-SHA" + bits);
+        var verifier = crypto17.createVerify("RSA-SHA" + bits);
         verifier.update(thing);
         return verifier.verify(publicKey, signature, "base64");
       };
@@ -53490,11 +53490,11 @@ var require_jwa = __commonJS({
       return function sign(thing, privateKey) {
         checkIsPrivateKey(privateKey);
         thing = normalizeInput(thing);
-        var signer = crypto18.createSign("RSA-SHA" + bits);
+        var signer = crypto17.createSign("RSA-SHA" + bits);
         var sig = (signer.update(thing), signer.sign({
           key: privateKey,
-          padding: crypto18.constants.RSA_PKCS1_PSS_PADDING,
-          saltLength: crypto18.constants.RSA_PSS_SALTLEN_DIGEST
+          padding: crypto17.constants.RSA_PKCS1_PSS_PADDING,
+          saltLength: crypto17.constants.RSA_PSS_SALTLEN_DIGEST
         }, "base64"));
         return fromBase64(sig);
       };
@@ -53504,12 +53504,12 @@ var require_jwa = __commonJS({
         checkIsPublicKey(publicKey);
         thing = normalizeInput(thing);
         signature = toBase64(signature);
-        var verifier = crypto18.createVerify("RSA-SHA" + bits);
+        var verifier = crypto17.createVerify("RSA-SHA" + bits);
         verifier.update(thing);
         return verifier.verify({
           key: publicKey,
-          padding: crypto18.constants.RSA_PKCS1_PSS_PADDING,
-          saltLength: crypto18.constants.RSA_PSS_SALTLEN_DIGEST
+          padding: crypto17.constants.RSA_PKCS1_PSS_PADDING,
+          saltLength: crypto17.constants.RSA_PSS_SALTLEN_DIGEST
         }, signature, "base64");
       };
     }
@@ -55657,14 +55657,14 @@ var require_awsrequestsigner = __commonJS({
       }
     };
     exports.AwsRequestSigner = AwsRequestSigner;
-    async function sign(crypto18, key, msg) {
-      return await crypto18.signWithHmacSha256(key, msg);
+    async function sign(crypto17, key, msg) {
+      return await crypto17.signWithHmacSha256(key, msg);
     }
-    async function getSigningKey(crypto18, key, dateStamp, region, serviceName) {
-      const kDate = await sign(crypto18, `AWS4${key}`, dateStamp);
-      const kRegion = await sign(crypto18, kDate, region);
-      const kService = await sign(crypto18, kRegion, serviceName);
-      const kSigning = await sign(crypto18, kService, "aws4_request");
+    async function getSigningKey(crypto17, key, dateStamp, region, serviceName) {
+      const kDate = await sign(crypto17, `AWS4${key}`, dateStamp);
+      const kRegion = await sign(crypto17, kDate, region);
+      const kService = await sign(crypto17, kRegion, serviceName);
+      const kSigning = await sign(crypto17, kService, "aws4_request");
       return kSigning;
     }
     async function generateAuthenticationHeaderMap(options) {
@@ -57249,24 +57249,24 @@ var require_googleauth = __commonJS({
           const signed = await client.sign(data);
           return signed.signedBlob;
         }
-        const crypto18 = (0, crypto_1.createCrypto)();
+        const crypto17 = (0, crypto_1.createCrypto)();
         if (client instanceof jwtclient_1.JWT && client.key) {
-          const sign = await crypto18.sign(client.key, data);
+          const sign = await crypto17.sign(client.key, data);
           return sign;
         }
         const creds = await this.getCredentials();
         if (!creds.client_email) {
           throw new Error("Cannot sign data without `client_email`.");
         }
-        return this.signBlob(crypto18, creds.client_email, data, endpoint);
+        return this.signBlob(crypto17, creds.client_email, data, endpoint);
       }
-      async signBlob(crypto18, emailOrUniqueId, data, endpoint) {
+      async signBlob(crypto17, emailOrUniqueId, data, endpoint) {
         const url2 = new URL(endpoint + `${emailOrUniqueId}:signBlob`);
         const res = await this.request({
           method: "POST",
           url: url2.href,
           data: {
-            payload: crypto18.encodeBase64StringUtf8(data)
+            payload: crypto17.encodeBase64StringUtf8(data)
           },
           retry: true,
           retryConfig: {
@@ -69069,7 +69069,7 @@ var require_le_unix = __commonJS({
 var require_mime_node = __commonJS({
   "node_modules/nodemailer/lib/mime-node/index.js"(exports, module) {
     "use strict";
-    var crypto18 = __require("crypto");
+    var crypto17 = __require("crypto");
     var fs7 = __require("fs");
     var punycode = require_punycode();
     var PassThrough5 = __require("stream").PassThrough;
@@ -69086,7 +69086,7 @@ var require_mime_node = __commonJS({
       constructor(contentType, options) {
         this.nodeCounter = 0;
         options = options || {};
-        this.baseBoundary = options.baseBoundary || crypto18.randomBytes(8).toString("hex");
+        this.baseBoundary = options.baseBoundary || crypto17.randomBytes(8).toString("hex");
         this.boundaryPrefix = options.boundaryPrefix || "--_NmP";
         this.disableFileAccess = !!options.disableFileAccess;
         this.disableUrlAccess = !!options.disableUrlAccess;
@@ -70029,8 +70029,8 @@ var require_mime_node = __commonJS({
       _generateMessageId() {
         return "<" + [2, 2, 2, 6].reduce(
           // crux to generate UUID-like random strings
-          (prev, len) => prev + "-" + crypto18.randomBytes(len).toString("hex"),
-          crypto18.randomBytes(4).toString("hex")
+          (prev, len) => prev + "-" + crypto17.randomBytes(len).toString("hex"),
+          crypto17.randomBytes(4).toString("hex")
         ) + "@" + // try to use the domain of the FROM address or fallback to server hostname
         (this.getEnvelope().from || this.hostname || "localhost").split("@").pop() + ">";
       }
@@ -70655,14 +70655,14 @@ var require_relaxed_body = __commonJS({
   "node_modules/nodemailer/lib/dkim/relaxed-body.js"(exports, module) {
     "use strict";
     var Transform3 = __require("stream").Transform;
-    var crypto18 = __require("crypto");
+    var crypto17 = __require("crypto");
     var RelaxedBody = class extends Transform3 {
       constructor(options) {
         super();
         options = options || {};
         this.chunkBuffer = [];
         this.chunkBufferLen = 0;
-        this.bodyHash = crypto18.createHash(options.hashAlgo || "sha1");
+        this.bodyHash = crypto17.createHash(options.hashAlgo || "sha1");
         this.remainder = "";
         this.byteLength = 0;
         this.debug = options.debug;
@@ -70765,7 +70765,7 @@ var require_sign2 = __commonJS({
     "use strict";
     var punycode = require_punycode();
     var mimeFuncs = require_mime_funcs();
-    var crypto18 = __require("crypto");
+    var crypto17 = __require("crypto");
     module.exports = (headers, hashAlgo, bodyHash, options) => {
       options = options || {};
       let defaultFieldNames = "From:Sender:Reply-To:Subject:Date:Message-ID:To:Cc:MIME-Version:Content-Type:Content-Transfer-Encoding:Content-ID:Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:List-Post:List-Owner:List-Archive";
@@ -70774,7 +70774,7 @@ var require_sign2 = __commonJS({
       let dkimHeader = generateDKIMHeader(options.domainName, options.keySelector, canonicalizedHeaderData.fieldNames, hashAlgo, bodyHash);
       let signer, signature;
       canonicalizedHeaderData.headers += "dkim-signature:" + relaxedHeaderLine(dkimHeader);
-      signer = crypto18.createSign(("rsa-" + hashAlgo).toUpperCase());
+      signer = crypto17.createSign(("rsa-" + hashAlgo).toUpperCase());
       signer.update(canonicalizedHeaderData.headers);
       try {
         signature = signer.sign(options.privateKey, "base64");
@@ -70842,7 +70842,7 @@ var require_dkim = __commonJS({
     var PassThrough5 = __require("stream").PassThrough;
     var fs7 = __require("fs");
     var path5 = __require("path");
-    var crypto18 = __require("crypto");
+    var crypto17 = __require("crypto");
     var DKIM_ALGO = "sha256";
     var MAX_MESSAGE_SIZE = 2 * 1024 * 1024;
     var DKIMSigner = class {
@@ -70855,7 +70855,7 @@ var require_dkim = __commonJS({
         this.chunks = [];
         this.chunklen = 0;
         this.readPos = 0;
-        this.cachePath = this.cacheDir ? path5.join(this.cacheDir, "message." + Date.now() + "-" + crypto18.randomBytes(14).toString("hex")) : false;
+        this.cachePath = this.cacheDir ? path5.join(this.cacheDir, "message." + Date.now() + "-" + crypto17.randomBytes(14).toString("hex")) : false;
         this.cache = false;
         this.headers = false;
         this.bodyHash = false;
@@ -71411,7 +71411,7 @@ var require_mailer = __commonJS({
     var MailMessage = require_mail_message();
     var net = __require("net");
     var dns = __require("dns");
-    var crypto18 = __require("crypto");
+    var crypto17 = __require("crypto");
     var Mail = class extends EventEmitter2 {
       constructor(transporter, options, defaults2) {
         super();
@@ -71745,7 +71745,7 @@ var require_mailer = __commonJS({
           }
           let cidCounter = 0;
           html = (html || "").toString().replace(/(<img\b[^<>]{0,1024} src\s{0,20}=[\s"']{0,20})(data:([^;]+);[^"'>\s]+)/gi, (match, prefix, dataUri, mimeType) => {
-            let cid = crypto18.randomBytes(10).toString("hex") + "@localhost";
+            let cid = crypto17.randomBytes(10).toString("hex") + "@localhost";
             if (!mail.data.attachments) {
               mail.data.attachments = [];
             }
@@ -71872,7 +71872,7 @@ var require_smtp_connection = __commonJS({
     var net = __require("net");
     var tls = __require("tls");
     var os = __require("os");
-    var crypto18 = __require("crypto");
+    var crypto17 = __require("crypto");
     var DataStream = require_data_stream2();
     var PassThrough5 = __require("stream").PassThrough;
     var shared = require_shared();
@@ -71883,7 +71883,7 @@ var require_smtp_connection = __commonJS({
     var SMTPConnection = class extends EventEmitter2 {
       constructor(options) {
         super(options);
-        this.id = crypto18.randomBytes(8).toString("base64").replace(/\W/g, "");
+        this.id = crypto17.randomBytes(8).toString("base64").replace(/\W/g, "");
         this.stage = "init";
         this.options = options || {};
         this.secureConnection = !!this.options.secure;
@@ -72983,7 +72983,7 @@ var require_smtp_connection = __commonJS({
         } else {
           challengeString = challengeMatch[1];
         }
-        let base64decoded = Buffer.from(challengeString, "base64").toString("ascii"), hmacMD5 = crypto18.createHmac("md5", this._auth.credentials.pass);
+        let base64decoded = Buffer.from(challengeString, "base64").toString("ascii"), hmacMD5 = crypto17.createHmac("md5", this._auth.credentials.pass);
         hmacMD5.update(base64decoded);
         let prepended = this._auth.credentials.user + " " + hmacMD5.digest("hex");
         this._responseActions.push((str2) => {
@@ -73294,7 +73294,7 @@ var require_xoauth2 = __commonJS({
     "use strict";
     var Stream3 = __require("stream").Stream;
     var nmfetch = require_fetch();
-    var crypto18 = __require("crypto");
+    var crypto17 = __require("crypto");
     var shared = require_shared();
     var XOAuth2 = class extends Stream3 {
       constructor(options, logger) {
@@ -73627,7 +73627,7 @@ var require_xoauth2 = __commonJS({
        */
       jwtSignRS256(payload) {
         payload = ['{"alg":"RS256","typ":"JWT"}', JSON.stringify(payload)].map((val) => this.toBase64URL(val)).join(".");
-        let signature = crypto18.createSign("RSA-SHA256").update(payload).sign(this.options.privateKey);
+        let signature = crypto17.createSign("RSA-SHA256").update(payload).sign(this.options.privateKey);
         return payload + "." + this.toBase64URL(signature);
       }
     };
@@ -91244,9 +91244,6 @@ var tenants = pgTable("tenants", {
   // Reference to themes table
   // Trial
   trialEndsAt: timestamp("trial_ends_at"),
-  // Ownership: a self-serve signup can name any OpenAlex author, so the public
-  // site stays offline until an admin approves the claim (null = not approved).
-  claimApprovedAt: timestamp("claim_approved_at"),
   // Contact
   contactEmail: varchar("contact_email"),
   notes: text("notes"),
@@ -91989,7 +91986,6 @@ var DatabaseStorage = class {
       lastName: users.lastName,
       profileImageUrl: users.profileImageUrl,
       isActive: users.isActive,
-      emailVerifiedAt: users.emailVerifiedAt,
       createdAt: users.createdAt,
       updatedAt: users.updatedAt
     }).from(users).where(eq(users.tenantId, tenantId)).orderBy(desc(users.createdAt));
@@ -92427,10 +92423,6 @@ var DatabaseStorage = class {
         trialEndsAt: null
       });
       if (metadata?.openalexId) {
-        const currentProfile = await this.getResearcherProfileByTenant(existingUser.tenantId);
-        if (currentProfile?.openalexId !== metadata.openalexId) {
-          await this.updateTenant(existingUser.tenantId, { claimApprovedAt: null });
-        }
         await this.updateTenantProfile(existingUser.tenantId, {
           openalexId: metadata.openalexId,
           currentAffiliation: metadata.affiliation,
@@ -108258,83 +108250,6 @@ async function sendPasswordResetEmail(email, firstName, resetToken) {
     })
   );
 }
-async function sendNewClaimAdminEmail(claimantEmail, claimantName, openalexId) {
-  const adminEmail = process.env.ADMIN_EMAIL || process.env.SMTP_USER;
-  if (!adminEmail) return;
-  const baseUrl = process.env.BASE_URL || "https://scholar.name";
-  const openalexLine = openalexId ? `https://openalex.org/authors/${openalexId}` : "(no OpenAlex ID yet)";
-  await sendEmail(
-    adminEmail,
-    `New profile claim to review: ${claimantName}`,
-    [
-      `${claimantName} <${claimantEmail}> signed up and claimed:`,
-      openalexLine,
-      "",
-      "Their public site stays offline until you approve the claim:",
-      `${baseUrl}/admin/customers`
-    ].join("\n"),
-    renderEmailHtml({
-      preheader: `${claimantName} claimed a researcher profile.`,
-      heading: "New profile claim to review",
-      bodyHtml: `
-        <p style="margin:0 0 14px;"><strong>${escapeEmailHtml(claimantName)}</strong> (${escapeEmailHtml(claimantEmail)}) signed up and claimed ${openalexId ? `<a href="https://openalex.org/authors/${encodeURIComponent(openalexId)}">OpenAlex author ${escapeEmailHtml(openalexId)}</a>` : "no OpenAlex profile yet"}.</p>
-        <p style="margin:0;">Their public site stays offline until you approve the claim. Check that the email or affiliation plausibly belongs to that researcher before approving.</p>
-      `,
-      ctaLabel: "Review claims",
-      ctaUrl: `${baseUrl}/admin/customers`
-    })
-  );
-}
-async function sendClaimApprovedEmail(email, firstName, siteUrl) {
-  const baseUrl = process.env.BASE_URL || "https://scholar.name";
-  await sendEmail(
-    email,
-    "Your Scholar.name portfolio is live",
-    [
-      `Hi ${firstName},`,
-      "",
-      "We've confirmed your profile claim, so your portfolio is now public.",
-      siteUrl ? `View it at: ${siteUrl}` : `Manage it at: ${baseUrl}/dashboard`,
-      "",
-      "The Scholar.name team"
-    ].join("\n"),
-    renderEmailHtml({
-      preheader: "Your Scholar.name portfolio is now public.",
-      heading: "Your portfolio is live",
-      bodyHtml: `<p style="margin:0;">Hi ${escapeEmailHtml(firstName)}, we've confirmed your profile claim, so your portfolio is now public.</p>`,
-      ctaLabel: siteUrl ? "View my portfolio" : "Open my dashboard",
-      ctaUrl: siteUrl || `${baseUrl}/dashboard`
-    })
-  );
-}
-function escapeEmailHtml(value) {
-  return value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-}
-function establishSession(req, data) {
-  return new Promise((resolve, reject) => {
-    const assignAndSave = () => {
-      req.session.userId = data.userId;
-      req.session.userRole = data.userRole;
-      req.session.isAuthenticated = true;
-      req.session.save((err) => err ? reject(err) : resolve());
-    };
-    req.session.regenerate((err) => {
-      if (err) console.error("[auth] session.regenerate failed, keeping existing session:", err);
-      assignAndSave();
-    });
-  });
-}
-async function revokeUserSessions(userId, keepSessionId) {
-  if (!pool) return;
-  try {
-    await pool.query(
-      `DELETE FROM "sessions" WHERE "sess"->>'userId' = $1 AND ($2::varchar IS NULL OR "sid" <> $2)`,
-      [userId, keepSessionId ?? null]
-    );
-  } catch (error) {
-    console.error("[auth] Failed to revoke sessions for user:", error);
-  }
-}
 function toSafeUser(user) {
   const { passwordHash, ...safeUser } = user;
   return safeUser;
@@ -108396,20 +108311,18 @@ router.post("/register", registerRateLimit, async (req, res) => {
     if (validatedData.openalexId) {
       openalexService.syncResearcherData(validatedData.openalexId).then(() => storage.updateTenantProfile(tenant.id, { lastSyncedAt: /* @__PURE__ */ new Date() })).catch((err) => console.error("[auth] Failed to sync OpenAlex data after signup:", err));
     }
-    sendNewClaimAdminEmail(
-      validatedData.email,
-      `${validatedData.firstName} ${validatedData.lastName || ""}`.trim(),
-      validatedData.openalexId
-    ).catch((err) => console.error("[auth] Failed to send new-claim admin email:", err));
-    try {
-      await establishSession(req, { userId: user.id, userRole: user.role });
-    } catch (err) {
-      console.error("Session save error after register:", err);
-      return res.status(500).json({ message: "Registration failed" });
-    }
-    return res.status(201).json({
-      message: "Registration successful",
-      user: toSafeUser(user)
+    req.session.userId = user.id;
+    req.session.userRole = user.role;
+    req.session.isAuthenticated = true;
+    req.session.save((err) => {
+      if (err) {
+        console.error("Session save error after register:", err);
+        return res.status(500).json({ message: "Registration failed" });
+      }
+      return res.status(201).json({
+        message: "Registration successful",
+        user: toSafeUser(user)
+      });
     });
   } catch (error) {
     if (error instanceof z.ZodError) {
@@ -108422,13 +108335,11 @@ router.post("/register", registerRateLimit, async (req, res) => {
     return res.status(500).json({ message: "Registration failed" });
   }
 });
-var DUMMY_PASSWORD_HASH = bcryptjs_default.hashSync("timing-equalizer-not-a-real-password", 12);
 router.post("/login", loginRateLimit, async (req, res) => {
   try {
     const validatedData = loginUserSchema.parse(req.body);
     const user = await storage.getUserByEmail(validatedData.email);
     if (!user) {
-      await bcryptjs_default.compare(validatedData.password, DUMMY_PASSWORD_HASH);
       return res.status(401).json({ message: "Invalid email or password" });
     }
     if (!user.isActive) {
@@ -108444,15 +108355,18 @@ router.post("/login", loginRateLimit, async (req, res) => {
     if (!isValidPassword) {
       return res.status(401).json({ message: "Invalid email or password" });
     }
-    try {
-      await establishSession(req, { userId: user.id, userRole: user.role });
-    } catch (err) {
-      console.error("Session save error:", err);
-      return res.status(500).json({ message: "Login failed" });
-    }
-    return res.json({
-      message: "Login successful",
-      user: toSafeUser(user)
+    req.session.userId = user.id;
+    req.session.userRole = user.role;
+    req.session.isAuthenticated = true;
+    req.session.save((err) => {
+      if (err) {
+        console.error("Session save error:", err);
+        return res.status(500).json({ message: "Login failed" });
+      }
+      return res.json({
+        message: "Login successful",
+        user: toSafeUser(user)
+      });
     });
   } catch (error) {
     if (error instanceof z.ZodError) {
@@ -108533,14 +108447,16 @@ router.patch("/password", isAuthenticated, async (req, res) => {
     }
     const newPasswordHash = await bcryptjs_default.hash(newPassword, 12);
     await storage.updateUser(userId, { passwordHash: newPasswordHash });
-    try {
-      await establishSession(req, { userId, userRole: user.role });
-    } catch (err) {
-      console.error("Session save error after password change:", err);
-      return res.status(500).json({ message: "Failed to update password" });
-    }
-    await revokeUserSessions(userId, req.sessionID);
-    return res.json({ message: "Password updated successfully" });
+    req.session.userId = userId;
+    req.session.userRole = user.role;
+    req.session.isAuthenticated = true;
+    req.session.save((err) => {
+      if (err) {
+        console.error("Session save error after password change:", err);
+        return res.status(500).json({ message: "Failed to update password" });
+      }
+      return res.json({ message: "Password updated successfully" });
+    });
   } catch (error) {
     if (error instanceof z.ZodError) {
       return res.status(400).json({
@@ -108574,7 +108490,7 @@ router.post("/forgot-password", registerRateLimit, async (req, res) => {
     return res.status(500).json({ message: "Failed to process request" });
   }
 });
-router.post("/reset-password", registerRateLimit, async (req, res) => {
+router.post("/reset-password", async (req, res) => {
   try {
     const { token, newPassword } = resetPasswordSchema.parse(req.body);
     const resetToken = await storage.getPasswordResetToken(token);
@@ -108590,7 +108506,6 @@ router.post("/reset-password", registerRateLimit, async (req, res) => {
     const newPasswordHash = await bcryptjs_default.hash(newPassword, 12);
     await storage.updateUser(resetToken.userId, { passwordHash: newPasswordHash });
     await storage.markPasswordResetTokenUsed(token);
-    await revokeUserSessions(resetToken.userId);
     return res.json({ message: "Password updated successfully. You can now log in." });
   } catch (error) {
     if (error instanceof z.ZodError) {
@@ -109151,7 +109066,7 @@ var adminLoginSchema = z.object({
   email: z.string().email("Invalid email"),
   password: z.string().min(1, "Password is required")
 });
-router3.post("/login", loginRateLimit, async (req, res) => {
+router3.post("/login", async (req, res) => {
   try {
     const { email, password } = adminLoginSchema.parse(req.body);
     const user = await storage.getUserByEmail(email);
@@ -109330,9 +109245,7 @@ router3.post("/tenants", isAuthenticated, isAdmin, async (req, res) => {
       ...validatedData,
       status: "pending",
       plan: validatedData.plan,
-      syncFrequency: "monthly",
-      // Admin-created customers are vetted by whoever creates them.
-      claimApprovedAt: /* @__PURE__ */ new Date()
+      syncFrequency: "monthly"
     });
     await storage.upsertResearcherProfile({
       tenantId: tenant.id,
@@ -109552,53 +109465,6 @@ router3.post("/tenants/:id/activate", isAuthenticated, isAdmin, async (req, res)
     return res.status(500).json({ message: "Failed to activate tenant" });
   }
 });
-function prependAdminNote(existingNotes, action) {
-  const line2 = `[${(/* @__PURE__ */ new Date()).toISOString().slice(0, 10)}] ${action}`;
-  return existingNotes ? `${line2}
-${existingNotes}` : line2;
-}
-router3.post("/tenants/:id/approve-claim", isAuthenticated, isAdmin, async (req, res) => {
-  try {
-    const tenant = await storage.getTenant(req.params.id);
-    if (!tenant) {
-      return res.status(404).json({ message: "Tenant not found" });
-    }
-    const usersList = await storage.getUsersByTenant(tenant.id);
-    const verifiedUser = usersList.find((u) => u.emailVerifiedAt);
-    if (!verifiedUser) {
-      return res.status(400).json({ message: "The account holder hasn't verified their email yet. Approve once they have." });
-    }
-    const updatedTenant = await storage.updateTenant(tenant.id, {
-      claimApprovedAt: /* @__PURE__ */ new Date(),
-      notes: prependAdminNote(tenant.notes, "Ownership claim approved")
-    });
-    if (!tenant.claimApprovedAt) {
-      const domainsList = await storage.getDomainsByTenant(tenant.id);
-      const primary = domainsList.find((d) => d.isPrimary) || domainsList[0];
-      sendClaimApprovedEmail(verifiedUser.email, verifiedUser.firstName || "there", primary ? `https://${primary.hostname}` : null).catch((err) => console.error("Claim-approved email failed:", err));
-    }
-    return res.json({ message: "Claim approved", tenant: updatedTenant });
-  } catch (error) {
-    console.error("Approve claim error:", error);
-    return res.status(500).json({ message: "Failed to approve claim" });
-  }
-});
-router3.post("/tenants/:id/revoke-claim", isAuthenticated, isAdmin, async (req, res) => {
-  try {
-    const tenant = await storage.getTenant(req.params.id);
-    if (!tenant) {
-      return res.status(404).json({ message: "Tenant not found" });
-    }
-    const updatedTenant = await storage.updateTenant(tenant.id, {
-      claimApprovedAt: null,
-      notes: prependAdminNote(tenant.notes, "Ownership claim approval revoked")
-    });
-    return res.json({ message: "Claim approval revoked", tenant: updatedTenant });
-  } catch (error) {
-    console.error("Revoke claim error:", error);
-    return res.status(500).json({ message: "Failed to revoke claim" });
-  }
-});
 var statusTransitionSchema = z.object({
   status: z.enum(TENANT_STATUSES),
   reason: z.string().optional()
@@ -109712,14 +109578,6 @@ function getTenantAccessState(tenant, now = /* @__PURE__ */ new Date()) {
 function tenantHasServiceAccess(tenant, now = /* @__PURE__ */ new Date()) {
   return getTenantAccessState(tenant, now) === "active";
 }
-function getPublicAccessState(tenant, now = /* @__PURE__ */ new Date()) {
-  const state = getTenantAccessState(tenant, now);
-  if (state === "active" && !tenant.claimApprovedAt) return "pending_review";
-  return state;
-}
-function tenantIsPubliclyVisible(tenant, now = /* @__PURE__ */ new Date()) {
-  return getPublicAccessState(tenant, now) === "active";
-}
 function getTenantAccessMessage(state) {
   switch (state) {
     case "trial_expired":
@@ -109732,8 +109590,6 @@ function getTenantAccessMessage(state) {
       return "This portfolio is cancelled.";
     case "pending":
       return "This portfolio is pending activation.";
-    case "pending_review":
-      return "This portfolio is awaiting ownership review and isn't public yet.";
     case "active":
     default:
       return "This portfolio is active.";
@@ -109848,8 +109704,7 @@ router4.get("/my-tenant", isAuthenticated, async (req, res) => {
         ...tenant,
         accessState,
         accessMessage: getTenantAccessMessage(accessState),
-        hasServiceAccess: tenantHasServiceAccess(tenant),
-        claimApproved: !!tenant.claimApprovedAt
+        hasServiceAccess: tenantHasServiceAccess(tenant)
       }
     });
   } catch (error) {
@@ -109913,20 +109768,8 @@ router4.patch("/profile", isAuthenticated, async (req, res) => {
         errors: validation.error.errors
       });
     }
-    const updates = validation.data;
-    const existingProfile = await storage.getResearcherProfileByTenant(user.tenantId);
-    const openalexIdChanged = updates.openalexId !== void 0 && (updates.openalexId || null) !== (existingProfile?.openalexId || null);
-    if (openalexIdChanged && updates.openalexId) {
-      const claimedElsewhere = await storage.getResearcherProfileByOpenalexId(updates.openalexId);
-      if (claimedElsewhere && claimedElsewhere.tenantId && claimedElsewhere.tenantId !== user.tenantId) {
-        return res.status(409).json({ message: "This researcher profile is already claimed by another account." });
-      }
-    }
-    const profile = await storage.updateTenantProfile(user.tenantId, updates);
-    if (openalexIdChanged) {
-      await storage.updateTenant(user.tenantId, { claimApprovedAt: null });
-    }
-    res.json({ profile, claimReviewRequired: openalexIdChanged });
+    const profile = await storage.updateTenantProfile(user.tenantId, validation.data);
+    res.json({ profile });
   } catch (error) {
     console.error("Error updating profile:", error);
     res.status(500).json({ message: "Failed to update profile" });
@@ -110467,24 +110310,16 @@ var MontyPayService = class {
       checkoutHost: process.env.MONTYPAY_CHECKOUT_HOST || "https://checkout.montypay.com"
     };
   }
-  // MontyPay (Akurateco) signature: sha1(md5(UPPER(fields... + merchant password))).
-  // secretKey is the merchant *password* from the MontyPay admin panel.
-  sign(values) {
-    const raw = (values.map(String).join("") + this.config.secretKey).toUpperCase();
-    const md53 = crypto15.createHash("md5").update(raw).digest("hex");
-    return crypto15.createHash("sha1").update(md53).digest("hex");
-  }
   generateHash(payload) {
-    const { number, amount, currency, description } = payload.order;
-    return this.sign([number, amount, currency, description]);
-  }
-  /** Verify a server-to-server callback (form-encoded POST to notification_url). */
-  verifyCallback(body) {
-    if (!this.config.secretKey || typeof body?.hash !== "string") return false;
-    const expected = this.sign([body.id, body.order_number, body.order_amount, body.order_currency, body.order_description]);
-    const a = Buffer.from(expected, "utf8");
-    const b = Buffer.from(body.hash.toLowerCase(), "utf8");
-    return a.length === b.length && crypto15.timingSafeEqual(a, b);
+    const sortedKeys = Object.keys(payload).sort();
+    const dataString = sortedKeys.map((key) => {
+      const value = payload[key];
+      if (typeof value === "object" && value !== null) {
+        return JSON.stringify(value);
+      }
+      return String(value);
+    }).join("");
+    return crypto15.createHmac("sha256", this.config.secretKey).update(dataString + this.config.secretKey).digest("hex");
   }
   async createCheckoutSession(params) {
     if (!this.config.merchantKey || !this.config.secretKey) {
@@ -110701,16 +110536,29 @@ router5.post("/create-session", async (req, res) => {
 });
 router5.post("/webhook", async (req, res) => {
   try {
-    if (!montyPayService.verifyCallback(req.body)) {
-      console.warn("Webhook rejected: invalid or missing hash");
+    const webhookSecret = process.env.MONTYPAY_WEBHOOK_SECRET || process.env.WEBHOOK_SECRET;
+    if (!webhookSecret) {
+      console.error("WEBHOOK_SECRET not set \u2014 rejecting webhook to avoid processing unverified payment events");
+      return res.status(503).send("Webhook verification not configured");
+    }
+    const rawSig = req.headers["x-webhook-signature"] || req.headers["x-signature"];
+    const signature = Array.isArray(rawSig) ? rawSig[0] : rawSig;
+    if (!signature) {
+      console.warn("Webhook rejected: missing signature header");
+      return res.status(403).send("Forbidden");
+    }
+    const expectedSig = crypto16.createHmac("sha256", webhookSecret).update(JSON.stringify(req.body)).digest("hex");
+    const expectedBuf = Buffer.from(expectedSig, "hex");
+    const receivedBuf = Buffer.from(signature, "hex");
+    if (expectedBuf.length !== receivedBuf.length || !crypto16.timingSafeEqual(expectedBuf, receivedBuf)) {
+      console.warn("Webhook rejected: invalid signature");
       return res.status(403).send("Forbidden");
     }
     const payload = req.body;
-    console.log(`MontyPay callback: order=${payload.order_number} type=${payload.type} status=${payload.status} order_status=${payload.order_status}`);
-    const orderNumber = payload.order_number;
-    const transactionId = payload.id;
-    const isPaid = payload.type === "sale" && payload.status === "success";
-    const isFailed = payload.status === "fail";
+    console.log("MontyPay webhook received:", JSON.stringify(payload, null, 2));
+    const orderNumber = payload.order?.number;
+    const status = payload.result || payload.status;
+    const transactionId = payload.transaction_id;
     if (!orderNumber) {
       console.warn("Webhook missing order number");
       return res.send("OK");
@@ -110720,11 +110568,7 @@ router5.post("/webhook", async (req, res) => {
       console.warn(`Payment not found for order: ${orderNumber}`);
       return res.send("OK");
     }
-    if (isPaid && Number(payload.order_amount) !== Number(payment.amount)) {
-      console.error(`Webhook amount mismatch for ${orderNumber}: paid ${payload.order_amount}, expected ${payment.amount}`);
-      return res.send("OK");
-    }
-    if (isPaid) {
+    if (status === "SUCCESS" || status === "SETTLED") {
       await storage.updatePaymentStatus(orderNumber, "completed", transactionId);
       if (payment.tenantId) {
         console.log(`Tenant already provisioned for order ${orderNumber}, skipping`);
@@ -110733,14 +110577,9 @@ router5.post("/webhook", async (req, res) => {
         console.log(`Tenant provisioned for payment ${orderNumber}:`, tenant?.id);
         if (tenant) {
           sendWelcomeEmail(payment.customerEmail, payment.customerName, tenant.id).catch((err) => console.error("Welcome email failed:", err));
-          const provisioned = await storage.getTenant(tenant.id);
-          if (provisioned && !provisioned.claimApprovedAt) {
-            const metadata = payment.metadata;
-            sendNewClaimAdminEmail(payment.customerEmail, payment.customerName, metadata?.openalexId).catch((err) => console.error("New-claim admin email failed:", err));
-          }
         }
       }
-    } else if (isFailed) {
+    } else if (status === "DECLINE" || status === "ERROR") {
       await storage.updatePaymentStatus(orderNumber, "failed", transactionId);
     }
     res.send("OK");
@@ -110842,7 +110681,6 @@ var REQUIRED_COLUMNS = {
     "trial_ends_at",
     "contact_email",
     "notes",
-    "claim_approved_at",
     "created_at",
     "updated_at"
   ],
@@ -111029,133 +110867,6 @@ async function checkDatabaseHealth() {
 import fs5 from "fs";
 import path3 from "path";
 import { fileURLToPath } from "url";
-
-// shared/siteMeta.ts
-var SITE_ORIGIN = "https://scholar.name";
-var DEFAULT_OG_IMAGE = `${SITE_ORIGIN}/og-image.jpg`;
-var PUBLIC_ROUTES = {
-  "/": {
-    title: "Scholar.name \u2014 Academic Portfolio Website for Researchers",
-    description: "Professional research portfolios for academics. Showcase publications, citations & impact \u2014 auto-updated from OpenAlex.",
-    sitemap: { priority: "1.0", changefreq: "weekly" }
-  },
-  "/features": {
-    title: "Features \u2014 Scholar.name",
-    description: "Auto-syncing publications, citation analytics, customizable themes, and more. See everything Scholar.name offers researchers.",
-    sitemap: { priority: "0.8", changefreq: "monthly" }
-  },
-  "/pricing": {
-    title: "Pricing \u2014 Scholar.name",
-    description: "Simple, transparent pricing for professional research portfolios.",
-    sitemap: { priority: "0.8", changefreq: "monthly" }
-  },
-  "/faq": {
-    title: "FAQ \u2014 Scholar.name",
-    description: "Frequently asked questions about Scholar.name \u2014 data sources, pricing, custom domains, cancellation, and more.",
-    sitemap: { priority: "0.6", changefreq: "monthly" }
-  },
-  "/about": {
-    title: "About Scholar.name \u2014 Our Mission & Team",
-    description: "Learn about Scholar.name, our mission to help researchers showcase their work, how we source data, and our commitment to accuracy and privacy.",
-    sitemap: { priority: "0.5", changefreq: "monthly" }
-  },
-  "/contact": {
-    title: "Enterprise & Institutions \u2014 Scholar.name",
-    description: "Bring Scholar.name to your entire department or institution. Contact us for group and enterprise pricing.",
-    sitemap: { priority: "0.6", changefreq: "monthly" }
-  },
-  "/demo": {
-    title: "Demo Profile \u2014 Scholar.name",
-    description: "See what a Scholar.name research portfolio looks like. Preview publication analytics, career timeline, and more.",
-    sitemap: { priority: "0.5", changefreq: "monthly" }
-  },
-  "/blog": {
-    title: "Blog \u2014 Scholar.name | Research Portfolio & Academic Career Resources",
-    description: "Practical guides on academic portfolios, research metrics, career visibility, and how to stand out as a researcher online.",
-    sitemap: { priority: "0.7", changefreq: "weekly" }
-  },
-  "/blog/google-scholar-vs-scholar-name": {
-    title: "Google Scholar Profile vs. Scholar.name: Which Is Better for Researchers?",
-    description: "Google Scholar is the default for academics \u2014 but it was never designed as a portfolio. Here's what it can't do, and how Scholar.name fills the gap.",
-    sitemap: { priority: "0.6", changefreq: "monthly" }
-  },
-  "/blog/what-is-h-index": {
-    title: "What Is an H-Index and How Do You Track It?",
-    description: "The h-index is one of the most cited metrics in academic hiring and grant evaluation. Here's what it means, how it's calculated, and how to monitor yours automatically.",
-    sitemap: { priority: "0.6", changefreq: "monthly" }
-  },
-  "/blog/how-to-create-academic-portfolio": {
-    title: "How to Create an Academic Portfolio Website (Step by Step)",
-    description: "A complete guide to building a professional academic portfolio \u2014 what to include, which tools to choose, and how to keep it updated without spending hours on maintenance.",
-    sitemap: { priority: "0.6", changefreq: "monthly" }
-  },
-  "/blog/best-website-builders-researchers": {
-    title: "Best Personal Website Builders for Researchers in 2026",
-    description: "Comparing WordPress, Squarespace, Google Sites, ORCID, and Scholar.name \u2014 across setup time, cost, design quality, and the one feature most tools miss.",
-    sitemap: { priority: "0.6", changefreq: "monthly" }
-  },
-  "/blog/academic-cv-vs-research-portfolio": {
-    title: "Academic CV vs. Research Portfolio Website: What's the Difference?",
-    description: "Your CV and your portfolio website serve different audiences at different moments. Here's how to think about both \u2014 and why every researcher needs each one.",
-    sitemap: { priority: "0.6", changefreq: "monthly" }
-  },
-  "/privacy": {
-    title: "Privacy Policy \u2014 Scholar.name",
-    description: "Learn how Scholar.name collects, uses, and protects your personal information.",
-    sitemap: { priority: "0.3", changefreq: "monthly" }
-  },
-  "/terms": {
-    title: "Terms of Service \u2014 Scholar.name",
-    description: "Terms and conditions governing your use of Scholar.name research portfolio service.",
-    sitemap: { priority: "0.3", changefreq: "monthly" }
-  }
-};
-var PRIVATE_ROUTES = {
-  "/signup": "Sign Up \u2014 Scholar.name",
-  "/login": "Sign In \u2014 Scholar.name",
-  "/forgot-password": "Forgot Password \u2014 Scholar.name",
-  "/reset-password": "Reset Password \u2014 Scholar.name",
-  "/verify-email": "Verify Email \u2014 Scholar.name",
-  "/dashboard": "Dashboard \u2014 Scholar.name",
-  "/dashboard/login": "Sign In \u2014 Scholar.name",
-  "/checkout": "Checkout \u2014 Scholar.name",
-  "/checkout/success": "Payment Successful \u2014 Scholar.name",
-  "/checkout/cancel": "Payment Cancelled \u2014 Scholar.name",
-  "/admin": "Admin \u2014 Scholar.name",
-  "/admin/login": "Admin Sign In \u2014 Scholar.name",
-  "/admin/themes": "Admin \u2014 Scholar.name",
-  "/admin/users": "Admin \u2014 Scholar.name",
-  "/admin/customers": "Admin \u2014 Scholar.name",
-  "/admin/payments": "Admin \u2014 Scholar.name",
-  "/admin/sync": "Admin \u2014 Scholar.name"
-};
-var PRIVATE_PATTERNS = [/^\/admin\/customers\/[^/]+$/];
-var NOT_FOUND_META = {
-  title: "Page Not Found \u2014 Scholar.name",
-  description: "The page you're looking for doesn't exist.",
-  noindex: true
-};
-function normalizePath(path5) {
-  const clean = path5.split("?")[0].split("#")[0];
-  return clean.length > 1 ? clean.replace(/\/+$/, "") : "/";
-}
-function getMarketingRouteMeta(path5) {
-  const p = normalizePath(path5);
-  if (PUBLIC_ROUTES[p]) return PUBLIC_ROUTES[p];
-  if (PRIVATE_ROUTES[p] || PRIVATE_PATTERNS.some((re) => re.test(p))) {
-    return {
-      title: PRIVATE_ROUTES[p] || "Admin \u2014 Scholar.name",
-      description: PUBLIC_ROUTES["/"].description,
-      noindex: true
-    };
-  }
-  return null;
-}
-function getSitemapRoutes() {
-  return Object.entries(PUBLIC_ROUTES).filter(([, meta]) => meta.sitemap).map(([path5, meta]) => ({ path: path5, ...meta.sitemap }));
-}
-
-// server/renderIndexHtml.ts
 var __dirname2 = path3.dirname(fileURLToPath(import.meta.url));
 var cachedTemplate = null;
 function loadTemplate() {
@@ -111182,22 +110893,16 @@ function renderIndexHtml(meta) {
     `<meta property="og:type" content="${type}" />`,
     `<meta property="og:url" content="${url2}" />`,
     `<meta property="og:site_name" content="Scholar.name" />`,
-    `<meta name="twitter:card" content="summary_large_image" />`,
+    `<meta name="twitter:card" content="${meta.image ? "summary_large_image" : "summary"}" />`,
     `<meta name="twitter:title" content="${title}" />`,
     `<meta name="twitter:description" content="${description}" />`
   ];
   if (meta.image) {
     const image = escapeHtml2(meta.image);
     tags.push(`<meta property="og:image" content="${image}" />`);
-    tags.push(`<meta name="twitter:image" content="${image}" />`);
-  } else {
-    tags.push(`<meta property="og:image" content="${DEFAULT_OG_IMAGE}" />`);
     tags.push(`<meta property="og:image:width" content="1200" />`);
     tags.push(`<meta property="og:image:height" content="630" />`);
-    tags.push(`<meta name="twitter:image" content="${DEFAULT_OG_IMAGE}" />`);
-  }
-  if (meta.noindex) {
-    tags.push(`<meta name="robots" content="noindex, nofollow" />`);
+    tags.push(`<meta name="twitter:image" content="${image}" />`);
   }
   return html.replace("</head>", `${tags.join("\n    ")}
   </head>`);
@@ -111735,11 +111440,6 @@ async function registerRoutes(app2) {
     }
     return { data: await request, cacheStatus: coalesced ? "COALESCED" : "MISS" };
   };
-  const isProfilePubliclyVisible = async (profile) => {
-    if (!profile?.isPublic || !profile.tenantId) return false;
-    const tenant = await storage.getTenant(profile.tenantId).catch(() => void 0);
-    return !!tenant && tenantIsPubliclyVisible(tenant);
-  };
   const sendPreviewResponse = async (req, res, openalexId, claimState, accessState) => {
     const requestId = req.get("x-request-id") || randomUUID2();
     try {
@@ -111768,17 +111468,27 @@ async function registerRoutes(app2) {
   };
   app2.get("/sitemap.xml", async (_req, res) => {
     const today = (/* @__PURE__ */ new Date()).toISOString().slice(0, 10);
-    const staticUrls = getSitemapRoutes().map((r2) => ({
-      loc: `${SITE_ORIGIN}${r2.path}`,
-      priority: r2.priority,
-      changefreq: r2.changefreq
-    }));
+    const staticUrls = [
+      { loc: "https://scholar.name/", priority: "1.0", changefreq: "weekly" },
+      { loc: "https://scholar.name/features", priority: "0.8", changefreq: "monthly" },
+      { loc: "https://scholar.name/pricing", priority: "0.8", changefreq: "monthly" },
+      { loc: "https://scholar.name/faq", priority: "0.6", changefreq: "monthly" },
+      { loc: "https://scholar.name/contact", priority: "0.6", changefreq: "monthly" },
+      { loc: "https://scholar.name/blog", priority: "0.7", changefreq: "weekly" },
+      { loc: "https://scholar.name/blog/google-scholar-vs-scholar-name", priority: "0.6", changefreq: "monthly" },
+      { loc: "https://scholar.name/blog/what-is-h-index", priority: "0.6", changefreq: "monthly" },
+      { loc: "https://scholar.name/blog/how-to-create-academic-portfolio", priority: "0.6", changefreq: "monthly" },
+      { loc: "https://scholar.name/blog/best-website-builders-researchers", priority: "0.6", changefreq: "monthly" },
+      { loc: "https://scholar.name/blog/academic-cv-vs-research-portfolio", priority: "0.6", changefreq: "monthly" },
+      { loc: "https://scholar.name/privacy", priority: "0.3", changefreq: "monthly" },
+      { loc: "https://scholar.name/terms", priority: "0.3", changefreq: "monthly" }
+    ];
     const tenantUrls = [];
     try {
       if (pool) {
         const tenants2 = await storage.getAllTenants();
         for (const tenant of tenants2) {
-          if (!tenantIsPubliclyVisible(tenant)) continue;
+          if (!tenantHasServiceAccess(tenant)) continue;
           const profile = await storage.getResearcherProfileByTenant(tenant.id).catch(() => null);
           if (!profile?.isPublic || !profile.openalexId) continue;
           const domains2 = await storage.getDomainsByTenant(tenant.id).catch(() => []);
@@ -111804,8 +111514,7 @@ async function registerRoutes(app2) {
   app2.get("/researcher/:openalexId", async (req, res, next) => {
     try {
       const { openalexId } = req.params;
-      const storedProfile = pool ? await storage.getResearcherProfileByOpenalexId(openalexId).catch(() => null) : null;
-      const profile = storedProfile && await isProfilePubliclyVisible(storedProfile) ? storedProfile : null;
+      const profile = pool ? await storage.getResearcherProfileByOpenalexId(openalexId).catch(() => null) : null;
       const researcherData = await storage.getOpenalexData(openalexId, "researcher").catch(() => null);
       let liveResearcher = researcherData?.data;
       if (!liveResearcher) {
@@ -111823,10 +111532,7 @@ async function registerRoutes(app2) {
         description,
         image,
         url: `https://scholar.name/researcher/${openalexId}`,
-        type: "profile",
-        // Previews exist for every OpenAlex author; only index profiles a
-        // researcher has actually claimed and published.
-        noindex: !profile
+        type: "profile"
       });
       res.set("Content-Type", "text/html");
       res.send(html);
@@ -111850,7 +111556,7 @@ async function registerRoutes(app2) {
       }
       if (!req.tenant || req.isMarketingSite) return next();
       const profile = await storage.getResearcherProfileByTenant(req.tenant.id).catch(() => null);
-      if (!profile || !profile.openalexId || !profile.isPublic || !tenantIsPubliclyVisible(req.tenant)) return next();
+      if (!profile || !profile.openalexId || !profile.isPublic) return next();
       const researcherData = await storage.getOpenalexData(profile.openalexId, "researcher").catch(() => null);
       const liveResearcher = researcherData?.data;
       const displayName = titleCaseName(profile.displayName) || titleCaseName(liveResearcher?.display_name) || req.tenant.name || "Researcher";
@@ -111932,7 +111638,7 @@ async function registerRoutes(app2) {
           tenant: null
         });
       }
-      const accessState = getPublicAccessState(tenant);
+      const accessState = getTenantAccessState(tenant);
       const profile = await storage.getResearcherProfileByTenant(tenant.id);
       return res.json({
         isTenantSite: true,
@@ -111967,7 +111673,7 @@ async function registerRoutes(app2) {
       if (!tenant) {
         return res.status(404).json({ message: "No tenant found for this domain" });
       }
-      const accessState = getPublicAccessState(tenant);
+      const accessState = getTenantAccessState(tenant);
       const profile = await storage.getResearcherProfileByTenant(tenant.id);
       if (!profile || !profile.openalexId) {
         return res.status(404).json({
@@ -111976,7 +111682,7 @@ async function registerRoutes(app2) {
           tenantStatus: tenant.status
         });
       }
-      if (!tenantIsPubliclyVisible(tenant) || !profile.isPublic) {
+      if (!tenantHasServiceAccess(tenant) || !profile.isPublic) {
         return sendPreviewResponse(req, res, profile.openalexId, "inactive", accessState);
       }
       const researcherData = await storage.getOpenalexData(profile.openalexId, "researcher");
@@ -112041,8 +111747,8 @@ async function registerRoutes(app2) {
       if (!tenant) {
         return sendPreviewResponse(req, res, openalexId, "orphaned");
       }
-      const accessState = getPublicAccessState(tenant);
-      if (!profile.isPublic || !tenantIsPubliclyVisible(tenant)) {
+      const accessState = getTenantAccessState(tenant);
+      if (!profile.isPublic || !tenantHasServiceAccess(tenant)) {
         return sendPreviewResponse(req, res, openalexId, "inactive", accessState);
       }
       const [researcherData, researchTopics2, publications2, affiliations2, profileSections2] = await Promise.all([
@@ -112550,7 +112256,7 @@ async function registerRoutes(app2) {
       }
       const profile = await storage.getResearcherProfileByOpenalexId(openalexId);
       const tenant = req.tenant;
-      const isAuthorized = profile && (await isProfilePubliclyVisible(profile) || tenant && profile.tenantId === tenant.id);
+      const isAuthorized = profile && (profile.isPublic || tenant && profile.tenantId === tenant.id);
       if (profile && !isAuthorized) {
         return res.status(404).json({ message: "Researcher not found or not public" });
       }
@@ -112625,7 +112331,7 @@ async function registerRoutes(app2) {
     try {
       const { openalexId } = req.params;
       const profile = await storage.getResearcherProfileByOpenalexId(openalexId);
-      if (!profile || !await isProfilePubliclyVisible(profile)) {
+      if (!profile || !profile.isPublic) {
         return res.status(404).json({ message: "Researcher not found or not public" });
       }
       const researcherData = await storage.getOpenalexData(openalexId, "researcher");
@@ -113090,30 +112796,9 @@ function serveStatic(app2) {
     }
   }
   app2.use("/uploads", import_express6.default.static(uploadsPath));
-  app2.use(import_express6.default.static(distPath, { index: false }));
-  app2.use("*", (req, res) => {
-    const pathname = normalizePath(req.originalUrl);
-    if (path4.extname(pathname)) {
-      return res.status(404).type("text/plain").send("Not found");
-    }
-    if (req.tenant) {
-      const tenantRoutes = ["/", "/dashboard", "/dashboard/login", "/privacy", "/terms"];
-      const known = tenantRoutes.includes(pathname);
-      const html2 = renderIndexHtml({
-        title: known ? req.tenant.name : NOT_FOUND_META.title,
-        description: known ? `${req.tenant.name} \u2014 research portfolio` : NOT_FOUND_META.description,
-        url: `https://${req.hostname}${pathname === "/" ? "/" : pathname}`,
-        noindex: !known || pathname.startsWith("/dashboard")
-      });
-      return res.status(known ? 200 : 404).type("html").send(html2);
-    }
-    const isProfilePath = /^\/researcher\/[^/]+$/.test(pathname);
-    const meta = isProfilePath ? { title: "Research Profile \u2014 Scholar.name", description: NOT_FOUND_META.description, noindex: true } : getMarketingRouteMeta(pathname);
-    const html = renderIndexHtml({
-      ...meta || NOT_FOUND_META,
-      url: `${SITE_ORIGIN}${pathname}`
-    });
-    return res.status(meta ? 200 : 404).type("html").send(html);
+  app2.use(import_express6.default.static(distPath));
+  app2.use("*", (_req, res) => {
+    res.sendFile(path4.resolve(distPath, "index.html"));
   });
 }
 
@@ -113423,8 +113108,6 @@ async function runMigrations() {
     await run("tenants.created_at", `ALTER TABLE "tenants" ADD COLUMN IF NOT EXISTS "created_at" timestamp DEFAULT now();`);
     await run("tenants.updated_at", `ALTER TABLE "tenants" ADD COLUMN IF NOT EXISTS "updated_at" timestamp DEFAULT now();`);
     await run("tenants.id_default", `ALTER TABLE "tenants" ALTER COLUMN "id" SET DEFAULT gen_random_uuid();`);
-    await run("tenants.claim_approved_at", `ALTER TABLE "tenants" ADD COLUMN IF NOT EXISTS "claim_approved_at" timestamp DEFAULT now();`);
-    await run("tenants.claim_approved_at_default", `ALTER TABLE "tenants" ALTER COLUMN "claim_approved_at" DROP DEFAULT;`);
     await run("tenants.monthly_sync_frequency", `UPDATE "tenants" SET "sync_frequency" = 'monthly' WHERE "sync_frequency" IS DISTINCT FROM 'monthly';`);
     await run("researcher_profiles.openalex_id", `ALTER TABLE "researcher_profiles" ADD COLUMN IF NOT EXISTS "openalex_id" varchar;`);
     await run("researcher_profiles.display_name", `ALTER TABLE "researcher_profiles" ADD COLUMN IF NOT EXISTS "display_name" text;`);
@@ -113644,19 +113327,8 @@ async function runMigrations() {
 }
 
 // server/index-production.ts
-import crypto17 from "crypto";
 var app = (0, import_express7.default)();
 app.set("trust proxy", 1);
-app.disable("x-powered-by");
-app.use((req, res, next) => {
-  const host = (req.headers.host || "").toLowerCase();
-  const forwardedProto = String(req.headers["x-forwarded-proto"] || "").split(",")[0].trim();
-  if (host === "www.scholar.name" || forwardedProto === "http") {
-    const targetHost = host === "www.scholar.name" ? "scholar.name" : host;
-    return res.redirect(301, `https://${targetHost}${req.originalUrl}`);
-  }
-  next();
-});
 app.use(import_express7.default.json());
 app.use(import_express7.default.urlencoded({ extended: true }));
 app.use((_req, res, next) => {
@@ -113664,26 +113336,10 @@ app.use((_req, res, next) => {
   res.setHeader("X-Content-Type-Options", "nosniff");
   res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
   res.setHeader("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
-  res.setHeader("Content-Security-Policy", "frame-ancestors 'self'; base-uri 'self'; object-src 'none'");
-  res.setHeader(
-    "Content-Security-Policy-Report-Only",
-    [
-      "default-src 'self'",
-      "script-src 'self' https://www.googletagmanager.com",
-      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-      "font-src 'self' https://fonts.gstatic.com data:",
-      "img-src 'self' data: blob: https:",
-      "connect-src 'self' https://www.google-analytics.com https://*.google-analytics.com https://*.analytics.google.com",
-      "frame-ancestors 'self'",
-      "base-uri 'self'",
-      "object-src 'none'"
-    ].join("; ")
-  );
   next();
 });
-var sessionSecret = process.env.SESSION_SECRET || crypto17.randomBytes(48).toString("hex");
 if (!process.env.SESSION_SECRET) {
-  console.error("\u26A0\uFE0F  WARNING: SESSION_SECRET not set \u2014 using a random per-process secret; all sessions will reset on restart. Set SESSION_SECRET.");
+  console.error("\u26A0\uFE0F  WARNING: SESSION_SECRET not set \u2014 using insecure fallback. Set SESSION_SECRET env var ASAP!");
 }
 var PgSession2 = (0, import_connect_pg_simple.default)(import_express_session.default);
 app.use((0, import_express_session.default)({
@@ -113692,7 +113348,7 @@ app.use((0, import_express_session.default)({
     tableName: "sessions",
     createTableIfMissing: true
   }),
-  secret: sessionSecret,
+  secret: process.env.SESSION_SECRET || "research-profile-admin-secret-key",
   resave: false,
   saveUninitialized: false,
   proxy: true,
@@ -113733,7 +113389,7 @@ app.use((req, res, next) => {
   await seedThemesIfEmpty();
   app.use((err, _req, res, _next) => {
     const status = err.status || err.statusCode || 500;
-    const message = status < 500 ? err.message || "Bad Request" : "Internal Server Error";
+    const message = err.message || "Internal Server Error";
     res.status(status).json({ message });
     console.error("Unhandled route error:", err);
   });

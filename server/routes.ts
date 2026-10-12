@@ -15,14 +15,13 @@ import tenantRouter from "./tenantRoutes";
 import researcherRouter from "./researcherRoutes";
 import checkoutRouter from "./checkoutRoutes";
 import { tenantResolver } from "./tenantMiddleware";
-import { getTenantAccessMessage, getPublicAccessState, tenantIsPubliclyVisible } from "./billing";
+import { getTenantAccessMessage, getTenantAccessState, tenantHasServiceAccess } from "./billing";
 import fetch from "node-fetch";
 import nodemailer from "nodemailer";
 import { runScheduledSync } from "./services/syncScheduler";
 import { checkDatabaseHealth } from "./dbHealth";
 import { pool } from "./db";
 import { renderIndexHtml } from "./renderIndexHtml";
-import { getSitemapRoutes, SITE_ORIGIN } from "@shared/siteMeta";
 import { titleCaseName } from "@shared/formatName";
 
 type PublicProfileClaimState = "unclaimed" | "active" | "inactive" | "orphaned" | "database_unavailable";
@@ -692,15 +691,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     return { data: await request, cacheStatus: coalesced ? "COALESCED" : "MISS" };
   };
 
-  // Single gate for anything that exposes researcher-authored profile content
-  // (bio, photo, email, CV) to the public: the profile must be marked public
-  // AND its tenant must be paid/trialing AND its ownership claim approved.
-  const isProfilePubliclyVisible = async (profile: { isPublic: boolean | null; tenantId: string | null } | null | undefined) => {
-    if (!profile?.isPublic || !profile.tenantId) return false;
-    const tenant = await storage.getTenant(profile.tenantId).catch(() => undefined);
-    return !!tenant && tenantIsPubliclyVisible(tenant);
-  };
-
   const sendPreviewResponse = async (
     req: Request,
     res: Response,
@@ -740,18 +730,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // traffic is far too low for this to be a performance concern.
   app.get('/sitemap.xml', async (_req, res) => {
     const today = new Date().toISOString().slice(0, 10);
-    const staticUrls = getSitemapRoutes().map((r) => ({
-      loc: `${SITE_ORIGIN}${r.path}`,
-      priority: r.priority,
-      changefreq: r.changefreq,
-    }));
+    const staticUrls: Array<{ loc: string; priority: string; changefreq: string }> = [
+      { loc: "https://scholar.name/", priority: "1.0", changefreq: "weekly" },
+      { loc: "https://scholar.name/features", priority: "0.8", changefreq: "monthly" },
+      { loc: "https://scholar.name/pricing", priority: "0.8", changefreq: "monthly" },
+      { loc: "https://scholar.name/faq", priority: "0.6", changefreq: "monthly" },
+      { loc: "https://scholar.name/contact", priority: "0.6", changefreq: "monthly" },
+      { loc: "https://scholar.name/blog", priority: "0.7", changefreq: "weekly" },
+      { loc: "https://scholar.name/blog/google-scholar-vs-scholar-name", priority: "0.6", changefreq: "monthly" },
+      { loc: "https://scholar.name/blog/what-is-h-index", priority: "0.6", changefreq: "monthly" },
+      { loc: "https://scholar.name/blog/how-to-create-academic-portfolio", priority: "0.6", changefreq: "monthly" },
+      { loc: "https://scholar.name/blog/best-website-builders-researchers", priority: "0.6", changefreq: "monthly" },
+      { loc: "https://scholar.name/blog/academic-cv-vs-research-portfolio", priority: "0.6", changefreq: "monthly" },
+      { loc: "https://scholar.name/privacy", priority: "0.3", changefreq: "monthly" },
+      { loc: "https://scholar.name/terms", priority: "0.3", changefreq: "monthly" },
+    ];
 
     const tenantUrls: Array<{ loc: string; priority: string; changefreq: string }> = [];
     try {
       if (pool) {
         const tenants = await storage.getAllTenants();
         for (const tenant of tenants) {
-          if (!tenantIsPubliclyVisible(tenant)) continue;
+          if (!tenantHasServiceAccess(tenant)) continue;
           const profile = await storage.getResearcherProfileByTenant(tenant.id).catch(() => null);
           if (!profile?.isPublic || !profile.openalexId) continue;
           const domains = await storage.getDomainsByTenant(tenant.id).catch(() => []);
@@ -787,10 +787,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/researcher/:openalexId', async (req, res, next) => {
     try {
       const { openalexId } = req.params;
-      const storedProfile = pool ? await storage.getResearcherProfileByOpenalexId(openalexId).catch(() => null) : null;
-      // Unapproved/expired profiles render like any unclaimed preview — their
-      // bio and photo must not leak into link previews.
-      const profile = storedProfile && (await isProfilePubliclyVisible(storedProfile)) ? storedProfile : null;
+      const profile = pool ? await storage.getResearcherProfileByOpenalexId(openalexId).catch(() => null) : null;
       const researcherData = await storage.getOpenalexData(openalexId, 'researcher').catch(() => null);
       let liveResearcher: any = researcherData?.data;
       if (!liveResearcher) {
@@ -815,9 +812,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         image,
         url: `https://scholar.name/researcher/${openalexId}`,
         type: 'profile',
-        // Previews exist for every OpenAlex author; only index profiles a
-        // researcher has actually claimed and published.
-        noindex: !profile,
       });
       res.set('Content-Type', 'text/html');
       res.send(html);
@@ -844,7 +838,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       if (!req.tenant || req.isMarketingSite) return next();
       const profile = await storage.getResearcherProfileByTenant(req.tenant.id).catch(() => null);
-      if (!profile || !profile.openalexId || !profile.isPublic || !tenantIsPubliclyVisible(req.tenant)) return next();
+      if (!profile || !profile.openalexId || !profile.isPublic) return next();
 
       const researcherData = await storage.getOpenalexData(profile.openalexId, 'researcher').catch(() => null);
       const liveResearcher: any = researcherData?.data;
@@ -956,7 +950,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      const accessState = getPublicAccessState(tenant);
+      const accessState = getTenantAccessState(tenant);
 
       // Get the researcher profile for this tenant
       const profile = await storage.getResearcherProfileByTenant(tenant.id);
@@ -998,7 +992,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "No tenant found for this domain" });
       }
 
-      const accessState = getPublicAccessState(tenant);
+      const accessState = getTenantAccessState(tenant);
       const profile = await storage.getResearcherProfileByTenant(tenant.id);
 
       if (!profile || !profile.openalexId) {
@@ -1009,7 +1003,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      if (!tenantIsPubliclyVisible(tenant) || !profile.isPublic) {
+      if (!tenantHasServiceAccess(tenant) || !profile.isPublic) {
         return sendPreviewResponse(req, res, profile.openalexId, "inactive", accessState);
       }
 
@@ -1088,8 +1082,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return sendPreviewResponse(req, res, openalexId, "orphaned");
       }
 
-      const accessState = getPublicAccessState(tenant);
-      if (!profile.isPublic || !tenantIsPubliclyVisible(tenant)) {
+      const accessState = getTenantAccessState(tenant);
+      if (!profile.isPublic || !tenantHasServiceAccess(tenant)) {
         return sendPreviewResponse(req, res, openalexId, "inactive", accessState);
       }
 
@@ -1702,8 +1696,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const profile = await storage.getResearcherProfileByOpenalexId(openalexId);
       const tenant = (req as any).tenant;
 
-      // Allow access if: profile is publicly visible OR request comes from a tenant site with matching profile
-      const isAuthorized = profile && ((await isProfilePubliclyVisible(profile)) || (tenant && profile.tenantId === tenant.id));
+      // Allow access if: profile is public OR request comes from a tenant site with matching profile
+      const isAuthorized = profile && (profile.isPublic || (tenant && profile.tenantId === tenant.id));
 
       if (profile && !isAuthorized) {
         return res.status(404).json({ message: "Researcher not found or not public" });
@@ -1789,9 +1783,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { openalexId } = req.params;
 
-      // Get researcher profile (must be publicly visible)
+      // Get researcher profile (must be public)
       const profile = await storage.getResearcherProfileByOpenalexId(openalexId);
-      if (!profile || !(await isProfilePubliclyVisible(profile))) {
+      if (!profile || !profile.isPublic) {
         return res.status(404).json({ message: "Researcher not found or not public" });
       }
 

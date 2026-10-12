@@ -380,7 +380,6 @@ export class DatabaseStorage implements IStorage {
         lastName: users.lastName,
         profileImageUrl: users.profileImageUrl,
         isActive: users.isActive,
-        emailVerifiedAt: users.emailVerifiedAt,
         createdAt: users.createdAt,
         updatedAt: users.updatedAt,
       })
@@ -1082,11 +1081,6 @@ export class DatabaseStorage implements IStorage {
         trialEndsAt: null,
       });
       if (metadata?.openalexId) {
-        const currentProfile = await this.getResearcherProfileByTenant(existingUser.tenantId);
-        if (currentProfile?.openalexId !== metadata.openalexId) {
-          // A different author than the one already reviewed — needs review again.
-          await this.updateTenant(existingUser.tenantId, { claimApprovedAt: null });
-        }
         await this.updateTenantProfile(existingUser.tenantId, {
           openalexId: metadata.openalexId,
           currentAffiliation: metadata.affiliation,

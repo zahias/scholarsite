@@ -40,9 +40,7 @@ jobs:
             git config gc.autoDetach false
             git fetch --depth 1 origin main
             git reset --hard origin/main
-            # Never let clean touch runtime data, even if A2_PATH is the app
-            # directory itself (uploads are also gitignored for the same reason).
-            git clean -fd -e uploads/ -e public/uploads/ -e backups/ -e .env
+            git clean -fd
             
             echo "📋 Syncing production files..."
             echo "🧼 Removing stale runtime artifacts..."
